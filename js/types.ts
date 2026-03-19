@@ -23,15 +23,80 @@ export interface VsAttrBonus {
   atk:  number;
 }
 
+/** @deprecated Use CardEffectBlock instead. Will be removed after migration. */
 export interface CardEffect {
   trigger?:           EffectTrigger;
   apply?:             (engine: GameEngine, owner: Owner, targetInfo?: unknown) => unknown;
-  // Passive flags — read into FieldCard at construction time
   piercing?:          boolean;
   cannotBeTargeted?:  boolean;
   canDirectAttack?:   boolean;
   vsAttrBonus?:       VsAttrBonus;
   phoenixRevival?:    boolean;
+}
+
+// ── Data-Driven Effect System ───────────────────────────────
+
+/** Dynamic value expression — allows effects to reference runtime values */
+export type ValueExpr =
+  | number
+  | { from: 'attacker.effectiveATK'; multiply: number; round: 'floor' | 'ceil' };
+
+/** Discriminated union of all effect actions */
+export type EffectDescriptor =
+  // Damage & healing
+  | { type: 'dealDamage';          target: 'opponent' | 'self'; value: ValueExpr }
+  | { type: 'gainLP';             target: 'opponent' | 'self'; value: number }
+  // Card draw
+  | { type: 'draw';               target: 'self' | 'opponent'; count: number }
+  // Field buffs/debuffs
+  | { type: 'buffAtkRace';        race: Race;      value: number }
+  | { type: 'buffAtkAttr';        attr: Attribute;  value: number }
+  | { type: 'debuffAllOpp';       atkD: number; defD: number }
+  // Bounce
+  | { type: 'bounceStrongestOpp' }
+  // Search
+  | { type: 'searchDeckToHand';   attr: Attribute }
+  // Targeted stat modification
+  | { type: 'tempAtkBonus';       target: 'ownMonster' | 'oppMonster'; value: number }
+  | { type: 'permAtkBonus';       target: 'ownMonster' | 'oppMonster'; value: number; attrFilter?: Attribute }
+  // Graveyard
+  | { type: 'reviveFromGrave' }
+  // Trap signals
+  | { type: 'cancelAttack' }
+  | { type: 'destroySummonedIf';  minAtk: number }
+  // Passive flags
+  | { type: 'passive_piercing' }
+  | { type: 'passive_untargetable' }
+  | { type: 'passive_directAttack' }
+  | { type: 'passive_vsAttrBonus'; attr: Attribute; atk: number }
+  | { type: 'passive_phoenixRevival' };
+
+/** Context passed to effect implementations at runtime */
+export interface EffectContext {
+  engine:       GameEngine;
+  owner:        Owner;
+  /** The targeted FieldCard (for targeted spells/traps) */
+  targetFC?:    FieldCard;
+  /** The targeted CardData (for fromGrave spells) */
+  targetCard?:  CardData;
+  /** The attacking FieldCard (for onAttack traps) */
+  attacker?:    FieldCard;
+  /** The defending FieldCard */
+  defender?:    FieldCard;
+  /** The FieldCard that was just summoned (for onOpponentSummon traps) */
+  summonedFC?:  FieldCard;
+}
+
+/** Signal returned by effect execution — controls engine flow */
+export interface EffectSignal {
+  cancelAttack?:    boolean;
+  destroySummoned?: boolean;
+}
+
+/** Data-driven effect block — replaces CardEffect */
+export interface CardEffectBlock {
+  trigger:    EffectTrigger | TrapTrigger;
+  actions:    EffectDescriptor[];
 }
 
 // ── Card ────────────────────────────────────────────────────
@@ -47,7 +112,7 @@ export interface CardData {
   atk?:         number;
   def?:         number;
   description:  string;
-  effect?:      CardEffect;
+  effect?:      CardEffect | CardEffectBlock;
   // Spell / Trap extras
   spellType?:   SpellType;
   trapTrigger?: TrapTrigger;

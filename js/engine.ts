@@ -9,7 +9,12 @@
 //
 import { CARD_DB, TYPE, ATTR, RACE, RARITY, FUSION_RECIPES, OPPONENT_CONFIGS, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion } from './cards.js';
 import { Progression } from './progression.js';
-import type { Owner, Phase, Position, CardData, CardEffect, GameState, PlayerState, UICallbacks, OpponentConfig, VsAttrBonus } from './types.js';
+import type { Owner, Phase, Position, CardData, CardEffect, CardEffectBlock, GameState, PlayerState, UICallbacks, OpponentConfig, VsAttrBonus } from './types.js';
+
+/** Type guard: returns true if the effect uses the legacy apply() pattern */
+function isLegacyEffect(e: CardEffect | CardEffectBlock): e is CardEffect {
+  return 'apply' in e || !('actions' in e);
+}
 
 export const AetherialClash = {
   debug: false,
@@ -132,7 +137,7 @@ export class FieldCard {
     this.permDEFBonus = 0;
     this.phoenixRevived = false;
     // passive flags from effect
-    if(card.effect && card.effect.trigger==='passive'){
+    if(card.effect && card.effect.trigger==='passive' && isLegacyEffect(card.effect)){
       this.piercing        = card.effect.piercing        || false;
       this.cannotBeTargeted= card.effect.cannotBeTargeted|| false;
       this.canDirectAttack = card.effect.canDirectAttack || false;
