@@ -654,24 +654,22 @@ export class GameEngine {
     for(let i=0;i<5;i++){
       const fst = traps[i];
       if(fst && fst.card.type === TYPE.TRAP && fst.faceDown && !fst.used && fst.card.trapTrigger === triggerType){
-        // ask player
-        const activate = await this.ui.prompt({
+        // Race UI prompt against an 8-second timeout so the game never hangs
+        // if the modal is closed or the promise never resolves.
+        const timeout = new Promise<boolean>(resolve => setTimeout(() => resolve(false), 8000));
+        const activate = await Promise.race([this.ui.prompt({
           title: 'Falle aktivieren?',
           cardId: fst.card.id,
           message: `${fst.card.name}: ${fst.card.description}`,
           yes: 'Ja, aktivieren!',
           no:  'Nein, überspringen'
-        });
+        }), timeout]);
         if(activate){
           return this.activateTrapFromField('player', i, ...args);
         }
       }
     }
     return null;
-  }
-
-  _checkOpponentTrap(triggerType, fc){
-    // simplified: AI doesn't interactively trigger traps; they are activated by AI logic
   }
 
   // ───────── Phase management ──────────────────────────────
@@ -688,13 +686,16 @@ export class GameEngine {
     }
   }
 
-  endTurn(){
-    // clear temp buffs
-    ['player','opponent'].forEach(own => {
-      this.state[own].field.monsters.forEach(fc => {
-        if(fc) { fc.tempATKBonus = 0; fc.hasAttacked = false; fc.summonedThisTurn = false; }
-      });
+  _resetMonsterFlags(owner: Owner){
+    this.state[owner].field.monsters.forEach(fc => {
+      if(fc){ fc.tempATKBonus = 0; fc.hasAttacked = false; fc.summonedThisTurn = false; }
     });
+  }
+
+  endTurn(){
+    // Clear only the current player's per-turn flags.
+    // The opponent's flags are cleared by _aiTurn at the end of the AI's turn.
+    this._resetMonsterFlags('player');
 
     // reset per-turn summon limit
     this.state.player.normalSummonUsed   = false;
@@ -938,7 +939,7 @@ export class GameEngine {
     await this._delay(300);
 
     // clear ai temp buffs
-    ai.field.monsters.forEach(fc => { if(fc) { fc.tempATKBonus = 0; fc.hasAttacked = false; fc.summonedThisTurn = false; }});
+    this._resetMonsterFlags('opponent');
     while(ai.hand.length > 8) ai.hand.shift();
 
     // switch back to player

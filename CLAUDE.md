@@ -1,8 +1,18 @@
 # Aetherial Clash — Codeüberblick für KI-Sessions
 
-Ein browserbasiertes 1v1-Kartenspiel (Yu-Gi-Oh-Stil). Kein Build-Step, kein Framework — reines Vanilla-JS/HTML/CSS.
+Ein browserbasiertes 1v1-Kartenspiel (Yu-Gi-Oh-Stil).
+**Stack:** TypeScript + Vite (Build), Vitest (Tests). Kein Frontend-Framework.
 
-## Dateistruktur & Ladereihenfolge
+## Build & Dev
+
+```bash
+npm run dev        # Vite Dev-Server (http://localhost:5173)
+npm run build      # Produktions-Build → dist/
+npm test           # Vitest (einmalig)
+npm run test:watch # Vitest (Watch-Modus)
+```
+
+## Dateistruktur
 
 ```
 index.html          ← Alle Screens als div-Blöcke; kein Routing
@@ -10,23 +20,30 @@ css/
   style.css         ← Dark-Fantasy-Design, CSS-Variablen in :root
   progression.css   ← Shop, Sammlung, Deckbuilder
 js/
+  types.ts          ← Gemeinsame TypeScript-Typen (CardData, CollectionEntry, …)
   cards.js          ← Basis-Kartendatenbank (50 Karten, M001–M049 + Spells/Traps)
                        Konstanten: TYPE, ATTR, RACE, RARITY
                        FUSION_RECIPES[], PLAYER_DECK_IDS[], OPPONENT_CONFIGS[]
   cards-data.js     ← 672 weitere Karten (IIFE, erweitert CARD_DB global)
                        Effekt-Fabriken: fxBurnSummon, fxPiercing, fxCanDirectAttack, …
-  progression.js    ← localStorage-Wrapper (Münzen, Sammlung, Siege)
-  engine.js         ← GameEngine-Klasse: gesamte Spiellogik
+  progression.ts    ← localStorage-Wrapper (Münzen, Sammlung, Siege) — TypeScript
+  engine.ts         ← GameEngine-Klasse: gesamte Spiellogik — TypeScript
   screens.js        ← Gegner-/Starterdeckauswahl, Sammlungs-UI
   shop.js           ← Booster-Pack-System
-  ui.js             ← Rendering, Event-Handler, Animationen
+  ui-state.js       ← Globaler SEL-Zustand, resetSel(), getGame(), Deck-State
+  ui-render.js      ← Rendering: renderAll, buildFieldCard, renderHand, …
+  ui-events.js      ← Click-Handler, Action-Menü, Deckbuilder
+  ui-animations.js  ← Hover-Effekte, Angriffs-Animationen
+  ui.js             ← DOMContentLoaded-Einstiegspunkt, Keyboard-Shortcuts, globale Fehlerhandler
+  main.js           ← Vite-Einstiegspunkt; importiert alle Module in korrekter Reihenfolge
 ```
 
-**Wichtig:** `cards-data.js` läuft als IIFE und schreibt in das globale `CARD_DB`-Objekt, das `cards.js` anlegt.
+**Hinweis:** `cards.js` und `cards-data.js` sind noch reines JavaScript (keine Typen).
+`cards-data.js` läuft als IIFE und schreibt in das globale `CARD_DB`-Objekt, das `cards.js` anlegt.
 
 ---
 
-## Game Engine (`engine.js`)
+## Game Engine (`engine.ts`)
 
 ### Globales Debug-Objekt
 ```javascript
@@ -99,32 +116,25 @@ Karten-Traps haben zusätzlich `trapTrigger: 'onAttack'|'onOwnMonsterAttacked'|'
 
 ---
 
-## UI (`ui.js`)
+## UI (`ui-render.js`, `ui-events.js`, `ui-animations.js`, `ui-state.js`, `ui.js`)
 
-### Rendering
-```javascript
-renderAll(state)           // Kompletter Re-Render (wird von engine.ui.render() aufgerufen)
-renderMonsterZone(owner, monsters, state)
-renderSpellTrapZone(owner, spellTraps, state)
-renderHand(hand, state)
-buildFieldCard(fc, owner, zone, state)  // Gibt DOM-Element zurück
-```
+Die UI wurde aus einer einzelnen `ui.js` in vier Module aufgeteilt:
 
-### Selektions-State (global `SEL`)
+| Datei | Inhalt |
+|---|---|
+| `ui-state.js` | Globaler `SEL`-Zustand, `resetSel()`, `getGame()`, Deck-Hilfsfunktionen |
+| `ui-render.js` | `renderAll(state)`, `buildFieldCard()`, `renderHand()`, `renderMonsterZone()`, `renderSpellTrapZone()` |
+| `ui-events.js` | `onHandCardClick()`, `onAttackerSelect()`, `onDefenderSelect()`, Deckbuilder-Logik |
+| `ui-animations.js` | `_attachHover()`, Angriffs-Animationen |
+| `ui.js` | `DOMContentLoaded`-Einstiegspunkt, Keyboard-Shortcuts (B/E/T/1-5/Esc), globale Fehlerhandler |
+
+### Selektions-State (global `SEL`, in `ui-state.js`)
 ```javascript
 SEL.mode          // null | 'attack' | 'fusion1' | 'spell-target' | 'trap-target' | 'grave-target'
 SEL.attackerZone  // Zone des gewählten Angreifers
 SEL.handIndex     // Gewählte Handkarte
 resetSel()        // Alles zurücksetzen + CSS-Klassen entfernen
 ```
-
-### Wichtige Event-Funktionen
-| Funktion | Auslöser |
-|---|---|
-| `onAttackerSelect(zone, state)` | Spieler klickt eigenes Monster in Kampfphase |
-| `onDefenderSelect(zone)` | Spieler klickt Gegner-Monster als Ziel |
-| `onOwnFieldCardClick(fc, zone, state)` | Eigenes Monster in Hauptphase → Aktionsmenü |
-| `onHandCardClick(card, index, state)` | Handkarte klicken |
 
 ### UI-Callbacks (an GameEngine übergeben)
 ```javascript
@@ -179,7 +189,7 @@ fxPiercing()            fxUntargetable()      fxCanDirectAttack()
 
 ---
 
-## KI (`engine.js → _aiTurn()`)
+## KI (`engine.ts → _aiTurn()`)
 
 Prioritäten in der Kampfphase:
 1. Direktangriff wenn Spieler keine Monster hat
@@ -197,6 +207,19 @@ Prioritäten in der Kampfphase:
 2. Factory-Funktion in `cards-data.js` anlegen
 3. Falls passiv: Flag in `FieldCard` ergänzen
 
-**UI-Änderungen:** `ui.js` → `renderAll` / `buildFieldCard`; CSS in `style.css`
+**UI-Änderungen:** `ui-render.js` → `renderAll` / `buildFieldCard`; CSS in `style.css`
 
 **Neue KI-Logik:** `engine._aiTurn()` (async, ~Zeile 799)
+
+**Tests hinzufügen:** `tests/` — Vitest, jsdom-Environment. Vorhandene Dateien:
+- `engine.battle.test.js` — dealDamage, gainLP, drawCard
+- `engine.fieldcard.test.js` — FieldCard-Konstruktor, passive Flags
+- `progression.test.js` — localStorage-Wrapper
+
+---
+
+## Bekannte Probleme (offen)
+
+- `cards.js` / `cards-data.js` sind noch kein TypeScript → Engine-Grenze untypisiert
+- Test-Coverage sehr dünn: `attack()`, `performFusion()`, Effektsystem, Phasenübergänge fehlen
+- Event-Delegation fehlt in Shop/Collection/Screens → Listener akkumulieren bei Screen-Wechseln

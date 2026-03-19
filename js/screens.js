@@ -60,7 +60,6 @@ function _renderStarterGrid() {
       <div class="starter-race-name">${RACE_NAME[race] || race}</div>
       <div class="starter-race-style">${info.style}</div>
     `;
-    card.addEventListener('click', () => _selectStarterRace(race));
     grid.appendChild(card);
   });
 }
@@ -153,16 +152,6 @@ function _renderOpponentGrid(){
       ${isUnlocked ? `<div class="opp-portrait-record">${oppData.wins}W / ${oppData.losses}L</div>` : ''}
     `;
 
-    if(isUnlocked){
-      tile.addEventListener('click', () => _selectOpponent(cfg, oppData));
-    }
-
-    // Hover-Info (nur entsperrte)
-    if(isUnlocked){
-      tile.addEventListener('mouseenter', () => _showOppInfo(cfg));
-      tile.addEventListener('mouseleave', () => _clearOppInfo());
-    }
-
     grid.appendChild(tile);
   });
 }
@@ -190,7 +179,7 @@ function _clearOppInfo(){
   if(recEl)  recEl.textContent  = '';
 }
 
-function _selectOpponent(cfg, oppData){
+function _selectOpponent(cfg){
   // Direktstart ohne Confirmation für flüssige UX
   if(typeof startDuelVsOpponent === 'function'){
     startDuelVsOpponent(cfg.id);
@@ -259,6 +248,37 @@ function _renderCollection() {
 // ── Initialization ───────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Delegated listener for starter race grid — one handler for all race cards.
+  const starterGrid = document.getElementById('starter-race-grid');
+  if (starterGrid) {
+    starterGrid.addEventListener('click', e => {
+      const card = e.target.closest('.starter-race-card');
+      if (card) _selectStarterRace(card.dataset.race);
+    });
+  }
+
+  // Delegated listeners for opponent grid — click to select, hover for info panel.
+  const oppGrid = document.getElementById('opp-portrait-grid');
+  if (oppGrid) {
+    oppGrid.addEventListener('click', e => {
+      const tile = e.target.closest('.opp-portrait-tile:not(.locked)');
+      if (!tile) return;
+      const cfg = OPPONENT_CONFIGS.find(c => c.id === parseInt(tile.dataset.oppId, 10));
+      if (cfg) _selectOpponent(cfg);
+    });
+    oppGrid.addEventListener('mouseover', e => {
+      const tile = e.target.closest('.opp-portrait-tile:not(.locked)');
+      if (tile) {
+        const cfg = OPPONENT_CONFIGS.find(c => c.id === parseInt(tile.dataset.oppId, 10));
+        if (cfg) _showOppInfo(cfg);
+      }
+    });
+    oppGrid.addEventListener('mouseout', e => {
+      const tile = e.target.closest('.opp-portrait-tile');
+      if (tile && !tile.contains(e.relatedTarget)) _clearOppInfo();
+    });
+  }
+
   // Starterdeck-Bestätigungs-Button
   const confirmBtn = document.getElementById('btn-starter-confirm');
   if (confirmBtn) {

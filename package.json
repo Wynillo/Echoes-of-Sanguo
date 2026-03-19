@@ -1,8 +1,7 @@
 {
   "name": "game2",
   "version": "1.0.0",
-  "description": "Ein browser-basiertes Sammelkartenspiel im Stil von **Yu-Gi-Oh! Forbidden Memories** – komplett mit Vanilla JavaScript, ohne Frameworks oder externe Abhängigkeiten.",
-  "main": "index.js",
+  "description": "Ein browser-basiertes Sammelkartenspiel im Stil von Yu-Gi-Oh! Forbidden Memories – TypeScript + Vite, ohne Frontend-Framework.",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",

@@ -1,11 +1,12 @@
 // ============================================================
 // AETHERIAL CLASH - Kartendatenbank
 // ============================================================
+import type { CardData, FusionRecipe, OpponentConfig, Attribute, Race, CardType, RarityLevel } from './types.js';
 
-export const ATTR = { FIRE: 'fire', WATER: 'water', EARTH: 'earth', WIND: 'wind', LIGHT: 'light', DARK: 'dark' };
-export const TYPE = { NORMAL: 'normal', EFFECT: 'effect', FUSION: 'fusion', SPELL: 'spell', TRAP: 'trap' };
+export const ATTR: Record<string, Attribute> = { FIRE: 'fire', WATER: 'water', EARTH: 'earth', WIND: 'wind', LIGHT: 'light', DARK: 'dark' };
+export const TYPE: Record<string, CardType> = { NORMAL: 'normal', EFFECT: 'effect', FUSION: 'fusion', SPELL: 'spell', TRAP: 'trap' };
 
-export const RACE = {
+export const RACE: Record<string, Race> = {
   FEUER:   'feuer',
   DRACHE:  'drache',
   FLUG:    'flug',
@@ -18,19 +19,19 @@ export const RACE = {
   WASSER:  'wasser',
 };
 
-export const RACE_NAME = {
+export const RACE_NAME: Record<string, string> = {
   feuer: 'Feuer', drache: 'Drache', flug: 'Flug', stein: 'Stein',
   pflanze: 'Pflanze', krieger: 'Krieger', magier: 'Magier',
   elfe: 'Elfe', daemon: 'Dämon', wasser: 'Wasser',
 };
 
-export const RACE_ICON = {
+export const RACE_ICON: Record<string, string> = {
   feuer: '🔥', drache: '🐲', flug: '🦅', stein: '🪨',
   pflanze: '🌿', krieger: '⚔️', magier: '🔮',
   elfe: '✨', daemon: '💀', wasser: '🌊',
 };
 
-export const RARITY = {
+export const RARITY: Record<string, RarityLevel> = {
   COMMON:     'common',
   UNCOMMON:   'uncommon',
   RARE:       'rare',
@@ -38,14 +39,14 @@ export const RARITY = {
   ULTRA_RARE: 'ultra_rare',
 };
 
-export const RARITY_NAME  = { common:'Common', uncommon:'Uncommon', rare:'Rare', super_rare:'Super Rare', ultra_rare:'Ultra Rare' };
-export const RARITY_COLOR = { common:'#aaa', uncommon:'#7ec8e3', rare:'#f5c518', super_rare:'#c084fc', ultra_rare:'#f97316' };
+export const RARITY_NAME:  Record<string, string> = { common:'Common', uncommon:'Uncommon', rare:'Rare', super_rare:'Super Rare', ultra_rare:'Ultra Rare' };
+export const RARITY_COLOR: Record<string, string> = { common:'#aaa', uncommon:'#7ec8e3', rare:'#f5c518', super_rare:'#c084fc', ultra_rare:'#f97316' };
 
-export const ATTR_SYMBOL = { fire: '♨', water: '◎', earth: '◆', wind: '∿', light: '☀', dark: '☽' };
-export const ATTR_NAME   = { fire: 'Feuer', water: 'Wasser', earth: 'Erde', wind: 'Wind', light: 'Licht', dark: 'Dunkel' };
+export const ATTR_SYMBOL: Record<string, string> = { fire: '♨', water: '◎', earth: '◆', wind: '∿', light: '☀', dark: '☽' };
+export const ATTR_NAME:   Record<string, string> = { fire: 'Feuer', water: 'Wasser', earth: 'Erde', wind: 'Wind', light: 'Licht', dark: 'Dunkel' };
 
 // ── Kartendatenbank ──────────────────────────────────────────
-export const CARD_DB = {
+export const CARD_DB: Record<string, CardData> = {
 
   // ===== NORMALE MONSTER =====
   'M001': {
@@ -269,7 +270,7 @@ export const CARD_DB = {
     description:'Wähle ein Monster auf deinem Spielfeld. Es erhält bis zum Ende des Zuges +700 ATK.',
     spellType:'targeted', target:'ownMonster',
     effect:{ apply(gs, owner, target){
-      if(target) { target.tempATKBonus = (target.tempATKBonus||0) + 700; }
+      if(target) { (target as {tempATKBonus: number}).tempATKBonus = ((target as {tempATKBonus: number}).tempATKBonus||0) + 700; }
     }}
   },
   'S004': {
@@ -278,8 +279,8 @@ export const CARD_DB = {
     description:'Wähle ein DUNKEL-Monster auf deinem Spielfeld. Es erhält dauerhaft +500 ATK.',
     spellType:'targeted', target:'ownDarkMonster',
     effect:{ apply(gs, owner, target){
-      if(target && target.card.attribute === ATTR.DARK){
-        target.permATKBonus = (target.permATKBonus||0) + 500;
+      if(target && (target as {card: CardData}).card.attribute === ATTR.DARK){
+        (target as {permATKBonus: number}).permATKBonus = ((target as {permATKBonus: number}).permATKBonus||0) + 500;
       }
     }}
   },
@@ -296,7 +297,7 @@ export const CARD_DB = {
     description:'Beschwöre ein Monster aus deinem Friedhof als Spezialbeschwörung.',
     spellType:'fromGrave', target:'ownGraveMonster',
     effect:{ apply(gs, owner, target){
-      if(target) { gs.specialSummonFromGrave(owner, target); }
+      if(target) { gs.specialSummonFromGrave(owner, target as CardData); }
     }}
   },
 
@@ -308,7 +309,7 @@ export const CARD_DB = {
     trapTrigger:'onAttack',
     effect:{ apply(gs, owner, attacker){
       const opp = owner==='player'?'opponent':'player';
-      const dmg = Math.floor(attacker.effectiveATK() / 2);
+      const dmg = Math.floor((attacker as {effectiveATK(): number}).effectiveATK() / 2);
       gs.dealDamage(opp, dmg);
       gs.addLog(`Gegenexplosion! ${dmg} Schaden an ${opp==='player'?'den Spieler':'den Gegner'}!`);
       return { cancelAttack: true };
@@ -330,8 +331,9 @@ export const CARD_DB = {
     description:'Aktiviere wenn der Gegner ein Monster mit 1000+ ATK beschwört: Zerstöre es.',
     trapTrigger:'onOpponentSummon',
     effect:{ apply(gs, owner, summonedFieldCard){
-      if(summonedFieldCard && summonedFieldCard.card.atk >= 1000){
-        gs.addLog(`Fallenloch! ${summonedFieldCard.card.name} wird zerstört!`);
+      const fc = summonedFieldCard as {card: CardData} | null;
+      if(fc && fc.card.atk !== undefined && fc.card.atk >= 1000){
+        gs.addLog(`Fallenloch! ${fc.card.name} wird zerstört!`);
         return { destroySummoned: true };
       }
       return {};
@@ -343,13 +345,13 @@ export const CARD_DB = {
     description:'Aktiviere in der Kampfphase: Wähle ein Monster des Gegners – es verliert bis Kampfphasenende 1000 ATK.',
     trapTrigger:'manual', target:'oppMonster',
     effect:{ apply(gs, owner, target){
-      if(target){ target.tempATKBonus = (target.tempATKBonus||0) - 1000; }
+      if(target){ (target as {tempATKBonus: number}).tempATKBonus = ((target as {tempATKBonus: number}).tempATKBonus||0) - 1000; }
     }}
   },
 };
 
 // ── Fusionsrezepte ─────────────────────────────────────────
-export const FUSION_RECIPES = [
+export const FUSION_RECIPES: FusionRecipe[] = [
   { materials:['M001','M002'], result:'M027' },   // Lavakoloss
   { materials:['M003','M004'], result:'M028' },   // Sturmleviathan
   { materials:['M005','M020'], result:'M029' },   // Schattendracos
@@ -363,7 +365,7 @@ export const FUSION_RECIPES = [
 ];
 
 // ── Decks ──────────────────────────────────────────────────
-export const PLAYER_DECK_IDS = [
+export const PLAYER_DECK_IDS: string[] = [
   'M001','M001','M002','M002','M003','M003',
   'M004','M005','M006','M008',
   'M009','M019','M020','M022','M023',
@@ -371,7 +373,7 @@ export const PLAYER_DECK_IDS = [
   'T001','T003'
 ];
 
-export const OPPONENT_DECK_IDS = [
+export const OPPONENT_DECK_IDS: string[] = [
   'M002','M002','M003','M003','M004','M004',
   'M007','M007','M009','M009',
   'M024','M025','M026','M006',
@@ -380,21 +382,27 @@ export const OPPONENT_DECK_IDS = [
   'T002','T004'
 ];
 
-export function makeDeck(ids) {
-  return ids.map(id => Object.assign({}, CARD_DB[id]));
+export function makeDeck(ids: string[]): CardData[] {
+  return ids.map(id => {
+    const card = CARD_DB[id];
+    if (!card.effect) return { ...card };
+    // Deep-clone effect so deck copies don't share the same object references.
+    // Functions inside are shared (fine — they're never mutated), but own properties are isolated.
+    return { ...card, effect: { ...card.effect } };
+  });
 }
 
-export function checkFusion(id1, id2) {
+export function checkFusion(id1: string, id2: string): FusionRecipe | null {
   return FUSION_RECIPES.find(r =>
     (r.materials[0]===id1 && r.materials[1]===id2) ||
     (r.materials[0]===id2 && r.materials[1]===id1)
-  ) || null;
+  ) ?? null;
 }
 
 // ── Gegner-Konfigurationen ──────────────────────────────────
 // Jeder Gegner hat ein thematisches Deck aus den bestehenden Karten.
 // In Phase 3 werden diese mit den neuen Karten erweitert.
-export const OPPONENT_CONFIGS = [
+export const OPPONENT_CONFIGS: OpponentConfig[] = [
   {
     id: 1,
     name: 'Lehrling Finn',

@@ -43,7 +43,6 @@ const PACK_TYPES = {
 function _pickRarity(slot, packType) {
   if (packType === 'rarity') {
     // Seltenheitspack: alle Slots min. Rare, Slot 8-9 SR/UR erhöht
-    if (slot <= 5) return RARITY.RARE;
     if (slot <= 7) return RARITY.RARE;
     const r = Math.random();
     if (r < 0.15) return RARITY.ULTRA_RARE;
@@ -161,17 +160,7 @@ function _renderShopPacks() {
     grid.appendChild(tile);
   });
 
-  grid.querySelectorAll('.btn-buy-pack').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const pt = btn.dataset.pack;
-      let race = null;
-      if (pt === 'race') {
-        const sel = grid.querySelector('#shop-race-select');
-        race = sel ? sel.value : null;
-      }
-      _buyPack(pt, race);
-    });
-  });
+  // Listeners live on the grid via delegation — see DOMContentLoaded below.
 }
 
 function _buyPack(packType, race) {
@@ -247,6 +236,22 @@ function _renderPackCards(cards, preOpenCollection) {
 // ── Initialization ────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Delegated listener for pack-buy buttons — attached once so re-renders don't stack listeners.
+  const packGrid = document.getElementById('shop-pack-grid');
+  if (packGrid) {
+    packGrid.addEventListener('click', e => {
+      const btn = e.target.closest('.btn-buy-pack');
+      if (!btn || btn.disabled) return;
+      const pt = btn.dataset.pack;
+      let race = null;
+      if (pt === 'race') {
+        const sel = packGrid.querySelector('#shop-race-select');
+        race = sel ? sel.value : null;
+      }
+      _buyPack(pt, race);
+    });
+  }
+
   // Shop-Button im Titel
   const shopBtn = document.getElementById('btn-shop');
   if (shopBtn) shopBtn.addEventListener('click', showShop);

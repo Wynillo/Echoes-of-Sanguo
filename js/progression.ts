@@ -44,7 +44,12 @@ export const Progression = (() => {
   }
 
   function _save(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      // QuotaExceededError (storage full) or SecurityError (private browsing blocked)
+      console.error(`[Progression] Speichern fehlgeschlagen für "${key}":`, e);
+    }
   }
 
   function _defaultOpponents(): Record<number, OpponentRecord> {

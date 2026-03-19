@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // B: main → battle phase
     if(key === 'b'){
       const btn = document.getElementById('btn-main-to-battle');
-      if(btn && !btn.disabled){ resetSel(); game.advancePhase(); }
+      if(btn && !btn.disabled){ game.advancePhase(); resetSel(); }
       return;
     }
     // E: battle → end phase

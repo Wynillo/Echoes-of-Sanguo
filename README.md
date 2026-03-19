@@ -117,16 +117,19 @@ Game2/
 │   ├── style.css           – Haupt-Stylesheet (Dark-Fantasy-Design)
 │   └── progression.css     – Progression-Screens (Shop, Sammlung, Gegner, ...)
 └── js/
+    ├── types.ts            – Gemeinsame TypeScript-Typen
     ├── cards.js            – Basisdatenbank (50 Karten), Konstanten, Gegner-Configs
     ├── cards-data.js       – Erweiterte Datenbank (672 neue Karten, STARTER_DECKS)
-    ├── progression.js      – localStorage-Manager (Münzen, Sammlung, Gegner-Unlock)
-    ├── engine.js           – GameEngine: Spiellogik, KI, Kampf, Fusion, Effekte
+    ├── progression.ts      – localStorage-Manager (Münzen, Sammlung, Gegner-Unlock)
+    ├── engine.ts           – GameEngine: Spiellogik, KI, Kampf, Fusion, Effekte
     ├── screens.js          – Screen-Controller (Gegnerauswahl, Starter, Sammlung)
     ├── shop.js             – Booster-Pack-Logik + Shop-UI
-    └── ui.js               – Rendering, Event-Handler, Deckbuilder, Modale
+    ├── ui-state.js         – Globaler Selektions-State, getGame()
+    ├── ui-render.js        – Rendering (renderAll, buildFieldCard, …)
+    ├── ui-events.js        – Click-Handler, Action-Menü, Deckbuilder
+    ├── ui-animations.js    – Hover-Effekte, Angriffs-Animationen
+    └── ui.js               – DOMContentLoaded-Einstieg, Keyboard-Shortcuts
 ```
-
-**Script-Ladereihenfolge:** `cards.js` → `cards-data.js` → `progression.js` → `engine.js` → `screens.js` → `shop.js` → `ui.js`
 
 ---
 
@@ -159,11 +162,19 @@ Die KI spielt strategisch nach fester Priorität:
 
 ## Technologie
 
-- **Vanilla JavaScript** (ES6+, keine Frameworks)
-- **Keine Build-Tools** – direkt im Browser öffnen
+- **TypeScript** (kompiliert via Vite) + Vanilla JS für Kartendaten
+- **Vite** als Build-Tool und Dev-Server
+- **Vitest** als Test-Framework (jsdom-Umgebung)
 - **Kein Backend** – alles clientseitig via `localStorage`
 - Läuft in jedem modernen Browser
 
 ```bash
-# Starten: einfach index.html im Browser öffnen
+# Voraussetzungen: Node.js ≥ 18
+
+npm install          # Abhängigkeiten installieren
+
+npm run dev          # Dev-Server starten (http://localhost:5173)
+npm run build        # Produktions-Build → dist/
+npm test             # Tests einmalig ausführen
+npm run test:watch   # Tests im Watch-Modus
 ```

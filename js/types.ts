@@ -24,7 +24,7 @@ export interface VsAttrBonus {
 }
 
 export interface CardEffect {
-  trigger:            EffectTrigger;
+  trigger?:           EffectTrigger;
   apply?:             (engine: GameEngine, owner: Owner, targetInfo?: unknown) => unknown;
   // Passive flags — read into FieldCard at construction time
   piercing?:          boolean;
@@ -165,11 +165,12 @@ export declare class GameEngine {
   constructor(uiCallbacks: UICallbacks);
   state:   GameState | null;
   initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null): void;
-  getState(): GameState | null;
+  getState(): GameState;
   addLog(msg: string): void;
   dealDamage(target: Owner, amount: number): void;
   gainLP(target: Owner, amount: number): void;
   drawCard(owner: Owner, count?: number): void;
+  specialSummonFromGrave(owner: Owner, card: CardData): boolean;
   endTurn(): void;
   advancePhase(): void;
 }
