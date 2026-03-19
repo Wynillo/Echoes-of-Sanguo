@@ -39,30 +39,39 @@ export interface CardEffect {
 /** Dynamic value expression — allows effects to reference runtime values */
 export type ValueExpr =
   | number
-  | { from: 'attacker.effectiveATK'; multiply: number; round: 'floor' | 'ceil' };
+  | { from: 'attacker.effectiveATK'; multiply: number; round: 'floor' | 'ceil' }
+  | { from: 'summoned.atk';          multiply: number; round: 'floor' | 'ceil' };
+
+/** Contextual target for stat modifications */
+export type StatTarget = 'ownMonster' | 'oppMonster' | 'attacker' | 'defender' | 'summonedFC';
 
 /** Discriminated union of all effect actions */
 export type EffectDescriptor =
   // Damage & healing
   | { type: 'dealDamage';          target: 'opponent' | 'self'; value: ValueExpr }
-  | { type: 'gainLP';             target: 'opponent' | 'self'; value: number }
+  | { type: 'gainLP';             target: 'opponent' | 'self'; value: number | ValueExpr }
   // Card draw
   | { type: 'draw';               target: 'self' | 'opponent'; count: number }
-  // Field buffs/debuffs
+  // Field buffs/debuffs (onSummon monster effects)
   | { type: 'buffAtkRace';        race: Race;      value: number }
   | { type: 'buffAtkAttr';        attr: Attribute;  value: number }
   | { type: 'debuffAllOpp';       atkD: number; defD: number }
   // Bounce
   | { type: 'bounceStrongestOpp' }
+  | { type: 'bounceAttacker' }
+  | { type: 'bounceAllOppMonsters' }
   // Search
   | { type: 'searchDeckToHand';   attr: Attribute }
-  // Targeted stat modification
-  | { type: 'tempAtkBonus';       target: 'ownMonster' | 'oppMonster'; value: number }
-  | { type: 'permAtkBonus';       target: 'ownMonster' | 'oppMonster'; value: number; attrFilter?: Attribute }
+  // Targeted stat modification (spells + traps)
+  | { type: 'tempAtkBonus';       target: StatTarget; value: number }
+  | { type: 'permAtkBonus';       target: StatTarget; value: number; attrFilter?: Attribute }
+  | { type: 'tempDefBonus';       target: StatTarget; value: number }
+  | { type: 'permDefBonus';       target: StatTarget; value: number }
   // Graveyard
   | { type: 'reviveFromGrave' }
   // Trap signals
   | { type: 'cancelAttack' }
+  | { type: 'destroyAttacker' }
   | { type: 'destroySummonedIf';  minAtk: number }
   // Passive flags
   | { type: 'passive_piercing' }
@@ -89,8 +98,9 @@ export interface EffectContext {
 
 /** Signal returned by effect execution — controls engine flow */
 export interface EffectSignal {
-  cancelAttack?:    boolean;
-  destroySummoned?: boolean;
+  cancelAttack?:     boolean;
+  destroySummoned?:  boolean;
+  destroyAttacker?:  boolean;
 }
 
 /** Data-driven effect block — replaces CardEffect */
