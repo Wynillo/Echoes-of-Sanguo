@@ -28,14 +28,14 @@ export default function TitleScreen() {
           <span id="title-coin-display">{coins.toLocaleString('de-DE')}</span>
           <span className="coins-label">Äther-Münzen</span>
         </div>
-        <div className="title-buttons">
+        <div className="flex gap-4 justify-center flex-wrap mt-5">
           <button className="btn-primary"   onClick={startDuel}>⚔ Duell Beginnen</button>
           <button className="btn-secondary" onClick={() => setScreen('shop')}>🛒 Shop</button>
           <button className="btn-secondary" onClick={() => setScreen('collection')}>📚 Sammlung</button>
           <button className="btn-secondary" onClick={() => setScreen('deckbuilder')}>🃏 Deckbuilder</button>
           <button className="btn-secondary" onClick={() => openModal({ type: 'card-list' })}>📖 Kartenliste</button>
         </div>
-        <p className="title-hint">Baue Decks, fusioniere Monster und besiege deinen Gegner!</p>
+        <p className="mt-5 text-xs tracking-wide" style={{ color: 'var(--text-dim)' }}>Baue Decks, fusioniere Monster und besiege deinen Gegner!</p>
       </div>
     </div>
   );

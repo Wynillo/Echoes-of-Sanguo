@@ -2,6 +2,7 @@
 // Card — visual component that mirrors cardInnerHTML()
 // ============================================================
 import { ATTR_SYMBOL, RARITY_COLOR, RARITY_NAME } from '../../cards.js';
+import styles from './Card.module.css';
 
 const TYPE_LABEL: Record<string, string> = {
   normal: 'Normal', effect: 'Effekt', fusion: 'Fusion', spell: 'Zauber', trap: 'Falle',
@@ -34,30 +35,30 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
   const boosted    = fc && (fc.permATKBonus || fc.tempATKBonus);
 
   const raceBadge = card.race
-    ? <span className="card-race-badge" style={{ background: RACE_COLORS[card.race] || '#444' }}>
+    ? <span className={styles.raceBadge} style={{ background: RACE_COLORS[card.race] || '#444' }}>
         {RACE_ABBR[card.race] || card.race.slice(0, 4)}
       </span>
     : null;
 
   const rarityPip = card.rarity
-    ? <span className="card-rarity-pip"
+    ? <span className={styles.rarityPip}
             style={{ background: RARITY_COLOR[card.rarity] || '#aaa' }}
             title={RARITY_NAME[card.rarity] || ''} />
     : null;
 
   const statsEl = card.atk !== undefined
-    ? <div className={`card-stats${boosted ? ' stat-boosted' : ''}`}>
-        <div className="stat-row">
-          <span className="stat-label atk-label">ATK</span>
-          <span className="stat-val">{effATK}</span>
+    ? <div className={`${styles.stats}${boosted ? ` ${styles.statBoosted}` : ''}`}>
+        <div className={styles.statRow}>
+          <span className={`${styles.statLabel} ${styles.atkLabel}`}>ATK</span>
+          <span className={styles.statVal}>{effATK}</span>
         </div>
-        <div className="stat-row">
-          <span className="stat-label def-label">DEF</span>
-          <span className="stat-val">{effDEF}</span>
+        <div className={styles.statRow}>
+          <span className={`${styles.statLabel} ${styles.defLabel}`}>DEF</span>
+          <span className={styles.statVal}>{effDEF}</span>
         </div>
       </div>
-    : <div className="card-stats no-stats">
-        <span className="type-badge-big">{typeLabel}</span>
+    : <div className={`${styles.stats} ${styles.noStats}`}>
+        <span className={styles.typeBadgeBig}>{typeLabel}</span>
       </div>;
 
   const cls = [
@@ -70,16 +71,16 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
 
   return (
     <div className={cls}>
-      <div className="card-header">
-        <span className="card-name-short">{card.name}</span>
+      <div className={styles.header}>
+        <span className={styles.nameShort}>{card.name}</span>
         {raceBadge}
-        <span className="card-attr">{rarityPip}{attrSym}</span>
+        <span className={styles.attr}>{rarityPip}{attrSym}</span>
       </div>
-      <div className="card-art">
-        <div className="art-attr-symbol">{attrSym}</div>
-        <div className="type-badge">{typeLabel}</div>
+      <div className={styles.art}>
+        <div className={styles.artAttrSymbol}>{attrSym}</div>
+        <div className={styles.typeBadge}>{typeLabel}</div>
       </div>
-      <div className="card-level">{levelStars}</div>
+      <div className={styles.level}>{levelStars}</div>
       {statsEl}
     </div>
   );

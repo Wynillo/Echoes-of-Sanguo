@@ -72,7 +72,7 @@ export default function DeckbuilderScreen() {
       <div id="db-header">
         <div className="db-title">🃏 Deckbuilder</div>
         <div id="db-count">{currentDeck.length}/{MAX_DECK} Karten</div>
-        <div id="db-header-buttons">
+        <div className="ml-auto flex gap-2">
           <button
             id="btn-db-save"
             className="btn-primary"
