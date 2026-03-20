@@ -35,6 +35,23 @@ describe('FieldCard', () => {
     expect(card.atk).toBe(1000);
   });
 
+  it('deep-copies effect so mutations on one FieldCard do not affect another', () => {
+    const card = { ...baseCard, effect: { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 300 }] } };
+    const fc1 = new FieldCard(card);
+    const fc2 = new FieldCard(card);
+    fc1.card.effect.actions[0].value = 9999;
+    expect(fc2.card.effect.actions[0].value).toBe(300);
+    expect(card.effect.actions[0].value).toBe(300); // original also untouched
+  });
+
+  it('deep-copies effect so mutations on one FieldCard do not affect the source card', () => {
+    const card = { ...baseCard, effect: { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 500 }] } };
+    const fc = new FieldCard(card);
+    fc.card.effect.actions.push({ type: 'draw', target: 'self', count: 1 });
+    expect(card.effect.actions).toHaveLength(1);
+    expect(fc.card.effect.actions).toHaveLength(2);
+  });
+
   it('summonedThisTurn is true by default (summoning sickness)', () => {
     const fc = new FieldCard(baseCard);
     expect(fc.summonedThisTurn).toBe(true);
