@@ -4,6 +4,7 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }       from '../contexts/ModalContext.js';
 import { Progression }    from '../../progression.js';
+import styles from './SavePointScreen.module.css';
 
 export default function SavePointScreen() {
   const { navigateTo }     = useScreen();
@@ -32,20 +33,20 @@ export default function SavePointScreen() {
   }
 
   return (
-    <div id="save-point-screen">
+    <div className={styles.screen}>
       <div className="title-bg"></div>
-      <div className="save-point-content">
+      <div className={styles.content}>
         <div className="title-rune">★</div>
-        <h2 className="save-point-title">{t('save.headline')}</h2>
-        <div className="save-coins-bar">
+        <h2 className={styles.title}>{t('save.headline')}</h2>
+        <div className={styles.coinsBar}>
           <span className="coins-icon">◈</span>
-          <span className="save-coins-value">{coins.toLocaleString()}</span>
+          <span className={styles.coinsValue}>{coins.toLocaleString()}</span>
           <span className="coins-label">{t('common.coins')}</span>
         </div>
         {hasBackup && (
-          <p className="save-backup-warning">{t('save.backup_warning')}</p>
+          <p className={styles.backupWarning}>{t('save.backup_warning')}</p>
         )}
-        <div className="save-point-menu">
+        <div className={styles.menu}>
           <button className="btn-primary" onClick={handleSave}>
             {savedMsg ? t('save.btn_saved') : t('save.btn_save')}
           </button>

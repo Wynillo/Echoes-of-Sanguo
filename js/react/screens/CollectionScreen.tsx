@@ -7,6 +7,7 @@ import { CARD_DB, RARITY_COLOR } from '../../cards.js';
 import { Card }            from '../components/Card.js';
 import { attachHover }     from '../components/HoverPreview.js';
 import type { CardData } from '../../types.js';
+import styles from './CollectionScreen.module.css';
 
 const RACE_FILTER_BTNS = [
   { filter: 'all',     label: '🌐' },
@@ -41,27 +42,27 @@ export default function CollectionScreen() {
   if (rarityFilter !== 'all') allCards = allCards.filter(c => (c as any).rarity === rarityFilter);
 
   return (
-    <div id="collection-screen">
-      <div className="collection-header">
-        <h2 className="collection-title">{t('collection.title')}</h2>
-        <div className="collection-stats">
+    <div className={styles.screen}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>{t('collection.title')}</h2>
+        <div className={styles.stats}>
           <span id="collection-count">{t('collection.cards_count', { owned: ownedCount, total: totalCards })}</span>
         </div>
-        <button className="btn-secondary collection-back-btn" onClick={() => navigateTo('title')}>{t('collection.back')}</button>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('title')}>{t('collection.back')}</button>
       </div>
 
-      <div className="collection-filters">
+      <div className={styles.filters}>
         {RACE_FILTER_BTNS.map(({ filter, label }) => (
           <button
             key={filter}
-            className={`coll-filter-btn${raceFilter === filter ? ' active' : ''}`}
+            className={`${styles.filterBtn}${raceFilter === filter ? ` ${styles.active}` : ''}`}
             onClick={() => setRaceFilter(filter)}
           >
             {label}
           </button>
         ))}
         <select
-          className="coll-rarity-select"
+          className={styles.raritySelect}
           value={rarityFilter}
           onChange={e => setRarityFilter(e.target.value)}
         >
@@ -74,7 +75,7 @@ export default function CollectionScreen() {
         </select>
       </div>
 
-      <div id="collection-grid">
+      <div className={styles.grid}>
         {allCards.map(card => {
           const owned = countMap[card.id] || 0;
           const rarColor = (RARITY_COLOR as any)[(card as any).rarity] || '#aaa';
@@ -82,7 +83,7 @@ export default function CollectionScreen() {
             return (
               <div
                 key={card.id}
-                className="coll-card coll-card-owned"
+                className={`${styles.card} ${styles.cardOwned}`}
                 style={{ cursor: 'pointer' }}
                 ref={el => { if (el) attachHover(el, card, null); }}
                 onClick={() => openModal({ type: 'card-detail', card })}
@@ -92,15 +93,15 @@ export default function CollectionScreen() {
                 >
                   <Card card={card} small />
                 </div>
-                {owned > 1 && <div className="coll-card-count">×{owned}</div>}
-                <div className="coll-rarity-dot" style={{ background: rarColor }} />
+                {owned > 1 && <div className={styles.cardCount}>×{owned}</div>}
+                <div className={styles.rarityDot} style={{ background: rarColor }} />
               </div>
             );
           }
           return (
-            <div key={card.id} className="coll-card coll-unowned">
-              <div className="coll-unknown-label">???</div>
-              <div className="coll-card-meta" style={{ textAlign: 'center', opacity: 0.4 }}>
+            <div key={card.id} className={`${styles.card} ${styles.unowned}`}>
+              <div className={styles.unknownLabel}>???</div>
+              <div className={styles.cardMeta} style={{ textAlign: 'center', opacity: 0.4 }}>
                 {t(`cards.race_${(card as any).race}`) || ''}
               </div>
             </div>

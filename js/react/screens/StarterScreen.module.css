@@ -1,0 +1,94 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #0a1228 0%, #050a14 100%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  padding: 20px 16px 40px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.rune {
+  font-size: 2.5rem;
+  color: #c8a84b;
+  margin-bottom: 8px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.title {
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  letter-spacing: 3px;
+  color: #d0e0ff;
+  text-shadow: 0 0 20px #4060c080;
+  margin: 0 0 6px;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #7080a0;
+  margin: 0;
+}
+
+.raceCard {
+  background: #111828;
+  border: 2px solid #334;
+  border-radius: 10px;
+  padding: 14px 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.raceCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--race-color, #4060c0);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.raceCard:hover::before {
+  opacity: 0.12;
+}
+
+.raceCard:hover {
+  border-color: var(--race-color, #4060c0);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px var(--race-color, #4060c0)44;
+}
+
+.raceCard.selected {
+  border-color: var(--race-color, #4060c0);
+  box-shadow: 0 0 16px var(--race-color, #4060c0)88;
+}
+
+.raceIcon {
+  font-size: 2.2rem;
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.raceName {
+  font-size: 0.85rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: #c0d0e0;
+  position: relative;
+}
+
+.raceStyle {
+  font-size: 0.7rem;
+  color: #606880;
+  margin-top: 4px;
+  position: relative;
+}

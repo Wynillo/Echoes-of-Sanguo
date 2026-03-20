@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
@@ -6,8 +6,9 @@ import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB, RARITY_COLOR } from '../../cards.js';
 import { Progression }     from '../../progression.js';
 import { Card }            from '../components/Card.js';
-import { attachHover }     from '../components/HoverPreview.js';
+import { attachHover }     from '../components/hoverApi.js';
 import type { CardData }   from '../../types.js';
+import styles from './DeckbuilderScreen.module.css';
 
 const MAX_DECK = 40;
 const MAX_COPIES = 3;
@@ -58,24 +59,27 @@ export default function DeckbuilderScreen() {
     trap:   t('deckbuilder.type_label_trap'),
   };
 
-  const ownedIds = collection.length > 0
-    ? new Set(collection.map(e => e.id))
-    : null;
+  const { ownedIds, collectionCount } = useMemo(() => {
+    const ownedIds = collection.length > 0 ? new Set(collection.map(e => e.id)) : null;
+    const collectionCount: Record<string, number> = {};
+    collection.forEach(e => { collectionCount[e.id] = e.count; });
+    return { ownedIds, collectionCount };
+  }, [collection]);
 
-  const collectionCount: Record<string, number> = {};
-  collection.forEach(e => { collectionCount[e.id] = e.count; });
+  const copyMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    currentDeck.forEach(id => { map[id] = (map[id] || 0) + 1; });
+    return map;
+  }, [currentDeck]);
 
-  const copyMap: Record<string, number> = {};
-  currentDeck.forEach(id => { copyMap[id] = (copyMap[id] || 0) + 1; });
-
-  const allCards = (Object.values(CARD_DB) as CardData[]).filter(c =>
+  const allCards = useMemo(() => (Object.values(CARD_DB) as CardData[]).filter(c =>
     c.type !== 'fusion' &&
     (!ownedIds || ownedIds.has(c.id)) &&
     (typeFilter === 'all' || c.type === typeFilter) &&
     (raceFilter === 'all' || (c as any).race === raceFilter) &&
     (rarityFilter === 'all' || (c as any).rarity === rarityFilter) &&
     (!nameSearch || c.name.toLowerCase().includes(nameSearch.toLowerCase()))
-  );
+  ), [ownedIds, typeFilter, raceFilter, rarityFilter, nameSearch]);
 
   // Mark all visible cards as seen after mount
   useEffect(() => {
@@ -110,16 +114,18 @@ export default function DeckbuilderScreen() {
 
   const deckFull = currentDeck.length === MAX_DECK;
 
-  // Unique sorted card ids for deck panel
-  const seen = new Set<string>();
-  const orderedIds: string[] = [];
-  currentDeck.forEach(id => { if (!seen.has(id)) { seen.add(id); orderedIds.push(id); } });
+  const orderedIds = useMemo(() => {
+    const seen = new Set<string>();
+    const ids: string[] = [];
+    currentDeck.forEach(id => { if (!seen.has(id)) { seen.add(id); ids.push(id); } });
+    return ids;
+  }, [currentDeck]);
 
   return (
-    <div id="deckbuilder-screen">
-      <div id="db-header">
-        <div className="db-title">{t('deckbuilder.title')}</div>
-        <div id="db-count">{t('deckbuilder.cards_count', { current: currentDeck.length, max: MAX_DECK })}</div>
+    <div className={styles.screen}>
+      <div className={styles.header}>
+        <div className={styles.title}>{t('deckbuilder.title')}</div>
+        <div className={styles.count}>{t('deckbuilder.cards_count', { current: currentDeck.length, max: MAX_DECK })}</div>
         <div className="ml-auto flex gap-2">
           <button
             id="btn-db-save"
@@ -132,30 +138,30 @@ export default function DeckbuilderScreen() {
         </div>
       </div>
 
-      <div id="db-body" className={panelExpanded ? 'db-panel-expanded' : ''}>
-        <div id="db-deck-panel" className={panelExpanded ? 'db-expanded' : ''}>
+      <div className={`${styles.body}${panelExpanded ? ` ${styles.panelExpanded}` : ''}`}>
+        <div className={`${styles.deckPanel}${panelExpanded ? ` ${styles.expanded}` : ''}`}>
           <div
-            className="db-panel-title"
+            className={styles.panelTitle}
             id="db-panel-title-btn"
             onClick={() => setPanelExpanded(e => !e)}
           >
-            {t('deckbuilder.current_deck')} <span id="db-panel-arrow">{panelExpanded ? '❮' : '❯'}</span>
+            {t('deckbuilder.current_deck')} <span className={styles.panelArrow}>{panelExpanded ? '❮' : '❯'}</span>
           </div>
-          <div id="db-deck-list">
+          <div className={panelExpanded ? styles.deckListExpanded : styles.deckList}>
             {panelExpanded ? (
               orderedIds.map(id => {
                 const card  = (CARD_DB as any)[id] as CardData;
                 const count = copyMap[id] || 0;
                 return (
-                  <div key={id} className="db-deck-card-wrap" onClick={() => removeCard(id)}>
+                  <div key={id} className={styles.deckCardWrap} onClick={() => removeCard(id)}>
                     <div
                       className={`card ${card.type}-card attr-${(card as any).attribute || 'spell'}`}
                       ref={el => { if (el) attachHover(el, card, null); }}
                     >
                       <Card card={card} />
                     </div>
-                    <div className="db-copy-badge">×{count}</div>
-                    <div className="db-deck-rm-overlay">✕</div>
+                    <div className={styles.copyBadge}>×{count}</div>
+                    <div className={styles.deckRmOverlay}>✕</div>
                   </div>
                 );
               })
@@ -164,16 +170,16 @@ export default function DeckbuilderScreen() {
                 const card  = (CARD_DB as any)[id] as CardData;
                 const count = copyMap[id] || 0;
                 return (
-                  <div key={id} className="db-deck-row" onClick={() => removeCard(id)}>
+                  <div key={id} className={styles.deckRow} onClick={() => removeCard(id)}>
                     <div
-                      className={`card db-deck-row-mini ${card.type}-card attr-${(card as any).attribute || 'spell'}`}
+                      className={`card ${styles.deckRowMini} ${card.type}-card attr-${(card as any).attribute || 'spell'}`}
                       ref={el => { if (el) attachHover(el, card, null); }}
                     >
                       <Card card={card} />
                     </div>
-                    <span className="db-deck-row-name">{card.name}</span>
-                    <span className="db-deck-row-count">×{count}</span>
-                    <span className="db-deck-row-rm" title={t('deckbuilder.remove_hint')}>✕</span>
+                    <span className={styles.deckRowName}>{card.name}</span>
+                    <span className={styles.deckRowCount}>×{count}</span>
+                    <span className={styles.deckRowRm} title={t('deckbuilder.remove_hint')}>✕</span>
                   </div>
                 );
               })
@@ -181,30 +187,30 @@ export default function DeckbuilderScreen() {
           </div>
         </div>
 
-        <div id="db-collection-panel">
+        <div className={styles.collectionPanel}>
           {/* Filter row 1: type + zoom */}
-          <div id="db-filter-bar">
-            <div className="db-filter-group">
+          <div className={styles.filterBar}>
+            <div className={styles.filterGroup}>
               {TYPE_FILTERS.map(f => (
                 <button
                   key={f.key}
-                  className={`db-filter-btn${typeFilter === f.key ? ' active' : ''}`}
+                  className={`${styles.filterBtn}${typeFilter === f.key ? ` ${styles.active}` : ''}`}
                   onClick={() => setTypeFilter(f.key)}
                 >{f.label}</button>
               ))}
             </div>
-            <div className="db-filter-group db-race-filter">
+            <div className={styles.filterGroup}>
               {RACE_FILTERS.map(f => (
                 <button
                   key={f.key}
-                  className={`db-filter-btn db-race-btn${raceFilter === f.key ? ' active' : ''}`}
+                  className={`${styles.filterBtn} ${styles.raceBtn}${raceFilter === f.key ? ` ${styles.active}` : ''}`}
                   onClick={() => setRaceFilter(f.key)}
                 >{f.label}</button>
               ))}
             </div>
-            <div className="db-filter-group">
+            <div className={styles.filterGroup}>
               <select
-                className="db-rarity-select"
+                className={styles.raritySelect}
                 value={rarityFilter}
                 onChange={e => setRarityFilter(e.target.value)}
               >
@@ -216,26 +222,26 @@ export default function DeckbuilderScreen() {
                 <option value="ultra_rare">Ultra Rare</option>
               </select>
               <input
-                className="db-name-search"
+                className={styles.nameSearch}
                 type="text"
                 placeholder={t('deckbuilder.name_search')}
                 value={nameSearch}
                 onChange={e => setNameSearch(e.target.value)}
               />
             </div>
-            <div className="db-view-toggle">
+            <div className={styles.viewToggle}>
               <button
-                className={`db-view-btn${viewMode === 'large' ? ' active' : ''}`}
+                className={`${styles.viewBtn}${viewMode === 'large' ? ` ${styles.active}` : ''}`}
                 title={t('deckbuilder.view_large')}
                 onClick={() => setViewMode('large')}
               >⊞</button>
               <button
-                className={`db-view-btn${viewMode === 'small' ? ' active' : ''}`}
+                className={`${styles.viewBtn}${viewMode === 'small' ? ` ${styles.active}` : ''}`}
                 title={t('deckbuilder.view_small')}
                 onClick={() => setViewMode('small')}
               >⊟</button>
               <button
-                className={`db-view-btn${viewMode === 'table' ? ' active' : ''}`}
+                className={`${styles.viewBtn}${viewMode === 'table' ? ` ${styles.active}` : ''}`}
                 title={t('deckbuilder.view_table')}
                 onClick={() => setViewMode('table')}
               >☰</button>
@@ -244,7 +250,7 @@ export default function DeckbuilderScreen() {
 
           {/* Card grid — Large or Small */}
           {viewMode !== 'table' && (
-            <div id="db-collection-grid" className={viewMode === 'large' ? 'db-grid-large' : 'db-grid-small'}>
+            <div className={`${styles.collectionGrid}${viewMode === 'large' ? ` ${styles.gridLarge}` : ` ${styles.gridSmall}`}`}>
               {allCards.map(card => {
                 const copies = copyMap[card.id] || 0;
                 const atMax  = copies >= MAX_COPIES;
@@ -252,7 +258,7 @@ export default function DeckbuilderScreen() {
                 return (
                   <div
                     key={card.id}
-                    className={`db-card-wrap${atMax || full ? ' db-card-dimmed' : ''}`}
+                    className={`${styles.cardWrap}${atMax || full ? ` ${styles.cardDimmed}` : ''}`}
                     onClick={!atMax && !full ? () => addCard(card.id) : undefined}
                   >
                     <div
@@ -261,7 +267,7 @@ export default function DeckbuilderScreen() {
                     >
                       <Card card={card} small={viewMode === 'small'} />
                     </div>
-                    {copies > 0 && <div className="db-copy-badge">{copies}/3</div>}
+                    {copies > 0 && <div className={styles.copyBadge}>{copies}/3</div>}
                   </div>
                 );
               })}
@@ -270,8 +276,8 @@ export default function DeckbuilderScreen() {
 
           {/* Table view */}
           {viewMode === 'table' && (
-            <div id="db-collection-table-wrap">
-              <table className="db-table">
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
                 <thead>
                   <tr>
                     <th>{t('deckbuilder.table_nr')}</th>
@@ -296,13 +302,13 @@ export default function DeckbuilderScreen() {
                     return (
                       <tr
                         key={card.id}
-                        className={atMax || full ? 'db-table-row-dimmed' : ''}
+                        className={atMax || full ? styles.tableRowDimmed : ''}
                         onClick={!atMax && !full ? () => addCard(card.id) : undefined}
                         ref={el => { if (el) attachHover(el as any, card, null); }}
                       >
                         <td>
                           {card.id}
-                          {isNew(card.id) && <span className="db-new-badge">NEW</span>}
+                          {isNew(card.id) && <span className={styles.newBadge}>NEW</span>}
                         </td>
                         <td>
                           <span style={{ color: rarColor }}>
@@ -324,7 +330,7 @@ export default function DeckbuilderScreen() {
         </div>
       </div>
 
-      <div id="db-save-toast" className={toast ? '' : 'hidden'}>{t('deckbuilder.saved_toast')}</div>
+      {toast && <div className={styles.saveToast}>{t('deckbuilder.saved_toast')}</div>}
     </div>
   );
 }

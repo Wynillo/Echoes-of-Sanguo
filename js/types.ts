@@ -211,7 +211,7 @@ export declare class FieldCard {
   tempATKBonus:     number;
   permATKBonus:     number;
   permDEFBonus:     number;
-  phoenixRevived:   boolean;
+  phoenixRevivalUsed: boolean;
   piercing:         boolean;
   cannotBeTargeted: boolean;
   canDirectAttack:  boolean;
@@ -230,7 +230,7 @@ export declare class FieldSpellTrap {
 
 export declare class GameEngine {
   constructor(uiCallbacks: UICallbacks);
-  state:   GameState | null;
+  state:   GameState;
   initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null): void;
   getState(): GameState;
   addLog(msg: string): void;

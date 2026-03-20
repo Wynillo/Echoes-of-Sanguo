@@ -3,7 +3,7 @@
 // 672 neue Karten + STARTER_DECKS
 // Lädt nach cards.ts und erweitert CARD_DB global.
 // ============================================================
-import type { CardEffectBlock, CardData, RarityLevel } from './types.js';
+import type { Attribute, Race, CardEffectBlock, CardData, RarityLevel } from './types.js';
 import { CARD_DB, RARITY, RACE, ATTR, TYPE, FUSION_RECIPES } from './cards.js';
 
 // Wraps every CARD_DB write — warns in the console if an ID is reused.
@@ -36,7 +36,7 @@ function _addCard(id: string, def: CardData): void {
   function fxCanDirectAttack(): CardEffectBlock { return { trigger:'passive', actions:[{ type:'passive_directAttack' }] }; }
 
   // ── Rassen-Attribut-Map ─────────────────────────────────────
-  const RACE_ATTR: Record<string, string> = {
+  const RACE_ATTR: Record<string, Attribute> = {
     feuer:'fire', drache:'wind', flug:'wind', stein:'earth',
     pflanze:'earth', krieger:'light', magier:'dark', elfe:'light',
     daemon:'dark', wasser:'water',
@@ -210,7 +210,7 @@ function _addCard(id: string, def: CardData): void {
     krieger:'NKR', magier:'NMA', elfe:'NEL', daemon:'NDA', wasser:'NWA',
   };
 
-  const RACE_REF: Record<string, string> = {
+  const RACE_REF: Record<string, Race> = {
     feuer:RACE.FEUER, drache:RACE.DRACHE, flug:RACE.FLUG, stein:RACE.STEIN,
     pflanze:RACE.PFLANZE, krieger:RACE.KRIEGER, magier:RACE.MAGIER,
     elfe:RACE.ELFE, daemon:RACE.DAEMON, wasser:RACE.WASSER,
@@ -470,11 +470,11 @@ function _addCard(id: string, def: CardData): void {
     ['EWA20','Ozeankaiser',     9,'ultra_rare',3000,2600,'[Passiv] Kann nicht als Ziel gewählt werden.', fxUntargetable()],
   ];
 
-  const EFFECT_ATTR: Record<string, string> = {
+  const EFFECT_ATTR: Record<string, Attribute> = {
     EFE:'fire', EDR:'wind', EFL:'wind', EST:'earth', EPF:'earth',
     EKR:'light', EMA:'dark', EEL:'light', EDA:'dark', EWA:'water',
   };
-  const EFFECT_RACE: Record<string, string> = {
+  const EFFECT_RACE: Record<string, Race> = {
     EFE:RACE.FEUER, EDR:RACE.DRACHE, EFL:RACE.FLUG, EST:RACE.STEIN, EPF:RACE.PFLANZE,
     EKR:RACE.KRIEGER, EMA:RACE.MAGIER, EEL:RACE.ELFE, EDA:RACE.DAEMON, EWA:RACE.WASSER,
   };
@@ -491,7 +491,7 @@ function _addCard(id: string, def: CardData): void {
   });
 
   // ── 20 neue Fusionsmonster ─────────────────────────────────
-  const FUSION_NEW: [string, string, number, RarityLevel, string, string, number, number, string, CardEffectBlock][] = [
+  const FUSION_NEW: [string, string, number, RarityLevel, Attribute, Race, number, number, string, CardEffectBlock][] = [
     // Feuer
     ['FFE1','Feuerkoloss',      7,'super_rare',ATTR.FIRE,  RACE.FEUER,   2400,1900, '[Fusion] Bei Beschwörung: Alle Feuer-Monster erhalten +400 ATK. Gegner verliert 800 LP.', fxBuffRaceSummon(RACE.FEUER,400)],
     ['FFE2','Infernodrakon',    8,'ultra_rare',ATTR.FIRE,  RACE.FEUER,   2800,2200, '[Fusion] Bei Beschwörung: Gegner verliert 2000 LP.', fxBurnSummon(2000)],
@@ -557,7 +557,7 @@ function _addCard(id: string, def: CardData): void {
   );
 
   // ── 70 Zauberkarten (7 pro Rasse) ────────────────────────────
-  const SPELL_ENTRIES: [string, string, string, RarityLevel, string, CardEffectBlock][] = [
+  const SPELL_ENTRIES: [string, string, Race, RarityLevel, string, CardEffectBlock][] = [
     // Feuer
     ['ZFE1','Flammenangriff',  RACE.FEUER,   'common',     'Füge dem Gegner 600 Schadenspunkte zu.',                             { trigger:'onSummon', actions:[{ type:'dealDamage', target:'opponent', value:600 }] }],
     ['ZFE2','Lavastrom',       RACE.FEUER,   'uncommon',   'Füge dem Gegner 1000 Schadenspunkte zu.',                            { trigger:'onSummon', actions:[{ type:'dealDamage', target:'opponent', value:1000 }] }],
@@ -653,7 +653,7 @@ function _addCard(id: string, def: CardData): void {
   });
 
   // ── 40 Fallenkarten (4 pro Rasse) ───────────────────────────
-  const TRAP_ENTRIES: [string, string, string, RarityLevel, string, string, CardEffectBlock][] = [
+  const TRAP_ENTRIES: [string, string, Race, RarityLevel, string, string, CardEffectBlock][] = [
     // Feuer
     ['QFE1','Flammenbarriere', RACE.FEUER,   'uncommon', 'Aktiviere wenn der Gegner ein Monster beschwört: Füge dem Gegner Schaden gleich Hälfte des ATK des beschworten Monsters zu.',  'onOpponentSummon', { trigger:'onOpponentSummon', actions:[{ type:'dealDamage', target:'opponent', value:{ from:'summoned.atk', multiply:0.5, round:'floor' } }] }],
     ['QFE2','Gegenfeuer',      RACE.FEUER,   'common',   'Aktiviere wenn ein Gegnermonster angreift: Füge dem Gegner 400 Schaden zu.',                                                    'onAttack',         { trigger:'onAttack', actions:[{ type:'dealDamage', target:'opponent', value:400 }, { type:'cancelAttack' }] }],
@@ -809,3 +809,6 @@ export const STARTER_DECKS: Record<string, string[]> = {
       'T002','T004','QWA1','QWA2','QWA3','QWA4',
     ],
 };
+
+// Sentinel export: importing this module guarantees CARD_DB is fully populated.
+export const CARDS_DB_INITIALIZED = true;

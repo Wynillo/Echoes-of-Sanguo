@@ -10,6 +10,9 @@ import { useKeyboardShortcuts }  from '../hooks/useKeyboardShortcuts.js';
 import { useAnimatedNumber }     from '../hooks/useAnimatedNumber.js';
 import { checkFusion }           from '../../cards.js';
 
+const FIELD_ZONES = [0, 1, 2, 3, 4] as const;
+
+
 export default function GameScreen() {
   const { gameState, gameRef, logEntries, pendingDraw, clearPendingDraw } = useGame();
   const { openModal } = useModal();
@@ -91,12 +94,12 @@ export default function GameScreen() {
       resetSel();
       return;
     }
-    openModal({ type: 'card-action', card, index, state: gameState });
+    openModal({ type: 'card-action', card, index, state: gameState! });
   }
 
   function onOwnFieldCardClick(fc: any, zone: number) {
     if (!game || !isMyTurn || phase !== 'main') return;
-    openModal({ type: 'card-action', card: fc.card, index: zone, state: gameState });
+    openModal({ type: 'card-action', card: fc.card, index: zone, state: gameState! });
   }
 
   function onAttackerSelect(zone: number) {
@@ -197,7 +200,7 @@ export default function GameScreen() {
 
           <div className="field-side opponent-side">
             <div id="opp-spelltrap-zone" className="spell-trap-zone zone-row">
-              {[0,1,2,3,4].map(i => {
+              {FIELD_ZONES.map(i => {
                 const fst = opp.field.spellTraps[i];
                 return (
                   <div key={i} className="zone-slot" data-zone={i}>
@@ -208,7 +211,7 @@ export default function GameScreen() {
               })}
             </div>
             <div id="opponent-monster-zone" className="monster-zone zone-row">
-              {[0,1,2,3,4].map(i => {
+              {FIELD_ZONES.map(i => {
                 const fc = opp.field.monsters[i];
                 const targetable = isOppMonsterTargetable(i);
                 return (
@@ -254,7 +257,7 @@ export default function GameScreen() {
 
           <div className="field-side player-side">
             <div id="player-monster-zone" className="monster-zone zone-row">
-              {[0,1,2,3,4].map(i => {
+              {FIELD_ZONES.map(i => {
                 const fc        = player.field.monsters[i];
                 const selected  = selMode === 'attack' && sel.attackerZone === i;
                 const canAtk    = playerMonsterCanAttack(i);
@@ -279,7 +282,7 @@ export default function GameScreen() {
               })}
             </div>
             <div id="player-spelltrap-zone" className="spell-trap-zone zone-row">
-              {[0,1,2,3,4].map(i => {
+              {FIELD_ZONES.map(i => {
                 const fst = player.field.spellTraps[i];
                 const interact = isPlayerSpellTrapInteractive(i);
                 return (

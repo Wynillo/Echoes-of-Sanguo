@@ -4,6 +4,7 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { Progression }    from '../../progression.js';
 import { STARTER_DECKS }  from '../../cards-data.js';
+import styles from './StarterScreen.module.css';
 
 const RACE_INFO: Record<string, { icon: string; color: string }> = {
   feuer:   { icon: '🔥', color: '#e05030' },
@@ -39,24 +40,24 @@ export default function StarterScreen() {
   const info = selected ? RACE_INFO[selected] : null;
 
   return (
-    <div id="starter-screen">
-      <div className="starter-header">
-        <div className="starter-rune">✦</div>
-        <h2 className="starter-title">{t('starter.headline')}</h2>
-        <p className="starter-subtitle">{t('starter.subtitle')}</p>
+    <div className={styles.screen}>
+      <div className={styles.header}>
+        <div className={styles.rune}>✦</div>
+        <h2 className={styles.title}>{t('starter.headline')}</h2>
+        <p className={styles.subtitle}>{t('starter.subtitle')}</p>
       </div>
 
       <div id="starter-race-grid">
         {Object.entries(RACE_INFO).map(([race, ri]) => (
           <div
             key={race}
-            className={`starter-race-card${selected === race ? ' selected' : ''}`}
+            className={`${styles.raceCard}${selected === race ? ` ${styles.selected}` : ''}`}
             style={{ '--race-color': ri.color } as React.CSSProperties}
             onClick={() => setSelected(race)}
           >
-            <div className="starter-race-icon">{ri.icon}</div>
-            <div className="starter-race-name">{t(`cards.race_${race}`)}</div>
-            <div className="starter-race-style">{t(`starter.${race}_style`)}</div>
+            <div className={styles.raceIcon}>{ri.icon}</div>
+            <div className={styles.raceName}>{t(`cards.race_${race}`)}</div>
+            <div className={styles.raceStyle}>{t(`starter.${race}_style`)}</div>
           </div>
         ))}
       </div>

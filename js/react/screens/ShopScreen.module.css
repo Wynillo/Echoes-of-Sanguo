@@ -1,0 +1,128 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #0a1228 0%, #050a14 100%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px 40px;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.shopTitle {
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  letter-spacing: 3px;
+  color: #c8a84b;
+  margin: 0;
+}
+
+.coinsBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #c8a84b;
+  font-size: 1rem;
+}
+
+.backBtn { font-size: 0.85rem; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  max-width: 900px;
+  width: 100%;
+}
+
+@media (min-width: 700px) {
+  .grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.packTile {
+  background: #111828;
+  border: 2px solid #334;
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.packTile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--pack-color, #4060c0);
+  opacity: 0.06;
+  transition: opacity 0.2s;
+}
+
+.packTile:hover::before { opacity: 0.12; }
+
+.packTile:hover {
+  border-color: var(--pack-color, #4060c0);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px var(--pack-color, #4060c0)44;
+}
+
+.packDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.packIcon { font-size: 2.5rem; position: relative; }
+.packName { font-size: 0.9rem; font-weight: bold; color: #c0d0e0; position: relative; }
+.packDesc { font-size: 0.72rem; color: #606880; position: relative; }
+.packPrice { font-size: 1rem; color: #c8a84b; font-weight: bold; position: relative; }
+
+.raceSelectWrap { width: 100%; position: relative; }
+
+.raceSelect {
+  width: 100%;
+  background: #0d1520;
+  border: 1px solid #334;
+  color: #c0d0e0;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.buyBtn {
+  background: linear-gradient(135deg, #1a3060, #0d1830);
+  border: 1px solid var(--pack-color, #4060c0);
+  color: var(--pack-color, #90b0e0);
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s;
+  width: 100%;
+}
+
+.buyBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #204080, #102040);
+  color: #d0e8ff;
+}
+
+.buyBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.msg { color: #e06040; font-size: 0.9rem; margin-top: 10px; min-height: 1.2em; }
