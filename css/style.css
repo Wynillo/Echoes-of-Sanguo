@@ -1,4 +1,5 @@
 @tailwind utilities;
+@import './animations.css';
 
 /* ============================================================
    AETHERIAL CLASH - Stylesheet
@@ -58,7 +59,6 @@ html, body {
     radial-gradient(circle at 80% 50%, rgba(40,100,220,0.12) 0%, transparent 50%);
   animation: titlePulse 6s ease-in-out infinite;
 }
-@keyframes titlePulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
 
 .title-content {
   position: relative; z-index: 1;
@@ -69,7 +69,6 @@ html, body {
   text-shadow: 0 0 30px rgba(200,168,75,0.8);
   animation: runeGlow 3s ease-in-out infinite;
 }
-@keyframes runeGlow { 0%,100%{text-shadow:0 0 20px rgba(200,168,75,0.6)} 50%{text-shadow:0 0 50px rgba(200,168,75,1)} }
 
 .game-title {
   font-size: clamp(32px, 6vw, 64px);
@@ -83,8 +82,6 @@ html, body {
   font-size: 14px; letter-spacing: 3px;
   color: var(--text-dim); margin: 10px 0 30px;
 }
-.title-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-.title-hint { font-size: 12px; color: var(--text-dim); margin-top: 20px; }
 
 /* ═══════════════════════════════════════════════════════════
    DECKBUILDER SCREEN
@@ -114,7 +111,6 @@ html, body {
   border: 1px solid var(--border);
   border-radius: 4px; padding: 3px 10px;
 }
-#db-header-buttons { margin-left: auto; display: flex; gap: 8px; }
 
 #db-body {
   flex: 1; display: flex; flex-direction: row;
@@ -267,21 +263,6 @@ html, body {
   font-size: 14px; font-weight: bold; z-index: 300;
   animation: toastIn 0.2s ease-out;
 }
-@keyframes toastIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-@keyframes dbSrcFlashAdd {
-  0%   { box-shadow: none; }
-  50%  { box-shadow: 0 0 22px rgba(50,210,80,0.9); }
-  100% { box-shadow: none; }
-}
-@keyframes dbSrcFlashRemove {
-  0%   { box-shadow: none; }
-  50%  { box-shadow: 0 0 22px rgba(210,50,50,0.9); }
-  100% { box-shadow: none; }
-}
 .db-src-flash-add    { animation: dbSrcFlashAdd    0.35s ease-out both; }
 .db-src-flash-remove { animation: dbSrcFlashRemove 0.35s ease-out both; }
 
@@ -296,16 +277,6 @@ html, body {
   transform-origin: center center;
 }
 
-@keyframes dbCountBumpAdd {
-  0%   { transform: scale(1);    color: var(--gold); }
-  40%  { transform: scale(1.3);  color: #50e880; }
-  100% { transform: scale(1);    color: var(--gold); }
-}
-@keyframes dbCountBumpRemove {
-  0%   { transform: scale(1);    color: var(--gold); }
-  40%  { transform: scale(1.3);  color: #e85050; }
-  100% { transform: scale(1);    color: var(--gold); }
-}
 .db-count-bump-add    { animation: dbCountBumpAdd    0.35s ease-out both; }
 .db-count-bump-remove { animation: dbCountBumpRemove 0.35s ease-out both; }
 
@@ -403,13 +374,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
 .opponent-side .zone-row          { height: var(--card-h-opp); }
 .opponent-side .zone-slot         { width: var(--card-w-opp) !important; height: var(--card-h-opp) !important; }
 .opponent-side .card              { width: var(--card-w-opp) !important; height: var(--card-h-opp) !important; }
-.opponent-side .card-name-short   { font-size: 7px; max-width: 44px; }
-.opponent-side .card-attr         { font-size: 10px; }
-.opponent-side .art-attr-symbol   { font-size: 22px; }
-.opponent-side .type-badge        { font-size: 6px; padding: 1px 3px; }
-.opponent-side .card-level        { font-size: 6px; min-height: 8px; }
-.opponent-side .card-stats .stat-label { font-size: 6px; }
-.opponent-side .card-stats .stat-val   { font-size: 8px; }
 
 .zone-row {
   display: flex; gap: 4px;
@@ -435,7 +399,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
   box-shadow: 0 0 12px rgba(255,60,60,0.5);
   animation: targetPulse 0.7s ease-in-out infinite alternate;
 }
-@keyframes targetPulse { from{box-shadow:0 0 8px rgba(255,60,60,0.4)} to{box-shadow:0 0 20px rgba(255,60,60,0.8)} }
 
 /* Middle divider */
 #field-middle {
@@ -482,7 +445,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
   padding: 0 16px; overflow: hidden;
   position: relative; z-index: 150;
 }
-#phase-buttons { display: flex; gap: 6px; flex-shrink: 0; }
 .phase-btn {
   background: rgba(30,45,90,0.8); color: var(--text);
   padding: 7px 14px; border: 1px solid var(--border);
@@ -518,10 +480,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
   white-space: nowrap;
 }
 #btn-direct-attack:hover { background: #9b0000; box-shadow: 0 0 22px rgba(255,60,60,1); }
-@keyframes directPulse {
-  0%,100% { box-shadow: 0 0 10px rgba(255,60,60,0.5); }
-  50%      { box-shadow: 0 0 22px rgba(255,60,60,1); }
-}
 #action-hint { flex: 1; font-size: 12px; color: var(--gold); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ── Battle Log ────────────────────────────────────────────── */
@@ -548,7 +506,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
   line-height: 1.4;
   animation: logFade 0.3s ease-in;
 }
-@keyframes logFade { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
 .log-entry:first-child { color: var(--text); }
 
 /* ═══════════════════════════════════════════════════════════
@@ -582,104 +539,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
 .attr-light { background: linear-gradient(160deg, #1a1500 0%, #120f00 60%, #0a0800 100%); }
 .attr-dark  { background: linear-gradient(160deg, #0e0022 0%, #080012 60%, #040008 100%); }
 .attr-spell { background: linear-gradient(160deg, #001a12 0%, #000e08 60%, #000604 100%); }
-
-/* Card innards */
-.card-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 2px 4px;
-  background: rgba(0,0,0,0.5);
-  min-height: 18px;
-}
-.card-name-short {
-  font-size: 10px; font-weight: bold; color: var(--gold-light);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 72px;
-}
-.card-attr { font-size: 15px; flex-shrink: 0; display:flex; align-items:center; gap:2px; }
-
-/* Race badge on cards */
-.card-race-badge {
-  font-size: 7px;
-  font-weight: bold;
-  padding: 1px 3px;
-  border-radius: 2px;
-  color: rgba(255,255,255,0.9);
-  letter-spacing: 0.3px;
-  flex-shrink: 0;
-  line-height: 1.2;
-}
-
-/* Rarity pip on cards */
-.card-rarity-pip {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  box-shadow: 0 0 3px currentColor;
-}
-
-/* Attribute tints for card-attr symbol */
-.attr-fire  .card-attr { color: #ff6633; }
-.attr-water .card-attr { color: #44aaff; }
-.attr-earth .card-attr { color: #88bb44; }
-.attr-wind  .card-attr { color: #88aacc; }
-.attr-light .card-attr { color: #ffdd55; }
-.attr-dark  .card-attr { color: #bb66ff; }
-.attr-spell .card-attr { color: #44cc88; }
-
-.card-art {
-  flex: 1;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  position: relative; overflow: hidden;
-}
-.art-attr-symbol {
-  font-size: 38px; opacity: 0.15;
-  position: absolute; bottom: 2px; right: 4px;
-}
-.type-badge {
-  font-size: 9px; padding: 1px 5px;
-  border-radius: 3px; text-transform: uppercase; letter-spacing: 0.5px;
-  position: absolute; top: 2px; left: 2px;
-}
-.normal-card .type-badge { background: rgba(180,160,70,0.75); color: #ffffff; }
-.normal-card .card-name-short { color: #ffffff; }
-.effect-card  .type-badge { background: rgba(160,80,20,0.7);  color: #ffaa60; }
-.fusion-card  .type-badge { background: rgba(100,40,180,0.7); color: #cc88ff; }
-.spell-card   .type-badge { background: rgba(20,100,60,0.7);  color: #44ddaa; }
-.trap-card    .type-badge { background: rgba(120,20,40,0.7);  color: #ff6688; }
-
-.card-level {
-  font-size: 9px; color: var(--gold); text-align: center;
-  line-height: 1; padding: 1px 0; min-height: 11px;
-  letter-spacing: -1px;
-}
-
-.card-stats {
-  display: flex; flex-direction: column;
-  padding: 2px 4px 3px;
-  background: rgba(0,0,0,0.82);
-  gap: 1px;
-}
-.card-stats.no-stats {
-  flex-direction: row; align-items: center; justify-content: center;
-  min-height: 20px;
-}
-.card-stats .stat-row {
-  display: flex; justify-content: space-between; align-items: center;
-  line-height: 1;
-}
-.card-stats .stat-label {
-  font-size: 9px; font-weight: bold;
-  letter-spacing: 0.5px; text-transform: uppercase;
-}
-.card-stats .stat-val {
-  font-size: 11px; font-weight: bold; color: #fff;
-}
-.card-stats .atk-label { color: #ff9955; }
-.card-stats .def-label { color: #55aaff; }
-.card-stats.stat-boosted .stat-val { color: #88ff88; }
-.type-badge-big { font-size: 9px; color: var(--text-dim); }
 
 /* Face down */
 .face-down { background: linear-gradient(135deg, #0a1030, #060818) !important; border-color: rgba(80,100,160,0.6) !important; }
@@ -722,7 +581,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
 .hand-card:hover { transform: translateY(-14px) scale(1.08); z-index: 100; box-shadow: 0 12px 30px rgba(0,0,0,0.6); }
 .hand-card.playable:hover { box-shadow: 0 12px 30px rgba(100,160,255,0.4); }
 .hand-card.targetable { border-color: #ffdd44 !important; animation: handGlow 0.5s ease-in-out infinite alternate; }
-@keyframes handGlow { from{box-shadow:0 0 8px rgba(255,220,60,0.4)} to{box-shadow:0 0 20px rgba(255,220,60,0.8)} }
 .hand-card.fusionable { border-color: rgba(190,110,255,0.9) !important; box-shadow: 0 0 8px rgba(160,80,255,0.4); }
 .hand-card.fusionable::after {
   content: '✨';
@@ -732,21 +590,13 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
   filter: drop-shadow(0 0 3px rgba(160,80,255,0.8));
 }
 
-/* Big card for detail view */
+/* Big card for detail view — internal overrides live in Card.module.css */
 .big-card {
   width: var(--card-w-big);
   height: var(--card-h-big);
   border-radius: 8px;
   flex-shrink: 0;
 }
-.big-card .card-name-short { font-size: 12px; max-width: 115px; }
-.big-card .card-attr        { font-size: 18px; }
-.big-card .art-attr-symbol  { font-size: 56px; }
-.big-card .type-badge       { font-size: 10px; padding: 2px 6px; }
-.big-card .card-level       { font-size: 11px; min-height: 14px; }
-.big-card .card-stats       { padding: 4px 8px 5px; gap: 3px; }
-.big-card .card-stats .stat-val   { font-size: 13px; }
-.big-card .card-stats .stat-label { font-size: 10px; }
 
 /* ═══════════════════════════════════════════════════════════
    CARD HOVER PREVIEW
@@ -833,7 +683,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
   box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(40,80,200,0.2);
   animation: modalIn 0.2s ease-out;
 }
-@keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
 
 .modal h2, .modal h3 { color: var(--gold-light); margin-bottom: 14px; text-align: center; }
 
@@ -959,13 +808,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
 }
 
 /* ── Angriffs-Animation ─────────────────────────────────── */
-
-/* Impact-Burst Partikel */
-@keyframes atkBurst {
-  0%   { transform: translate(-50%,-50%) scale(0.15); opacity: 1; }
-  55%  { transform: translate(-50%,-50%) scale(1.5);  opacity: 0.85; }
-  100% { transform: translate(-50%,-50%) scale(2.2);  opacity: 0; }
-}
 .atk-burst {
   position: fixed;
   width: 110px; height: 110px;
@@ -980,29 +822,10 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
     #ffffff 0%, #aaddff 25%, #3388ff 55%, rgba(30,80,255,0) 80%);
 }
 
-/* Trefferkarte schütteln + aufblitzen */
-@keyframes atkHit {
-  0%   { filter: brightness(1);   transform: none; }
-  18%  { filter: brightness(4) saturate(0.4); transform: scale(1.09); }
-  40%  { filter: brightness(1.8); transform: scale(0.95) translate(-4px, 3px); }
-  65%  { filter: brightness(1.3); transform: scale(1.03) translate(3px, -2px); }
-  100% { filter: brightness(1);   transform: none; }
-}
 .atk-hit { animation: atkHit 0.42s ease-out; }
 
-/* Slot-Glow beim Treffer */
-@keyframes atkSlotGlow {
-  0%,100% { box-shadow: none; }
-  35%     { box-shadow: inset 0 0 22px rgba(255,140,0,0.85), 0 0 18px rgba(255,140,0,0.6); }
-}
 .zone-slot.atk-impact { animation: atkSlotGlow 0.42s ease-out; }
 
-/* ── Karten-Zieh-Animation ──────────────────────────────── */
-@keyframes cardDraw {
-  0%   { transform: translateY(28px) scale(0.9); opacity: 0; }
-  70%  { transform: translateY(-4px) scale(1.04); opacity: 1; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
-}
 .hand-card.newly-drawn {
   animation: cardDraw 0.38s cubic-bezier(0.22,1,0.36,1) both;
 }
