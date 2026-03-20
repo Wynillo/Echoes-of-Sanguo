@@ -2,6 +2,7 @@ import { useScreen }   from '../contexts/ScreenContext.js';
 import { RARITY_COLOR } from '../../cards.js';
 import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
+import styles from './PackOpeningScreen.module.css';
 
 // Module-level store — set by ShopScreen before navigating here
 let _cards: CardData[]           = [];
@@ -18,27 +19,27 @@ export default function PackOpeningScreen() {
   const ownedBefore = new Set(_preOpen.filter(e => e.count > 0).map(e => e.id));
 
   return (
-    <div id="pack-opening-screen">
-      <div className="pack-opening-header">
-        <h2 className="pack-opening-title">✦ Pack geöffnet!</h2>
+    <div className={styles.screen}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>✦ Pack geöffnet!</h2>
       </div>
 
-      <div id="pack-card-grid">
+      <div className={styles.grid}>
         {_cards.map((card, i) => {
           const isNew    = !ownedBefore.has(card.id);
           const rarColor = (RARITY_COLOR as any)[(card as any).rarity] || '#aaa';
           return (
             <div
               key={i}
-              className="pack-card-wrapper"
+              className={styles.cardWrapper}
               style={{ animationDelay: `${i * 0.08}s` }}
             >
               <div
-                className={`pack-card-inner card ${card.type}-card attr-${(card as any).attribute || 'spell'}`}
+                className={`${styles.cardInner} card ${card.type}-card attr-${(card as any).attribute || 'spell'}`}
                 style={{ '--rarity-color': rarColor } as React.CSSProperties}
               >
-                {isNew && <div className="pack-new-badge">NEU!</div>}
-                <div className="pack-rarity-bar" style={{ background: rarColor }}></div>
+                {isNew && <div className={styles.newBadge}>NEU!</div>}
+                <div className={styles.rarityBar} style={{ background: rarColor }}></div>
                 <div className="card-header">
                   <span className="card-name">{card.name}</span>
                   <span className="card-level">
@@ -67,7 +68,7 @@ export default function PackOpeningScreen() {
         })}
       </div>
 
-      <div className="pack-opening-buttons">
+      <div className={styles.buttons}>
         <button className="btn-secondary" onClick={() => navigateTo('shop')}>← Zurück zum Shop</button>
         <button className="btn-primary"   onClick={() => navigateTo('title')}>🏠 Hauptmenü</button>
       </div>

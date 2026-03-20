@@ -5,6 +5,7 @@ import { RACE_NAME, RACE_ICON } from '../../cards.js';
 import { PACK_TYPES, openPack } from '../utils/pack-logic.js';
 import { setPackOpeningCards }  from './PackOpeningScreen.js';
 import type { CardData } from '../../types.js';
+import styles from './ShopScreen.module.css';
 
 export default function ShopScreen() {
   const { navigateTo } = useScreen();
@@ -23,18 +24,18 @@ export default function ShopScreen() {
   }
 
   return (
-    <div id="shop-screen">
-      <div className="shop-header">
-        <h2 className="shop-title">◈ ÄTHER-SHOP</h2>
-        <div className="shop-coins-bar">
+    <div className={styles.screen}>
+      <div className={styles.header}>
+        <h2 className={styles.shopTitle}>◈ ÄTHER-SHOP</h2>
+        <div className={styles.coinsBar}>
           <span className="coins-icon">◈</span>
           <span id="shop-coin-display">{coins.toLocaleString('de-DE')}</span>
           <span className="coins-label">Äther-Münzen</span>
         </div>
-        <button className="btn-secondary shop-back-btn" onClick={() => navigateTo('title')}>← Hauptmenü</button>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('title')}>← Hauptmenü</button>
       </div>
 
-      <div id="shop-pack-grid">
+      <div className={styles.grid}>
         {Object.values(PACK_TYPES).map(pt => {
           const affordable = coins >= pt.price;
           return (
@@ -67,23 +68,23 @@ function PackTile({ pt, affordable, onBuy }: PackTileProps) {
 
   return (
     <div
-      className={`shop-pack-tile${affordable ? '' : ' shop-pack-disabled'}`}
+      className={`${styles.packTile}${affordable ? '' : ` ${styles.packDisabled}`}`}
       style={{ '--pack-color': pt.color } as React.CSSProperties}
     >
-      <div className="shop-pack-icon">{pt.icon}</div>
-      <div className="shop-pack-name">{pt.name}</div>
-      <div className="shop-pack-desc">{pt.desc}</div>
-      <div className="shop-pack-price">◈ {pt.price.toLocaleString('de-DE')}</div>
+      <div className={styles.packIcon}>{pt.icon}</div>
+      <div className={styles.packName}>{pt.name}</div>
+      <div className={styles.packDesc}>{pt.desc}</div>
+      <div className={styles.packPrice}>◈ {pt.price.toLocaleString('de-DE')}</div>
       {pt.id === 'race' && (
-        <div className="shop-race-select-wrap">
-          <select id={`shop-race-select-${pt.id}`} className="shop-race-select" defaultValue={starterRace}>
+        <div className={styles.raceSelectWrap}>
+          <select id={`shop-race-select-${pt.id}`} className={styles.raceSelect} defaultValue={starterRace}>
             {raceEntries.map(([k, v]) => (
               <option key={k} value={k}>{(RACE_ICON as any)[k] || ''} {v}</option>
             ))}
           </select>
         </div>
       )}
-      <button className="btn-buy-pack" disabled={!affordable} onClick={handleBuy}>Pack kaufen</button>
+      <button className={styles.buyBtn} disabled={!affordable} onClick={handleBuy}>Pack kaufen</button>
     </div>
   );
 }

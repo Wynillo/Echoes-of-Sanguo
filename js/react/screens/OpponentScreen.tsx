@@ -4,6 +4,7 @@ import { useProgression } from '../contexts/ProgressionContext.js';
 import { useGame }        from '../contexts/GameContext.js';
 import { OPPONENT_CONFIGS } from '../../cards.js';
 import type { OpponentConfig } from '../../types.js';
+import styles from './OpponentScreen.module.css';
 
 const RACE_COLORS: Record<string, string> = {
   feuer:'#e05030', drache:'#8040c0', flug:'#4090c0',
@@ -29,14 +30,14 @@ export default function OpponentScreen() {
   }
 
   return (
-    <div id="opponent-screen">
-      <div className="opp-select-header">
-        <h2 className="opp-select-title">FREIES DUELL</h2>
-        <p className="opp-select-subtitle">Wähle deinen Gegner</p>
-        <button className="btn-secondary opp-back-btn" onClick={() => navigateTo('title')}>← Hauptmenü</button>
+    <div className={styles.screen}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>FREIES DUELL</h2>
+        <p className={styles.subtitle}>Wähle deinen Gegner</p>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('title')}>← Hauptmenü</button>
       </div>
 
-      <div id="opp-portrait-grid">
+      <div className={styles.grid}>
         {(OPPONENT_CONFIGS as OpponentConfig[]).map(cfg => {
           const oppData = opponents[cfg.id] || { unlocked: cfg.id === 1, wins: 0, losses: 0 };
           const isUnlocked = oppData.unlocked;
@@ -45,27 +46,27 @@ export default function OpponentScreen() {
           return (
             <div
               key={cfg.id}
-              className={`opp-portrait-tile${isUnlocked ? '' : ' locked'}`}
+              className={`${styles.tile}${isUnlocked ? '' : ` ${styles.locked}`}`}
               onClick={() => isUnlocked && selectOpponent(cfg)}
               onMouseEnter={() => isUnlocked && setHovered(cfg)}
               onMouseLeave={() => setHovered(null)}
             >
-              <div className="opp-portrait-frame" style={{ borderColor: accent }}>
-                <div className="opp-portrait-art" style={{ background: `linear-gradient(135deg,${accent}44,#111830)` }}>
-                  <div className="opp-portrait-symbol">{RACE_SYMBOL[(cfg as any).race] || '?'}</div>
+              <div className={styles.frame} style={{ borderColor: accent }}>
+                <div className={styles.art} style={{ background: `linear-gradient(135deg,${accent}44,#111830)` }}>
+                  <div className={styles.symbol}>{RACE_SYMBOL[(cfg as any).race] || '?'}</div>
                 </div>
-                {!isUnlocked && <div className="opp-locked-overlay">🔒</div>}
+                {!isUnlocked && <div className={styles.lockedOverlay}>🔒</div>}
               </div>
-              <div className="opp-portrait-name">{isUnlocked ? cfg.name : '???'}</div>
+              <div className={styles.name}>{isUnlocked ? cfg.name : '???'}</div>
               {isUnlocked && (
-                <div className="opp-portrait-record">{(oppData as any).wins ?? 0}W / {(oppData as any).losses ?? 0}L</div>
+                <div className={styles.record}>{(oppData as any).wins ?? 0}W / {(oppData as any).losses ?? 0}L</div>
               )}
             </div>
           );
         })}
       </div>
 
-      <div id="opp-select-info">
+      <div className={styles.info}>
         <span id="opp-info-name">{hovered ? `${hovered.name} – ${(hovered as any).title}` : '—'}</span>
         <span id="opp-info-record">{hovered ? (hovered as any).flavor : ''}</span>
       </div>
