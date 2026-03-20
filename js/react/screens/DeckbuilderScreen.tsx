@@ -20,7 +20,7 @@ const FILTERS = [
 ];
 
 export default function DeckbuilderScreen() {
-  const { setScreen }                         = useScreen();
+  const { navigateTo }                        = useScreen();
   const { collection, currentDeck, setCurrentDeck, loadDeck } = useProgression();
   const { openModal }                         = useModal();
   const [filter, setFilter]                   = useState('all');
@@ -80,7 +80,7 @@ export default function DeckbuilderScreen() {
             style={{ opacity: deckFull ? 1 : 0.4, cursor: deckFull ? 'pointer' : 'not-allowed' }}
             onClick={saveDeck}
           >💾 Deck Speichern</button>
-          <button id="btn-db-back" className="btn-secondary" onClick={() => setScreen('title')}>← Zurück</button>
+          <button id="btn-db-back" className="btn-secondary" onClick={() => navigateTo('title')}>← Zurück</button>
         </div>
       </div>
 

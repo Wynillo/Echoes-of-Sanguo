@@ -32,7 +32,7 @@ const RACE_FLAVOR: Record<string, string> = {
 };
 
 export default function StarterScreen() {
-  const { setScreen }              = useScreen();
+  const { navigateTo }             = useScreen();
   const { refresh, setCurrentDeck } = useProgression();
   const [selected, setSelected]    = useState<string | null>(null);
 
@@ -45,7 +45,7 @@ export default function StarterScreen() {
     Progression.saveDeck(deckIds);
     setCurrentDeck(deckIds);
     refresh();
-    setScreen('save-point');
+    navigateTo('save-point');
   }
 
   const info = selected ? RACE_INFO[selected] : null;

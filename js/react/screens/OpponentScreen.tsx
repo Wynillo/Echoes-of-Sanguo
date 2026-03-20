@@ -18,14 +18,14 @@ const RACE_SYMBOL: Record<string, string> = {
 };
 
 export default function OpponentScreen() {
-  const { setScreen }   = useScreen();
+  const { setScreen, navigateTo } = useScreen();
   const { opponents }   = useProgression();
   const { startGame }   = useGame();
   const [hovered, setHovered] = useState<OpponentConfig | null>(null);
 
   function selectOpponent(cfg: OpponentConfig) {
     startGame(cfg);
-    setScreen('game');
+    navigateTo('game');
   }
 
   return (
@@ -33,7 +33,7 @@ export default function OpponentScreen() {
       <div className="opp-select-header">
         <h2 className="opp-select-title">FREIES DUELL</h2>
         <p className="opp-select-subtitle">Wähle deinen Gegner</p>
-        <button className="btn-secondary opp-back-btn" onClick={() => setScreen('title')}>← Hauptmenü</button>
+        <button className="btn-secondary opp-back-btn" onClick={() => navigateTo('title')}>← Hauptmenü</button>
       </div>
 
       <div id="opp-portrait-grid">

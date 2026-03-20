@@ -4,7 +4,7 @@ import { useModal }       from '../contexts/ModalContext.js';
 import { Progression }    from '../../progression.js';
 
 export default function TitleScreen() {
-  const { setScreen } = useScreen();
+  const { navigateTo } = useScreen();
   const { refresh }   = useProgression();
   const { openModal } = useModal();
   const hasSave = !Progression.isFirstLaunch();
@@ -20,12 +20,12 @@ export default function TitleScreen() {
     Progression.resetAll();
     Progression.init();
     refresh();
-    setScreen('starter');
+    navigateTo('starter');
   }
 
   function handleLoadGame() {
     Progression.clearBackup();
-    setScreen('save-point');
+    navigateTo('save-point');
   }
 
   return (

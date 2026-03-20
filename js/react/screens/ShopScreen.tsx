@@ -7,7 +7,7 @@ import { setPackOpeningCards }  from './PackOpeningScreen.js';
 import type { CardData } from '../../types.js';
 
 export default function ShopScreen() {
-  const { setScreen }  = useScreen();
+  const { navigateTo } = useScreen();
   const { coins, refresh } = useProgression();
 
   function buy(packType: string, race: string | null) {
@@ -19,7 +19,7 @@ export default function ShopScreen() {
     Progression.addCardsToCollection(cards.map((c: CardData) => c.id));
     refresh();
     setPackOpeningCards(cards, preOpen);
-    setScreen('pack-opening');
+    navigateTo('pack-opening');
   }
 
   return (
@@ -31,7 +31,7 @@ export default function ShopScreen() {
           <span id="shop-coin-display">{coins.toLocaleString('de-DE')}</span>
           <span className="coins-label">Äther-Münzen</span>
         </div>
-        <button className="btn-secondary shop-back-btn" onClick={() => setScreen('title')}>← Hauptmenü</button>
+        <button className="btn-secondary shop-back-btn" onClick={() => navigateTo('title')}>← Hauptmenü</button>
       </div>
 
       <div id="shop-pack-grid">

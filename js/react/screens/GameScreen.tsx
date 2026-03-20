@@ -6,6 +6,7 @@ import { HandCard }              from '../components/HandCard.js';
 import { FieldCardComponent }    from '../components/FieldCardComponent.js';
 import { FieldSpellTrapComponent } from '../components/FieldSpellTrapComponent.js';
 import { useKeyboardShortcuts }  from '../hooks/useKeyboardShortcuts.js';
+import { useAnimatedNumber }     from '../hooks/useAnimatedNumber.js';
 import { checkFusion }           from '../../cards.js';
 
 const PHASE_LABEL: Record<string, string> = {
@@ -22,6 +23,9 @@ export default function GameScreen() {
   const hideDirect = useCallback(() => setShowDirect(false), []);
 
   useKeyboardShortcuts({ gameState, gameRef, resetSel, onHideDirect: hideDirect });
+
+  const playerLpDisplay = useAnimatedNumber(gameState?.player.lp ?? 0);
+  const oppLpDisplay    = useAnimatedNumber(gameState?.opponent.lp ?? 0);
 
   useEffect(() => {
     if (pendingDraw > 0) {
@@ -329,7 +333,7 @@ export default function GameScreen() {
                   <div className="io-bar-bg">
                     <div id="opp-lp-bar" className="lp-bar opp-lp-bar" style={{ width: lpPct(opp.lp) }}></div>
                   </div>
-                  <span className="lp-value" id="opp-lp">{opp.lp}</span>
+                  <span className="lp-value" id="opp-lp">{oppLpDisplay}</span>
                   <span className="lp-deck" id="opp-deck-count">{opp.deck?.length ?? 0}</span>
                 </div>
               </div>
@@ -339,7 +343,7 @@ export default function GameScreen() {
                   <div className="io-bar-bg">
                     <div id="player-lp-bar" className="lp-bar" style={{ width: lpPct(player.lp) }}></div>
                   </div>
-                  <span className="lp-value" id="player-lp">{player.lp}</span>
+                  <span className="lp-value" id="player-lp">{playerLpDisplay}</span>
                   <span className="lp-deck" id="player-deck-count">{player.deck?.length ?? 0}</span>
                 </div>
               </div>

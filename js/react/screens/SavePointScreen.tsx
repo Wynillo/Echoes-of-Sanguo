@@ -5,7 +5,7 @@ import { useModal }       from '../contexts/ModalContext.js';
 import { Progression }    from '../../progression.js';
 
 export default function SavePointScreen() {
-  const { setScreen }      = useScreen();
+  const { navigateTo }     = useScreen();
   const { coins, refresh } = useProgression();
   const { openModal }      = useModal();
   const [savedMsg, setSavedMsg] = useState(false);
@@ -26,7 +26,7 @@ export default function SavePointScreen() {
       Progression.restoreFromBackup();
       refresh();
     }
-    setScreen('title');
+    navigateTo('title');
   }
 
   return (
@@ -50,11 +50,11 @@ export default function SavePointScreen() {
           <button className="btn-primary" onClick={handleSave}>
             {savedMsg ? '✓ Gespeichert!' : '💾 Speichern'}
           </button>
-          <button className="btn-secondary" onClick={() => setScreen('opponent')}>📖 Story</button>
-          <button className="btn-secondary" onClick={() => setScreen('opponent')}>⚔ Freies Duell Beginnen</button>
-          <button className="btn-secondary" onClick={() => setScreen('shop')}>🛒 Shop</button>
-          <button className="btn-secondary" onClick={() => setScreen('collection')}>📚 Sammlung</button>
-          <button className="btn-secondary" onClick={() => setScreen('deckbuilder')}>🃏 Deckbuilder</button>
+          <button className="btn-secondary" onClick={() => navigateTo('opponent')}>📖 Story</button>
+          <button className="btn-secondary" onClick={() => navigateTo('opponent')}>⚔ Freies Duell Beginnen</button>
+          <button className="btn-secondary" onClick={() => navigateTo('shop')}>🛒 Shop</button>
+          <button className="btn-secondary" onClick={() => navigateTo('collection')}>📚 Sammlung</button>
+          <button className="btn-secondary" onClick={() => navigateTo('deckbuilder')}>🃏 Deckbuilder</button>
           <button className="btn-secondary" onClick={() => openModal({ type: 'card-list' })}>📋 Kartenliste</button>
           <button className="btn-secondary" onClick={handleToMainMenu}>🏠 Zum Hauptmenü</button>
         </div>

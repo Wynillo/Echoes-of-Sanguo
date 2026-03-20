@@ -35,6 +35,7 @@ function Router() {
       <HoverPreview />
       <CardActivationOverlay />
       <ModalOverlay />
+      <div id="screen-transition-overlay" style={{ position: 'fixed', inset: 0, background: '#000', opacity: 0, pointerEvents: 'none', zIndex: 9999 }} />
     </>
   );
 }

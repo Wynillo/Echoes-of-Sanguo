@@ -13,7 +13,7 @@ export function setPackOpeningCards(cards: CardData[], preOpen: CollectionEntry[
 }
 
 export default function PackOpeningScreen() {
-  const { setScreen } = useScreen();
+  const { navigateTo } = useScreen();
 
   const ownedBefore = new Set(_preOpen.filter(e => e.count > 0).map(e => e.id));
 
@@ -68,8 +68,8 @@ export default function PackOpeningScreen() {
       </div>
 
       <div className="pack-opening-buttons">
-        <button className="btn-secondary" onClick={() => setScreen('shop')}>← Zurück zum Shop</button>
-        <button className="btn-primary"   onClick={() => setScreen('title')}>🏠 Hauptmenü</button>
+        <button className="btn-secondary" onClick={() => navigateTo('shop')}>← Zurück zum Shop</button>
+        <button className="btn-primary"   onClick={() => navigateTo('title')}>🏠 Hauptmenü</button>
       </div>
     </div>
   );

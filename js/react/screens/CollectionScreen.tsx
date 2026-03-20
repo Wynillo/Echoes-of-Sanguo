@@ -20,7 +20,7 @@ const RACE_FILTER_BTNS = [
 ];
 
 export default function CollectionScreen() {
-  const { setScreen }   = useScreen();
+  const { navigateTo }  = useScreen();
   const { collection }  = useProgression();
   const { openModal }   = useModal();
   const [raceFilter,   setRaceFilter]   = useState('all');
@@ -43,7 +43,7 @@ export default function CollectionScreen() {
         <div className="collection-stats">
           <span id="collection-count">{ownedCount} / {totalCards} Karten</span>
         </div>
-        <button className="btn-secondary collection-back-btn" onClick={() => setScreen('title')}>← Hauptmenü</button>
+        <button className="btn-secondary collection-back-btn" onClick={() => navigateTo('title')}>← Hauptmenü</button>
       </div>
 
       <div className="collection-filters">

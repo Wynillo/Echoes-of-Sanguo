@@ -760,7 +760,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
 .own-facedown { filter: brightness(0.7); }
 
 /* Field card states */
-.field-card { cursor: default; }
+.field-card { cursor: default; animation: fieldCardIn 0.32s cubic-bezier(0.34,1.56,0.64,1) both; }
 .interactive { cursor: pointer; }
 .interactive:hover { transform: translateY(-4px); z-index: 20; box-shadow: 0 6px 16px rgba(100,140,255,0.3); border-color: #6688ff !important; }
 .can-attack { cursor: pointer; }
