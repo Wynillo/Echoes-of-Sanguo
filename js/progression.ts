@@ -210,6 +210,37 @@ export const Progression = (() => {
     console.warn('[Progression] Alle Daten zurückgesetzt.');
   }
 
+  // ── Soft-Reset / Backup ──────────────────────────────────
+
+  /** Sichert den aktuellen Stand in sessionStorage (für "Neues Spiel"-Flow) */
+  function backupToSession(): void {
+    const backup: Record<string, string | null> = {};
+    Object.values(KEYS).forEach(k => { backup[k] = localStorage.getItem(k); });
+    sessionStorage.setItem('ac_save_backup', JSON.stringify(backup));
+  }
+
+  /** Gibt true zurück wenn ein Backup im sessionStorage vorhanden ist */
+  function hasBackup(): boolean {
+    return sessionStorage.getItem('ac_save_backup') !== null;
+  }
+
+  /** Stellt den gesicherten Stand wieder her und löscht das Backup */
+  function restoreFromBackup(): void {
+    const raw = sessionStorage.getItem('ac_save_backup');
+    if (!raw) return;
+    const backup = JSON.parse(raw) as Record<string, string | null>;
+    Object.entries(backup).forEach(([k, v]) => {
+      if (v === null) localStorage.removeItem(k);
+      else localStorage.setItem(k, v);
+    });
+    sessionStorage.removeItem('ac_save_backup');
+  }
+
+  /** Löscht das Backup ohne Wiederherstellung (neues Spiel bestätigt) */
+  function clearBackup(): void {
+    sessionStorage.removeItem('ac_save_backup');
+  }
+
   // ── Public API ───────────────────────────────────────────
 
   return {
@@ -235,6 +266,11 @@ export const Progression = (() => {
     isOpponentUnlocked,
     // Debug
     resetAll,
+    // Soft-Reset
+    backupToSession,
+    hasBackup,
+    restoreFromBackup,
+    clearBackup,
   };
 
 })();

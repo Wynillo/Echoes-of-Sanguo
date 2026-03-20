@@ -45,7 +45,7 @@ export default function StarterScreen() {
     Progression.saveDeck(deckIds);
     setCurrentDeck(deckIds);
     refresh();
-    setScreen('title');
+    setScreen('save-point');
   }
 
   const info = selected ? RACE_INFO[selected] : null;

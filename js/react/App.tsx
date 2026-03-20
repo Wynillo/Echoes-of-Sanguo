@@ -12,7 +12,8 @@ import CollectionScreen from './screens/CollectionScreen.js';
 import ShopScreen       from './screens/ShopScreen.js';
 import PackOpeningScreen from './screens/PackOpeningScreen.js';
 import GameScreen       from './screens/GameScreen.js';
-import DeckbuilderScreen from './screens/DeckbuilderScreen.js';
+import DeckbuilderScreen  from './screens/DeckbuilderScreen.js';
+import SavePointScreen   from './screens/SavePointScreen.js';
 
 import { HoverPreview }        from './components/HoverPreview.js';
 import { CardActivationOverlay } from './components/CardActivationOverlay.js';
@@ -30,6 +31,7 @@ function Router() {
       {screen === 'pack-opening' && <PackOpeningScreen />}
       {screen === 'game'         && <GameScreen />}
       {screen === 'deckbuilder'  && <DeckbuilderScreen />}
+      {screen === 'save-point'   && <SavePointScreen />}
       <HoverPreview />
       <CardActivationOverlay />
       <ModalOverlay />

@@ -8,7 +8,8 @@ export type Screen =
   | 'shop'
   | 'pack-opening'
   | 'collection'
-  | 'deckbuilder';
+  | 'deckbuilder'
+  | 'save-point';
 
 interface ScreenCtx {
   screen: Screen;

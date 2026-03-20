@@ -83,6 +83,58 @@ html, body {
   color: var(--text-dim); margin: 10px 0 30px;
 }
 
+/* Titel-Menü: vertikale Button-Spalte */
+.title-menu {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 12px; margin-top: 20px;
+}
+.title-menu .btn-primary,
+.title-menu .btn-secondary {
+  width: 220px; text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SAVE POINT SCREEN
+   ═══════════════════════════════════════════════════════════ */
+#save-point-screen {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #0a1030 0%, #040610 100%);
+  z-index: 100;
+}
+.save-point-content {
+  position: relative; z-index: 1;
+  text-align: center; padding: 40px;
+}
+.save-point-title {
+  font-size: clamp(22px, 4vw, 40px);
+  letter-spacing: 6px;
+  color: var(--gold-light);
+  text-shadow: 0 0 20px rgba(200,168,75,0.5);
+  margin: 10px 0 16px;
+}
+.save-coins-bar {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(200,168,75,0.1); border: 1px solid rgba(200,168,75,0.3);
+  border-radius: 20px; padding: 6px 18px; margin-bottom: 14px;
+  font-size: 14px; color: var(--gold-light); letter-spacing: 1px;
+}
+.save-coins-value { font-weight: bold; font-size: 16px; }
+.save-backup-warning {
+  font-size: 12px; letter-spacing: 1px;
+  color: #e8a030; border: 1px solid rgba(232,160,48,0.4);
+  background: rgba(232,160,48,0.08); border-radius: 6px;
+  padding: 8px 16px; margin-bottom: 16px; max-width: 400px;
+}
+.save-point-menu {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+}
+.save-point-menu .btn-primary,
+.save-point-menu .btn-secondary {
+  width: 260px; text-align: center;
+}
+
 /* ═══════════════════════════════════════════════════════════
    DECKBUILDER SCREEN
    ═══════════════════════════════════════════════════════════ */
