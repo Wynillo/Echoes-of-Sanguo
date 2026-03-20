@@ -305,35 +305,38 @@ export default function GameScreen() {
             <span className="grave-icon-count">{opp.graveyard.length}</span>
           </div>
 
-          <button
-            id="btn-next-phase"
-            className={`next-phase-btn phase-${phase}${!isMyTurn ? ' waiting' : ''}`}
-            disabled={!isMyTurn}
-            onClick={onNextPhase}
-            aria-label="Nächste Phase (B/E/T)"
-          >
-            {getNextPhaseLabel()}
-          </button>
+          {/* Vertically centered: Next Phase (left) + LP panel (right) */}
+          <div id="field-right-center">
+            <button
+              id="btn-next-phase"
+              className={`phase-${phase}${!isMyTurn ? ' waiting' : ''}`}
+              disabled={!isMyTurn}
+              onClick={onNextPhase}
+              aria-label="Nächste Phase (B/E/T)"
+            >
+              {getNextPhaseLabel()}
+            </button>
 
-          <div id="lp-panel">
-            <div className="lp-row opp-lp-row">
-              <div className="lp-top-row">
-                <span className="lp-who">COM</span>
-                <span className="lp-value" id="opp-lp">{opp.lp}</span>
-                <span className="lp-deck" id="opp-deck-count">{opp.deck?.length ?? 0}</span>
+            <div id="lp-panel">
+              <div className="lp-row opp-lp-row">
+                <div className="lp-top-row">
+                  <span className="lp-who">COM</span>
+                  <span className="lp-value" id="opp-lp">{opp.lp}</span>
+                  <span className="lp-deck" id="opp-deck-count">{opp.deck?.length ?? 0}</span>
+                </div>
+                <div className="io-bar-bg">
+                  <div id="opp-lp-bar" className="lp-bar opp-lp-bar" style={{ width: lpPct(opp.lp) }}></div>
+                </div>
               </div>
-              <div className="io-bar-bg">
-                <div id="opp-lp-bar" className="lp-bar opp-lp-bar" style={{ width: lpPct(opp.lp) }}></div>
-              </div>
-            </div>
-            <div className="lp-row player-lp-row">
-              <div className="lp-top-row">
-                <span className="lp-who">YOU</span>
-                <span className="lp-value" id="player-lp">{player.lp}</span>
-                <span className="lp-deck" id="player-deck-count">{player.deck?.length ?? 0}</span>
-              </div>
-              <div className="io-bar-bg">
-                <div id="player-lp-bar" className="lp-bar" style={{ width: lpPct(player.lp) }}></div>
+              <div className="lp-row player-lp-row">
+                <div className="lp-top-row">
+                  <span className="lp-who">YOU</span>
+                  <span className="lp-value" id="player-lp">{player.lp}</span>
+                  <span className="lp-deck" id="player-deck-count">{player.deck?.length ?? 0}</span>
+                </div>
+                <div className="io-bar-bg">
+                  <div id="player-lp-bar" className="lp-bar" style={{ width: lpPct(player.lp) }}></div>
+                </div>
               </div>
             </div>
           </div>

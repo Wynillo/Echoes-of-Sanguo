@@ -406,12 +406,12 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
 #field-left {
   width: 15%;
   min-width: 60px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: space-around;
-  padding: 12px 4px;
+  position: relative;
   flex-shrink: 0;
 }
 #btn-options {
+  position: absolute;
+  top: 5%; left: 5%;
   background: rgba(30,60,160,0.85);
   border: 2px solid rgba(80,120,220,0.7);
   border-radius: 10px;
@@ -423,10 +423,14 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
   transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   box-shadow: 0 2px 12px rgba(40,80,200,0.3);
   font-family: inherit;
+  z-index: 10;
 }
 #btn-options:hover { background: rgba(50,90,200,0.9); border-color: #7eaaff; box-shadow: 0 4px 18px rgba(80,140,255,0.5); }
 #field-effect-slot {
-  width: 80%; max-width: 72px;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%; max-width: 68px;
   aspect-ratio: 1.5 / 1;
   border: 2px dashed rgba(120,100,220,0.5);
   border-radius: 10px;
@@ -434,6 +438,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
   align-items: center; justify-content: center;
   background: rgba(20,15,50,0.4);
   cursor: default;
+  z-index: 5;
 }
 .field-effect-label {
   font-size: 7px; color: rgba(160,140,220,0.6);
@@ -521,51 +526,65 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
 /* ── Right Panel ─────────────────────────────────────────── */
 #field-right {
   width: 22%;
-  min-width: 90px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: space-around;
-  padding: 10px 6px;
+  min-width: 100px;
+  position: relative;
   flex-shrink: 0;
 }
 
-/* Graveyard icons */
+/* Vertically centered middle block: Next Phase + LP side by side */
+#field-right-center {
+  position: absolute;
+  top: 50%; left: 0; right: 0;
+  transform: translateY(-50%);
+  display: flex; flex-direction: row;
+  align-items: center; justify-content: center;
+  gap: 6px;
+  padding: 0 6px;
+  z-index: 5;
+}
+
+/* Graveyard icons — absolute at top/bottom */
 .grave-icon {
-  width: 42px; height: 42px;
+  position: absolute;
+  width: 56px; height: 56px;
   border-radius: 50%;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.2s;
-  position: relative;
+  z-index: 10;
 }
+.opp-grave-icon    { top: 5%; left: 50%; transform: translateX(-50%); }
+.player-grave-icon { bottom: 5%; left: 50%; transform: translateX(-50%); }
+.opp-grave-icon:hover    { transform: translateX(-50%) scale(1.12); }
+.player-grave-icon:hover { transform: translateX(-50%) scale(1.12); }
 .opp-grave-icon  {
   background: rgba(80,20,20,0.5);
-  border: 2px solid rgba(200,60,60,0.4);
-  box-shadow: 0 2px 8px rgba(200,40,40,0.2);
+  border: 2px solid rgba(200,60,60,0.5);
+  box-shadow: 0 2px 10px rgba(200,40,40,0.3);
 }
 .player-grave-icon {
   background: rgba(20,40,100,0.5);
-  border: 2px solid rgba(60,100,220,0.4);
-  box-shadow: 0 2px 8px rgba(40,80,200,0.2);
+  border: 2px solid rgba(60,100,220,0.5);
+  box-shadow: 0 2px 10px rgba(40,80,200,0.3);
 }
-.grave-icon:hover { transform: scale(1.12); }
-.opp-grave-icon:hover    { box-shadow: 0 4px 14px rgba(220,60,60,0.5); border-color: rgba(220,80,80,0.7); }
-.player-grave-icon:hover { box-shadow: 0 4px 14px rgba(60,120,255,0.5); border-color: rgba(80,140,255,0.7); }
-.grave-icon-sym   { font-size: 16px; line-height: 1; }
+.opp-grave-icon:hover    { box-shadow: 0 4px 16px rgba(220,60,60,0.6); border-color: rgba(220,80,80,0.8); }
+.player-grave-icon:hover { box-shadow: 0 4px 16px rgba(60,120,255,0.6); border-color: rgba(80,140,255,0.8); }
+.grave-icon-sym   { font-size: 22px; line-height: 1; }
 .grave-icon-count {
-  font-size: 9px; font-weight: bold;
-  color: rgba(220,200,200,0.8);
-  line-height: 1; margin-top: 1px;
+  font-size: 10px; font-weight: bold;
+  color: rgba(220,200,200,0.9);
+  line-height: 1; margin-top: 2px;
 }
 
 /* NEXT PHASE button */
 #btn-next-phase {
   font-family: inherit; font-weight: bold;
-  padding: 10px 8px; border-radius: 8px;
+  padding: 10px 6px; border-radius: 8px;
   cursor: pointer; white-space: nowrap;
-  font-size: 12px; letter-spacing: 0.5px;
+  font-size: 11px; letter-spacing: 0.5px;
   transition: all 0.15s;
-  width: 90%; max-width: 110px;
+  flex-shrink: 0;
   text-align: center;
   animation: nextPhasePulse 1.6s ease-in-out infinite;
 }
@@ -602,7 +621,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
 /* LP Panel */
 #lp-panel {
   display: flex; flex-direction: column;
-  gap: 4px; width: 100%;
+  gap: 4px; flex: 1; min-width: 0;
 }
 .lp-row {
   display: flex; flex-direction: column;
@@ -625,6 +644,8 @@ button { cursor: pointer; border: none; font-family: inherit; transition: all 0.
   display: flex; align-items: flex-start; justify-content: center;
   overflow: hidden;
   padding: 0 4px;
+  position: relative;
+  z-index: 50;
 }
 #player-hand {
   display: flex; gap: 0; align-items: flex-start;
