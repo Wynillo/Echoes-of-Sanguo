@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { Progression } from '../../progression.js';
 import type { CollectionEntry, OpponentRecord } from '../../types.js';
 
@@ -42,8 +42,13 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
     loadDeck();
   }, [refresh, loadDeck]);
 
+  const value = useMemo(
+    () => ({ coins, collection, opponents, currentDeck, refresh, setCurrentDeck, loadDeck }),
+    [coins, collection, opponents, currentDeck, refresh, setCurrentDeck, loadDeck],
+  );
+
   return (
-    <ProgressionContext.Provider value={{ coins, collection, opponents, currentDeck, refresh, setCurrentDeck, loadDeck }}>
+    <ProgressionContext.Provider value={value}>
       {children}
     </ProgressionContext.Provider>
   );

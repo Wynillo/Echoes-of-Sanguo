@@ -164,7 +164,7 @@ export const Progression = (() => {
     try {
       const legacy = localStorage.getItem('aetherialClash_deck');
       if (legacy) return JSON.parse(legacy);
-    } catch (e) { /* ignore */ }
+    } catch (e) { console.warn('[Progression] Legacy-Deck-Migration fehlgeschlagen:', e); }
     return null;
   }
 

@@ -7,10 +7,13 @@
 // Categories:   PHASE | AI | BATTLE | EFFECT | SUMMON | SPELL | ERROR
 // Each category has its own color; errors always show regardless of flag.
 //
+import './cards-data.js'; // ensures all 700+ cards are registered before engine initialises
 import { CARD_DB, TYPE, ATTR, RACE, RARITY, FUSION_RECIPES, OPPONENT_CONFIGS, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion } from './cards.js';
 import { Progression } from './progression.js';
 import { executeEffectBlock, extractPassiveFlags } from './effect-registry.js';
-import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, GameState, PlayerState, UICallbacks, OpponentConfig, VsAttrBonus } from './types.js';
+import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, PlayerState, UICallbacks, OpponentConfig, VsAttrBonus } from './types.js';
+
+const ownerLabel = (owner: Owner): string => owner === 'player' ? 'Spieler' : 'Gegner';
 
 export const AetherialClash = {
   debug: false,
@@ -36,7 +39,7 @@ export const AetherialClash = {
     this._push('GAME', msg);
   },
 
-  log(category, msg, data = undefined){
+  log(category, msg, data: unknown = undefined){
     this._push(category, msg, data);
     if(!this.debug && category !== 'ERROR') return;
     const color  = this._colors[category] || '#aaa';
@@ -49,7 +52,7 @@ export const AetherialClash = {
     }
   },
 
-  _push(category, msg, data = undefined){
+  _push(category, msg, data: unknown = undefined){
     const ts = new Date().toISOString();
     const dataStr = data !== undefined
       ? (typeof data === 'object' ? JSON.stringify(data) : String(data))
@@ -115,7 +118,7 @@ export class FieldCard {
   tempATKBonus: number;
   permATKBonus: number;
   permDEFBonus: number;
-  phoenixRevived: boolean;
+  phoenixRevivalUsed: boolean;
   piercing: boolean;
   cannotBeTargeted: boolean;
   canDirectAttack: boolean;
@@ -123,7 +126,10 @@ export class FieldCard {
   phoenixRevival: boolean;
 
   constructor(card: CardData, position: Position = 'atk', faceDown: boolean = false) {
-    this.card       = Object.assign({}, card); // shallow copy — prevents in-play mutations from corrupting the deck/hand reference
+    this.card       = { // deep-copy effect to prevent shared mutations across FieldCard instances
+      ...card,
+      effect: card.effect ? { ...card.effect, actions: card.effect.actions.map(a => ({ ...a })) } : undefined,
+    };
     this.position   = position; // 'atk' | 'def'
     this.faceDown   = faceDown;
     this.hasAttacked= false;
@@ -131,7 +137,7 @@ export class FieldCard {
     this.tempATKBonus = 0;
     this.permATKBonus = 0;
     this.permDEFBonus = 0;
-    this.phoenixRevived = false;
+    this.phoenixRevivalUsed = false;
     // passive flags from effect
     if(card.effect && card.effect.trigger==='passive'){
       const flags = extractPassiveFlags(card.effect);
@@ -172,14 +178,13 @@ export class FieldSpellTrap {
 // ── GameEngine ─────────────────────────────────────────────
 export class GameEngine {
   uiCallbacks: UICallbacks;
-  state: GameState | null = null;
+  state!: GameState; // initialized in initGame() before any gameplay method is called
   ui: any;
   _trapResolve: any;
   _currentOpponentId: any;
 
   constructor(uiCallbacks: UICallbacks){
     this.ui = uiCallbacks; // { render, log, prompt, showResult, onDuelEnd }
-    this.state = null;
     this._trapResolve = null;
     this._currentOpponentId = null;
   }
@@ -223,7 +228,7 @@ export class GameEngine {
     this.ui.render(this.state);
   }
 
-  getState(): GameState | null { return this.state; }
+  getState(): GameState { return this.state; }
 
   // ───────── Utility ──────────────────────────────────────
   _shuffle(arr){
@@ -243,14 +248,14 @@ export class GameEngine {
 
   dealDamage(target: Owner, amount: number){
     this.state[target].lp = Math.max(0, this.state[target].lp - amount);
-    this.addLog(`${target==='player'?'Spieler':'Gegner'} erhält ${amount} Schaden. (LP: ${this.state[target].lp})`);
+    this.addLog(`${ownerLabel(target)} erhält ${amount} Schaden. (LP: ${this.state[target].lp})`);
     this.ui.render(this.state);
     if(this.checkWin()) return;
   }
 
   gainLP(target: Owner, amount: number){
     this.state[target].lp += amount;
-    this.addLog(`${target==='player'?'Spieler':'Gegner'} erhält ${amount} LP. (LP: ${this.state[target].lp})`);
+    this.addLog(`${ownerLabel(target)} erhält ${amount} LP. (LP: ${this.state[target].lp})`);
     this.ui.render(this.state);
   }
 
@@ -295,7 +300,7 @@ export class GameEngine {
     let drawn = 0;
     for(let i=0;i<count;i++){
       if(st.deck.length===0){ this.addLog(`${owner==='player'?'Dein':'Gegners'} Deck ist leer!`); break; }
-      const card = st.deck.shift();
+      const card = st.deck.shift()!; // length checked above
       st.hand.push(card);
       drawn++;
     }
@@ -315,7 +320,7 @@ export class GameEngine {
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
     const posStr = faceDown ? 'verdeckt DEF' : position.toUpperCase();
-    this.addLog(`${owner==='player'?'Spieler':'Gegner'}: ${card.name} (${posStr}).`);
+    this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
     // trigger onSummon effect only if face-up
     if(!faceDown) this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
@@ -336,7 +341,7 @@ export class GameEngine {
     const fc = new FieldCard(card, 'atk');
     fc.summonedThisTurn = false; // special summons can usually attack (or keep true for balance)
     st.field.monsters[zone] = fc;
-    this.addLog(`${owner==='player'?'Spieler':'Gegner'}: ${card.name} Spezialbeschwörung!`);
+    this.addLog(`${ownerLabel(owner)}: ${card.name} Spezialbeschwörung!`);
     this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
@@ -352,7 +357,7 @@ export class GameEngine {
     const fc = new FieldCard(c, 'atk');
     fc.summonedThisTurn = false;
     st.field.monsters[zone] = fc;
-    this.addLog(`${owner==='player'?'Spieler':'Gegner'}: ${c.name} aus dem Friedhof beschworen!`);
+    this.addLog(`${ownerLabel(owner)}: ${c.name} aus dem Friedhof beschworen!`);
     this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
@@ -366,41 +371,41 @@ export class GameEngine {
     }
     const [card] = st.hand.splice(handIndex, 1);
     st.field.spellTraps[zone] = new FieldSpellTrap(card, true);
-    this.addLog(`${owner==='player'?'Spieler':'Gegner'}: Karte verdeckt abgelegt.`);
+    this.addLog(`${ownerLabel(owner)}: Karte verdeckt abgelegt.`);
     this.ui.render(this.state);
     return true;
   }
 
-  async activateSpell(owner, handIndex, targetInfo=null){
+  async activateSpell(owner, handIndex, targetInfo: FieldCard | CardData | null = null){
     const st = this.state[owner];
     const card = st.hand[handIndex];
     if(!card || card.type !== TYPE.SPELL){ this.addLog('Keine Zauberkarte!'); return false; }
     st.hand.splice(handIndex, 1);
-    this.addLog(`${owner==='player'?'Spieler':'Gegner'}: ${card.name} aktiviert!`);
+    this.addLog(`${ownerLabel(owner)}: ${card.name} aktiviert!`);
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
     if(card.effect) try {
       const ctx = this._buildSpellContext(owner, targetInfo);
       executeEffectBlock(card.effect, ctx);
     } catch(e) {
-      AetherialClash.log('EFFECT', `Fehler in Zauber-Effekt [${card.id}]: ${e.message}`, '#f44');
+      AetherialClash.log('EFFECT', `Fehler in Zauber-Effekt [${card.id}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
     }
     st.graveyard.push(card);
     this.ui.render(this.state);
     return true;
   }
 
-  activateSpellFromField(owner, zone, targetInfo=null){
+  activateSpellFromField(owner, zone, targetInfo: FieldCard | CardData | null = null){
     const st = this.state[owner];
     const fst = st.field.spellTraps[zone];
     if(!fst || fst.card.type !== TYPE.SPELL) return false;
     fst.faceDown = false;
-    this.addLog(`${owner==='player'?'Spieler':'Gegner'}: ${fst.card.name} aktiviert!`);
+    this.addLog(`${ownerLabel(owner)}: ${fst.card.name} aktiviert!`);
     if(this.ui.showActivation) this.ui.showActivation(fst.card, fst.card.description);
     if(fst.card.effect) try {
       const ctx = this._buildSpellContext(owner, targetInfo);
       executeEffectBlock(fst.card.effect, ctx);
     } catch(e) {
-      AetherialClash.log('EFFECT', `Fehler in Zauber-Feldeffekt [${fst.card.id}]: ${e.message}`, '#f44');
+      AetherialClash.log('EFFECT', `Fehler in Zauber-Feldeffekt [${fst.card.id}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
     }
     st.graveyard.push(fst.card);
     st.field.spellTraps[zone] = null;
@@ -414,14 +419,14 @@ export class GameEngine {
     if(!fst || fst.card.type !== TYPE.TRAP || fst.used) return null;
     fst.used = true;
     fst.faceDown = false;
-    this.addLog(`${owner==='player'?'Spieler':'Gegner'}: Falle ${fst.card.name} aktiviert!`);
+    this.addLog(`${ownerLabel(owner)}: Falle ${fst.card.name} aktiviert!`);
     if(this.ui.showActivation) this.ui.showActivation(fst.card, fst.card.description);
-    let result = null;
+    let result: EffectSignal | null = null;
     if(fst.card.effect) try {
       const ctx = this._buildTrapContext(owner, fst.card.trapTrigger, args);
       result = executeEffectBlock(fst.card.effect, ctx);
     } catch(e) {
-      AetherialClash.log('EFFECT', `Fehler in Fallen-Effekt [${fst.card.id}]: ${e.message}`, '#f44');
+      AetherialClash.log('EFFECT', `Fehler in Fallen-Effekt [${fst.card.id}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
       result = {};
     }
     st.graveyard.push(fst.card);
@@ -443,7 +448,7 @@ export class GameEngine {
 
   getAllFusionOptions(owner){
     const hand = this.state[owner].hand;
-    const options = [];
+    const options: Array<{i1:number, i2:number, card1:CardData, card2:CardData, result:CardData}> = [];
     for(let i=0;i<hand.length;i++){
       for(let j=i+1;j<hand.length;j++){
         const recipe = checkFusion(hand[i].id, hand[j].id);
@@ -480,7 +485,7 @@ export class GameEngine {
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
 
-    this.addLog(`${owner==='player'?'Spieler':'Gegner'}: FUSION! ${card1.name} + ${card2.name} = ${fusionCard.name}!`);
+    this.addLog(`${ownerLabel(owner)}: FUSION! ${card1.name} + ${card2.name} = ${fusionCard.name}!`);
     this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
@@ -610,8 +615,8 @@ export class GameEngine {
     if(!fc) return;
 
     // phoenixRevival passive: revive once after destruction by opponent in battle
-    if(fc.phoenixRevival && !fc.phoenixRevived && reason === 'battle' && byOwner !== owner){
-      fc.phoenixRevived = true;
+    if(fc.phoenixRevival && !fc.phoenixRevivalUsed && reason === 'battle' && byOwner !== owner){
+      fc.phoenixRevivalUsed = true;
       st.graveyard.push(fc.card);
       st.field.monsters[zone] = null;
       // Special summon from grave with -500 ATK
@@ -619,7 +624,7 @@ export class GameEngine {
       const newZone = st.field.monsters.findIndex(z => z === null);
       if(newZone !== -1){
         const newFC = new FieldCard(revCard, 'atk');
-        newFC.phoenixRevived = true;
+        newFC.phoenixRevivalUsed = true;
         newFC.summonedThisTurn = false;
         st.field.monsters[newZone] = newFC;
         this.addLog(`${fc.card.name} steigt aus dem Friedhof auf! (ATK: ${revCard.atk})`);
@@ -670,7 +675,7 @@ export class GameEngine {
       const ctx: EffectContext = { engine: this, owner };
       executeEffectBlock(card.effect, ctx);
     } catch(e) {
-      AetherialClash.log('EFFECT', `Fehler in Effekt [${card.id}] trigger=${trigger}: ${e.message}`, '#f44');
+      AetherialClash.log('EFFECT', `Fehler in Effekt [${card.id}] trigger=${trigger}: ${e instanceof Error ? e.message : String(e)}`, '#f44');
     }
   }
 
@@ -759,12 +764,38 @@ export class GameEngine {
 
   // ───────── AI ────────────────────────────────────────────
   async _aiTurn(){
-    const ai  = this.state.opponent;
-    const plr = this.state.player;
+    const ai = this.state.opponent;
 
     AetherialClash.group(`=== KI-Zug Runde ${this.state.turn} ===`);
 
-    // Draw
+    await this._aiDrawPhase();
+    await this._aiMainPhase();
+    await this._aiPlaceTraps();
+    if (await this._aiBattlePhase()) return;
+
+    // End Phase
+    AetherialClash.log('PHASE', 'Endphase – KI räumt auf.');
+    this.state.phase = 'end';
+    this.ui.render(this.state);
+    await this._delay(300);
+
+    this._resetMonsterFlags('opponent');
+    while(ai.hand.length > 8) ai.hand.shift();
+
+    this.state.activePlayer = 'player';
+    this.state.phase = 'main';
+    this.state.turn++;
+    this.addLog(`=== Runde ${this.state.turn} - Dein Zug! ===`);
+
+    AetherialClash.groupEnd();
+
+    this.drawCard('player', 1);
+    this.ui.render(this.state);
+    if(this.checkWin()) return;
+  }
+
+  async _aiDrawPhase() {
+    const ai = this.state.opponent;
     this.state.phase = 'draw';
     this.ui.render(this.state);
     await this._delay(300);
@@ -773,19 +804,23 @@ export class GameEngine {
     AetherialClash.log('PHASE', 'Ziehphase – Hand:', ai.hand.map(c => c.name));
     this.ui.render(this.state);
     await this._delay(400);
+  }
 
-    // Main Phase
+  async _aiMainPhase() {
+    const ai  = this.state.opponent;
+    const plr = this.state.player;
+
     this.state.phase = 'main';
     this.addLog('--- Gegner Hauptphase ---');
     this.ui.render(this.state);
     await this._delay(400);
 
-    // Try fusion first (max. 1 pro Runde)
+    // Try fusion first (max. 1 per turn)
     AetherialClash.log('AI', 'Hauptphase – prüfe Fusion...');
     if(!ai.normalSummonUsed){
       const opts = this.getAllFusionOptions('opponent');
       if(opts.length > 0){
-        const best = opts.sort((a,b) => b.result.atk - a.result.atk)[0];
+        const best = opts.sort((a,b) => (b.result.atk ?? 0) - (a.result.atk ?? 0))[0];
         const zone = ai.field.monsters.findIndex(z => z === null);
         if(zone !== -1){
           AetherialClash.log('AI', `Fusion: ${best.card1.name} + ${best.card2.name} → ${best.result.name} (Zone ${zone})`);
@@ -797,12 +832,10 @@ export class GameEngine {
       }
     }
 
-    // Summon one monster from hand (max. 1 pro Runde)
-    // Prefer the highest-ATK monster available.
-    // If the summoned monster is weaker than every player monster, set it in DEF to protect LP.
+    // Summon one monster from hand (max. 1 per turn)
+    // Prefer highest-ATK monster; set in DEF if weaker than all player monsters.
     AetherialClash.log('AI', 'Beschwöre Monster aus Hand:', ai.hand.filter(c => c.type===TYPE.NORMAL||c.type===TYPE.EFFECT).map(c=>c.name));
     if(!ai.normalSummonUsed){
-      // Pick best monster (highest ATK) from hand
       let bestIdx = -1, bestATK = -1;
       for(let i = 0; i < ai.hand.length; i++){
         const card = ai.hand[i];
@@ -812,32 +845,31 @@ export class GameEngine {
       if(bestIdx !== -1){
         const card = ai.hand[bestIdx];
         const zone = ai.field.monsters.findIndex(z => z === null);
-        if(zone === -1){ AetherialClash.log('AI', 'Alle Monsterzonen belegt.'); }
-        else {
-        // Summon in DEF if all player monsters can beat this card
-        const plrMinVal = plr.field.monsters
-          .filter(Boolean)
-          .reduce((min, fc) => Math.min(min, fc!.position==='atk' ? fc!.effectiveATK() : fc!.effectiveDEF()), Infinity);
-        const summonPos = (plr.field.monsters.some(Boolean) && bestATK < plrMinVal) ? 'def' : 'atk';
-        AetherialClash.log('SUMMON', `Beschwöre ${card.name} (ATK:${bestATK}) in Zone ${zone} als ${summonPos.toUpperCase()}`);
-        await this._delay(350);
-        this.summonMonster('opponent', bestIdx, zone, summonPos);
-        // Check player trap hole
-        const summonedFC = ai.field.monsters[zone];
-        if(summonedFC){
-          const trapResult = await this._promptPlayerTraps('onOpponentSummon', summonedFC);
-          if(trapResult && trapResult.destroySummoned){
-            AetherialClash.log('TRAP', `Fallenloch zerstört ${summonedFC.card.name}`);
-            ai.graveyard.push(ai.field.monsters[zone].card);
-            ai.field.monsters[zone] = null;
-            this.ui.render(this.state);
+        if(zone === -1){
+          AetherialClash.log('AI', 'Alle Monsterzonen belegt.');
+        } else {
+          const plrMinVal = plr.field.monsters
+            .filter(Boolean)
+            .reduce((min, fc) => Math.min(min, fc!.position==='atk' ? fc!.effectiveATK() : fc!.effectiveDEF()), Infinity);
+          const summonPos = (plr.field.monsters.some(Boolean) && bestATK < plrMinVal) ? 'def' : 'atk';
+          AetherialClash.log('SUMMON', `Beschwöre ${card.name} (ATK:${bestATK}) in Zone ${zone} als ${summonPos.toUpperCase()}`);
+          await this._delay(350);
+          this.summonMonster('opponent', bestIdx, zone, summonPos);
+          const summonedFC = ai.field.monsters[zone];
+          if(summonedFC){
+            const trapResult = await this._promptPlayerTraps('onOpponentSummon', summonedFC);
+            if(trapResult && trapResult.destroySummoned){
+              AetherialClash.log('TRAP', `Fallenloch zerstört ${summonedFC.card.name}`);
+              ai.graveyard.push(summonedFC.card);
+              ai.field.monsters[zone] = null;
+              this.ui.render(this.state);
+            }
           }
         }
-        }  // close else (zone found)
-      }    // close if(bestIdx !== -1)
-    }      // close if(!ai.normalSummonUsed)
+      }
+    }
 
-    // Activate spells - restart loop after each activation to avoid index issues
+    // Activate spells — restart loop after each activation to avoid index issues
     AetherialClash.log('AI', 'Aktiviere Zauberkarten...');
     let spellActivated = true;
     while(spellActivated){
@@ -880,8 +912,10 @@ export class GameEngine {
         if(activated){ spellActivated = true; break; }
       }
     }
+  }
 
-    // Set traps
+  async _aiPlaceTraps() {
+    const ai = this.state.opponent;
     AetherialClash.log('AI', 'Lege Fallen ab...');
     const hand = ai.hand;
     for(let i = hand.length - 1; i >= 0; i--){
@@ -895,12 +929,16 @@ export class GameEngine {
       // index may have shifted after removal; restart from new end
       i = Math.min(i, ai.hand.length);
     }
+  }
 
-    // Battle Phase
+  async _aiBattlePhase(): Promise<boolean> {
+    const ai  = this.state.opponent;
+    const plr = this.state.player;
+
     this.state.phase = 'battle';
     this.addLog('--- Gegner Kampfphase ---');
-    AetherialClash.log('PHASE', `Kampfphase – KI-Feld: [${ai.field.monsters.filter(Boolean).map(fc=>`${fc.card.name}(${fc.effectiveATK()})`).join(', ')}]`);
-    AetherialClash.log('PHASE', `Spieler-Feld: [${plr.field.monsters.filter(Boolean).map(fc=>`${fc.card.name}(${fc.position==='atk'?fc.effectiveATK():fc.effectiveDEF()})`).join(', ')}]`);
+    AetherialClash.log('PHASE', `Kampfphase – KI-Feld: [${ai.field.monsters.filter((fc): fc is FieldCard => fc !== null).map(fc=>`${fc.card.name}(${fc.effectiveATK()})`).join(', ')}]`);
+    AetherialClash.log('PHASE', `Spieler-Feld: [${plr.field.monsters.filter((fc): fc is FieldCard => fc !== null).map(fc=>`${fc.card.name}(${fc.position==='atk'?fc.effectiveATK():fc.effectiveDEF()})`).join(', ')}]`);
     this.ui.render(this.state);
     await this._delay(500);
 
@@ -921,7 +959,7 @@ export class GameEngine {
       if(!plrHasMonsters || atk.canDirectAttack){
         AetherialClash.log('BATTLE', `${atk.card.name} → Direktangriff!${atk.canDirectAttack ? ' (canDirectAttack)' : ''}`);
         await this.attackDirect('opponent', az);
-        if(this.checkWin()) return;
+        if(this.checkWin()) return true;
       } else {
         // Priority 1: attack the strongest monster we can destroy (maximise board damage)
         let bestTarget = -1;
@@ -935,53 +973,29 @@ export class GameEngine {
           }
         }
         if(bestTarget !== -1){
-          AetherialClash.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → greift ${plrMonsters[bestTarget].card.name}(${bestScore}) an [kann zerstören]`);
+          AetherialClash.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → greift ${plrMonsters[bestTarget]!.card.name}(${bestScore}) an [kann zerstören]`);
           await this.attack('opponent', az, bestTarget);
-          if(this.checkWin()) return;
+          if(this.checkWin()) return true;
         } else {
-          // Priority 2: only attack if we won't take LP damage (target is DEF-position and our ATK ≥ its DEF)
-          // Skip the attack rather than suicide-charging into stronger ATK-position monsters.
+          // Priority 2: only attack DEF-position targets to avoid taking LP damage
           let safeTarget = -1, safeVal = Infinity;
           for(let dz = 0; dz < 5; dz++){
             const def = plrMonsters[dz];
-            if(!def || def.position !== 'def') continue; // only DEF-mode targets are safe
+            if(!def || def.position !== 'def') continue;
             const defVal = def.effectiveDEF();
             if(atk.effectiveATK() >= defVal && defVal < safeVal){ safeVal = defVal; safeTarget = dz; }
           }
           if(safeTarget !== -1){
             AetherialClash.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → greift DEF-Monster ${plrMonsters[safeTarget]!.card.name}(DEF:${safeVal}) an [kein LP-Verlust]`);
             await this.attack('opponent', az, safeTarget);
-            if(this.checkWin()) return;
+            if(this.checkWin()) return true;
           } else {
             AetherialClash.log('BATTLE', `${atk.card.name}: kein günstiges Ziel – überspringen (verhindert unnötigen LP-Verlust)`);
           }
         }
       }
     }
-
-    // AI End Phase
-    AetherialClash.log('PHASE', 'Endphase – KI räumt auf.');
-    this.state.phase = 'end';
-    this.ui.render(this.state);
-    await this._delay(300);
-
-    // clear ai temp buffs
-    this._resetMonsterFlags('opponent');
-    while(ai.hand.length > 8) ai.hand.shift();
-
-    // switch back to player
-    this.state.activePlayer = 'player';
-    this.state.phase = 'main';
-    this.state.turn++;
-    this.addLog(`=== Runde ${this.state.turn} - Dein Zug! ===`);
-
-    AetherialClash.groupEnd(); // close group opened at start of _aiTurn
-
-    // Player draw
-    this.drawCard('player', 1);
-
-    this.ui.render(this.state);
-    if(this.checkWin()) return;
+    return false;
   }
 
   _delay(ms){ return new Promise(r => setTimeout(r, ms)); }

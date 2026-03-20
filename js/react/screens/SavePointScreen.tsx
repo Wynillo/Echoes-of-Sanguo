@@ -3,6 +3,7 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }       from '../contexts/ModalContext.js';
 import { Progression }    from '../../progression.js';
+import styles from './SavePointScreen.module.css';
 
 export default function SavePointScreen() {
   const { navigateTo }     = useScreen();
@@ -30,23 +31,23 @@ export default function SavePointScreen() {
   }
 
   return (
-    <div id="save-point-screen">
+    <div className={styles.screen}>
       <div className="title-bg"></div>
-      <div className="save-point-content">
+      <div className={styles.content}>
         <div className="title-rune">★</div>
-        <h2 className="save-point-title">SPEICHERPUNKT</h2>
-        <div className="save-coins-bar">
+        <h2 className={styles.title}>SPEICHERPUNKT</h2>
+        <div className={styles.coinsBar}>
           <span className="coins-icon">◈</span>
-          <span className="save-coins-value">{coins.toLocaleString('de-DE')}</span>
+          <span className={styles.coinsValue}>{coins.toLocaleString('de-DE')}</span>
           <span className="coins-label">Äther-Münzen</span>
         </div>
         {hasBackup && (
-          <p className="save-backup-warning">
+          <p className={styles.backupWarning}>
             Neues Spiel aktiv — speichere um den alten Stand zu überschreiben,
             oder kehre zurück um abzubrechen.
           </p>
         )}
-        <div className="save-point-menu">
+        <div className={styles.menu}>
           <button className="btn-primary" onClick={handleSave}>
             {savedMsg ? '✓ Gespeichert!' : '💾 Speichern'}
           </button>

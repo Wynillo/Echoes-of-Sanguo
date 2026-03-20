@@ -1,9 +1,9 @@
-import { lazy, Suspense } from 'react';
 import { ScreenProvider, useScreen } from './contexts/ScreenContext.js';
 import { ProgressionProvider } from './contexts/ProgressionContext.js';
 import { ModalProvider } from './contexts/ModalContext.js';
 import { SelectionProvider } from './contexts/SelectionContext.js';
 import { GameProvider } from './contexts/GameContext.js';
+import { ErrorBoundary } from './components/ErrorBoundary.js';
 
 import TitleScreen      from './screens/TitleScreen.js';
 import StarterScreen    from './screens/StarterScreen.js';
@@ -20,7 +20,7 @@ import { CardActivationOverlay } from './components/CardActivationOverlay.js';
 import { ModalOverlay }         from './modals/ModalOverlay.js';
 
 function Router() {
-  const { screen } = useScreen();
+  const { screen, setScreen } = useScreen();
   return (
     <>
       {screen === 'title'        && <TitleScreen />}
@@ -29,7 +29,11 @@ function Router() {
       {screen === 'collection'   && <CollectionScreen />}
       {screen === 'shop'         && <ShopScreen />}
       {screen === 'pack-opening' && <PackOpeningScreen />}
-      {screen === 'game'         && <GameScreen />}
+      {screen === 'game'         && (
+        <ErrorBoundary onReset={() => setScreen('title')}>
+          <GameScreen />
+        </ErrorBoundary>
+      )}
       {screen === 'deckbuilder'  && <DeckbuilderScreen />}
       {screen === 'save-point'   && <SavePointScreen />}
       <HoverPreview />
@@ -42,16 +46,18 @@ function Router() {
 
 export default function App() {
   return (
-    <ScreenProvider>
-      <ProgressionProvider>
-        <ModalProvider>
-          <SelectionProvider>
-            <GameProvider>
-              <Router />
-            </GameProvider>
-          </SelectionProvider>
-        </ModalProvider>
-      </ProgressionProvider>
-    </ScreenProvider>
+    <ErrorBoundary>
+      <ScreenProvider>
+        <ProgressionProvider>
+          <ModalProvider>
+            <SelectionProvider>
+              <GameProvider>
+                <Router />
+              </GameProvider>
+            </SelectionProvider>
+          </ModalProvider>
+        </ProgressionProvider>
+      </ScreenProvider>
+    </ErrorBoundary>
   );
 }

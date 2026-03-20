@@ -2,6 +2,7 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }       from '../contexts/ModalContext.js';
 import { Progression }    from '../../progression.js';
+import styles from './TitleScreen.module.css';
 
 export default function TitleScreen() {
   const { navigateTo } = useScreen();
@@ -29,13 +30,13 @@ export default function TitleScreen() {
   }
 
   return (
-    <div id="title-screen">
+    <div className={styles.screen}>
       <div className="title-bg"></div>
-      <div className="title-content">
+      <div className={styles.content}>
         <div className="title-rune">✦</div>
-        <h1 className="game-title">AETHERIAL<br />CLASH</h1>
-        <p className="subtitle">Das Kartenduel der Elemente</p>
-        <div className="title-menu">
+        <h1 className={styles.gameTitle}>AETHERIAL<br />CLASH</h1>
+        <p className={styles.subtitle}>Das Kartenduel der Elemente</p>
+        <div className={styles.menu}>
           <button className="btn-primary" onClick={handleNewGame}>⚔ Neues Spiel</button>
           {hasSave && (
             <button className="btn-secondary" onClick={handleLoadGame}>📂 Spiel Laden</button>

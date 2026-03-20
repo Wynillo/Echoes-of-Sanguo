@@ -4,6 +4,7 @@ import { useProgression } from '../contexts/ProgressionContext.js';
 import { Progression }    from '../../progression.js';
 import { RACE_NAME }      from '../../cards.js';
 import { STARTER_DECKS }  from '../../cards-data.js';
+import styles from './StarterScreen.module.css';
 
 const RACE_INFO: Record<string, { icon: string; color: string; style: string }> = {
   feuer:   { icon: '🔥', color: '#e05030', style: 'Direktschaden & Burn' },
@@ -51,24 +52,24 @@ export default function StarterScreen() {
   const info = selected ? RACE_INFO[selected] : null;
 
   return (
-    <div id="starter-screen">
-      <div className="starter-header">
-        <div className="starter-rune">✦</div>
-        <h2 className="starter-title">WÄHLE DEIN STARTERDECK</h2>
-        <p className="starter-subtitle">Deine Rasse definiert deinen Spielstil. Diese Wahl ist für immer!</p>
+    <div className={styles.screen}>
+      <div className={styles.header}>
+        <div className={styles.rune}>✦</div>
+        <h2 className={styles.title}>WÄHLE DEIN STARTERDECK</h2>
+        <p className={styles.subtitle}>Deine Rasse definiert deinen Spielstil. Diese Wahl ist für immer!</p>
       </div>
 
       <div id="starter-race-grid">
         {Object.entries(RACE_INFO).map(([race, ri]) => (
           <div
             key={race}
-            className={`starter-race-card${selected === race ? ' selected' : ''}`}
+            className={`${styles.raceCard}${selected === race ? ` ${styles.selected}` : ''}`}
             style={{ '--race-color': ri.color } as React.CSSProperties}
             onClick={() => setSelected(race)}
           >
-            <div className="starter-race-icon">{ri.icon}</div>
-            <div className="starter-race-name">{(RACE_NAME as any)[race] || race}</div>
-            <div className="starter-race-style">{ri.style}</div>
+            <div className={styles.raceIcon}>{ri.icon}</div>
+            <div className={styles.raceName}>{(RACE_NAME as any)[race] || race}</div>
+            <div className={styles.raceStyle}>{ri.style}</div>
           </div>
         ))}
       </div>

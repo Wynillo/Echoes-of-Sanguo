@@ -1,0 +1,137 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #0a1228 0%, #050a14 100%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 14px 40px;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1100px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.title {
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  letter-spacing: 2px;
+  color: #c0d0e0;
+  margin: 0;
+}
+
+.stats { color: #7090b0; font-size: 0.85rem; }
+.backBtn { font-size: 0.85rem; }
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  max-width: 1100px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+
+.filterBtn {
+  background: #111828;
+  border: 1px solid #334;
+  color: #7090b0;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filterBtn.active, .filterBtn:hover {
+  border-color: #4070c0;
+  color: #90b0e0;
+  background: #1a2840;
+}
+
+.raritySelect {
+  background: #111828;
+  border: 1px solid #334;
+  color: #7090b0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-w, 104px), 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.card {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+  transition: transform 0.12s;
+}
+
+.cardOwned:hover {
+  transform: translateY(-4px);
+}
+
+.cardOwned:hover :global(.card) {
+  box-shadow: 0 6px 16px rgba(100,140,255,0.35);
+}
+
+.unowned {
+  background: #111828;
+  border: 1px solid #1e2a42;
+  border-radius: 6px;
+  min-height: var(--card-h, 144px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: default; opacity: 0.4;
+}
+
+.unowned:hover { transform: none; }
+
+.cardCount {
+  position: absolute;
+  bottom: calc(var(--card-h, 144px) * 0.12);
+  right: 3px;
+  background: rgba(8,12,28,0.92);
+  border: 1px solid var(--gold, #c8a44a);
+  color: var(--gold, #c8a44a);
+  font-size: 10px; font-weight: bold;
+  padding: 1px 5px; border-radius: 3px;
+  pointer-events: none; z-index: 5;
+}
+
+.rarityDot {
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  pointer-events: none; z-index: 5;
+}
+
+.cardMeta { font-size: 0.65rem; color: #506080; margin-top: 2px; }
+
+.unknownLabel {
+  color: #384060;
+  font-size: 0.85rem;
+  text-align: center;
+  letter-spacing: 2px;
+}

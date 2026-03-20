@@ -9,7 +9,7 @@ export function CardDetailModal({ modal }: Props) {
   const { card, fc } = modal;
   const { closeModal } = useModal();
 
-  const attrName = ATTR_NAME[card.attribute] || '';
+  const attrName = ATTR_NAME[card.attribute ?? ''] || '';
   const typeLabel = { normal:'Normal', effect:'Effekt', fusion:'Fusion', spell:'Zauberkarte', trap:'Fallenkarte' }[card.type as string] || '';
   const levelStr = card.level ? ` · Stufe ${card.level}` : '';
 

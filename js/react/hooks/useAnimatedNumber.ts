@@ -12,7 +12,7 @@ export function useAnimatedNumber(target: number, duration = 0.7): number {
       ease: 'power2.out',
       onUpdate() { setDisplay(Math.round(obj.current.val)); },
     });
-  }, [target]);
+  }, [target, duration]);
 
   return display;
 }
