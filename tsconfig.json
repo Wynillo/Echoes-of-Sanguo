@@ -9,7 +9,8 @@
     "noEmit": true,
     "skipLibCheck": true,
     "lib": ["ES2020", "DOM"],
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "resolveJsonModule": true
   },
   "include": ["js/**/*.ts", "js/**/*.js", "js/**/*.tsx"]
 }
