@@ -1,7 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { Progression }    from '../../progression.js';
-import { RACE_NAME, RACE_ICON } from '../../cards.js';
+import { RACE_ICON }      from '../../cards.js';
 import { PACK_TYPES, openPack } from '../utils/pack-logic.js';
 import { setPackOpeningCards }  from './PackOpeningScreen.js';
 import type { CardData } from '../../types.js';
@@ -22,16 +23,18 @@ export default function ShopScreen() {
     navigateTo('pack-opening');
   }
 
+  const { t } = useTranslation();
+
   return (
     <div id="shop-screen">
       <div className="shop-header">
-        <h2 className="shop-title">◈ ÄTHER-SHOP</h2>
+        <h2 className="shop-title">{t('shop.title')}</h2>
         <div className="shop-coins-bar">
           <span className="coins-icon">◈</span>
-          <span id="shop-coin-display">{coins.toLocaleString('de-DE')}</span>
-          <span className="coins-label">Äther-Münzen</span>
+          <span id="shop-coin-display">{coins.toLocaleString()}</span>
+          <span className="coins-label">{t('common.coins')}</span>
         </div>
-        <button className="btn-secondary shop-back-btn" onClick={() => navigateTo('title')}>← Hauptmenü</button>
+        <button className="btn-secondary shop-back-btn" onClick={() => navigateTo('title')}>{t('shop.back')}</button>
       </div>
 
       <div id="shop-pack-grid">
@@ -53,8 +56,9 @@ interface PackTileProps {
 }
 
 function PackTile({ pt, affordable, onBuy }: PackTileProps) {
+  const { t } = useTranslation();
   const starterRace = Progression.getStarterRace() || '';
-  const raceEntries = Object.entries(RACE_NAME as Record<string, string>);
+  const raceKeys = Object.keys(RACE_ICON as Record<string, string>);
 
   function handleBuy() {
     let race: string | null = null;
@@ -71,19 +75,19 @@ function PackTile({ pt, affordable, onBuy }: PackTileProps) {
       style={{ '--pack-color': pt.color } as React.CSSProperties}
     >
       <div className="shop-pack-icon">{pt.icon}</div>
-      <div className="shop-pack-name">{pt.name}</div>
-      <div className="shop-pack-desc">{pt.desc}</div>
-      <div className="shop-pack-price">◈ {pt.price.toLocaleString('de-DE')}</div>
+      <div className="shop-pack-name">{t(`pack.${pt.id}_name`)}</div>
+      <div className="shop-pack-desc">{t(`pack.${pt.id}_desc`)}</div>
+      <div className="shop-pack-price">◈ {pt.price.toLocaleString()}</div>
       {pt.id === 'race' && (
         <div className="shop-race-select-wrap">
           <select id={`shop-race-select-${pt.id}`} className="shop-race-select" defaultValue={starterRace}>
-            {raceEntries.map(([k, v]) => (
-              <option key={k} value={k}>{(RACE_ICON as any)[k] || ''} {v}</option>
+            {raceKeys.map(k => (
+              <option key={k} value={k}>{(RACE_ICON as any)[k] || ''} {t(`cards.race_${k}`)}</option>
             ))}
           </select>
         </div>
       )}
-      <button className="btn-buy-pack" disabled={!affordable} onClick={handleBuy}>Pack kaufen</button>
+      <button className="btn-buy-pack" disabled={!affordable} onClick={handleBuy}>{t('shop.buy_btn')}</button>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState }      from 'react';
+import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useGame }        from '../contexts/GameContext.js';
@@ -22,6 +23,7 @@ export default function OpponentScreen() {
   const { opponents }   = useProgression();
   const { startGame }   = useGame();
   const [hovered, setHovered] = useState<OpponentConfig | null>(null);
+  const { t } = useTranslation();
 
   function selectOpponent(cfg: OpponentConfig) {
     startGame(cfg);
@@ -31,9 +33,9 @@ export default function OpponentScreen() {
   return (
     <div id="opponent-screen">
       <div className="opp-select-header">
-        <h2 className="opp-select-title">FREIES DUELL</h2>
-        <p className="opp-select-subtitle">Wähle deinen Gegner</p>
-        <button className="btn-secondary opp-back-btn" onClick={() => navigateTo('title')}>← Hauptmenü</button>
+        <h2 className="opp-select-title">{t('opponent.headline')}</h2>
+        <p className="opp-select-subtitle">{t('opponent.subtitle')}</p>
+        <button className="btn-secondary opp-back-btn" onClick={() => navigateTo('title')}>{t('opponent.back')}</button>
       </div>
 
       <div id="opp-portrait-grid">

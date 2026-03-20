@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useGame }      from '../contexts/GameContext.js';
 import { useModal }     from '../contexts/ModalContext.js';
 import { useSelection } from '../contexts/SelectionContext.js';
@@ -11,6 +12,7 @@ export function CardActionMenu({ modal }: Props) {
   const { gameRef }           = useGame();
   const { openModal, closeModal } = useModal();
   const { setSel }            = useSelection();
+  const { t }                 = useTranslation();
 
   const game  = gameRef.current;
   const phase = state.phase;
@@ -39,31 +41,31 @@ export function CardActionMenu({ modal }: Props) {
 
   if (isMon && phase === 'main') {
     if (state.player.normalSummonUsed) {
-      actions.push(btn('⛔ Monster bereits gespielt', null, true));
+      actions.push(btn(t('card_action.already_played'), null, true));
     } else {
       if (freeZone !== -1) {
-        actions.push(btn('⚔ Beschwören (ATK)', () => { game.summonMonster('player', index, freeZone, 'atk'); closeModal(); }));
-        actions.push(btn('🛡 Als Verteidigung setzen', () => { game.summonMonster('player', index, freeZone, 'def'); closeModal(); }));
+        actions.push(btn(t('card_action.summon_atk'), () => { game.summonMonster('player', index, freeZone, 'atk'); closeModal(); }));
+        actions.push(btn(t('card_action.summon_def'), () => { game.summonMonster('player', index, freeZone, 'def'); closeModal(); }));
       }
     }
     if (fusionOpts.length > 0 && !state.player.normalSummonUsed) {
-      actions.push(btn('✨ Fusion wählen', () => {
-        setSel({ mode: 'fusion1', fusion1: { handIndex: index }, hint: 'Wähle die zweite Fusionskarte aus der Hand.' });
+      actions.push(btn(t('card_action.fusion'), () => {
+        setSel({ mode: 'fusion1', fusion1: { handIndex: index }, hint: t('card_action.hint_fusion') });
         closeModal();
       }));
     }
   }
 
   if (isSp && phase === 'main') {
-    actions.push(btn('✦ Aktivieren', () => {
+    actions.push(btn(t('card_action.activate'), () => {
       if (card.spellType === 'targeted' || card.spellType === 'fromGrave') {
-        startSpellTargeting(card, index, state, game, setSel, openModal, closeModal);
+        startSpellTargeting(card, index, state, game, setSel, openModal, closeModal, t);
       } else {
         game.activateSpell('player', index);
       }
       closeModal();
     }));
-    actions.push(btn('🔽 Setzen', () => {
+    actions.push(btn(t('card_action.set_spell'), () => {
       const zone = state.player.field.spellTraps.findIndex((z: any) => z === null);
       if (zone !== -1) game.setSpellTrap('player', index, zone);
       closeModal();
@@ -72,41 +74,41 @@ export function CardActionMenu({ modal }: Props) {
 
   if (isTr && (phase === 'main' || phase === 'battle')) {
     if (phase === 'main') {
-      actions.push(btn('🔽 Fallen setzen', () => {
+      actions.push(btn(t('card_action.set_trap'), () => {
         const zone = state.player.field.spellTraps.findIndex((z: any) => z === null);
         if (zone !== -1) game.setSpellTrap('player', index, zone);
         closeModal();
       }));
     }
     if (phase === 'battle' && card.trapTrigger === 'manual') {
-      actions.push(btn('⚠ Falle aktivieren', () => {
-        startTrapTargeting(card, index, state, game, setSel, closeModal);
+      actions.push(btn(t('card_action.activate_trap'), () => {
+        startTrapTargeting(card, index, state, game, setSel, closeModal, t);
         closeModal();
       }));
     }
   }
 
-  actions.push(btn('🔍 Ansehen', () => openModal({ type: 'card-detail', card })));
+  actions.push(btn(t('card_action.view'), () => openModal({ type: 'card-detail', card })));
 
   return (
     <div id="card-action-menu" className="modal" role="dialog" aria-modal="true">
       <h3>{card.name}</h3>
       <div id="action-buttons">{actions}</div>
-      <button className="btn-cancel" onClick={closeModal}>✕ Abbrechen</button>
+      <button className="btn-cancel" onClick={closeModal}>{t('card_action.cancel')}</button>
     </div>
   );
 }
 
 // ── Targeting helpers ──────────────────────────────────────
 
-function startSpellTargeting(card: any, handIndex: number, state: any, game: any, setSel: any, openModal: any, close: any) {
+function startSpellTargeting(card: any, handIndex: number, state: any, game: any, setSel: any, openModal: any, close: any, t: any) {
   if (card.spellType === 'targeted' && card.target === 'ownMonster') {
     const targets = state.player.field.monsters
       .map((fc: any, i: number) => ({ fc, zone: i }))
       .filter(({ fc }: any) => fc);
     if (!targets.length) return;
     if (targets.length === 1) { game.activateSpell('player', handIndex, targets[0].fc); return; }
-    setSel({ mode: 'spell-target', spellHandIndex: handIndex, spellCard: card, hint: 'Wähle ein eigenes Monster als Ziel.' });
+    setSel({ mode: 'spell-target', spellHandIndex: handIndex, spellCard: card, hint: t('card_action.hint_spell_own') });
   } else if (card.spellType === 'targeted' && card.target === 'ownDarkMonster') {
     const fc = state.player.field.monsters.find((m: any) => m && m.card.attribute === ATTR.DARK);
     if (fc) game.activateSpell('player', handIndex, fc);
@@ -117,8 +119,8 @@ function startSpellTargeting(card: any, handIndex: number, state: any, game: any
   }
 }
 
-function startTrapTargeting(card: any, handIndex: number, state: any, game: any, setSel: any, close: any) {
+function startTrapTargeting(card: any, handIndex: number, state: any, game: any, setSel: any, close: any, t: any) {
   if (card.target === 'oppMonster') {
-    setSel({ mode: 'trap-target', spellHandIndex: handIndex, spellCard: card, hint: 'Wähle ein Monster des Gegners als Ziel.' });
+    setSel({ mode: 'trap-target', spellHandIndex: handIndex, spellCard: card, hint: t('card_action.hint_trap_opp') });
   }
 }

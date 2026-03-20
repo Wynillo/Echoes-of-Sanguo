@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap }         from 'gsap';
 import { useModal }      from '../contexts/ModalContext.js';
 import { useGame }       from '../contexts/GameContext.js';
@@ -14,6 +15,7 @@ export function ResultModal({ modal }: Props) {
   const { startGame, lastOpponent } = useGame();
   const { navigateTo }  = useScreen();
   const { refresh }     = useProgression();
+  const { t } = useTranslation();
 
   const victory = resultType === 'victory';
 
@@ -50,20 +52,18 @@ export function ResultModal({ modal }: Props) {
     <div id="result-modal" className="modal" role="dialog" aria-modal="true">
       <div className="result-content" ref={contentRef}>
         <h1 ref={titleRef} style={{ color: victory ? '#ffd700' : '#cc4444' }}>
-          {victory ? 'Sieg!' : 'Niederlage'}
+          {victory ? t('result.win_title') : t('result.lose_title')}
         </h1>
         <p>
-          {victory
-            ? 'Du hast den Gegner besiegt! Die Macht der Aetherial liegt in deinen Händen.'
-            : 'Du wurdest besiegt. Doch jeder Krieger kann aus einer Niederlage lernen...'}
+          {victory ? t('result.win_desc') : t('result.lose_desc')}
         </p>
         {coinsEarned > 0 && (
-          <div className="result-coins">+{coinsEarned} Äther-Münzen</div>
+          <div className="result-coins">{t('result.coins_earned', { coins: coinsEarned })}</div>
         )}
         <div className="result-buttons">
-          <button className="btn-primary"   onClick={playAgain}>🔄 Nochmal Spielen</button>
-          <button className="btn-secondary" onClick={chooseOpponent}>⚔ Gegner wählen</button>
-          <button className="btn-secondary" onClick={backToTitle}>🏠 Hauptmenü</button>
+          <button className="btn-primary"   onClick={playAgain}>{t('result.play_again')}</button>
+          <button className="btn-secondary" onClick={chooseOpponent}>{t('result.choose_opponent')}</button>
+          <button className="btn-secondary" onClick={backToTitle}>{t('result.home')}</button>
         </div>
       </div>
     </div>

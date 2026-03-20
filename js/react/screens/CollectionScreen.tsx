@@ -1,14 +1,15 @@
 import { useState }      from 'react';
+import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }        from '../contexts/ModalContext.js';
-import { CARD_DB, RACE_NAME, RARITY_COLOR, RARITY_NAME } from '../../cards.js';
+import { CARD_DB, RARITY_COLOR } from '../../cards.js';
 import { Card }            from '../components/Card.js';
 import { attachHover }     from '../components/HoverPreview.js';
 import type { CardData } from '../../types.js';
 
 const RACE_FILTER_BTNS = [
-  { filter: 'all',     label: 'Alle' },
+  { filter: 'all',     label: '🌐' },
   { filter: 'feuer',   label: '🔥' },
   { filter: 'drache',  label: '🐲' },
   { filter: 'flug',    label: '🦅' },
@@ -25,6 +26,7 @@ export default function CollectionScreen() {
   const { navigateTo }  = useScreen();
   const { collection }  = useProgression();
   const { openModal }   = useModal();
+  const { t } = useTranslation();
   const [raceFilter,   setRaceFilter]   = useState('all');
   const [rarityFilter, setRarityFilter] = useState('all');
 
@@ -41,11 +43,11 @@ export default function CollectionScreen() {
   return (
     <div id="collection-screen">
       <div className="collection-header">
-        <h2 className="collection-title">📚 MEINE SAMMLUNG</h2>
+        <h2 className="collection-title">{t('collection.title')}</h2>
         <div className="collection-stats">
-          <span id="collection-count">{ownedCount} / {totalCards} Karten</span>
+          <span id="collection-count">{t('collection.cards_count', { owned: ownedCount, total: totalCards })}</span>
         </div>
-        <button className="btn-secondary collection-back-btn" onClick={() => navigateTo('title')}>← Hauptmenü</button>
+        <button className="btn-secondary collection-back-btn" onClick={() => navigateTo('title')}>{t('collection.back')}</button>
       </div>
 
       <div className="collection-filters">
@@ -63,7 +65,7 @@ export default function CollectionScreen() {
           value={rarityFilter}
           onChange={e => setRarityFilter(e.target.value)}
         >
-          <option value="all">Alle Seltenheiten</option>
+          <option value="all">{t('collection.rarity_all')}</option>
           <option value="common">Common</option>
           <option value="uncommon">Uncommon</option>
           <option value="rare">Rare</option>
@@ -99,7 +101,7 @@ export default function CollectionScreen() {
             <div key={card.id} className="coll-card coll-unowned">
               <div className="coll-unknown-label">???</div>
               <div className="coll-card-meta" style={{ textAlign: 'center', opacity: 0.4 }}>
-                {(RACE_NAME as any)[(card as any).race] || ''}
+                {t(`cards.race_${(card as any).race}`) || ''}
               </div>
             </div>
           );

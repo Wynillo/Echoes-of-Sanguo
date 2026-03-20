@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useModal }  from '../contexts/ModalContext.js';
 import { Card }       from '../components/Card.js';
 import type { ModalState } from '../contexts/ModalContext.js';
@@ -7,10 +8,11 @@ interface Props { modal: Extract<ModalState, { type: 'grave-select' }>; }
 export function GraveSelectModal({ modal }: Props) {
   const { cards, resolve } = modal;
   const { closeModal }    = useModal();
+  const { t } = useTranslation();
 
   return (
     <div id="grave-select-modal" className="modal" role="dialog" aria-modal="true">
-      <h3>Monster aus dem Friedhof wählen</h3>
+      <h3>{t('grave.title')}</h3>
       <div className="card-select-list" role="list">
         {cards.map((card, i) => (
           <div
@@ -23,7 +25,7 @@ export function GraveSelectModal({ modal }: Props) {
           </div>
         ))}
       </div>
-      <button className="btn-cancel" onClick={closeModal}>✕ Abbrechen</button>
+      <button className="btn-cancel" onClick={closeModal}>{t('grave.cancel')}</button>
     </div>
   );
 }

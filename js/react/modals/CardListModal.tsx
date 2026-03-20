@@ -1,21 +1,25 @@
+import { useTranslation } from 'react-i18next';
 import { useModal }        from '../contexts/ModalContext.js';
 import { Card }            from '../components/Card.js';
 import { CARD_DB, FUSION_RECIPES } from '../../cards.js';
 
 export function CardListModal() {
   const { openModal, closeModal } = useModal();
+  const { t } = useTranslation();
 
   const groups: Record<string, any[]> = {
-    'Normale Monster':  Object.values(CARD_DB).filter((c: any) => c.type === 'normal'),
-    'Effekt-Monster':   Object.values(CARD_DB).filter((c: any) => c.type === 'effect'),
-    'Fusion-Monster':   Object.values(CARD_DB).filter((c: any) => c.type === 'fusion'),
-    'Zauberkarten':     Object.values(CARD_DB).filter((c: any) => c.type === 'spell'),
-    'Fallenkarten':     Object.values(CARD_DB).filter((c: any) => c.type === 'trap'),
+    [t('card_list.group_normal')]:  Object.values(CARD_DB).filter((c: any) => c.type === 'normal'),
+    [t('card_list.group_effect')]:  Object.values(CARD_DB).filter((c: any) => c.type === 'effect'),
+    [t('card_list.group_fusion')]:  Object.values(CARD_DB).filter((c: any) => c.type === 'fusion'),
+    [t('card_list.group_spell')]:   Object.values(CARD_DB).filter((c: any) => c.type === 'spell'),
+    [t('card_list.group_trap')]:    Object.values(CARD_DB).filter((c: any) => c.type === 'trap'),
   };
+
+  const fusionGroupName = t('card_list.group_fusion');
 
   return (
     <div id="cardlist-modal" className="modal" role="dialog" aria-modal="true">
-      <h2>Alle Karten — Aetherial Clash</h2>
+      <h2>{t('card_list.title')}</h2>
       <div id="cardlist-content">
         {Object.entries(groups).map(([groupName, cards]) => cards.length === 0 ? null : (
           <div key={groupName}>
@@ -32,7 +36,7 @@ export function CardListModal() {
                 </div>
               ))}
             </div>
-            {groupName === 'Fusion-Monster' && (
+            {groupName === fusionGroupName && (
               <div className="fusion-recipes">
                 {(FUSION_RECIPES as any[]).map((r: any, i: number) => {
                   const c1 = (CARD_DB as any)[r.materials[0]];
@@ -49,7 +53,7 @@ export function CardListModal() {
           </div>
         ))}
       </div>
-      <button className="btn-cancel" onClick={closeModal}>✕ Schließen</button>
+      <button className="btn-cancel" onClick={closeModal}>{t('card_list.close')}</button>
     </div>
   );
 }

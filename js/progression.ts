@@ -209,7 +209,7 @@ export const Progression = (() => {
   interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; }
 
   function getSettings(): Settings {
-    return _load(KEYS.settings, { lang: 'de', volMaster: 50, volMusic: 50, volSfx: 50 });
+    return _load(KEYS.settings, { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 });
   }
 
   function saveSettings(s: Settings): void {
