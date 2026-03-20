@@ -1,5 +1,11 @@
 node_modules/
 dist/
+
+# Android build outputs (keep project files, ignore generated outputs)
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
 .claude/
 CLAUDE.md
 *.local
