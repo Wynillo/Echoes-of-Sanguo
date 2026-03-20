@@ -5,7 +5,7 @@ import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB, RARITY_COLOR } from '../../cards.js';
 import { Card }            from '../components/Card.js';
-import { attachHover }     from '../components/HoverPreview.js';
+import { attachHover }     from '../components/hoverApi.js';
 import type { CardData } from '../../types.js';
 import styles from './CollectionScreen.module.css';
 
