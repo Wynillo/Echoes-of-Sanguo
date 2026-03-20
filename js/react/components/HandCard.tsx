@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Card } from './Card.js';
-import { attachHover } from './HoverPreview.js';
+import { attachHover } from './hoverApi.js';
 
 interface Props {
   card: any;

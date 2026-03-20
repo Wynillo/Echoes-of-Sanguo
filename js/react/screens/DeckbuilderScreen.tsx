@@ -5,7 +5,7 @@ import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB, RARITY_COLOR, RARITY_NAME, RACE_NAME } from '../../cards.js';
 import { Progression }     from '../../progression.js';
 import { Card }            from '../components/Card.js';
-import { attachHover }     from '../components/HoverPreview.js';
+import { attachHover }     from '../components/hoverApi.js';
 import type { CardData }   from '../../types.js';
 
 const MAX_DECK = 40;
