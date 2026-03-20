@@ -1,6 +1,7 @@
 // ============================================================
 // AETHERIAL CLASH - Animations & Visual Effects
 // ============================================================
+import { gsap } from 'gsap';
 import { IS_TOUCH } from './ui-state.js';
 
 // cardInnerHTML is needed for showHoverPreview and showCardActivation.
@@ -16,11 +17,20 @@ export function setCardInnerHTMLFn(fn) { _cardInnerHTML = fn; }
 import { ATTR_NAME } from './cards.js';
 
 // ── Card Hover Preview ─────────────────────────────────────
-let _hoverHideTimer = null;
+let _hoverTween = null;
+let _hoverReady = false;
+
+function _initHover() {
+  if (_hoverReady) return;
+  const preview = document.getElementById('card-hover-preview');
+  if (!preview) return;
+  gsap.set(preview, { y: 4, opacity: 0 });
+  _hoverReady = true;
+}
 
 export function showHoverPreview(card, fc, event){
   if(!card) return;
-  clearTimeout(_hoverHideTimer);
+  _initHover();
 
   const preview = document.getElementById('card-hover-preview');
 
@@ -54,15 +64,23 @@ export function showHoverPreview(card, fc, event){
   // ─ Position ─
   _positionHoverPreview(event.clientX, event.clientY);
   preview.classList.remove('hidden');
-  requestAnimationFrame(() => preview.classList.add('visible'));
+
+  if(_hoverTween) _hoverTween.kill();
+  _hoverTween = gsap.to(preview, { duration: 0.12, ease: 'power1.out', opacity: 1, y: 0 });
 }
 
 export function hideHoverPreview(){
-  _hoverHideTimer = setTimeout(() => {
-    const preview = document.getElementById('card-hover-preview');
-    preview.classList.remove('visible');
-    setTimeout(() => preview.classList.add('hidden'), 130);
-  }, 60);
+  const preview = document.getElementById('card-hover-preview');
+  if(!preview) return;
+  if(_hoverTween) _hoverTween.kill();
+  _hoverTween = gsap.to(preview, {
+    duration: 0.13,
+    delay: 0.06,
+    ease: 'power1.in',
+    opacity: 0,
+    y: 4,
+    onComplete() { preview.classList.add('hidden'); },
+  });
 }
 
 function _positionHoverPreview(mx, my){
@@ -156,43 +174,59 @@ export function playAttackAnim(atkOwner, atkZone, defOwner, defZone){
       left: atkRect.left + 'px', top: atkRect.top + 'px',
       width: atkRect.width + 'px', height: atkRect.height + 'px',
       zIndex: '420', pointerEvents: 'none',
-      transition: 'none', transform: 'none',
     });
     document.body.appendChild(clone);
     atkCard.style.opacity = '0.25';
 
-    requestAnimationFrame(() => {
-      clone.style.transition = 'transform 0.12s ease-out, filter 0.12s, box-shadow 0.12s';
-      clone.style.transform  = `translate(${-dx * 0.14}px, ${-dy * 0.14}px) scale(1.18)`;
-      clone.style.filter     = 'brightness(1.5)';
-      clone.style.boxShadow  = '0 0 22px rgba(255,200,60,0.9)';
+    const tl = gsap.timeline({
+      onComplete() {
+        clone.remove();
+        atkCard.style.opacity = '';
+        if(defCard) defCard.classList.remove('atk-hit');
+        if(defSlot) defSlot.classList.remove('atk-impact');
+        resolve();
+      },
+    });
 
-      setTimeout(() => {
-        clone.style.transition = 'transform 0.16s cubic-bezier(0.4,0,0.8,1), filter 0.1s';
-        clone.style.transform  = `translate(${dx}px, ${dy}px) scale(1.06)`;
-        clone.style.filter     = 'brightness(2)';
+    // Windup: pull back slightly, brighten
+    tl.to(clone, {
+      duration: 0.12,
+      ease: 'power2.out',
+      x: -dx * 0.14,
+      y: -dy * 0.14,
+      scale: 1.18,
+      boxShadow: '0 0 22px rgba(255,200,60,0.9)',
+      onStart() { clone.style.filter = 'brightness(1.5)'; },
+    });
 
-        setTimeout(() => {
-          spawnImpactBurst(impX, impY, isDirect);
-          if(defCard){ defCard.classList.add('atk-hit'); }
-          if(defSlot){ defSlot.classList.add('atk-impact'); }
+    // Lunge: fly to target
+    tl.to(clone, {
+      duration: 0.16,
+      ease: 'power2.in',
+      x: dx,
+      y: dy,
+      scale: 1.06,
+    });
 
-          setTimeout(() => {
-            clone.style.transition = 'transform 0.22s ease-out, opacity 0.22s, filter 0.22s';
-            clone.style.transform  = 'translate(0,0) scale(1)';
-            clone.style.opacity    = '0';
-            clone.style.filter     = 'brightness(1)';
+    // Impact: fire effects when card arrives at target
+    tl.call(() => {
+      clone.style.filter = 'brightness(2)';
+      spawnImpactBurst(impX, impY, isDirect);
+      if(defCard) defCard.classList.add('atk-hit');
+      if(defSlot) defSlot.classList.add('atk-impact');
+    });
 
-            setTimeout(() => {
-              clone.remove();
-              atkCard.style.opacity = '';
-              if(defCard) defCard.classList.remove('atk-hit');
-              if(defSlot) defSlot.classList.remove('atk-impact');
-              resolve();
-            }, 240);
-          }, 80);
-        }, 175);
-      }, 130);
+    // Return: snap back and fade out
+    tl.to(clone, {
+      duration: 0.22,
+      delay: 0.08,
+      ease: 'power2.out',
+      x: 0,
+      y: 0,
+      scale: 1,
+      opacity: 0,
+      boxShadow: 'none',
+      onStart() { clone.style.filter = 'brightness(1)'; },
     });
   });
 }
@@ -201,6 +235,8 @@ export function playAttackAnim(atkOwner, atkZone, defOwner, defZone){
 export function showCardActivation(card, effectText){
   return new Promise(resolve => {
     const overlay  = document.getElementById('card-activate-overlay');
+    const bg       = document.getElementById('card-activate-bg');
+    const content  = document.getElementById('card-activate-content');
     const render   = document.getElementById('card-activate-render');
     const textEl   = document.getElementById('card-activate-effect-text');
     const labelEl  = document.getElementById('card-activate-label');
@@ -217,13 +253,23 @@ export function showCardActivation(card, effectText){
 
     textEl.textContent = effectText || card.description || '—';
 
-    overlay.classList.remove('hidden','ca-visible','ca-dissolve');
-    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('ca-visible')));
+    overlay.classList.remove('hidden', 'ca-visible', 'ca-dissolve');
+    gsap.set(bg,      { backgroundColor: 'rgba(0,0,0,0)' });
+    gsap.set(content, { y: 50, scale: 0.75, opacity: 0 });
 
-    setTimeout(() => {
-      overlay.classList.remove('ca-visible');
-      overlay.classList.add('ca-dissolve');
-      setTimeout(() => { overlay.classList.add('hidden'); resolve(); }, 580);
-    }, 1600);
+    const tl = gsap.timeline({
+      onComplete() { overlay.classList.add('hidden'); resolve(); },
+    });
+
+    // Fade in bg + spring content in simultaneously
+    tl.to(bg,      { duration: 0.3,  ease: 'none', backgroundColor: 'rgba(0,0,10,0.72)' }, 0);
+    tl.to(content, { duration: 0.38, ease: 'back.out(1.7)', y: 0, scale: 1, opacity: 1 }, 0);
+
+    // Hold
+    tl.to({}, { duration: 1.6 });
+
+    // Dissolve out
+    tl.to(content, { duration: 0.55, ease: 'power2.in', y: -30, scale: 1.18, opacity: 0 });
+    tl.to(bg,      { duration: 0.5,  ease: 'power2.in', backgroundColor: 'rgba(0,0,0,0)' }, '<');
   });
 }
