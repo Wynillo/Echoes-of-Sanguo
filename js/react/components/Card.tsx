@@ -27,10 +27,11 @@ interface Props {
   dimmed?: boolean;
   rotated?: boolean;
   big?: boolean;
+  small?: boolean;
   extraClass?: string;
 }
 
-export function Card({ card, fc = null, dimmed = false, rotated = false, big = false, extraClass = '' }: Props) {
+export function Card({ card, fc = null, dimmed = false, rotated = false, big = false, small = false, extraClass = '' }: Props) {
   const levelStars = card.level ? '★'.repeat(Math.min(card.level, 12)) : '';
   const attrSym    = ATTR_SYMBOL[card.attribute] || '✦';
   const typeLabel  = TYPE_LABEL[card.type] || '';
@@ -80,8 +81,24 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
     `${card.type}-card`,
     `attr-${card.attribute || 'spell'}`,
     big ? 'big-card' : '',
+    small ? 'small-card' : '',
     extraClass,
   ].filter(Boolean).join(' ');
+
+  // Small layout: only artwork area + ATK/DEF
+  if (small) {
+    return (
+      <div className={cls}>
+        <div className={styles.cardArt} />
+        {isMonster
+          ? <div className={styles.cardStats}>
+              <span className={styles.atkVal}>ATK: {effATK}</span>
+              <span className={styles.defVal}>DEF: {effDEF}</span>
+            </div>
+          : null}
+      </div>
+    );
+  }
 
   return (
     <div className={cls}>

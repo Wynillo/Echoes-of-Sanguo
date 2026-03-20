@@ -37,7 +37,7 @@ export function HandCard({ card, index, playable, fusionable, targetable, newlyD
       style={newlyDrawn ? { animationDelay: `${drawDelay}ms` } : undefined}
       onClick={playable || targetable ? onClick : undefined}
     >
-      <Card card={card} />
+      <Card card={card} small />
     </div>
   );
 }

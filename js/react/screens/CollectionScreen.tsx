@@ -3,6 +3,8 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB, RACE_NAME, RARITY_COLOR, RARITY_NAME } from '../../cards.js';
+import { Card }            from '../components/Card.js';
+import { attachHover }     from '../components/HoverPreview.js';
 import type { CardData } from '../../types.js';
 
 const RACE_FILTER_BTNS = [
@@ -72,31 +74,33 @@ export default function CollectionScreen() {
 
       <div id="collection-grid">
         {allCards.map(card => {
-          const owned    = countMap[card.id] || 0;
+          const owned = countMap[card.id] || 0;
           const rarColor = (RARITY_COLOR as any)[(card as any).rarity] || '#aaa';
+          if (owned) {
+            return (
+              <div
+                key={card.id}
+                className="coll-card coll-card-owned"
+                style={{ cursor: 'pointer' }}
+                ref={el => { if (el) attachHover(el, card, null); }}
+                onClick={() => openModal({ type: 'card-detail', card })}
+              >
+                <div
+                  className={`card ${(card as any).type}-card attr-${(card as any).attribute || 'spell'}`}
+                >
+                  <Card card={card} small />
+                </div>
+                {owned > 1 && <div className="coll-card-count">×{owned}</div>}
+                <div className="coll-rarity-dot" style={{ background: rarColor }} />
+              </div>
+            );
+          }
           return (
-            <div
-              key={card.id}
-              className={`coll-card${owned ? '' : ' coll-unowned'}`}
-              style={{ cursor: owned ? 'pointer' : 'default' }}
-              onClick={() => owned && openModal({ type: 'card-detail', card })}
-            >
-              <div className="coll-rarity-bar" style={{ background: rarColor }}></div>
-              {owned > 1 && <div className="coll-card-count">×{owned}</div>}
-              {owned ? (
-                <>
-                  <div className="coll-card-name">{card.name}</div>
-                  <div className="coll-card-meta">{(RACE_NAME as any)[(card as any).race] || ''} · {(RARITY_NAME as any)[(card as any).rarity] || ''}</div>
-                  {card.atk !== undefined && (
-                    <div className="coll-card-meta">ATK {card.atk} / DEF {card.def}</div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div className="coll-unknown-label">???</div>
-                  <div className="coll-card-meta" style={{ textAlign: 'center', opacity: 0.4 }}>{(RACE_NAME as any)[(card as any).race] || ''}</div>
-                </>
-              )}
+            <div key={card.id} className="coll-card coll-unowned">
+              <div className="coll-unknown-label">???</div>
+              <div className="coll-card-meta" style={{ textAlign: 'center', opacity: 0.4 }}>
+                {(RACE_NAME as any)[(card as any).race] || ''}
+              </div>
             </div>
           );
         })}

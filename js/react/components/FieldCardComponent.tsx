@@ -66,7 +66,7 @@ export function FieldCardComponent({
   if (fc.faceDown && isPlayer) {
     return (
       <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
-        <Card card={card} fc={fc} dimmed />
+        <Card card={card} fc={fc} small dimmed />
         <div className="facedown-overlay">Verdeckt</div>
       </div>
     );
@@ -74,7 +74,7 @@ export function FieldCardComponent({
 
   return (
     <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
-      <Card card={card} fc={fc} />
+      <Card card={card} fc={fc} small />
     </div>
   );
 }

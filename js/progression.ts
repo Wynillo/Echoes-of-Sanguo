@@ -17,6 +17,7 @@ export const Progression = (() => {
     opponents:      'ac_opponents',
     version:        'ac_save_version',
     settings:       'ac_settings',
+    seenCards:      'ac_seen_cards',
   };
 
   const SAVE_VERSION   = 1;   // increment when save format changes incompatibly
@@ -215,6 +216,20 @@ export const Progression = (() => {
     _save(KEYS.settings, s);
   }
 
+  // ── Gesehene Karten ──────────────────────────────────────
+
+  function getSeenCards(): Set<string> {
+    const arr = _load(KEYS.seenCards, [], v => Array.isArray(v));
+    return new Set(arr);
+  }
+
+  function markCardsAsSeen(ids: string[]): void {
+    if (ids.length === 0) return;
+    const seen = getSeenCards();
+    ids.forEach(id => seen.add(id));
+    _save(KEYS.seenCards, [...seen]);
+  }
+
   // ── Debug / Reset ────────────────────────────────────────
 
   /** Setzt alle Progression-Daten zurück (nur für Debug) */
@@ -280,6 +295,9 @@ export const Progression = (() => {
     // Einstellungen
     getSettings,
     saveSettings,
+    // Gesehene Karten
+    getSeenCards,
+    markCardsAsSeen,
     // Debug
     resetAll,
     // Soft-Reset

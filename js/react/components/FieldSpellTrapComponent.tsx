@@ -58,7 +58,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
   return (
     <div className={cls} ref={attachRef}
          onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
-      <Card card={card} />
+      <Card card={card} small />
     </div>
   );
 }

@@ -672,63 +672,69 @@
 
 #collection-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-w, 104px), 1fr));
   gap: 8px;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1200px;
 }
 
+/* Owned card — wraps a small Card component */
 .coll-card {
-  background: #111828;
-  border: 1px solid #2a3a5a;
+  background: transparent;
+  border: none;
   border-radius: 6px;
-  padding: 8px;
+  padding: 0;
   position: relative;
-  overflow: hidden;
-  min-height: 100px;
-  transition: all 0.15s;
+  overflow: visible;
+  transition: transform 0.12s;
 }
 
-.coll-card:hover {
-  border-color: #4070c0;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px #4070c044;
+.coll-card.coll-card-owned:hover {
+  transform: translateY(-4px);
+}
+.coll-card.coll-card-owned:hover .card {
+  box-shadow: 0 6px 16px rgba(100,140,255,0.35);
 }
 
+/* Unowned card — simple placeholder */
 .coll-card.coll-unowned {
-  filter: brightness(0.3) saturate(0);
-  cursor: default;
+  background: #111828;
+  border: 1px solid #1e2a42;
+  border-radius: 6px;
+  min-height: var(--card-h, 144px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: default; opacity: 0.4;
 }
+.coll-card.coll-unowned:hover { transform: none; }
 
-.coll-card.coll-unowned:hover {
-  transform: none;
-  box-shadow: none;
-  border-color: #2a3a5a;
-}
-
-.coll-rarity-bar {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-}
-
-.coll-card-name { font-size: 0.75rem; font-weight: bold; color: #c0d0e0; margin-top: 4px; }
-.coll-card-meta { font-size: 0.65rem; color: #506080; margin-top: 2px; }
+/* Copy count badge (×2, ×3) */
 .coll-card-count {
   position: absolute;
-  top: 4px; right: 5px;
-  background: #1a2840;
-  border: 1px solid #334;
-  color: #8090b0;
-  font-size: 0.65rem;
-  padding: 1px 4px;
-  border-radius: 3px;
+  bottom: calc(var(--card-h, 144px) * 0.12);
+  right: 3px;
+  background: rgba(8,12,28,0.92);
+  border: 1px solid var(--gold, #c8a44a);
+  color: var(--gold, #c8a44a);
+  font-size: 10px; font-weight: bold;
+  padding: 1px 5px; border-radius: 3px;
+  pointer-events: none; z-index: 5;
 }
+
+/* Rarity dot (small corner indicator) */
+.coll-rarity-dot {
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  pointer-events: none; z-index: 5;
+}
+
+.coll-card-meta { font-size: 0.65rem; color: #506080; margin-top: 2px; }
 
 .coll-unknown-label {
   color: #384060;
   font-size: 0.85rem;
   text-align: center;
-  margin-top: 20px;
   letter-spacing: 2px;
 }

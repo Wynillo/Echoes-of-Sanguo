@@ -134,6 +134,24 @@
 :global(.opponent-side) .atkVal,
 :global(.opponent-side) .defVal       { font-size: 7px; }
 
+/* ── Small-card layout (art + ATK/DEF only) ─────────────────────── */
+:global(.small-card) .cardHeader { display: none; }
+:global(.small-card) .cardLevel  { display: none; }
+:global(.small-card) .cardBody   { display: none; }
+:global(.small-card) .cardStats  {
+  gap: 0; padding: 0;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+:global(.small-card) .atkVal {
+  flex: 1; text-align: center; padding: 3px 0; font-size: 9px;
+  border-right: 1px solid rgba(255,255,255,0.15);
+}
+:global(.small-card) .defVal {
+  flex: 1; text-align: center; padding: 3px 0; font-size: 9px;
+}
+:global(.opponent-side.small-card) .atkVal,
+:global(.opponent-side.small-card) .defVal { font-size: 7px; padding: 2px 0; }
+
 /* ── Big-card overrides (180×248px) ─────────────────────────────── */
 :global(.big-card) .nameShort   { font-size: 13px; max-width: 120px; }
 :global(.big-card) .attrOrb     { width: 20px; height: 20px; font-size: 12px; }
