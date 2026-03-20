@@ -3,3 +3,6 @@ dist/
 .claude/
 CLAUDE.md
 *.local
+coverage/
+test-results/
+playwright-report/
