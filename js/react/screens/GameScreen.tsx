@@ -329,7 +329,7 @@ export default function GameScreen() {
 
       {/* Action bar */}
       <div id="action-bar" role="toolbar" aria-label="Spielsteuerung">
-        <div id="phase-buttons">
+        <div className="flex gap-1.5 flex-shrink-0">
           <button
             id="btn-main-to-battle"
             className="phase-btn"
