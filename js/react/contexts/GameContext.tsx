@@ -52,7 +52,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     },
     showActivation: (card: CardData, text: string) => {
       // Delegated to CardActivationOverlay via module-level imperative API
-      return import('../components/CardActivationOverlay.js').then(m => m.showActivation(card, text));
+      return import('../components/cardActivationApi.js').then(m => m.showActivation(card, text));
     },
     playAttackAnimation: (ao, az, dO, dZ) => {
       return import('../hooks/useAttackAnimation.js').then(m => m.playAttackAnim(ao, az, dO, dZ));

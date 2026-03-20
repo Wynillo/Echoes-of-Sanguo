@@ -1,24 +1,12 @@
 // ============================================================
-// CardActivationOverlay — GSAP-based card activation animation
-// Imperative API: showActivation(card, text) → Promise<void>
+// CardActivationOverlay — GSAP-based card activation animation (component only)
+// Imperative API lives in cardActivationApi.ts
 // ============================================================
 import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { Card } from './Card.js';
-
-interface ActivationState {
-  card: any;
-  text: string;
-  resolve: () => void;
-}
-
-let _setActivation: React.Dispatch<React.SetStateAction<ActivationState | null>> | null = null;
-
-export function showActivation(card: any, text: string): Promise<void> {
-  return new Promise<void>(resolve => {
-    _setActivation?.({ card, text, resolve });
-  });
-}
+import { setActivationDispatch } from './cardActivationApi.js';
+import type { ActivationState } from './cardActivationApi.js';
 
 const LABELS: Record<string, string> = {
   spell: 'ZAUBER AKTIVIERT', trap: 'FALLE AKTIVIERT',
@@ -30,7 +18,10 @@ export function CardActivationOverlay() {
   const bgRef      = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { _setActivation = setAct; return () => { _setActivation = null; }; }, []);
+  useEffect(() => {
+    setActivationDispatch(setAct);
+    return () => setActivationDispatch(null);
+  }, []);
 
   useEffect(() => {
     if (!act || !bgRef.current || !contentRef.current) return;

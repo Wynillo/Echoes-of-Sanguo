@@ -1,4 +1,4 @@
-import { attachHover } from './HoverPreview.js';
+import { attachHover } from './hoverApi.js';
 import { Card } from './Card.js';
 
 interface Props {
