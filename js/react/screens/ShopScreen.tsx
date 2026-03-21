@@ -5,6 +5,7 @@ import { Progression }    from '../../progression.js';
 import { RACE_ICON }      from '../../cards.js';
 import { PACK_TYPES, openPack } from '../utils/pack-logic.js';
 import { setPackOpeningCards }  from './PackOpeningScreen.js';
+import { Audio }               from '../../audio.js';
 import type { CardData } from '../../types.js';
 import styles from './ShopScreen.module.css';
 
@@ -16,6 +17,7 @@ export default function ShopScreen() {
     const pt = PACK_TYPES[packType];
     if (!pt || coins < pt.price) return;
     if (!Progression.spendCoins(pt.price)) return;
+    Audio.playSfx('sfx_coin');
     const preOpen = Progression.getCollection();
     const cards   = openPack(packType, race);
     Progression.addCardsToCollection(cards.map((c: CardData) => c.id));

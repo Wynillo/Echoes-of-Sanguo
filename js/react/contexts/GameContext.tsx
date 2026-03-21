@@ -4,6 +4,7 @@ import { useModal } from './ModalContext.js';
 import { useSelection } from './SelectionContext.js';
 import { useProgression } from './ProgressionContext.js';
 import { useScreen } from './ScreenContext.js';
+import { Audio } from '../../audio.js';
 
 interface GameCtx {
   gameState:          GameState | null;
@@ -51,16 +52,19 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       /* result shown via onDuelEnd */
     },
     showActivation: (card: CardData, text: string) => {
-      // Delegated to CardActivationOverlay via module-level imperative API
+      Audio.playSfx(card.type === 'trap' ? 'sfx_trap' : card.type === 'spell' ? 'sfx_spell' : 'sfx_card_play');
       return import('../components/cardActivationApi.js').then(m => m.showActivation(card, text));
     },
     playAttackAnimation: (ao, az, dO, dZ) => {
+      Audio.playSfx('sfx_attack');
       return import('../hooks/useAttackAnimation.js').then(m => m.playAttackAnim(ao, az, dO, dZ));
     },
     onDraw: (owner, count) => {
       if (owner === 'player') setPendingDraw(prev => prev + count);
+      Audio.playSfx('sfx_draw');
     },
     onDuelEnd: (result, opponentId) => {
+      Audio.playMusic(result === 'victory' ? 'music_victory' : 'music_defeat');
       let coinsEarned = 0;
       if (opponentId) {
         import('../../cards.js').then(({ OPPONENT_CONFIGS }) => {

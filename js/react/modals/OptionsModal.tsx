@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModal }     from '../contexts/ModalContext.js';
 import { Progression }  from '../../progression.js';
+import { Audio }        from '../../audio.js';
 import i18n             from '../../i18n.js';
 
 export function OptionsModal() {
@@ -17,6 +18,7 @@ export function OptionsModal() {
   function apply() {
     i18n.changeLanguage(lang);
     Progression.saveSettings({ lang, volMaster, volMusic, volSfx });
+    Audio.setVolumes(volMaster, volMusic, volSfx);
   }
 
   return (
@@ -37,7 +39,7 @@ export function OptionsModal() {
           <span>{volMaster}%</span>
         </label>
         <input type="range" min="0" max="100" value={volMaster}
-          onChange={e => setVolMaster(+e.target.value)} />
+          onChange={e => { const v = +e.target.value; setVolMaster(v); Audio.setVolumes(v, volMusic, volSfx); }} />
       </div>
 
       <div className="options-row">
@@ -46,7 +48,7 @@ export function OptionsModal() {
           <span>{volMusic}%</span>
         </label>
         <input type="range" min="0" max="100" value={volMusic}
-          onChange={e => setVolMusic(+e.target.value)} />
+          onChange={e => { const v = +e.target.value; setVolMusic(v); Audio.setVolumes(volMaster, v, volSfx); }} />
       </div>
 
       <div className="options-row">
@@ -55,7 +57,7 @@ export function OptionsModal() {
           <span>{volSfx}%</span>
         </label>
         <input type="range" min="0" max="100" value={volSfx}
-          onChange={e => setVolSfx(+e.target.value)} />
+          onChange={e => { const v = +e.target.value; setVolSfx(v); Audio.setVolumes(volMaster, volMusic, v); }} />
       </div>
 
       <div className="options-buttons">

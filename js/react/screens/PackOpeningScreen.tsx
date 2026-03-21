@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
+import { useEffect }   from 'react';
 import { useScreen }   from '../contexts/ScreenContext.js';
 import { RARITY_COLOR } from '../../cards.js';
+import { Audio }        from '../../audio.js';
 import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
 import styles from './PackOpeningScreen.module.css';
@@ -17,6 +19,8 @@ export function setPackOpeningCards(cards: CardData[], preOpen: CollectionEntry[
 export default function PackOpeningScreen() {
   const { navigateTo } = useScreen();
   const { t } = useTranslation();
+
+  useEffect(() => { Audio.playSfx('sfx_pack_open'); }, []);
 
   const ownedBefore = new Set(_preOpen.filter(e => e.count > 0).map(e => e.id));
 

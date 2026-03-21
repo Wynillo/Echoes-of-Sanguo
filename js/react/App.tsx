@@ -6,6 +6,7 @@ import { ModalProvider } from './contexts/ModalContext.js';
 import { SelectionProvider } from './contexts/SelectionContext.js';
 import { GameProvider } from './contexts/GameContext.js';
 import { ErrorBoundary } from './components/ErrorBoundary.js';
+import { useAudioInit } from './hooks/useAudio.js';
 
 import TitleScreen      from './screens/TitleScreen.js';
 import StarterScreen    from './screens/StarterScreen.js';
@@ -23,6 +24,7 @@ import { ModalOverlay }         from './modals/ModalOverlay.js';
 
 function Router() {
   const { screen, setScreen } = useScreen();
+  useAudioInit();
   return (
     <>
       {screen === 'title'        && <TitleScreen />}
