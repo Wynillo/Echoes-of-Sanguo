@@ -9,6 +9,7 @@ import { FieldSpellTrapComponent } from '../components/FieldSpellTrapComponent.j
 import { useKeyboardShortcuts }  from '../hooks/useKeyboardShortcuts.js';
 import { useAnimatedNumber }     from '../hooks/useAnimatedNumber.js';
 import { checkFusion }           from '../../cards.js';
+import { CardType }              from '../../types.js';
 
 const FIELD_ZONES = [0, 1, 2, 3, 4] as const;
 
@@ -73,7 +74,7 @@ export default function GameScreen() {
   function isPlayerSpellTrapInteractive(zone: number) {
     const fst = player.field.spellTraps[zone];
     if (!fst) return false;
-    return isMyTurn && phase === 'main' && fst.faceDown && fst.card.type === 'spell';
+    return isMyTurn && phase === 'main' && fst.faceDown && fst.card.type === CardType.Spell;
   }
 
   function isPlayerMonsterSpellTarget(zone: number) {
@@ -129,7 +130,7 @@ export default function GameScreen() {
 
   function onFieldSpellTrapClick(zone: number, fst: any) {
     if (!game || !isMyTurn || phase !== 'main' || !fst.faceDown) return;
-    if (fst.card.type === 'spell') {
+    if (fst.card.type === CardType.Spell) {
       if (fst.card.spellType !== 'targeted' && fst.card.spellType !== 'fromGrave') {
         game.activateSpellFromField('player', zone);
       }

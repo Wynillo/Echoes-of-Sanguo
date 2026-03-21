@@ -8,9 +8,10 @@
 // Each category has its own color; errors always show regardless of flag.
 //
 import './cards-data.js'; // ensures all 700+ cards are registered before engine initialises
-import { CARD_DB, TYPE, ATTR, RACE, RARITY, FUSION_RECIPES, OPPONENT_CONFIGS, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion } from './cards.js';
+import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion } from './cards.js';
 import { Progression } from './progression.js';
 import { executeEffectBlock, extractPassiveFlags } from './effect-registry.js';
+import { CardType, Attribute, isMonsterType } from './types.js';
 import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, PlayerState, UICallbacks, OpponentConfig, VsAttrBonus } from './types.js';
 
 const ownerLabel = (owner: Owner): string => owner === 'player' ? 'Spieler' : 'Gegner';
@@ -384,7 +385,7 @@ export class GameEngine {
   async activateSpell(owner, handIndex, targetInfo: FieldCard | CardData | null = null){
     const st = this.state[owner];
     const card = st.hand[handIndex];
-    if(!card || card.type !== TYPE.SPELL){ this.addLog('Keine Zauberkarte!'); return false; }
+    if(!card || card.type !== CardType.Spell){ this.addLog('Keine Zauberkarte!'); return false; }
     st.hand.splice(handIndex, 1);
     this.addLog(`${ownerLabel(owner)}: ${card.name} aktiviert!`);
     this.ui.playSfx?.('sfx_spell');
@@ -403,7 +404,7 @@ export class GameEngine {
   activateSpellFromField(owner, zone, targetInfo: FieldCard | CardData | null = null){
     const st = this.state[owner];
     const fst = st.field.spellTraps[zone];
-    if(!fst || fst.card.type !== TYPE.SPELL) return false;
+    if(!fst || fst.card.type !== CardType.Spell) return false;
     fst.faceDown = false;
     this.addLog(`${ownerLabel(owner)}: ${fst.card.name} aktiviert!`);
     if(this.ui.showActivation) this.ui.showActivation(fst.card, fst.card.description);
@@ -422,7 +423,7 @@ export class GameEngine {
   activateTrapFromField(owner, zone, ...args){
     const st = this.state[owner];
     const fst = st.field.spellTraps[zone];
-    if(!fst || fst.card.type !== TYPE.TRAP || fst.used) return null;
+    if(!fst || fst.card.type !== CardType.Trap || fst.used) return null;
     fst.used = true;
     fst.faceDown = false;
     this.addLog(`${ownerLabel(owner)}: Falle ${fst.card.name} aktiviert!`);
@@ -694,7 +695,7 @@ export class GameEngine {
     const traps = this.state.player.field.spellTraps;
     for(let i=0;i<5;i++){
       const fst = traps[i];
-      if(fst && fst.card.type === TYPE.TRAP && fst.faceDown && !fst.used && fst.card.trapTrigger === triggerType){
+      if(fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used && fst.card.trapTrigger === triggerType){
         // Race UI prompt against an 8-second timeout so the game never hangs
         // if the modal is closed or the promise never resolves.
         const timeout = new Promise<boolean>(resolve => setTimeout(() => resolve(false), 8000));
@@ -843,12 +844,12 @@ export class GameEngine {
 
     // Summon one monster from hand (max. 1 per turn)
     // Prefer highest-ATK monster; set in DEF if weaker than all player monsters.
-    AetherialClash.log('AI', 'Beschwöre Monster aus Hand:', ai.hand.filter(c => c.type===TYPE.NORMAL||c.type===TYPE.EFFECT).map(c=>c.name));
+    AetherialClash.log('AI', 'Beschwöre Monster aus Hand:', ai.hand.filter(c => c.type === CardType.Monster).map(c=>c.name));
     if(!ai.normalSummonUsed){
       let bestIdx = -1, bestATK = -1;
       for(let i = 0; i < ai.hand.length; i++){
         const card = ai.hand[i];
-        if(card.type !== TYPE.NORMAL && card.type !== TYPE.EFFECT) continue;
+        if(card.type !== CardType.Monster) continue;
         if((card.atk ?? 0) > bestATK){ bestATK = card.atk ?? 0; bestIdx = i; }
       }
       if(bestIdx !== -1){
@@ -885,7 +886,7 @@ export class GameEngine {
       spellActivated = false;
       for(let i = 0; i < ai.hand.length; i++){
         const card = ai.hand[i];
-        if(card.type !== TYPE.SPELL) continue;
+        if(card.type !== CardType.Spell) continue;
         let activated = false;
         if(card.spellType === 'normal'){
           const should = (card.id==='S001' && plr.lp>800) || (card.id==='S002' && ai.lp<5000) || card.id==='S005';
@@ -897,7 +898,7 @@ export class GameEngine {
           }
         } else if(card.spellType === 'targeted'){
           if(card.target === 'ownDarkMonster'){
-            const t = ai.field.monsters.find(m => m && m.card.attribute===ATTR.DARK);
+            const t = ai.field.monsters.find(m => m && m.card.attribute===Attribute.Dark);
             if(t){
               AetherialClash.log('SPELL', `Aktiviere ${card.name} → Ziel: ${t.card.name}`);
               await this._delay(300); await this.activateSpell('opponent', i, t); activated = true;
@@ -912,7 +913,7 @@ export class GameEngine {
             }
           }
         } else if(card.spellType === 'fromGrave'){
-          const gm = ai.graveyard.find(c => c.type!==TYPE.SPELL && c.type!==TYPE.TRAP);
+          const gm = ai.graveyard.find(c => isMonsterType(c.type));
           if(gm && ai.field.monsters.some(z=>z===null)){
             AetherialClash.log('SPELL', `Aktiviere ${card.name} → Friedhof: ${gm.name}`);
             await this._delay(300); await this.activateSpell('opponent', i, gm); activated = true;
@@ -929,7 +930,7 @@ export class GameEngine {
     const hand = ai.hand;
     for(let i = hand.length - 1; i >= 0; i--){
       const card = hand[i];
-      if(card.type !== TYPE.TRAP) continue;
+      if(card.type !== CardType.Trap) continue;
       const zone = ai.field.spellTraps.findIndex(z => z === null);
       if(zone === -1) break;
       AetherialClash.log('TRAP', `Lege ${card.name} verdeckt in Zone ${zone}`);

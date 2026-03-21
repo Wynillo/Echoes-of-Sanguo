@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useModal }  from '../contexts/ModalContext.js';
-import { Card }       from '../components/Card.js';
+import { Card, TYPE_CSS, ATTR_CSS } from '../components/Card.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 
 interface Props { modal: Extract<ModalState, { type: 'grave-select' }>; }
@@ -17,7 +17,7 @@ export function GraveSelectModal({ modal }: Props) {
         {cards.map((card, i) => (
           <div
             key={i}
-            className={`card hand-card ${card.type}-card attr-${card.attribute || 'spell'}`}
+            className={`card hand-card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
             style={{ cursor: 'pointer' }}
             onClick={() => { closeModal(); resolve(card); }}
           >

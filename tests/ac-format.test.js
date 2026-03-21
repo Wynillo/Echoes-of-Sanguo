@@ -16,39 +16,39 @@ import {
   AC_TYPE_MONSTER, AC_TYPE_FUSION, AC_TYPE_SPELL, AC_TYPE_TRAP,
   AC_RARITY_COMMON, AC_RARITY_ULTRA_RARE,
 } from '../js/ac-format/index.js';
+import { CardType, Attribute, Race, Rarity } from '../js/types.js';
 
 // ── Enum Converter Tests ────────────────────────────────────
 
 describe('Enum Converters', () => {
   describe('CardType', () => {
-    it('maps normal and effect to monster (1)', () => {
-      expect(cardTypeToInt('normal')).toBe(AC_TYPE_MONSTER);
-      expect(cardTypeToInt('effect')).toBe(AC_TYPE_MONSTER);
+    it('maps Monster to 1', () => {
+      expect(cardTypeToInt(CardType.Monster)).toBe(AC_TYPE_MONSTER);
     });
 
     it('maps fusion to 2, spell to 3, trap to 4', () => {
-      expect(cardTypeToInt('fusion')).toBe(AC_TYPE_FUSION);
-      expect(cardTypeToInt('spell')).toBe(AC_TYPE_SPELL);
-      expect(cardTypeToInt('trap')).toBe(AC_TYPE_TRAP);
+      expect(cardTypeToInt(CardType.Fusion)).toBe(AC_TYPE_FUSION);
+      expect(cardTypeToInt(CardType.Spell)).toBe(AC_TYPE_SPELL);
+      expect(cardTypeToInt(CardType.Trap)).toBe(AC_TYPE_TRAP);
     });
 
-    it('converts back from int (monster without effect -> normal)', () => {
-      expect(intToCardType(AC_TYPE_MONSTER, false)).toBe('normal');
-      expect(intToCardType(AC_TYPE_MONSTER, true)).toBe('effect');
-      expect(intToCardType(AC_TYPE_FUSION, false)).toBe('fusion');
-      expect(intToCardType(AC_TYPE_SPELL, false)).toBe('spell');
-      expect(intToCardType(AC_TYPE_TRAP, false)).toBe('trap');
+    it('converts back from int', () => {
+      expect(intToCardType(AC_TYPE_MONSTER, false)).toBe(CardType.Monster);
+      expect(intToCardType(AC_TYPE_MONSTER, true)).toBe(CardType.Monster);
+      expect(intToCardType(AC_TYPE_FUSION, false)).toBe(CardType.Fusion);
+      expect(intToCardType(AC_TYPE_SPELL, false)).toBe(CardType.Spell);
+      expect(intToCardType(AC_TYPE_TRAP, false)).toBe(CardType.Trap);
     });
 
     it('throws for unknown types', () => {
-      expect(() => cardTypeToInt('unknown')).toThrow();
+      expect(() => cardTypeToInt(99)).toThrow();
       expect(() => intToCardType(99, false)).toThrow();
     });
   });
 
   describe('Attribute', () => {
     it('round-trips all attributes', () => {
-      for (const attr of ['fire', 'water', 'earth', 'wind', 'light', 'dark']) {
+      for (const attr of [Attribute.Fire, Attribute.Water, Attribute.Earth, Attribute.Wind, Attribute.Light, Attribute.Dark]) {
         const n = attributeToInt(attr);
         expect(intToAttribute(n)).toBe(attr);
         expect(n).toBeGreaterThanOrEqual(1);
@@ -59,7 +59,7 @@ describe('Enum Converters', () => {
 
   describe('Race', () => {
     it('round-trips all races', () => {
-      const races = ['feuer', 'drache', 'flug', 'stein', 'pflanze', 'krieger', 'magier', 'elfe', 'daemon', 'wasser'];
+      const races = [Race.Fire, Race.Dragon, Race.Flyer, Race.Stone, Race.Plant, Race.Warrior, Race.Spellcaster, Race.Elf, Race.Demon, Race.Water];
       for (const race of races) {
         const n = raceToInt(race);
         expect(intToRace(n)).toBe(race);
@@ -71,7 +71,7 @@ describe('Enum Converters', () => {
 
   describe('Rarity', () => {
     it('round-trips all rarities', () => {
-      const rarities = ['common', 'uncommon', 'rare', 'super_rare', 'ultra_rare'];
+      const rarities = [Rarity.Common, Rarity.Uncommon, Rarity.Rare, Rarity.SuperRare, Rarity.UltraRare];
       for (const r of rarities) {
         const n = rarityToInt(r);
         expect(intToRarity(n)).toBe(r);
@@ -79,8 +79,8 @@ describe('Enum Converters', () => {
     });
 
     it('uses 1-8 range', () => {
-      expect(rarityToInt('common')).toBe(1);
-      expect(rarityToInt('ultra_rare')).toBe(8);
+      expect(rarityToInt(Rarity.Common)).toBe(1);
+      expect(rarityToInt(Rarity.UltraRare)).toBe(8);
     });
   });
 });
@@ -126,19 +126,19 @@ describe('Effect Serializer', () => {
   });
 
   it('serializes buffAtkRace with int race', () => {
-    const block = { trigger: 'onSummon', actions: [{ type: 'buffAtkRace', race: 'feuer', value: 200 }] };
+    const block = { trigger: 'onSummon', actions: [{ type: 'buffAtkRace', race: Race.Fire, value: 200 }] };
     const s = serializeEffect(block);
-    expect(s).toBe(`onSummon:buffAtkRace(${raceToInt('feuer')},200)`);
+    expect(s).toBe(`onSummon:buffAtkRace(${raceToInt(Race.Fire)},200)`);
   });
 
   it('serializes passive_vsAttrBonus', () => {
-    const block = { trigger: 'passive', actions: [{ type: 'passive_vsAttrBonus', attr: 'dark', atk: 500 }] };
+    const block = { trigger: 'passive', actions: [{ type: 'passive_vsAttrBonus', attr: Attribute.Dark, atk: 500 }] };
     const s = serializeEffect(block);
-    expect(s).toBe(`passive:passive_vsAttrBonus(${attributeToInt('dark')},500)`);
+    expect(s).toBe(`passive:passive_vsAttrBonus(${attributeToInt(Attribute.Dark)},500)`);
   });
 
   it('serializes permAtkBonus with attrFilter', () => {
-    const block = { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, attrFilter: 'dark' }] };
+    const block = { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, attrFilter: Attribute.Dark }] };
     const s = serializeEffect(block);
     expect(s).toContain('permAtkBonus(ownMonster,500,');
   });
@@ -322,8 +322,8 @@ describe('Definition Validator', () => {
 describe('AC Builder', () => {
   it('converts a monster CardData to AcCard', () => {
     const card = {
-      id: 'M001', name: 'Feuersalamander', type: 'normal',
-      attribute: 'fire', race: 'feuer', rarity: 'common', level: 3, atk: 1000, def: 800,
+      id: 'M001', name: 'Feuersalamander', type: CardType.Monster,
+      attribute: Attribute.Fire, race: Race.Fire, rarity: Rarity.Common, level: 3, atk: 1000, def: 800,
       description: 'A fire salamander',
     };
     const ac = cardDataToAcCard(card, 1);
@@ -333,14 +333,14 @@ describe('AC Builder', () => {
     expect(ac.atk).toBe(1000);
     expect(ac.def).toBe(800);
     expect(ac.rarity).toBe(AC_RARITY_COMMON);
-    expect(ac.attribute).toBe(attributeToInt('fire'));
-    expect(ac.race).toBe(raceToInt('feuer'));
+    expect(ac.attribute).toBe(attributeToInt(Attribute.Fire));
+    expect(ac.race).toBe(raceToInt(Race.Fire));
     expect(ac.effect).toBeUndefined();
   });
 
   it('converts a spell CardData to AcCard (no atk/def/attribute/race)', () => {
     const card = {
-      id: 'S001', name: 'Feuerball', type: 'spell',
+      id: 'S001', name: 'Feuerball', type: CardType.Spell,
       description: 'Deal damage',
       spellType: 'normal',
       effect: { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 800 }] }
@@ -355,7 +355,7 @@ describe('AC Builder', () => {
   });
 
   it('extracts card definition', () => {
-    const card = { id: 'M001', name: 'Feuersalamander', description: 'A fire salamander', type: 'normal' };
+    const card = { id: 'M001', name: 'Feuersalamander', description: 'A fire salamander', type: CardType.Monster };
     const def = cardDataToAcDef(card, 1);
     expect(def.id).toBe(1);
     expect(def.name).toBe('Feuersalamander');

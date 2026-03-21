@@ -3,18 +3,66 @@
 // Import with:  import type { Owner, GameState, ... } from './types.js';
 // ============================================================
 
-// ── Primitive Unions ────────────────────────────────────────
-
+// ── Primitive Unions (runtime state — stay as strings) ─────
 export type Owner        = 'player' | 'opponent';
 export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
-export type CardType     = 'normal' | 'effect' | 'fusion' | 'spell' | 'trap';
-export type Attribute    = 'fire' | 'water' | 'earth' | 'wind' | 'light' | 'dark';
-export type Race         = 'feuer' | 'drache' | 'flug' | 'stein' | 'pflanze' | 'krieger' | 'magier' | 'elfe' | 'daemon' | 'wasser';
-export type RarityLevel  = 'common' | 'uncommon' | 'rare' | 'super_rare' | 'ultra_rare';
 export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual';
 export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive';
 export type SpellType    = 'normal' | 'targeted' | 'fromGrave';
+
+// ── Int-based Enums (card data — stored in .ac format) ────
+// Monster covers both normal and effect cards; distinction via effect field.
+
+export enum CardType {
+  Monster = 1,
+  Fusion  = 2,
+  Spell   = 3,
+  Trap    = 4,
+}
+
+export enum Attribute {
+  Light = 1,
+  Dark  = 2,
+  Fire  = 3,
+  Water = 4,
+  Earth = 5,
+  Wind  = 6,
+}
+
+export enum Race {
+  Dragon      = 1,
+  Spellcaster = 2,
+  Warrior     = 3,
+  Fire        = 4,
+  Plant       = 5,
+  Stone       = 6,
+  Flyer       = 7,
+  Elf         = 8,
+  Demon       = 9,
+  Water       = 10,
+}
+
+export enum Rarity {
+  Common    = 1,
+  Uncommon  = 2,
+  Rare      = 4,
+  SuperRare = 6,
+  UltraRare = 8,
+}
+
+/** @deprecated Use Rarity enum instead */
+export type RarityLevel = Rarity;
+
+/** Helper: is this monster card an effect monster? */
+export function isEffectMonster(card: CardData): boolean {
+  return card.type === CardType.Monster && !!card.effect;
+}
+
+/** Helper: is this a monster type (Monster or Fusion)? */
+export function isMonsterType(type: CardType): boolean {
+  return type === CardType.Monster || type === CardType.Fusion;
+}
 
 // ── Effect ──────────────────────────────────────────────────
 
@@ -109,7 +157,7 @@ export interface CardData {
   type:         CardType;
   attribute?:   Attribute;
   race?:        Race;
-  rarity?:      RarityLevel;
+  rarity?:      Rarity;
   level?:       number;
   atk?:         number;
   def?:         number;

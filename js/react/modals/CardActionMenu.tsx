@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useGame }      from '../contexts/GameContext.js';
 import { useModal }     from '../contexts/ModalContext.js';
 import { useSelection } from '../contexts/SelectionContext.js';
-import { ATTR }         from '../../cards.js';
+import { CardType, Attribute, isMonsterType } from '../../types.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 
 interface Props { modal: Extract<ModalState, { type: 'card-action' }>; }
@@ -16,9 +16,9 @@ export function CardActionMenu({ modal }: Props) {
 
   const game  = gameRef.current;
   const phase = state.phase;
-  const isMon = ['normal','effect','fusion'].includes(card.type);
-  const isSp  = card.type === 'spell';
-  const isTr  = card.type === 'trap';
+  const isMon = isMonsterType(card.type);
+  const isSp  = card.type === CardType.Spell;
+  const isTr  = card.type === CardType.Trap;
 
   const freeZone   = state.player.field.monsters.findIndex((z: any) => z === null);
   const fusionOpts = game ? game.getAllFusionOptions('player').filter((o: any) => o.i1 === index || o.i2 === index) : [];
@@ -110,10 +110,10 @@ function startSpellTargeting(card: any, handIndex: number, state: any, game: any
     if (targets.length === 1) { game.activateSpell('player', handIndex, targets[0].fc); return; }
     setSel({ mode: 'spell-target', spellHandIndex: handIndex, spellCard: card, hint: t('card_action.hint_spell_own') });
   } else if (card.spellType === 'targeted' && card.target === 'ownDarkMonster') {
-    const fc = state.player.field.monsters.find((m: any) => m && m.card.attribute === ATTR.DARK);
+    const fc = state.player.field.monsters.find((m: any) => m && m.card.attribute === Attribute.Dark);
     if (fc) game.activateSpell('player', handIndex, fc);
   } else if (card.spellType === 'fromGrave') {
-    const monsters = state.player.graveyard.filter((c: any) => ['normal','effect','fusion'].includes(c.type));
+    const monsters = state.player.graveyard.filter((c: any) => isMonsterType(c.type));
     if (!monsters.length) return;
     openModal({ type: 'grave-select', cards: monsters, resolve: (chosen: any) => game.activateSpell('player', handIndex, chosen) });
   }

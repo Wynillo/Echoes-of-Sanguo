@@ -3,9 +3,10 @@
 // Data-driven effect execution: EffectDescriptor → EffectSignal
 // ============================================================
 
-import type {
-  EffectDescriptor, EffectContext, EffectSignal, CardEffectBlock,
-  ValueExpr, StatTarget, Owner, Attribute, Race,
+import {
+  Attribute, Race,
+  type EffectDescriptor, type EffectContext, type EffectSignal, type CardEffectBlock,
+  type ValueExpr, type StatTarget, type Owner,
 } from './types.js';
 
 // ── Value Resolution ────────────────────────────────────────

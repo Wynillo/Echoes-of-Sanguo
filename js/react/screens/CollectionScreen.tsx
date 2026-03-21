@@ -4,23 +4,24 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB, RARITY_COLOR } from '../../cards.js';
-import { Card }            from '../components/Card.js';
+import { Card, TYPE_CSS, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
+import { Race, Rarity } from '../../types.js';
 import type { CardData } from '../../types.js';
 import styles from './CollectionScreen.module.css';
 
-const RACE_FILTER_BTNS = [
-  { filter: 'all',     label: '🌐' },
-  { filter: 'feuer',   label: '🔥' },
-  { filter: 'drache',  label: '🐲' },
-  { filter: 'flug',    label: '🦅' },
-  { filter: 'stein',   label: '🪨' },
-  { filter: 'pflanze', label: '🌿' },
-  { filter: 'krieger', label: '⚔️' },
-  { filter: 'magier',  label: '🔮' },
-  { filter: 'elfe',    label: '✨' },
-  { filter: 'daemon',  label: '💀' },
-  { filter: 'wasser',  label: '🌊' },
+const RACE_FILTER_BTNS: { filter: 'all' | Race; label: string }[] = [
+  { filter: 'all',             label: '🌐' },
+  { filter: Race.Fire,         label: '🔥' },
+  { filter: Race.Dragon,       label: '🐲' },
+  { filter: Race.Flyer,        label: '🦅' },
+  { filter: Race.Stone,        label: '🪨' },
+  { filter: Race.Plant,        label: '🌿' },
+  { filter: Race.Warrior,      label: '⚔️' },
+  { filter: Race.Spellcaster,  label: '🔮' },
+  { filter: Race.Elf,          label: '✨' },
+  { filter: Race.Demon,        label: '💀' },
+  { filter: Race.Water,        label: '🌊' },
 ];
 
 export default function CollectionScreen() {
@@ -28,8 +29,8 @@ export default function CollectionScreen() {
   const { collection }  = useProgression();
   const { openModal }   = useModal();
   const { t } = useTranslation();
-  const [raceFilter,   setRaceFilter]   = useState('all');
-  const [rarityFilter, setRarityFilter] = useState('all');
+  const [raceFilter,   setRaceFilter]   = useState<'all' | Race>('all');
+  const [rarityFilter, setRarityFilter] = useState<'all' | Rarity>('all');
 
   const countMap: Record<string, number> = {};
   collection.forEach(e => { countMap[e.id] = e.count; });
@@ -64,14 +65,14 @@ export default function CollectionScreen() {
         <select
           className={styles.raritySelect}
           value={rarityFilter}
-          onChange={e => setRarityFilter(e.target.value)}
+          onChange={e => setRarityFilter(e.target.value === 'all' ? 'all' : Number(e.target.value) as Rarity)}
         >
           <option value="all">{t('collection.rarity_all')}</option>
-          <option value="common">Common</option>
-          <option value="uncommon">Uncommon</option>
-          <option value="rare">Rare</option>
-          <option value="super_rare">Super Rare</option>
-          <option value="ultra_rare">Ultra Rare</option>
+          <option value={Rarity.Common}>Common</option>
+          <option value={Rarity.Uncommon}>Uncommon</option>
+          <option value={Rarity.Rare}>Rare</option>
+          <option value={Rarity.SuperRare}>Super Rare</option>
+          <option value={Rarity.UltraRare}>Ultra Rare</option>
         </select>
       </div>
 
@@ -89,7 +90,7 @@ export default function CollectionScreen() {
                 onClick={() => openModal({ type: 'card-detail', card })}
               >
                 <div
-                  className={`card ${(card as any).type}-card attr-${(card as any).attribute || 'spell'}`}
+                  className={`card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                 >
                   <Card card={card} small />
                 </div>

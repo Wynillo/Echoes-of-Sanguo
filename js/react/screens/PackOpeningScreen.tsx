@@ -2,7 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { useEffect }   from 'react';
 import { useScreen }   from '../contexts/ScreenContext.js';
 import { RARITY_COLOR } from '../../cards.js';
+import { TYPE_CSS, ATTR_CSS } from '../components/Card.js';
 import { Audio }        from '../../audio.js';
+import { CardType, isEffectMonster } from '../../types.js';
 import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
 import styles from './PackOpeningScreen.module.css';
@@ -24,11 +26,11 @@ export default function PackOpeningScreen() {
 
   const ownedBefore = new Set(_preOpen.filter(e => e.count > 0).map(e => e.id));
 
-  function getTypeLabel(type: string) {
-    if (type === 'normal') return t('pack_opening.type_normal');
-    if (type === 'effect') return t('pack_opening.type_effect');
-    if (type === 'fusion') return t('pack_opening.type_fusion');
-    if (type === 'spell')  return t('pack_opening.type_spell');
+  function getTypeLabel(card: CardData) {
+    if (card.type === CardType.Monster && card.effect) return t('pack_opening.type_effect');
+    if (card.type === CardType.Monster) return t('pack_opening.type_normal');
+    if (card.type === CardType.Fusion) return t('pack_opening.type_fusion');
+    if (card.type === CardType.Spell)  return t('pack_opening.type_spell');
     return t('pack_opening.type_trap');
   }
 
@@ -49,7 +51,7 @@ export default function PackOpeningScreen() {
               style={{ animationDelay: `${i * 0.08}s` }}
             >
               <div
-                className={`${styles.cardInner} card ${card.type}-card attr-${(card as any).attribute || 'spell'}`}
+                className={`${styles.cardInner} card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                 style={{ '--rarity-color': rarColor } as React.CSSProperties}
               >
                 {isNew && <div className={styles.newBadge}>{t('pack_opening.new_badge')}</div>}
@@ -61,7 +63,7 @@ export default function PackOpeningScreen() {
                   </span>
                 </div>
                 <div className="card-body">
-                  <div className="card-type-line">{getTypeLabel(card.type)}</div>
+                  <div className="card-type-line">{getTypeLabel(card)}</div>
                   <div className="card-desc">{card.description || ''}</div>
                 </div>
                 {card.atk !== undefined && (

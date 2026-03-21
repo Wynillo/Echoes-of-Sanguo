@@ -1,5 +1,6 @@
 import { attachHover } from './hoverApi.js';
-import { Card } from './Card.js';
+import { Card, TYPE_CSS } from './Card.js';
+import { CardType } from '../../types.js';
 
 interface Props {
   fst: any;
@@ -22,7 +23,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
   } else if (fst.faceDown && isPlayer) {
     cls = 'card field-card face-down own-facedown attr-spell';
   } else {
-    cls = `card field-card ${card.type}-card attr-spell`;
+    cls = `card field-card ${TYPE_CSS[card.type] || 'spell'}-card attr-spell`;
   }
   if (interactive) cls += ' interactive';
 
@@ -49,7 +50,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
            onClick={interactive ? onClick : undefined}
            onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
         <div className="facedown-overlay">
-          {card.type === 'trap' ? '⚠ Falle' : '✦ Zauber'}
+          {card.type === CardType.Trap ? '⚠ Falle' : '✦ Zauber'}
         </div>
       </div>
     );

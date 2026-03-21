@@ -4,19 +4,20 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useGame }        from '../contexts/GameContext.js';
 import { OPPONENT_CONFIGS } from '../../cards.js';
+import { Race } from '../../types.js';
 import type { OpponentConfig } from '../../types.js';
 import styles from './OpponentScreen.module.css';
 
-const RACE_COLORS: Record<string, string> = {
-  feuer:'#e05030', drache:'#8040c0', flug:'#4090c0',
-  stein:'#808060', pflanze:'#40a050', krieger:'#c09030',
-  magier:'#6060c0', elfe:'#90c060', daemon:'#503060', wasser:'#3080b0',
+const RACE_COLORS: Record<number, string> = {
+  [Race.Fire]:'#e05030', [Race.Dragon]:'#8040c0', [Race.Flyer]:'#4090c0',
+  [Race.Stone]:'#808060', [Race.Plant]:'#40a050', [Race.Warrior]:'#c09030',
+  [Race.Spellcaster]:'#6060c0', [Race.Elf]:'#90c060', [Race.Demon]:'#503060', [Race.Water]:'#3080b0',
 };
 
-const RACE_SYMBOL: Record<string, string> = {
-  feuer:'♨', drache:'⚡', flug:'🜁', stein:'⬡',
-  pflanze:'✿', krieger:'⚔', magier:'✦', elfe:'☽',
-  daemon:'☠', wasser:'≋',
+const RACE_SYMBOL: Record<number, string> = {
+  [Race.Fire]:'♨', [Race.Dragon]:'⚡', [Race.Flyer]:'🜁', [Race.Stone]:'⬡',
+  [Race.Plant]:'✿', [Race.Warrior]:'⚔', [Race.Spellcaster]:'✦', [Race.Elf]:'☽',
+  [Race.Demon]:'☠', [Race.Water]:'≋',
 };
 
 export default function OpponentScreen() {
@@ -43,7 +44,7 @@ export default function OpponentScreen() {
         {(OPPONENT_CONFIGS as OpponentConfig[]).map(cfg => {
           const oppData = opponents[cfg.id] || { unlocked: cfg.id === 1, wins: 0, losses: 0 };
           const isUnlocked = oppData.unlocked;
-          const accent = RACE_COLORS[(cfg as any).race] || '#888';
+          const accent = RACE_COLORS[cfg.race] || '#888';
 
           return (
             <div
@@ -55,7 +56,7 @@ export default function OpponentScreen() {
             >
               <div className={styles.frame} style={{ borderColor: accent }}>
                 <div className={styles.art} style={{ background: `linear-gradient(135deg,${accent}44,#111830)` }}>
-                  <div className={styles.symbol}>{RACE_SYMBOL[(cfg as any).race] || '?'}</div>
+                  <div className={styles.symbol}>{RACE_SYMBOL[cfg.race] || '?'}</div>
                 </div>
                 {!isUnlocked && <div className={styles.lockedOverlay}>🔒</div>}
               </div>

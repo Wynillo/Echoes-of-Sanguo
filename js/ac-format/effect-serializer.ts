@@ -9,7 +9,7 @@
 //   "onAttack:dealDamage(opponent,attacker.effectiveATK*0.5f);cancelAttack()"
 // ============================================================
 
-import type { CardEffectBlock, EffectDescriptor, EffectTrigger, TrapTrigger, ValueExpr, Attribute, Race, StatTarget } from '../types.js';
+import { type CardEffectBlock, type EffectDescriptor, type EffectTrigger, type TrapTrigger, type ValueExpr, Attribute, Race, type StatTarget } from '../types.js';
 import { isValidTrigger, intToAttribute, intToRace, attributeToInt, raceToInt } from './enums.js';
 
 // ── ValueExpr Serialization ──────────────────────────────────

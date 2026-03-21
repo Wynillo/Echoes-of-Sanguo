@@ -4,7 +4,7 @@
 // ============================================================
 
 import JSZip from 'jszip';
-import type { CardData } from '../types.js';
+import { type CardData, Race } from '../types.js';
 import type { AcCard, AcCardDefinition, AcMeta } from './types.js';
 import { cardTypeToInt, attributeToInt, raceToInt, rarityToInt } from './enums.js';
 import { serializeEffect } from './effect-serializer.js';
@@ -65,7 +65,7 @@ export function buildAcArchive(
   options: BuildAcOptions = {},
   meta?: {
     fusionRecipes?: Array<{ materials: [string, string]; result: string }>;
-    opponentConfigs?: Array<{ id: number; name: string; title: string; race: string; flavor: string; coinsWin: number; coinsLoss: number; deckIds: string[] }>;
+    opponentConfigs?: Array<{ id: number; name: string; title: string; race: Race; flavor: string; coinsWin: number; coinsLoss: number; deckIds: string[] }>;
     starterDecks?: Record<string, string[]>;
   },
 ): BuildAcResult {
@@ -119,7 +119,7 @@ export function buildAcArchive(
         id:        o.id,
         name:      o.name,
         title:     o.title,
-        race:      raceToInt(o.race as any),
+        race:      raceToInt(o.race),
         flavor:    o.flavor,
         coinsWin:  o.coinsWin,
         coinsLoss: o.coinsLoss,

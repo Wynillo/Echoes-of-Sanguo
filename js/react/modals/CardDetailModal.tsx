@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useModal }  from '../contexts/ModalContext.js';
 import { Card }       from '../components/Card.js';
+import { CardType }   from '../../types.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 
 interface Props { modal: Extract<ModalState, { type: 'card-detail' }>; }
@@ -11,13 +12,13 @@ export function CardDetailModal({ modal }: Props) {
   const { t } = useTranslation();
 
   const attrName = card.attribute ? t(`cards.attr_${card.attribute}`) : '';
-  const typeLabel = {
-    normal: t('card_detail.type_normal'),
-    effect: t('card_detail.type_effect'),
-    fusion: t('card_detail.type_fusion'),
-    spell:  t('card_detail.type_spell'),
-    trap:   t('card_detail.type_trap'),
-  }[card.type as string] || '';
+  const typeLabels: Record<number, string> = {
+    [CardType.Monster]: card.effect ? t('card_detail.type_effect') : t('card_detail.type_normal'),
+    [CardType.Fusion]:  t('card_detail.type_fusion'),
+    [CardType.Spell]:   t('card_detail.type_spell'),
+    [CardType.Trap]:    t('card_detail.type_trap'),
+  };
+  const typeLabel = typeLabels[card.type] || '';
   const levelStr = card.level ? ` · ${t('card_detail.level_prefix')} ${card.level}` : '';
 
   let statsText = '';
