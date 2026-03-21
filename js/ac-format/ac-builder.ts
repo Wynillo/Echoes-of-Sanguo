@@ -24,7 +24,9 @@ export function cardDataToAcCard(card: CardData, numericId: number): AcCard {
   if (card.def !== undefined) ac.def = card.def;
   if (card.attribute) ac.attribute = attributeToInt(card.attribute);
   if (card.race) ac.race = raceToInt(card.race);
-  if (card.effect) ac.effect = serializeEffect(card.effect);
+  if (card.effect && Array.isArray((card.effect as any).actions)) {
+    ac.effect = serializeEffect(card.effect);
+  }
 
   return ac;
 }
