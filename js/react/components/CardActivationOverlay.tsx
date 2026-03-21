@@ -5,12 +5,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { Card } from './Card.js';
+import { CardType } from '../../types.js';
 import { setActivationDispatch } from './cardActivationApi.js';
 import type { ActivationState } from './cardActivationApi.js';
 
-const LABELS: Record<string, string> = {
-  spell: 'ZAUBER AKTIVIERT', trap: 'FALLE AKTIVIERT',
-  effect: 'EFFEKT AUSGELÖST', fusion: 'FUSION!', normal: 'EFFEKT AUSGELÖST',
+const LABELS: Record<number, string> = {
+  [CardType.Spell]: 'ZAUBER AKTIVIERT', [CardType.Trap]: 'FALLE AKTIVIERT',
+  [CardType.Monster]: 'EFFEKT AUSGELÖST', [CardType.Fusion]: 'FUSION!',
 };
 
 export function CardActivationOverlay() {
