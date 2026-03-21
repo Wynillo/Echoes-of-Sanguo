@@ -66,20 +66,16 @@ function validateSingleCard(card: unknown, index: number): string[] {
     errors.push(`${prefix}.rarity: must be one of [${[...VALID_RARITIES].join(',')}], got ${c.rarity}`);
   }
 
-  // attribute: optional int 1-6, must be absent for spells/traps
+  // attribute: optional int 1-6
   if (c.attribute !== undefined && c.attribute !== null) {
-    if (isSpellOrTrap) {
-      errors.push(`${prefix}.attribute: should be absent for spells/traps`);
-    } else if (typeof c.attribute !== 'number' || !VALID_ATTRIBUTES.has(c.attribute as any)) {
+    if (typeof c.attribute !== 'number' || !VALID_ATTRIBUTES.has(c.attribute as any)) {
       errors.push(`${prefix}.attribute: must be one of [${[...VALID_ATTRIBUTES].join(',')}], got ${c.attribute}`);
     }
   }
 
-  // race: optional int 1-10, must be absent for spells/traps
+  // race: optional int 1-10
   if (c.race !== undefined && c.race !== null) {
-    if (isSpellOrTrap) {
-      errors.push(`${prefix}.race: should be absent for spells/traps`);
-    } else if (typeof c.race !== 'number' || !VALID_RACES.has(c.race as any)) {
+    if (typeof c.race !== 'number' || !VALID_RACES.has(c.race as any)) {
       errors.push(`${prefix}.race: must be one of [${[...VALID_RACES].join(',')}], got ${c.race}`);
     }
   }

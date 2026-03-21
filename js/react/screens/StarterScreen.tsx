@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { Progression }    from '../../progression.js';
-import { STARTER_DECKS }  from '../../cards-data.js';
+import { STARTER_DECKS }  from '../../cards.js';
 import styles from './StarterScreen.module.css';
 
 const RACE_INFO: Record<string, { icon: string; color: string }> = {
