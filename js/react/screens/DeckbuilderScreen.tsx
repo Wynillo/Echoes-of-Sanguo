@@ -176,7 +176,7 @@ export default function DeckbuilderScreen() {
                 return (
                   <div key={id} className={styles.deckRow} onClick={() => removeCard(id)}>
                     <div
-                      className={`card ${styles.deckRowMini} ${card.type}-card attr-${(card as any).attribute || 'spell'}`}
+                      className={`card ${styles.deckRowMini} ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                       ref={el => { if (el) attachHover(el, card, null); }}
                     >
                       <Card card={card} />

@@ -5,6 +5,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ATTR_NAME } from '../../cards.js';
+import { CardType } from '../../types.js';
 import { Card } from './Card.js';
 import { setHoverDispatch } from './hoverApi.js';
 import type { HoverState } from './hoverApi.js';
@@ -48,7 +49,8 @@ export function HoverPreview() {
 
   const { card, fc } = hover ?? {};
   const attrName = card ? ATTR_NAME[card.attribute] || '' : '';
-  const typeName = card ? ({ normal:'Normal', effect:'Effekt', fusion:'Fusion', spell:'Zauberkarte', trap:'Fallenkarte' }[card.type as string] || '') : '';
+  const typeNameMap: Record<number, string> = { [CardType.Monster]:'Normal', [CardType.Fusion]:'Fusion', [CardType.Spell]:'Zauberkarte', [CardType.Trap]:'Fallenkarte' };
+  const typeName = card ? (card.type === CardType.Monster && card.effect ? 'Effekt' : typeNameMap[card.type] || '') : '';
   const levelStr = card?.level ? ` · Lv ${card.level}` : '';
   const atkBonus = fc && (fc.permATKBonus || fc.tempATKBonus);
 
