@@ -52,16 +52,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       /* result shown via onDuelEnd */
     },
     showActivation: (card: CardData, text: string) => {
-      Audio.playSfx(card.type === 'trap' ? 'sfx_trap' : card.type === 'spell' ? 'sfx_spell' : 'sfx_card_play');
       return import('../components/cardActivationApi.js').then(m => m.showActivation(card, text));
     },
     playAttackAnimation: (ao, az, dO, dZ) => {
-      Audio.playSfx('sfx_attack');
       return import('../hooks/useAttackAnimation.js').then(m => m.playAttackAnim(ao, az, dO, dZ));
+    },
+    playSfx: (sfxId: string) => {
+      Audio.playSfx(sfxId);
     },
     onDraw: (owner, count) => {
       if (owner === 'player') setPendingDraw(prev => prev + count);
-      Audio.playSfx('sfx_draw');
     },
     onDuelEnd: (result, opponentId) => {
       Audio.playMusic(result === 'victory' ? 'music_victory' : 'music_defeat');

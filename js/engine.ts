@@ -249,6 +249,7 @@ export class GameEngine {
   dealDamage(target: Owner, amount: number){
     this.state[target].lp = Math.max(0, this.state[target].lp - amount);
     this.addLog(`${ownerLabel(target)} erhält ${amount} Schaden. (LP: ${this.state[target].lp})`);
+    this.ui.playSfx?.('sfx_damage');
     this.ui.render(this.state);
     if(this.checkWin()) return;
   }
@@ -321,6 +322,7 @@ export class GameEngine {
     st.normalSummonUsed = true;
     const posStr = faceDown ? 'verdeckt DEF' : position.toUpperCase();
     this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
+    this.ui.playSfx?.('sfx_card_play');
     // trigger onSummon effect only if face-up
     if(!faceDown) this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
@@ -342,6 +344,7 @@ export class GameEngine {
     fc.summonedThisTurn = false; // special summons can usually attack (or keep true for balance)
     st.field.monsters[zone] = fc;
     this.addLog(`${ownerLabel(owner)}: ${card.name} Spezialbeschwörung!`);
+    this.ui.playSfx?.('sfx_card_play');
     this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
@@ -358,6 +361,7 @@ export class GameEngine {
     fc.summonedThisTurn = false;
     st.field.monsters[zone] = fc;
     this.addLog(`${ownerLabel(owner)}: ${c.name} aus dem Friedhof beschworen!`);
+    this.ui.playSfx?.('sfx_card_play');
     this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
@@ -372,6 +376,7 @@ export class GameEngine {
     const [card] = st.hand.splice(handIndex, 1);
     st.field.spellTraps[zone] = new FieldSpellTrap(card, true);
     this.addLog(`${ownerLabel(owner)}: Karte verdeckt abgelegt.`);
+    this.ui.playSfx?.('sfx_card_play');
     this.ui.render(this.state);
     return true;
   }
@@ -382,6 +387,7 @@ export class GameEngine {
     if(!card || card.type !== TYPE.SPELL){ this.addLog('Keine Zauberkarte!'); return false; }
     st.hand.splice(handIndex, 1);
     this.addLog(`${ownerLabel(owner)}: ${card.name} aktiviert!`);
+    this.ui.playSfx?.('sfx_spell');
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
     if(card.effect) try {
       const ctx = this._buildSpellContext(owner, targetInfo);
@@ -420,6 +426,7 @@ export class GameEngine {
     fst.used = true;
     fst.faceDown = false;
     this.addLog(`${ownerLabel(owner)}: Falle ${fst.card.name} aktiviert!`);
+    this.ui.playSfx?.('sfx_trap');
     if(this.ui.showActivation) this.ui.showActivation(fst.card, fst.card.description);
     let result: EffectSignal | null = null;
     if(fst.card.effect) try {
@@ -486,6 +493,7 @@ export class GameEngine {
     st.normalSummonUsed = true;
 
     this.addLog(`${ownerLabel(owner)}: FUSION! ${card1.name} + ${card2.name} = ${fusionCard.name}!`);
+    this.ui.playSfx?.('sfx_fusion');
     this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
@@ -613,6 +621,7 @@ export class GameEngine {
     const st  = this.state[owner];
     const fc  = st.field.monsters[zone];
     if(!fc) return;
+    this.ui.playSfx?.('sfx_destroy');
 
     // phoenixRevival passive: revive once after destruction by opponent in battle
     if(fc.phoenixRevival && !fc.phoenixRevivalUsed && reason === 'battle' && byOwner !== owner){

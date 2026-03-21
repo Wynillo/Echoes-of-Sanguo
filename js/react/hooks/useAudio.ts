@@ -11,7 +11,17 @@ export function useAudioInit(): void {
       else Audio.resume();
     }
 
+    function onButtonClick(e: MouseEvent) {
+      if ((e.target as Element)?.closest('button')) {
+        Audio.playSfx('sfx_button');
+      }
+    }
+
     document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
+    document.addEventListener('click', onButtonClick);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      document.removeEventListener('click', onButtonClick);
+    };
   }, []);
 }

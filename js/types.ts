@@ -181,6 +181,7 @@ export interface UICallbacks {
   showResult?:          (result: 'victory' | 'defeat') => void;
   showActivation?:      (card: CardData, text: string) => Promise<void> | void;
   playAttackAnimation?: (atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number | null) => Promise<void>;
+  playSfx?:             (sfxId: string) => void;
   onDraw?:              (owner: Owner, count: number) => void;
   onDuelEnd?:           (result: 'victory' | 'defeat', oppId: number | null) => void;
 }
