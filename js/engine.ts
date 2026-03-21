@@ -7,7 +7,6 @@
 // Categories:   PHASE | AI | BATTLE | EFFECT | SUMMON | SPELL | ERROR
 // Each category has its own color; errors always show regardless of flag.
 //
-import './cards-data.js'; // ensures all 700+ cards are registered before engine initialises
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion } from './cards.js';
 import { Progression } from './progression.js';
 import { executeEffectBlock, extractPassiveFlags } from './effect-registry.js';

@@ -6,7 +6,7 @@
 import JSZip from 'jszip';
 import { type CardData, Race } from '../types.js';
 import type { AcCard, AcCardDefinition, AcMeta } from './types.js';
-import { cardTypeToInt, attributeToInt, raceToInt, rarityToInt } from './enums.js';
+import { cardTypeToInt, attributeToInt, raceToInt, rarityToInt, spellTypeToInt, trapTriggerToInt } from './enums.js';
 import { serializeEffect } from './effect-serializer.js';
 
 /**
@@ -27,6 +27,9 @@ export function cardDataToAcCard(card: CardData, numericId: number): AcCard {
   if (card.effect && Array.isArray((card.effect as any).actions)) {
     ac.effect = serializeEffect(card.effect);
   }
+  if (card.spellType)   ac.spellType   = spellTypeToInt(card.spellType);
+  if (card.trapTrigger) ac.trapTrigger = trapTriggerToInt(card.trapTrigger);
+  if (card.target)      ac.target      = card.target;
 
   return ac;
 }

@@ -19,6 +19,8 @@ export {
   raceToInt, intToRace,
   rarityToInt, intToRarity,
   isValidTrigger, isValidSpellType,
+  spellTypeToInt, intToSpellType,
+  trapTriggerToInt, intToTrapTrigger,
 } from './enums.js';
 
 // Effect serializer

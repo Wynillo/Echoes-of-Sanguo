@@ -1,6 +1,7 @@
 // ============================================================
 // AETHERIAL CLASH — Generate base.ac
 // Run: npm run generate:ac
+// Imports cards-data.ts which populates CARD_DB with all cards.
 // ============================================================
 
 import { writeFileSync } from 'node:fs';
@@ -8,7 +9,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS } from '../cards.js';
-// Importing cards-data populates CARD_DB with all generated cards.
+// Importing cards-data populates CARD_DB with all base + generated cards.
 import { STARTER_DECKS } from '../cards-data.js';
 import { buildAcArchive } from './ac-builder.js';
 
@@ -34,7 +35,7 @@ async function main() {
   writeFileSync(outPath, buf);
 
   const kb = (buf.length / 1024).toFixed(1);
-  console.log(`✔ base.ac written to public/base.ac (${cardCount} cards, ${kb} KB)`);
+  console.log(`base.ac written to public/base.ac (${cardCount} cards, ${kb} KB)`);
 }
 
 main().catch(err => {

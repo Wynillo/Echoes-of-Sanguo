@@ -53,6 +53,9 @@ export interface AcCard {
   attribute?: number;       // 1-6, absent for Spells/Traps
   race?:      number;       // 1-10, absent for Spells/Traps
   effect?:    string;       // serialized effect string
+  spellType?:   number;    // 1=normal, 2=targeted, 3=fromGrave
+  trapTrigger?: number;    // 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual
+  target?:      string;    // targeting hint: 'ownMonster', 'oppMonster', etc.
 }
 
 // ── Card Definition (localized) ──────────────────────────────

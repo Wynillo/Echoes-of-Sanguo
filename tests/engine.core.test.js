@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GameEngine, FieldCard } from '../js/engine.ts';
+import '../js/cards-data.js'; // populates CARD_DB with all card definitions
 import { CARD_DB, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../js/cards.js';
 
 // ── Helpers ────────────────────────────────────────────────

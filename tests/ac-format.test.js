@@ -235,16 +235,14 @@ describe('Card Validator', () => {
     expect(result.errors[0]).toContain('type');
   });
 
-  it('rejects attribute on spells', () => {
+  it('allows attribute on spells (race-specific spells)', () => {
     const result = validateAcCards([{ ...validSpell, attribute: 1 }]);
-    expect(result.valid).toBe(false);
-    expect(result.errors[0]).toContain('attribute');
+    expect(result.valid).toBe(true);
   });
 
-  it('rejects race on traps', () => {
+  it('allows race on traps (race-specific traps)', () => {
     const result = validateAcCards([{ ...validTrap, race: 1 }]);
-    expect(result.valid).toBe(false);
-    expect(result.errors[0]).toContain('race');
+    expect(result.valid).toBe(true);
   });
 
   it('rejects atk on spells', () => {

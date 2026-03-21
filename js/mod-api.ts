@@ -4,8 +4,7 @@
 // external mod scripts can add cards, opponents, and effects
 // without touching internal ES module imports.
 // ============================================================
-import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS } from './cards.js';
-import { STARTER_DECKS } from './cards-data.js';
+import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './cards.js';
 import { EFFECT_REGISTRY, registerEffect } from './effect-registry.js';
 
 declare global {
