@@ -1,7 +1,7 @@
 .screen {
   position: fixed; inset: 0;
   display: flex; flex-direction: column;
-  background: var(--bg2);
+  background: #080c18;
   z-index: 100;
   overflow: hidden;
 }
@@ -21,9 +21,9 @@
 
 .count {
   font-size: 0.875rem; color: var(--gold);
-  background: rgba(40,60,120,0.6);
+  background: #1c3078;
   border: 1px solid var(--border);
-  border-radius: 4px; padding: 3px 10px;
+  border-radius: 0; padding: 3px 10px;
 }
 
 .body {
@@ -36,8 +36,6 @@
   display: flex; flex-direction: column;
   border-left: 1px solid var(--border);
   overflow: hidden;
-  transition: flex 0.3s cubic-bezier(0.4,0,0.2,1),
-              opacity 0.2s ease;
 }
 
 .body.panelExpanded .collectionPanel {
@@ -62,32 +60,32 @@
 }
 
 .filterBtn {
-  background: rgba(20,30,60,0.8); color: var(--text-dim);
+  background: #141e3c; color: var(--text-dim);
   padding: 4px 12px; border: 1px solid var(--border);
-  border-radius: 4px; font-size: 0.75rem; cursor: pointer;
-  transition: all 0.15s;
+  border-radius: 0; font-size: 0.75rem; cursor: pointer;
 }
 
 .filterBtn:hover  { border-color: var(--gold); color: var(--gold); }
 
 .filterBtn.active {
   border-color: var(--gold); color: var(--gold-light);
-  background: rgba(40,60,120,0.8);
+  background: #283c78;
 }
 
 .raceBtn { padding: 4px 7px; font-size: 13px; }
 
 .raritySelect {
-  background: rgba(20,30,60,0.8); color: var(--text-dim);
-  border: 1px solid var(--border); border-radius: 4px;
+  background: #141e3c; color: var(--text-dim);
+  border: 1px solid var(--border); border-radius: 0;
   font-size: 12px; padding: 4px 8px; cursor: pointer;
 }
 
 .raritySelect:focus { outline: none; border-color: var(--gold); }
 
 .nameSearch {
-  background: rgba(20,30,60,0.8); color: var(--text);
-  border: 1px solid var(--border); border-radius: 4px;
+  background: #141e3c; color: var(--text);
+  border: 2px solid; border-color: #182860 #4068c8 #4068c8 #182860;
+  border-radius: 0;
   font-size: 12px; padding: 4px 8px; width: 130px;
 }
 
@@ -99,17 +97,17 @@
 }
 
 .viewBtn {
-  background: rgba(20,30,60,0.8); color: var(--text-dim);
+  background: #141e3c; color: var(--text-dim);
   padding: 4px 8px; border: 1px solid var(--border);
-  border-radius: 4px; font-size: 16px; cursor: pointer;
-  transition: all 0.15s; line-height: 1;
+  border-radius: 0; font-size: 16px; cursor: pointer;
+  line-height: 1;
 }
 
 .viewBtn:hover  { border-color: var(--gold); color: var(--gold); }
 
 .viewBtn.active {
   border-color: var(--gold); color: var(--gold-light);
-  background: rgba(40,60,120,0.8);
+  background: #283c78;
 }
 
 .collectionGrid {
@@ -132,7 +130,7 @@
 }
 
 .table th {
-  background: rgba(10,15,40,0.95); padding: 7px 10px;
+  background: #0a0f28; padding: 7px 10px;
   text-align: left; color: var(--gold);
   font-size: 11px; letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border);
@@ -141,11 +139,11 @@
 
 .table td {
   padding: 6px 10px; color: var(--text);
-  border-bottom: 1px solid rgba(40,50,80,0.35);
+  border-bottom: 1px solid #283250;
   cursor: pointer;
 }
 
-.table tbody tr:hover td { background: rgba(80,120,255,0.07); }
+.table tbody tr:hover td { background: #101830; }
 
 .tableRowDimmed td { opacity: 0.4; cursor: default; }
 .tableRowDimmed:hover td { background: none; }
@@ -153,39 +151,36 @@
 .newBadge {
   background: #f97316; color: #fff;
   font-size: 9px; font-weight: bold;
-  padding: 1px 5px; border-radius: 3px;
+  padding: 1px 5px; border-radius: 0;
   margin-left: 5px; vertical-align: middle;
 }
 
 .cardWrap {
   position: relative; flex-shrink: 0;
   cursor: pointer;
-  transition: transform 0.12s;
 }
 
 .cardWrap:hover > :global(.card) {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(100,140,255,0.3);
+  border-color: #4070c0;
 }
 
 .cardDimmed > :global(.card) {
   opacity: 0.35; filter: grayscale(50%); cursor: default;
 }
 
-.cardDimmed:hover > :global(.card) { transform: none; box-shadow: none; }
+.cardDimmed:hover > :global(.card) { border-color: inherit; }
 
 .copyBadge {
   position: absolute; bottom: 28px; right: 3px;
-  background: rgba(8,12,28,0.92);
+  background: #080c1c;
   border: 1px solid var(--gold);
   color: var(--gold); font-size: 0.625rem; font-weight: bold;
-  padding: 1px 5px; border-radius: 3px;
+  padding: 1px 5px; border-radius: 0;
   pointer-events: none; z-index: 5;
 }
 
 .deckPanel {
   width: 280px; flex-shrink: 0;
-  transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
   display: flex; flex-direction: column;
   background: var(--panel); overflow: hidden;
 }
@@ -207,7 +202,6 @@
 
 .panelArrow {
   display: inline-block;
-  transition: transform 0.25s ease;
   font-size: 0.875rem; color: var(--gold);
 }
 
@@ -230,33 +224,30 @@
 }
 
 .deckCardWrap:hover > :global(.card) {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 14px rgba(200,60,60,0.35);
+  border-color: #c83c3c;
 }
 
 .deckRmOverlay {
   position: absolute; inset: 0;
-  background: rgba(180,30,30,0);
+  background: #000000;
   display: flex; align-items: center; justify-content: center;
   font-size: 22px; color: transparent;
-  transition: background 0.15s, color 0.15s;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .deckCardWrap:hover .deckRmOverlay {
-  background: rgba(180,30,30,0.45);
+  background: #b41e1e;
   color: #fff;
 }
 
 .deckRow {
   display: flex; align-items: center; gap: 8px;
   padding: 5px 6px;
-  border-bottom: 1px solid rgba(40,50,80,0.4);
+  border-bottom: 1px solid #283250;
   cursor: pointer;
-  transition: background 0.12s;
 }
 
-.deckRow:hover { background: rgba(200,60,60,0.12); }
+.deckRow:hover { background: #301818; }
 
 .deckRowMini {
   flex-shrink: 0; width: 36px; height: 50px;
@@ -281,8 +272,9 @@
 
 .saveToast {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  background: rgba(40,180,80,0.92); color: #fff;
-  padding: 8px 24px; border-radius: 20px;
+  background: #28b450; color: #fff;
+  padding: 8px 24px; border-radius: 0;
+  border: 2px solid #40d868;
   font-size: 0.875rem; font-weight: bold; z-index: 300;
   animation: toastIn 0.2s ease-out;
 }

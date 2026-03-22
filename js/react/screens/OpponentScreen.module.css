@@ -2,9 +2,6 @@
   position: fixed;
   inset: 0;
   background: #080c18;
-  background-image:
-    radial-gradient(ellipse at 50% 20%, #1a1040 0%, transparent 60%),
-    url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Ccircle fill='%23ffffff08' cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E");
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -21,12 +18,11 @@
 }
 
 .title {
-  font-family: 'Segoe UI', sans-serif;
   font-size: clamp(1.6rem, 5vw, 2.4rem);
   font-weight: 900;
   letter-spacing: 6px;
   color: #c8a84b;
-  text-shadow: 0 0 20px #c8a84b80;
+  text-shadow: 2px 2px 0 #000;
   margin: 0 0 4px;
 }
 
@@ -67,11 +63,10 @@
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  transition: transform 0.15s;
 }
 
 .tile:not(.locked):hover {
-  transform: scale(1.06);
+  border-color: #c8a84b;
 }
 
 .tile.locked {
@@ -84,7 +79,7 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   border: 2px solid #888;
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
   position: relative;
   background: #111830;
@@ -101,13 +96,12 @@
 .symbol {
   font-size: clamp(1.4rem, 4vw, 2.2rem);
   opacity: 0.9;
-  filter: drop-shadow(0 0 8px #fff8);
 }
 
 .lockedOverlay {
   position: absolute;
   inset: 0;
-  background: #000000aa;
+  background: #000000;
   display: flex;
   align-items: center;
   justify-content: center;

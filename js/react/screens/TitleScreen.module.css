@@ -1,7 +1,7 @@
 .screen {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(ellipse at center, #0a1030 0%, #040610 100%);
+  background: #080c18;
   z-index: 100;
 }
 
@@ -11,10 +11,11 @@
 }
 
 .gameTitle {
-  font-size: clamp(2rem, 6vw, 4rem);
-  letter-spacing: 6px;
+  font-size: 24px;
+  letter-spacing: 2px;
   color: var(--gold-light);
-  text-shadow: 0 0 20px rgba(200,168,75,0.5);
+  text-shadow: 2px 2px 0 #000;
+  font-family: 'Press Start 2P', monospace;
   line-height: 1.1;
   margin: 10px 0;
 }
