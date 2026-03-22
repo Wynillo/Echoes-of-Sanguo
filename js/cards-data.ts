@@ -794,60 +794,15 @@ function _addCard(id: string, def: CardData): void {
   });
 
   // ── Starterdecks (40 Karten je Rasse) ────────────────────────
-export const STARTER_DECKS: Record<Race, string[]> = {
-    [Race.Fire]: [
-      'NFE01','NFE01','NFE02','NFE02','NFE05','NFE05','NFE06','NFE06',
-      'NFE09','NFE09','NFE10','NFE10','NFE11','NFE11','NFE15','NFE15',
-      'NFE17','NFE17','NFE19','NFE19',
-      'EFE01','EFE01','EFE02','EFE02','EFE06','EFE09',
-      'ZFE1','ZFE1','ZFE2','ZFE3','ZFE3','ZFE4',
-      'S003','S005',
-      'T001','T002','QFE1','QFE2','QFE3','QFE4',
-    ],
+export const STARTER_DECKS: Partial<Record<Race, string[]>> = {
     [Race.Dragon]: [
       'NDR01','NDR01','NDR02','NDR02','NDR05','NDR05','NDR06','NDR06',
       'NDR09','NDR09','NDR10','NDR10','NDR11','NDR11','NDR15','NDR15',
       'NDR17','NDR17','NDR19','NDR19',
-      'EDR01','EDR01','EDR03','EDR03','EDR07','EDR05',
+      'EDR01','EDR01','EDR03','EDR03','EDR10','EDR05',
       'ZDR1','ZDR1','ZDR3','ZDR3','ZDR5','ZDR4',
       'S003','S005',
       'T001','T002','QDR1','QDR2','QDR3','QDR4',
-    ],
-    [Race.Flyer]: [
-      'NFL01','NFL01','NFL02','NFL02','NFL05','NFL05','NFL06','NFL06',
-      'NFL09','NFL09','NFL10','NFL10','NFL11','NFL11','NFL15','NFL15',
-      'NFL17','NFL17','NFL19','NFL19',
-      'EFL01','EFL01','EFL02','EFL02','EFL05','EFL07',
-      'ZFL1','ZFL1','ZFL2','ZFL3','ZFL3','ZFL4',
-      'S003','S005',
-      'T001','T002','QFL1','QFL2','QFL3','QFL4',
-    ],
-    [Race.Stone]: [
-      'NST01','NST01','NST02','NST02','NST05','NST05','NST06','NST06',
-      'NST09','NST09','NST10','NST10','NST11','NST11','NST15','NST15',
-      'NST17','NST17','NST19','NST19',
-      'EST01','EST01','EST03','EST03','EST05','EST09',
-      'ZST1','ZST1','ZST2','ZST3','ZST3','ZST4',
-      'S002','S005',
-      'T002','T004','QST1','QST2','QST3','QST4',
-    ],
-    [Race.Plant]: [
-      'NPF01','NPF01','NPF02','NPF02','NPF05','NPF05','NPF06','NPF06',
-      'NPF09','NPF09','NPF10','NPF10','NPF11','NPF11','NPF15','NPF15',
-      'NPF17','NPF17','NPF19','NPF19',
-      'EPF01','EPF01','EPF03','EPF03','EPF04','EPF07',
-      'ZPF1','ZPF1','ZPF2','ZPF3','ZPF3','ZPF4',
-      'S002','S005',
-      'T002','T004','QPF1','QPF2','QPF3','QPF4',
-    ],
-    [Race.Warrior]: [
-      'NKR01','NKR01','NKR02','NKR02','NKR05','NKR05','NKR06','NKR06',
-      'NKR09','NKR09','NKR10','NKR10','NKR11','NKR11','NKR15','NKR15',
-      'NKR17','NKR17','NKR19','NKR19',
-      'EKR01','EKR01','EKR03','EKR03','EKR06','EKR09',
-      'ZKR1','ZKR1','ZKR2','ZKR3','ZKR3','ZKR4',
-      'S003','S005',
-      'T001','T002','QKR1','QKR2','QKR3','QKR4',
     ],
     [Race.Spellcaster]: [
       'NMA01','NMA01','NMA02','NMA02','NMA05','NMA05','NMA06','NMA06',
@@ -858,32 +813,14 @@ export const STARTER_DECKS: Record<Race, string[]> = {
       'S005','S005',
       'T003','T004','QMA1','QMA2','QMA3','QMA4',
     ],
-    [Race.Elf]: [
-      'NEL01','NEL01','NEL02','NEL02','NEL05','NEL05','NEL06','NEL06',
-      'NEL09','NEL09','NEL10','NEL10','NEL11','NEL11','NEL15','NEL15',
-      'NEL17','NEL17','NEL19','NEL19',
-      'EEL01','EEL01','EEL02','EEL02','EEL05','EEL07',
-      'ZEL1','ZEL1','ZEL2','ZEL3','ZEL3','ZEL4',
-      'S002','S005',
-      'T002','T004','QEL1','QEL2','QEL3','QEL4',
-    ],
-    [Race.Demon]: [
-      'NDA01','NDA01','NDA02','NDA02','NDA05','NDA05','NDA06','NDA06',
-      'NDA09','NDA09','NDA10','NDA10','NDA11','NDA11','NDA15','NDA15',
-      'NDA17','NDA17','NDA19','NDA19',
-      'EDA01','EDA01','EDA02','EDA02','EDA06','EDA08',
-      'ZDA1','ZDA1','ZDA2','ZDA3','ZDA3','ZDA4',
+    [Race.Warrior]: [
+      'NKR01','NKR01','NKR02','NKR02','NKR05','NKR05','NKR06','NKR06',
+      'NKR09','NKR09','NKR10','NKR10','NKR11','NKR11','NKR15','NKR15',
+      'NKR17','NKR17','NKR19','NKR19',
+      'EKR01','EKR01','EKR03','EKR03','EKR07','EKR06',
+      'ZKR1','ZKR1','ZKR2','ZKR3','ZKR3','ZKR4',
       'S003','S005',
-      'T001','T002','QDA1','QDA2','QDA3','QDA4',
-    ],
-    [Race.Water]: [
-      'NWA01','NWA01','NWA02','NWA02','NWA05','NWA05','NWA06','NWA06',
-      'NWA09','NWA09','NWA10','NWA10','NWA11','NWA11','NWA15','NWA15',
-      'NWA17','NWA17','NWA19','NWA19',
-      'EWA01','EWA01','EWA03','EWA03','EWA05','EWA07',
-      'ZWA1','ZWA1','ZWA2','ZWA3','ZWA3','ZWA4',
-      'S002','S005',
-      'T002','T004','QWA1','QWA2','QWA3','QWA4',
+      'T001','T002','QKR1','QKR2','QKR3','QKR4',
     ],
 };
 

@@ -7,16 +7,9 @@ import { STARTER_DECKS }  from '../../cards.js';
 import styles from './StarterScreen.module.css';
 
 const RACE_INFO: Record<string, { icon: string; color: string }> = {
-  feuer:   { icon: '🔥', color: '#e05030' },
   drache:  { icon: '🐲', color: '#8040c0' },
-  flug:    { icon: '🦅', color: '#4090c0' },
-  stein:   { icon: '🪨', color: '#808060' },
-  pflanze: { icon: '🌿', color: '#40a050' },
-  krieger: { icon: '⚔️', color: '#c09030' },
   magier:  { icon: '🔮', color: '#6060c0' },
-  elfe:    { icon: '✨', color: '#90c060' },
-  daemon:  { icon: '💀', color: '#804090' },
-  wasser:  { icon: '🌊', color: '#3080b0' },
+  krieger: { icon: '⚔️', color: '#c09030' },
 };
 
 export default function StarterScreen() {
@@ -47,7 +40,7 @@ export default function StarterScreen() {
         <p className={styles.subtitle}>{t('starter.subtitle')}</p>
       </div>
 
-      <div id="starter-race-grid">
+      <div className={styles.raceGrid}>
         {Object.entries(RACE_INFO).map(([race, ri]) => (
           <div
             key={race}
@@ -62,7 +55,7 @@ export default function StarterScreen() {
         ))}
       </div>
 
-      <div id="starter-preview">
+      <div className={styles.preview}>
         <p id="starter-preview-name">
           {info ? `${info.icon} ${t(`cards.race_${selected!}`)}${t('starter.deck_suffix')}` : ''}
         </p>
