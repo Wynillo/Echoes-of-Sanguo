@@ -1,30 +1,55 @@
 import { test, expect, Page } from '@playwright/test';
 
-// Clicking btn-start directly shows the game screen (opponent select is
-// only reachable from the post-game result modal).
-async function startGame(page: Page) {
+// Dismiss the press-start screen by pressing a key, then wait for title screen.
+async function passPressStart(page: Page) {
   await page.goto('/');
+  await page.keyboard.press('Enter');
+}
+
+// Navigate through press-start → title → game.
+async function startGame(page: Page) {
+  await passPressStart(page);
   await page.click('#btn-start');
   await page.locator('#game-screen').waitFor({ state: 'visible', timeout: 8_000 });
 }
+
+// ── Press Start Screen ─────────────────────────────────────
+
+test.describe('Press Start Screen', () => {
+  test('loads and shows press-any-key text', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByText('PRESS ANY KEY')).toBeVisible();
+  });
+
+  test('navigates to title screen on keypress', async ({ page }) => {
+    await passPressStart(page);
+    await expect(page.locator('#title-screen')).toBeVisible({ timeout: 4_000 });
+  });
+
+  test('navigates to title screen on click', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('body').click();
+    await expect(page.locator('#title-screen')).toBeVisible({ timeout: 4_000 });
+  });
+});
 
 // ── Title Screen ──────────────────────────────────────────
 
 test.describe('Title Screen', () => {
   test('loads and shows main elements', async ({ page }) => {
-    await page.goto('/');
+    await passPressStart(page);
     await expect(page.locator('#title-screen')).toBeVisible();
-    await expect(page.locator('.game-title')).toContainText('AETHERIAL');
+    await expect(page.locator('.game-title')).toContainText('ECHOES OF');
     await expect(page.locator('#btn-start')).toBeVisible();
   });
 
   test('coin display is present', async ({ page }) => {
-    await page.goto('/');
+    await passPressStart(page);
     await expect(page.locator('#title-coin-display')).toBeVisible();
   });
 
   test('navigation buttons are present', async ({ page }) => {
-    await page.goto('/');
+    await passPressStart(page);
     await expect(page.locator('#btn-shop')).toBeVisible();
     await expect(page.locator('#btn-collection')).toBeVisible();
     await expect(page.locator('#btn-deckbuilder')).toBeVisible();
