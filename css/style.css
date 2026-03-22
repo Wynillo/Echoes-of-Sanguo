@@ -516,7 +516,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .big-card {
   width: var(--card-w-big);
   height: var(--card-h-big);
-  border-radius: 8px;
+  border-radius: 0;
   flex-shrink: 0;
 }
 
@@ -528,14 +528,14 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   z-index: 500;
   pointer-events: none;          /* nie den Spielfluss blockieren */
   width: 280px;
-  background: linear-gradient(160deg, #111830 0%, #0a1020 100%);
-  border: 1px solid var(--border-glow);
-  border-radius: 10px;
+  background: #111830;
+  border: 2px solid; border-color: #4068c8 #182860 #182860 #4068c8;
+  border-radius: 0;
   padding: 14px;
-  box-shadow: 0 6px 28px rgba(0,0,0,0.85), 0 0 12px rgba(68,102,204,0.25);
+  box-shadow: none;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.12s ease, transform 0.12s ease;
+  transition: none;
 }
 #card-hover-preview.visible {
   opacity: 1;
