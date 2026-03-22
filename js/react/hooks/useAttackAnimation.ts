@@ -70,15 +70,15 @@ export function playAttackAnim(
       },
     });
 
-    tl.to(clone, { duration: 0.12, ease: 'power2.out', x: -dx * 0.14, y: -dy * 0.14, scale: 1.18, boxShadow: '0 0 22px rgba(255,200,60,0.9)', onStart() { clone.style.filter = 'brightness(1.5)'; } });
-    tl.to(clone, { duration: 0.16, ease: 'power2.in',  x: dx, y: dy, scale: 1.06 });
+    tl.to(clone, { duration: 0.12, ease: 'steps(6)', x: -dx * 0.14, y: -dy * 0.14, scale: 1.18, outline: '2px solid rgba(255,200,60,0.9)', onStart() { clone.style.opacity = '0.5'; } });
+    tl.to(clone, { duration: 0.16, ease: 'steps(6)',  x: dx, y: dy, scale: 1.06 });
     tl.call(() => {
-      clone.style.filter = 'brightness(2)';
+      clone.style.opacity = '1';
       spawnBurst(impX, impY);
       if (defCard) defCard.classList.add('atk-hit');
       if (defSlot) defSlot.classList.add('atk-impact');
     });
-    tl.to(clone, { duration: 0.08, ease: 'power1.out', x: dx - dx * 0.08, y: dy - dy * 0.08 });
-    tl.to(clone, { duration: 0.22, ease: 'power1.in',  x: 0, y: 0, scale: 1, opacity: 0, filter: 'brightness(1)', boxShadow: 'none' });
+    tl.to(clone, { duration: 0.08, ease: 'steps(6)', x: dx - dx * 0.08, y: dy - dy * 0.08 });
+    tl.to(clone, { duration: 0.22, ease: 'steps(6)',  x: 0, y: 0, scale: 1, opacity: 0, outline: 'none' });
   });
 }

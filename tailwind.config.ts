@@ -4,6 +4,21 @@ export default {
   content: ['./index.html', './js/**/*.{ts,tsx,js}'],
   theme: {
     extend: {
+      fontFamily: {
+        pixel: ['"Silkscreen"', 'monospace'],
+        title: ['"Press Start 2P"', 'monospace'],
+      },
+      borderRadius: {
+        DEFAULT: '0',
+        none: '0',
+        sm: '0',
+        md: '0',
+        lg: '0',
+        xl: '0',
+        '2xl': '0',
+        '3xl': '0',
+        full: '0',
+      },
       colors: {
         bg:           'var(--bg)',
         bg2:          'var(--bg2)',

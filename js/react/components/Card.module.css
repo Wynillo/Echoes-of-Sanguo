@@ -4,7 +4,7 @@
 .cardHeader {
   display: flex; justify-content: space-between; align-items: center;
   padding: 2px 4px;
-  background: rgba(0,0,0,0.55);
+  background: #000000;
   min-height: 18px;
   flex-shrink: 0;
 }
@@ -17,11 +17,11 @@
 
 .attrOrb {
   width: 14px; height: 14px;
-  border-radius: 50%;
+  border-radius: 0;
   display: flex; align-items: center; justify-content: center;
   font-size: 9px; color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 0 4px rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.4);
   line-height: 1;
 }
 
@@ -44,7 +44,7 @@
 .raceBadge {
   position: absolute; top: 2px; left: 2px;
   font-size: 7px; font-weight: bold;
-  padding: 1px 3px; border-radius: 2px;
+  padding: 1px 3px; border-radius: 0;
   color: rgba(255,255,255,0.9);
   letter-spacing: 0.3px; line-height: 1.2;
   z-index: 1;
@@ -68,8 +68,8 @@
   gap: 1px;
   flex-shrink: 0;
   max-height: 36px; overflow: hidden;
-  background: rgba(0,0,0,0.35);
-  border-top: 1px solid rgba(255,255,255,0.06);
+  background: #080808;
+  border-top: 1px solid #303030;
 }
 
 .typeSubtype {
@@ -91,7 +91,7 @@
 .cardStats {
   display: flex; justify-content: space-between; align-items: center;
   padding: 2px 5px 3px;
-  background: rgba(0,0,0,0.82);
+  background: #000000;
   flex-shrink: 0;
   min-height: 17px;
   gap: 4px;
@@ -114,12 +114,12 @@
 :global(.trap-card)   .typeSubtype { color: #ff6688; }
 
 /* ── Attribute tints on orb ──────────────────────────────────────── */
-:global(.attr-fire)  .attrOrb { box-shadow: 0 0 5px rgba(192,48,10,0.8); }
-:global(.attr-water) .attrOrb { box-shadow: 0 0 5px rgba(26,106,170,0.8); }
-:global(.attr-earth) .attrOrb { box-shadow: 0 0 5px rgba(106,112,48,0.8); }
-:global(.attr-wind)  .attrOrb { box-shadow: 0 0 5px rgba(74,96,128,0.8); }
-:global(.attr-light) .attrOrb { box-shadow: 0 0 5px rgba(192,144,0,0.8); }
-:global(.attr-dark)  .attrOrb { box-shadow: 0 0 5px rgba(112,32,160,0.8); }
+:global(.attr-fire)  .attrOrb { box-shadow: none; border: 1px solid #c0300a; }
+:global(.attr-water) .attrOrb { box-shadow: none; border: 1px solid #1a6aaa; }
+:global(.attr-earth) .attrOrb { box-shadow: none; border: 1px solid #6a7030; }
+:global(.attr-wind)  .attrOrb { box-shadow: none; border: 1px solid #4a6080; }
+:global(.attr-light) .attrOrb { box-shadow: none; border: 1px solid #c09000; }
+:global(.attr-dark)  .attrOrb { box-shadow: none; border: 1px solid #7020a0; }
 
 /* ── Opponent-side overrides (smaller cards: 68×94px) ────────────── */
 :global(.opponent-side) .nameShort    { font-size: 7px; max-width: 40px; }
@@ -140,11 +140,11 @@
 :global(.small-card) .cardBody   { display: none; }
 :global(.small-card) .cardStats  {
   gap: 0; padding: 0;
-  border-top: 1px solid rgba(255,255,255,0.15);
+  border-top: 1px solid #303030;
 }
 :global(.small-card) .atkVal {
   flex: 1; text-align: center; padding: 3px 0; font-size: 9px;
-  border-right: 1px solid rgba(255,255,255,0.15);
+  border-right: 1px solid #303030;
 }
 :global(.small-card) .defVal {
   flex: 1; text-align: center; padding: 3px 0; font-size: 9px;

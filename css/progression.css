@@ -9,9 +9,10 @@
   font-size: 1.3rem;
   font-weight: bold;
   color: #f0d080;
-  text-shadow: 0 0 12px #f0d08080;
+  text-shadow: 1px 1px 0 #000;
   margin: 10px 0;
-  animation: coinsPop 0.5s ease-out;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .result-coins::before {
@@ -22,13 +23,15 @@
 
 /* ── "Gegner wählen" Button im Ergebnis-Screen ──────────── */
 #btn-choose-opponent {
-  background: transparent;
+  background: #000000;
   border-color: #4060a0;
   color: #8090c0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 #btn-choose-opponent:hover {
-  background: #4060a040;
+  background: #1a2a4a;
   color: #b0c0e0;
 }
 

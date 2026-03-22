@@ -1,7 +1,7 @@
 .screen {
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse at center, #0a1228 0%, #050a14 100%);
+  background: #080c18;
   z-index: 200;
   display: flex;
   flex-direction: column;
@@ -26,7 +26,7 @@
   font-size: clamp(1.4rem, 4vw, 2.2rem);
   letter-spacing: 3px;
   color: #d0e0ff;
-  text-shadow: 0 0 20px #4060c080;
+  text-shadow: 2px 2px 0 #000;
   margin: 0 0 6px;
 }
 
@@ -39,11 +39,10 @@
 .raceCard {
   background: #111828;
   border: 2px solid #334;
-  border-radius: 10px;
+  border-radius: 0;
   padding: 14px 10px;
   cursor: pointer;
   text-align: center;
-  transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
 }
@@ -54,7 +53,6 @@
   inset: 0;
   background: var(--race-color, #4060c0);
   opacity: 0;
-  transition: opacity 0.2s;
 }
 
 .raceCard:hover::before {
@@ -63,13 +61,11 @@
 
 .raceCard:hover {
   border-color: var(--race-color, #4060c0);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px var(--race-color, #4060c0)44;
 }
 
 .raceCard.selected {
   border-color: var(--race-color, #4060c0);
-  box-shadow: 0 0 16px var(--race-color, #4060c0)88;
+  border-width: 3px;
 }
 
 .raceIcon {

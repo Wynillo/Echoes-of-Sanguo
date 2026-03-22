@@ -1,7 +1,7 @@
 .screen {
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse at center, #0a1228 0%, #050a14 100%);
+  background: #080c18;
   z-index: 200;
   display: flex;
   flex-direction: column;
@@ -25,6 +25,7 @@
   font-size: clamp(1.3rem, 3vw, 2rem);
   letter-spacing: 3px;
   color: #c8a84b;
+  text-shadow: 2px 2px 0 #000;
   margin: 0;
 }
 
@@ -53,14 +54,13 @@
 .packTile {
   background: #111828;
   border: 2px solid #334;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 16px 12px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  transition: all 0.2s;
   position: relative;
   overflow: hidden;
 }
@@ -71,15 +71,12 @@
   inset: 0;
   background: var(--pack-color, #4060c0);
   opacity: 0.06;
-  transition: opacity 0.2s;
 }
 
 .packTile:hover::before { opacity: 0.12; }
 
 .packTile:hover {
   border-color: var(--pack-color, #4060c0);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px var(--pack-color, #4060c0)44;
 }
 
 .packDisabled {
@@ -99,27 +96,27 @@
   background: #0d1520;
   border: 1px solid #334;
   color: #c0d0e0;
-  border-radius: 4px;
+  border-radius: 0;
   padding: 4px 6px;
   font-size: 0.8rem;
   cursor: pointer;
 }
 
 .buyBtn {
-  background: linear-gradient(135deg, #1a3060, #0d1830);
-  border: 1px solid var(--pack-color, #4060c0);
+  background: #0d1830;
+  border: 2px solid;
+  border-color: #6080d0 #182860 #182860 #6080d0;
   color: var(--pack-color, #90b0e0);
   padding: 7px 16px;
-  border-radius: 6px;
+  border-radius: 0;
   font-size: 0.85rem;
   cursor: pointer;
   position: relative;
-  transition: all 0.15s;
   width: 100%;
 }
 
 .buyBtn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #204080, #102040);
+  background: #102040;
   color: #d0e8ff;
 }
 
