@@ -33,6 +33,3 @@ export { validateAcArchive } from './ac-validator.js';
 
 // Loader
 export { loadAcFile, revokeAcImages } from './ac-loader.js';
-
-// Builder
-export { cardDataToAcCard, cardDataToAcDef, buildAcArchive, buildAcBuffer } from './ac-builder.js';
