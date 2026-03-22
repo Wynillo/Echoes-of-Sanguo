@@ -1,6 +1,6 @@
-# ✦ Aetherial Clash
+# Aetherial Clash
 
-Ein browser-basiertes Sammelkartenspiel im Stil von **Yu-Gi-Oh! Forbidden Memories** – komplett mit Vanilla JavaScript, ohne Frameworks oder externe Abhängigkeiten.
+Ein browser-basiertes Sammelkartenspiel im Stil von **Yu-Gi-Oh! Forbidden Memories** – gebaut mit React, TypeScript und einem eigenen binären Kartenformat.
 
 ---
 
@@ -36,7 +36,7 @@ Jede Rasse hat einen eigenen Spielstil und Stat-Bias:
 | Dämon | 💀 | Hoher Schaden, riskante Effekte |
 | Wasser | 🌊 | Bounce, Kontrolle, Fallen-Synergie |
 
-### 722 Karten
+### 722+ Karten
 | Typ | Anzahl |
 |---|---|
 | Normale Monster | ~390 |
@@ -48,14 +48,23 @@ Jede Rasse hat einen eigenen Spielstil und Stat-Bias:
 
 **5 Seltenheitsstufen:** Common · Uncommon · Rare · Super Rare · Ultra Rare
 
-### Effekt-Trigger
+### Effekt-System
+Datengetriebenes Effekt-System mit folgenden Triggern:
 - `onSummon` – Effekt bei Beschwörung
 - `onDestroyByBattle` – Effekt bei Zerstörung im Kampf
 - `onDestroyByOpponent` – Effekt bei Zerstörung durch den Gegner
 - `passive` – Dauereffekt (`piercing`, `cannotBeTargeted`)
 
+Effekte umfassen: Direktschaden, LP-Heilung, Karten ziehen, Stat-Buffs/-Debuffs, Bounce und durchbohrenden Schaden.
+
 ### Fusionssystem
 Zwei Monster in der Hand können direkt fusioniert werden. Über 30 Rezepte ergeben mächtige Fusionsmonster (Level 5–9, bis Ultra Rare).
+
+### Internationalisierung
+Vollständig übersetzt in **Deutsch** und **Englisch** via i18next.
+
+### Mobile App
+Android-Unterstützung über **Capacitor** – das Webspiel läuft nativ auf Android-Geräten.
 
 ---
 
@@ -63,7 +72,7 @@ Zwei Monster in der Hand können direkt fusioniert werden. Über 30 Rezepte erge
 
 ### Progression Loop
 ```
-Erststart → Starterdeck wählen
+Erststart → Starterdeck wählen (10 Rassen zur Wahl)
   → Gegner herausfordern → Duell gewinnen → Äther-Münzen verdienen
   → Shop → Booster-Packs kaufen → Neue Karten erhalten
   → Sammlung aufbauen → stärkere Gegner freischalten
@@ -102,34 +111,92 @@ Erststart → Starterdeck wählen
   → Erstes Mal: [Starterdeck-Auswahl]  (einmalig, 10 Rassen zur Wahl)
   → "Duell starten":   [Gegnerauswahl]  → [Spielfeld]  → [Duellergebnis]
   → "Shop":            [Shop]  → [Pack öffnen]
-  → "Sammlung":        [Sammlungs-Binder]  (722 Karten, Silhouette für fehlende)
+  → "Sammlung":        [Sammlungs-Binder]  (722+ Karten, Silhouette für fehlende)
   → "Deckbuilder":     [Deckbauer]  (nur eigene Karten, 40-Karten-Deck)
+  → "Speicherpunkt":   [Speichern/Laden]
 ```
+
+---
+
+## Tech Stack
+
+| Technologie | Verwendung |
+|---|---|
+| **React 19** | UI-Framework mit Context-basiertem State Management |
+| **TypeScript** | Typsicherheit für Game Engine & UI |
+| **Vite** | Build-Tool und Dev-Server |
+| **Tailwind CSS 4** | Styling (Pixel-Font-Theme, Dark-Fantasy-Design) |
+| **GSAP** | Animationen (Angriffe, Karten-Effekte) |
+| **i18next** | Internationalisierung (DE/EN) |
+| **Capacitor** | Android-App-Bridge |
+| **Vitest** | Unit- und Integrationstests (jsdom) |
+| **Playwright** | End-to-End-Tests |
+
+**Kein Backend** – alle Daten werden clientseitig via `localStorage` gespeichert.
 
 ---
 
 ## Dateistruktur
 
 ```
-Game2/
-├── index.html              – Haupt-HTML, alle Screen-Divs
+AETHERIAL-CLASH/
+├── index.html                  – Einstiegs-HTML (React Root + CRT-Overlay)
+├── package.json                – Abhängigkeiten & Scripts
+├── vite.config.js              – Vite Build-Konfiguration
+├── tailwind.config.ts          – Tailwind-Theme (Pixel-Fonts, Dark-Fantasy)
+├── capacitor.config.ts         – Capacitor Android-Konfiguration
 ├── css/
-│   ├── style.css           – Haupt-Stylesheet (Dark-Fantasy-Design)
-│   └── progression.css     – Progression-Screens (Shop, Sammlung, Gegner, ...)
-└── js/
-    ├── types.ts            – Gemeinsame TypeScript-Typen
-    ├── cards.js            – Basisdatenbank (50 Karten), Konstanten, Gegner-Configs
-    ├── cards-data.js       – Erweiterte Datenbank (672 neue Karten, STARTER_DECKS)
-    ├── progression.ts      – localStorage-Manager (Münzen, Sammlung, Gegner-Unlock)
-    ├── engine.ts           – GameEngine: Spiellogik, KI, Kampf, Fusion, Effekte
-    ├── screens.js          – Screen-Controller (Gegnerauswahl, Starter, Sammlung)
-    ├── shop.js             – Booster-Pack-Logik + Shop-UI
-    ├── ui-state.js         – Globaler Selektions-State, getGame()
-    ├── ui-render.js        – Rendering (renderAll, buildFieldCard, …)
-    ├── ui-events.js        – Click-Handler, Action-Menü, Deckbuilder
-    ├── ui-animations.js    – Hover-Effekte, Angriffs-Animationen
-    └── ui.js               – DOMContentLoaded-Einstieg, Keyboard-Shortcuts
+│   ├── style.css               – Haupt-Stylesheet
+│   ├── animations.css          – Karten- & Kampfanimationen
+│   └── progression.css         – Shop/Sammlung-Screens
+├── js/
+│   ├── main.js                 – Einstiegspunkt (lädt base.ac, startet React)
+│   ├── types.ts                – Kern-Typdefinitionen (Enums, Interfaces)
+│   ├── cards.ts                – Kartendatenbank-Store & Lookup-Funktionen
+│   ├── cards-data.ts           – Erweiterte Kartendefinitionen
+│   ├── engine.ts               – Game Engine (Spiellogik, KI, Kampf, Fusion, Effekte)
+│   ├── effect-registry.ts      – Datengetriebener Effekt-Executor
+│   ├── progression.ts          – localStorage-Manager (Münzen, Sammlung, Deck)
+│   ├── audio.ts                – SFX/Musik-Manager
+│   ├── i18n.ts                 – i18next-Setup
+│   ├── mod-api.ts              – Modding-API (window.AetherialClashMod)
+│   ├── ac-format/              – Eigenes binäres Kartenformat (.ac)
+│   │   ├── ac-builder.ts       – Serialisierer: Kartendaten → Binär
+│   │   ├── ac-loader.ts        – Deserialisierer: Binär → Spielobjekte
+│   │   ├── ac-validator.ts     – Validierungslogik
+│   │   ├── effect-serializer.ts – Effekt-Binär-Codec
+│   │   └── generate-base-ac.ts – CLI: base.ac aus cards-data.ts generieren
+│   └── react/
+│       ├── App.tsx             – Root-Komponente (Provider-Tree + Router)
+│       ├── contexts/           – React Contexts (Game, Screen, Progression, Modal, Selection)
+│       ├── screens/            – Screen-Komponenten (Title, Starter, Opponent, Game, Shop, PackOpening, Collection, Deckbuilder, SavePoint)
+│       ├── components/         – Wiederverwendbare UI-Komponenten (Card, HandCard, FieldCard, HoverPreview)
+│       ├── modals/             – Modal-Dialoge (CardAction, CardDetail, CardList, GraveSelect, TrapPrompt, Options, Result)
+│       ├── hooks/              – Custom Hooks (useAnimatedNumber, useAttackAnimation, useAudio, useKeyboardShortcuts)
+│       └── utils/
+│           └── pack-logic.ts   – Booster-Pack-Generierung
+├── public/
+│   ├── base.ac                 – Kompilierte Kartendatenbank (Binärformat)
+│   └── audio/                  – Sound-Effekte
+├── locales/
+│   ├── de.json                 – Deutsche Übersetzungen
+│   └── en.json                 – Englische Übersetzungen
+├── tests/                      – Unit-/Integrationstests
+├── tests-e2e/                  – End-to-End-Tests (Playwright)
+└── android/                    – Capacitor Android-Projekt
 ```
+
+---
+
+## Eigenes Binärformat (.ac)
+
+Kartendaten werden in einem eigenen Binärformat (`base.ac`) gespeichert und beim Start geladen:
+
+- **ac-builder.ts** – Kodiert TypeScript-Objekte zu Binärdaten
+- **ac-loader.ts** – Dekodiert Binärdaten zu Laufzeitobjekten (CARD_DB, FUSION_RECIPES, etc.)
+- **effect-serializer.ts** – Effekt-Bäume als kompakter Binär-Codec
+
+Generierung via `npm run generate:ac` aus `js/cards-data.ts`.
 
 ---
 
@@ -143,9 +210,12 @@ Alle Fortschrittsdaten werden in `localStorage` gespeichert (Präfix `ac_`):
 | `ac_starter_chosen` | Starterauswahl abgeschlossen |
 | `ac_starter_race` | Gewählte Starterrasse |
 | `ac_collection` | Kartensammlung `[{id, count}, ...]` |
-| `ac_deck` | Aktuelles Deck `["M001", "M001", ...]` |
+| `ac_deck` | Aktuelles Deck (40 Karten) |
 | `ac_aether_coins` | Aktuelle Münzen |
 | `ac_opponents` | Gegner-Status `{1: {unlocked, wins, losses}, ...}` |
+| `ac_settings` | Benutzereinstellungen |
+| `ac_seen_cards` | Gesehene Karten |
+| `ac_save_version` | Migrations-Version |
 
 ---
 
@@ -160,21 +230,19 @@ Die KI spielt strategisch nach fester Priorität:
 
 ---
 
-## Technologie
-
-- **TypeScript** (kompiliert via Vite) + Vanilla JS für Kartendaten
-- **Vite** als Build-Tool und Dev-Server
-- **Vitest** als Test-Framework (jsdom-Umgebung)
-- **Kein Backend** – alles clientseitig via `localStorage`
-- Läuft in jedem modernen Browser
+## Entwicklung
 
 ```bash
-# Voraussetzungen: Node.js ≥ 18
+# Voraussetzungen: Node.js >= 18
 
-npm install          # Abhängigkeiten installieren
+npm install              # Abhängigkeiten installieren
 
-npm run dev          # Dev-Server starten (http://localhost:5173)
-npm run build        # Produktions-Build → dist/
-npm test             # Tests einmalig ausführen
-npm run test:watch   # Tests im Watch-Modus
+npm run dev              # Dev-Server starten (http://localhost:5173)
+npm run build            # Produktions-Build → dist/
+npm run generate:ac      # base.ac aus Kartendaten generieren
+
+npm test                 # Tests einmalig ausführen
+npm run test:watch       # Tests im Watch-Modus
+npm run test:coverage    # Test-Coverage-Report
+npm run test:e2e         # End-to-End-Tests (Playwright)
 ```
