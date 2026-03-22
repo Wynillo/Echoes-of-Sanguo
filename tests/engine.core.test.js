@@ -51,9 +51,12 @@ const CARD = {
 describe('summonMonster', () => {
   it('removes card from hand and places it on field', () => {
     const { engine } = makeEngine();
+    // Pick a card with no onSummon effect so the hand count stays predictable
+    const idx = engine.state.player.hand.findIndex(c => !c.effect || c.effect.trigger !== 'onSummon');
+    const handIdx = idx >= 0 ? idx : 0;
     const handBefore = engine.state.player.hand.length;
-    const card = engine.state.player.hand[0];
-    engine.summonMonster('player', 0, 0);
+    const card = engine.state.player.hand[handIdx];
+    engine.summonMonster('player', handIdx, 0);
     expect(engine.state.player.hand.length).toBe(handBefore - 1);
     expect(engine.state.player.field.monsters[0]).not.toBeNull();
     expect(engine.state.player.field.monsters[0].card.id).toBe(card.id);
