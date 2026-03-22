@@ -1,4 +1,4 @@
-# Aetherial Clash
+# Echoes of Sanguo
 
 Ein browser-basiertes Sammelkartenspiel im Stil von **Yu-Gi-Oh! Forbidden Memories** – gebaut mit React, TypeScript und einem eigenen binären Kartenformat.
 
@@ -6,7 +6,7 @@ Ein browser-basiertes Sammelkartenspiel im Stil von **Yu-Gi-Oh! Forbidden Memori
 
 ## Spielprinzip
 
-Aetherial Clash ist ein 1v1 Duellkartenspiel. Jeder Spieler startet mit **8000 Lebenspunkten**. Wer zuerst auf 0 sinkt, verliert.
+Echoes of Sanguo ist ein 1v1 Duellkartenspiel. Jeder Spieler startet mit **8000 Lebenspunkten**. Wer zuerst auf 0 sinkt, verliert.
 
 **Kernregeln (Forbidden Memories-Stil):**
 - Keine Tributbeschwörung – alle Monster sind sofort spielbar
@@ -139,7 +139,7 @@ Erststart → Starterdeck wählen (10 Rassen zur Wahl)
 ## Dateistruktur
 
 ```
-AETHERIAL-CLASH/
+ECHOES-OF-SANGUO/
 ├── index.html                  – Einstiegs-HTML (React Root + CRT-Overlay)
 ├── package.json                – Abhängigkeiten & Scripts
 ├── vite.config.js              – Vite Build-Konfiguration
@@ -159,7 +159,7 @@ AETHERIAL-CLASH/
 │   ├── progression.ts          – localStorage-Manager (Münzen, Sammlung, Deck)
 │   ├── audio.ts                – SFX/Musik-Manager
 │   ├── i18n.ts                 – i18next-Setup
-│   ├── mod-api.ts              – Modding-API (window.AetherialClashMod)
+│   ├── mod-api.ts              – Modding-API (window.EchoesOfSanguoMod)
 │   ├── ac-format/              – Eigenes binäres Kartenformat (.ac)
 │   │   ├── ac-builder.ts       – Serialisierer: Kartendaten → Binär
 │   │   ├── ac-loader.ts        – Deserialisierer: Binär → Spielobjekte

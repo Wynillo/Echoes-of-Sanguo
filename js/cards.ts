@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH - Kartendatenbank
+// ECHOES OF SANGUO - Kartendatenbank
 // Runtime data store — populated at startup by loading base.ac
 // ============================================================
 import type { CardData, FusionRecipe, OpponentConfig } from './types.js';

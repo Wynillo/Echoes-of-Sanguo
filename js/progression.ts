@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH - Progression System
+// ECHOES OF SANGUO - Progression System
 // Verwaltet: Münzen, Sammlung, Deck, Gegner-Unlock
 // ============================================================
 
@@ -171,7 +171,7 @@ export const Progression = (() => {
   function saveDeck(deckIds: string[]): void {
     _save(KEYS.deck, deckIds);
     // Legacy-Key synchron halten für Abwärtskompatibilität
-    localStorage.setItem('aetherialClash_deck', JSON.stringify(deckIds));
+    localStorage.setItem('echoesOfSanguo_deck', JSON.stringify(deckIds));
   }
 
   // ── Gegner ───────────────────────────────────────────────

@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.wynillo.aetherialclash"
+    namespace = "com.wynillo.echoesofsanguo"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.wynillo.aetherialclash"
+        applicationId "com.wynillo.echoesofsanguo"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

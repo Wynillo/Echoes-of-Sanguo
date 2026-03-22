@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH — AC File Loader
+// ECHOES OF SANGUO — AC File Loader
 // Loads .ac (ZIP) files and populates the card database
 // ============================================================
 

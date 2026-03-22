@@ -10,11 +10,11 @@
     "cards": "Cards"
   },
   "title": {
-    "subtitle": "The Card Duel of Elements",
-    "new_game": "⚔ New Game",
-    "load_game": "📂 Load Game",
-    "options": "⚙ Options",
-    "quit": "✕ Quit Game",
+    "subtitle": "Wolong's Awakening",
+    "new_game": "New Game",
+    "load_game": "Load Game",
+    "options": "Options",
+    "quit": "Quit Game",
     "confirm_new_game": "Start new game?\nYour progress is preserved until the next save point."
   },
   "starter": {

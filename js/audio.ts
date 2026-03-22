@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH – Audio Manager
+// ECHOES OF SANGUO – Audio Manager
 // Singleton-Modul für Musik und Sound-Effekte (Web Audio API)
 // ============================================================
 

@@ -1,6 +1,6 @@
 // ============================================================
 // AETHERIAL CLASH - Modding API
-// Exposes moddable data on window.AetherialClashMod so that
+// Exposes moddable data on window.EchoesOfSanguoMod so that
 // external mod scripts can add cards, opponents, and effects
 // without touching internal ES module imports.
 // ============================================================
@@ -9,7 +9,7 @@ import { EFFECT_REGISTRY, registerEffect } from './effect-registry.js';
 
 declare global {
   interface Window {
-    AetherialClashMod: typeof modApi;
+    EchoesOfSanguoMod: typeof modApi;
   }
 }
 
@@ -28,4 +28,4 @@ const modApi = {
   registerEffect,
 };
 
-window.AetherialClashMod = modApi;
+window.EchoesOfSanguoMod = modApi;

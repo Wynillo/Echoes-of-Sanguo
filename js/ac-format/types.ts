@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH — .ac File Format Types
+// ECHOES OF SANGUO — .ac File Format Types
 // Int-based enums for the portable card exchange format
 // ============================================================
 

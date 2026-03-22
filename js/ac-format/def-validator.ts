@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH — Card Definition Validator
+// ECHOES OF SANGUO — Card Definition Validator
 // Validates AcCardDefinition[] from *cards_description.json
 // ============================================================
 

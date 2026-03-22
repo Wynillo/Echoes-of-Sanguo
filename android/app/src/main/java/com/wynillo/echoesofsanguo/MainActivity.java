@@ -1,4 +1,4 @@
-package com.wynillo.aetherialclash;
+package com.wynillo.echoesofsanguo;
 
 import com.getcapacitor.BridgeActivity;
 

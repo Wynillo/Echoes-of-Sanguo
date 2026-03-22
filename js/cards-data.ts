@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH – Complete Card Database (generator source)
+// ECHOES OF SANGUO – Complete Card Database (generator source)
 // Contains ALL card definitions (base + generated).
 // NOT imported at runtime — only used by generate-base-ac.ts.
 // ============================================================

@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH — Effect Registry & Interpreter
+// ECHOES OF SANGUO — Effect Registry & Interpreter
 // Data-driven effect execution: EffectDescriptor → EffectSignal
 // ============================================================
 

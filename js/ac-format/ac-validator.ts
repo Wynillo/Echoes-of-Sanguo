@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH — AC Archive Validator
+// ECHOES OF SANGUO — AC Archive Validator
 // Validates the structure and content of a .ac (ZIP) file
 // ============================================================
 

@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH — AC Builder
+// ECHOES OF SANGUO — AC Builder
 // Converts CardData → AcCard / AcCardDefinition for export
 // ============================================================
 import type { CardData } from '../types.js';

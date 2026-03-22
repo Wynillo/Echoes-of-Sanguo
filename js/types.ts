@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH — Central Type Definitions
+// ECHOES OF SANGUO — Central Type Definitions
 // Import with:  import type { Owner, GameState, ... } from './types.js';
 // ============================================================
 

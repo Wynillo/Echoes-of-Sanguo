@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH — Enum Converters (enum ↔ int)
+// ECHOES OF SANGUO — Enum Converters (enum ↔ int)
 // Bidirectional mapping between internal enums and AC int enums
 // Since the internal enums now use the same numeric values as the
 // AC format constants, these conversions are identity mappings.

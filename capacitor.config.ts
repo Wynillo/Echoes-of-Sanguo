@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId:   'com.wynillo.aetherialclash',
-  appName: 'Aetherial Clash',
+  appId:   'com.wynillo.echoesofsanguo',
+  appName: 'Echoes of Sanguo',
   webDir:  'dist',
   server: {
     androidScheme: 'https',

@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH — Card JSON Validator
+// ECHOES OF SANGUO — Card JSON Validator
 // Validates AcCard[] from cards.json
 // ============================================================
 

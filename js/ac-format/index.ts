@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH — AC Format Public API
+// ECHOES OF SANGUO — AC Format Public API
 // ============================================================
 
 // Types
