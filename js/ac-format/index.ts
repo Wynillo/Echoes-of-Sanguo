@@ -31,5 +31,8 @@ export { validateAcCards } from './card-validator.js';
 export { validateAcDefinitions } from './def-validator.js';
 export { validateAcArchive } from './ac-validator.js';
 
+// Builder
+export { cardDataToAcCard, cardDataToAcDef } from './ac-builder.js';
+
 // Loader
 export { loadAcFile, revokeAcImages } from './ac-loader.js';

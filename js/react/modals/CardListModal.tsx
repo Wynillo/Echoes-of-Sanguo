@@ -35,7 +35,7 @@ export function CardListModal() {
                   style={{ cursor: 'pointer' }}
                   onClick={() => openModal({ type: 'card-detail', card })}
                 >
-                  <Card card={card} />
+                  <Card card={card} small />
                 </div>
               ))}
             </div>

@@ -10,7 +10,7 @@ import type { AcCard, AcCardDefinition, AcMeta, AcLoadResult } from './types.js'
 import { validateAcArchive } from './ac-validator.js';
 import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
 import { deserializeEffect } from './effect-serializer.js';
-import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from '../cards.js';
+import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../cards.js';
 
 /**
  * Load an .ac file from a URL or ArrayBuffer.
@@ -173,6 +173,12 @@ function applyAcMeta(meta: AcMeta, reverseIdMap: Record<number, string>): void {
     for (const [raceKey, numIds] of Object.entries(meta.starterDecks)) {
       const raceNum = Number(raceKey) as Race;
       STARTER_DECKS[raceNum] = numIds.map(rid);
+    }
+    // Populate fallback IDs from first available starter deck
+    const firstDeck = Object.values(STARTER_DECKS)[0];
+    if (firstDeck) {
+      PLAYER_DECK_IDS.splice(0, PLAYER_DECK_IDS.length, ...firstDeck);
+      OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
     }
   }
 }

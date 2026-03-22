@@ -269,7 +269,7 @@ export default function DeckbuilderScreen() {
                       className={`card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                       ref={el => { if (el) attachHover(el, card, null); }}
                     >
-                      <Card card={card} small={viewMode === 'small'} />
+                      <Card card={card} />
                     </div>
                     {copies > 0 && <div className={styles.copyBadge}>{copies}/3</div>}
                   </div>

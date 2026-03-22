@@ -21,7 +21,7 @@ export function GraveSelectModal({ modal }: Props) {
             style={{ cursor: 'pointer' }}
             onClick={() => { closeModal(); resolve(card); }}
           >
-            <Card card={card} />
+            <Card card={card} small />
           </div>
         ))}
       </div>

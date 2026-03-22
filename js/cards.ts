@@ -13,6 +13,9 @@ export const CARD_DB: Record<string, CardData> = {};
 export const FUSION_RECIPES: FusionRecipe[] = [];
 export const OPPONENT_CONFIGS: OpponentConfig[] = [];
 export const STARTER_DECKS: Record<number, string[]> = {};
+// Fallback deck IDs used by engine when no deck is specified — set from first starter deck
+export const PLAYER_DECK_IDS: string[] = [];
+export const OPPONENT_DECK_IDS: string[] = [];
 
 export function makeDeck(ids: string[]): CardData[] {
   return ids.map(id => {

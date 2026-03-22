@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GameEngine } from '../js/engine.ts';
-import '../js/cards-data.js'; // populates CARD_DB with all card definitions
 import { PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../js/cards.js';
 
 function makeEngine() {

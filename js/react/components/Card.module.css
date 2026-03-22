@@ -38,6 +38,9 @@
   position: relative; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   min-height: 0;
+  margin: 5px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 2px;
 }
 
 /* Race badge — absolute top-left inside art */
@@ -135,6 +138,7 @@
 :global(.opponent-side) .defVal       { font-size: 7px; }
 
 /* ── Small-card layout (art + ATK/DEF only) ─────────────────────── */
+:global(.small-card) .cardArt { max-height: 80px; }
 :global(.small-card) .cardHeader { display: none; }
 :global(.small-card) .cardLevel  { display: none; }
 :global(.small-card) .cardBody   { display: none; }
