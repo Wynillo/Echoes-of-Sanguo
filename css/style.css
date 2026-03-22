@@ -327,33 +327,33 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 /* NEXT PHASE button */
 #btn-next-phase {
   font-family: inherit; font-weight: bold;
-  padding: 10px 6px; border-radius: 8px;
+  padding: 10px 6px; border-radius: 0;
   cursor: pointer; white-space: nowrap;
   font-size: 0.6875rem; letter-spacing: 0.5px;
-  transition: all 0.15s;
+  transition: none;
   flex-shrink: 0;
   text-align: center;
   animation: nextPhasePulse 1.6s ease-in-out infinite;
 }
 #btn-next-phase.phase-main {
-  background: rgba(140,60,0,0.8);
+  background: #8c3c00;
   border: 2px solid rgba(255,140,40,0.8);
   color: #ffcc88;
-  box-shadow: 0 0 12px rgba(255,120,20,0.4);
+  box-shadow: none;
 }
 #btn-next-phase.phase-battle {
-  background: rgba(120,0,0,0.85);
+  background: #780000;
   border: 2px solid rgba(255,60,60,0.9);
   color: #ffaaaa;
-  box-shadow: 0 0 12px rgba(255,40,40,0.5);
+  box-shadow: none;
 }
 #btn-next-phase.phase-end,
 #btn-next-phase.phase-draw,
 #btn-next-phase.phase-standby {
-  background: rgba(60,0,120,0.8);
+  background: #3c0078;
   border: 2px solid rgba(180,80,255,0.8);
   color: #ddaaff;
-  box-shadow: 0 0 12px rgba(160,60,255,0.4);
+  box-shadow: none;
 }
 #btn-next-phase.waiting,
 #btn-next-phase:disabled {
@@ -374,10 +374,10 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .lp-row {
   display: flex; flex-direction: column;
   gap: 2px; padding: 4px 6px;
-  border-radius: 6px;
+  border-radius: 0;
 }
-.opp-lp-row    { background: rgba(80,10,10,0.3); border: 1px solid rgba(150,40,40,0.2); }
-.player-lp-row { background: rgba(10,30,80,0.3); border: 1px solid rgba(40,80,180,0.2); }
+.opp-lp-row    { background: #501010; border: 1px solid #962828; }
+.player-lp-row { background: #0a1e50; border: 1px solid #283cb4; }
 /* Part 1: label row */
 .lp-who   { font-size: 9px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; display: block; margin-bottom: 2px; }
 /* Part 2: bar + numbers row */
@@ -385,9 +385,9 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .lp-bottom .io-bar-bg { flex: 1; }
 .lp-value { font-size: 0.875rem; font-weight: bold; color: var(--gold-light); line-height: 1; white-space: nowrap; }
 .lp-deck  { font-size: 9px; color: var(--text-dim); white-space: nowrap; }
-.io-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
-.opp-lp-bar { background: linear-gradient(90deg, #aa2222, #ff4444) !important; }
-.lp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #2255aa, #44aaff); border-radius: 2px; transition: width 0.5s; }
+.io-bar-bg { width: 100%; height: 6px; background: #181830; border-radius: 0; overflow: hidden; }
+.opp-lp-bar { background: #a82020 !important; }
+.lp-bar { height: 100%; width: 100%; background: #2258a8; border-radius: 0; transition: width 0.3s steps(8); }
 
 /* ── Player hand — 1/4 below viewport ───────────────────── */
 #hand-area {
@@ -431,29 +431,29 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .card {
   width: var(--card-w);
   height: var(--card-h);
-  border-radius: 5px;
+  border-radius: 0;
   display: flex; flex-direction: column;
   overflow: hidden;
   position: relative;
   z-index: 1;
   border: 2px solid rgba(200,180,100,0.4);
   flex-shrink: 0;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: none;
 }
 
 /* Type borders */
 .normal-card { border-color: rgba(200,180,80,0.6); }
 .effect-card  { border-color: rgba(200,120,40,0.8); }
-.fusion-card  { border-color: rgba(160,80,220,0.9); box-shadow: 0 0 6px rgba(160,80,220,0.3); }
+.fusion-card  { border-color: rgba(160,80,220,0.9); box-shadow: none; outline: 2px solid rgba(160,80,220,0.6); }
 .spell-card   { border-color: rgba(40,160,120,0.8); }
 .trap-card    { border-color: rgba(180,40,80,0.8); }
 
 /* Type background tints — subtle color wash layered over attr gradient */
-.normal-card::before { content:''; position:absolute; inset:0; background:rgba(200,180,80,0.06); z-index:0; pointer-events:none; border-radius:inherit; }
-.effect-card::before { content:''; position:absolute; inset:0; background:rgba(160,80,20,0.08);  z-index:0; pointer-events:none; border-radius:inherit; }
-.fusion-card::before { content:''; position:absolute; inset:0; background:rgba(120,40,200,0.09); z-index:0; pointer-events:none; border-radius:inherit; }
-.spell-card::before  { content:''; position:absolute; inset:0; background:rgba(20,140,80,0.08);  z-index:0; pointer-events:none; border-radius:inherit; }
-.trap-card::before   { content:''; position:absolute; inset:0; background:rgba(180,20,60,0.08);  z-index:0; pointer-events:none; border-radius:inherit; }
+.normal-card::before { content:''; position:absolute; inset:0; background:rgba(200,180,80,0.06); z-index:0; pointer-events:none; border-radius:0; }
+.effect-card::before { content:''; position:absolute; inset:0; background:rgba(160,80,20,0.08);  z-index:0; pointer-events:none; border-radius:0; }
+.fusion-card::before { content:''; position:absolute; inset:0; background:rgba(120,40,200,0.09); z-index:0; pointer-events:none; border-radius:0; }
+.spell-card::before  { content:''; position:absolute; inset:0; background:rgba(20,140,80,0.08);  z-index:0; pointer-events:none; border-radius:0; }
+.trap-card::before   { content:''; position:absolute; inset:0; background:rgba(180,20,60,0.08);  z-index:0; pointer-events:none; border-radius:0; }
 
 /* Attribute backgrounds */
 .attr-fire  { background: linear-gradient(160deg, #3a0800 0%, #220500 60%, #0d0200 100%); }
@@ -501,17 +501,16 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .pos-def.selected { transform: rotate(90deg); }
 
 /* Hand cards */
-.hand-card { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
-.hand-card:hover { transform: translateY(-14px) scale(1.08); z-index: 100; box-shadow: 0 12px 30px rgba(0,0,0,0.6); }
-.hand-card.playable:hover { box-shadow: 0 12px 30px rgba(100,160,255,0.4); }
+.hand-card { cursor: pointer; transition: none; }
+.hand-card:hover { transform: translateY(-14px) scale(1.08); z-index: 100; box-shadow: none; outline: 2px solid var(--border-glow); }
+.hand-card.playable:hover { box-shadow: none; outline: 2px solid #6488ff; }
 .hand-card.targetable { border-color: #ffdd44 !important; animation: handGlow 0.5s ease-in-out infinite alternate; }
-.hand-card.fusionable { border-color: rgba(190,110,255,0.9) !important; box-shadow: 0 0 8px rgba(160,80,255,0.4); }
+.hand-card.fusionable { border-color: rgba(190,110,255,0.9) !important; box-shadow: none; outline: 2px solid #be6eff; }
 .hand-card.fusionable::after {
   content: '✨';
   position: absolute; bottom: 2px; left: 3px;
   font-size: 10px; line-height: 1;
   pointer-events: none;
-  filter: drop-shadow(0 0 3px rgba(160,80,255,0.8));
 }
 
 /* Big card for detail view — internal overrides live in Card.module.css */
