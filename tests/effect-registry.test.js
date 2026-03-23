@@ -345,13 +345,13 @@ describe('permDefBonus', () => {
 
 describe('tempDefBonus', () => {
   it('applies temp DEF bonus to defender', () => {
-    const defender = { permDEFBonus: 0 };
+    const defender = { tempDEFBonus: 0 };
     const e = mockEngine();
     executeEffectBlock(
       { trigger: 'onOwnMonsterAttacked', actions: [{ type: 'tempDefBonus', target: 'defender', value: 1500 }] },
       ctx(e, 'player', { defender }),
     );
-    expect(defender.permDEFBonus).toBe(1500);
+    expect(defender.tempDEFBonus).toBe(1500);
   });
 });
 

@@ -17,11 +17,12 @@ export type Screen =
 
 interface ScreenCtx {
   screen: Screen;
+  screenData: Record<string, unknown> | null;
   setScreen: (s: Screen) => void;
-  navigateTo: (s: Screen) => void;
+  navigateTo: (s: Screen, data?: Record<string, unknown>) => void;
 }
 
-const ScreenContext = createContext<ScreenCtx>({ screen: 'press-start', setScreen: () => {}, navigateTo: () => {} });
+const ScreenContext = createContext<ScreenCtx>({ screen: 'press-start', screenData: null, setScreen: () => {}, navigateTo: () => {} });
 
 const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
   title:          'music_title',
@@ -38,13 +39,15 @@ const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
 
 export function ScreenProvider({ children }: { children: React.ReactNode }) {
   const [screen, setScreen] = useState<Screen>('press-start');
+  const [screenData, setScreenData] = useState<Record<string, unknown> | null>(null);
 
-  function navigateTo(s: Screen) {
+  function navigateTo(s: Screen, data?: Record<string, unknown>) {
     const overlay = document.getElementById('screen-transition-overlay');
-    if (!overlay) { setScreen(s); playScreenMusic(s); return; }
+    if (!overlay) { setScreenData(data ?? null); setScreen(s); playScreenMusic(s); return; }
     gsap.to(overlay, {
       opacity: 1, duration: 0.18, ease: 'none',
       onComplete() {
+        setScreenData(data ?? null);
         setScreen(s);
         playScreenMusic(s);
         gsap.to(overlay, { opacity: 0, duration: 0.28, delay: 0.05, ease: 'none' });
@@ -57,7 +60,7 @@ export function ScreenProvider({ children }: { children: React.ReactNode }) {
     if (track) Audio.playMusic(track);
   }
 
-  return <ScreenContext.Provider value={{ screen, setScreen, navigateTo }}>{children}</ScreenContext.Provider>;
+  return <ScreenContext.Provider value={{ screen, screenData, setScreen, navigateTo }}>{children}</ScreenContext.Provider>;
 }
 
 export function useScreen() { return useContext(ScreenContext); }

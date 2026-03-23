@@ -116,6 +116,7 @@ export class FieldCard {
   hasAttacked: boolean;
   summonedThisTurn: boolean;
   tempATKBonus: number;
+  tempDEFBonus: number;
   permATKBonus: number;
   permDEFBonus: number;
   phoenixRevivalUsed: boolean;
@@ -135,6 +136,7 @@ export class FieldCard {
     this.hasAttacked= false;
     this.summonedThisTurn = true; // summoning sickness
     this.tempATKBonus = 0;
+    this.tempDEFBonus = 0;
     this.permATKBonus = 0;
     this.permDEFBonus = 0;
     this.phoenixRevivalUsed = false;
@@ -158,17 +160,17 @@ export class FieldCard {
     return Math.max(0, (this.card.atk ?? 0) + this.tempATKBonus + this.permATKBonus);
   }
   effectiveDEF(): number {
-    return Math.max(0, (this.card.def ?? 0) + this.permDEFBonus);
+    return Math.max(0, (this.card.def ?? 0) + this.tempDEFBonus + this.permDEFBonus);
   }
 }
 
 // ── FieldSpellTrap ─────────────────────────────────────────
 export class FieldSpellTrap {
-  card: any;
+  card: CardData;
   faceDown: boolean;
   used: boolean;
 
-  constructor(card, faceDown=true){
+  constructor(card: CardData, faceDown=true){
     this.card    = card;
     this.faceDown= faceDown;
     this.used    = false;
@@ -599,6 +601,7 @@ export class GameEngine {
         this.addLog(`${attFC.card.name} zerstört! Spieler: -${dmg} LP`);
         this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
         this.dealDamage(atkOwner, dmg);
+        this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
         this._triggerEffect(defFC, defOwner, 'onDestroyByBattle', null);
       }
     } else {
@@ -731,7 +734,7 @@ export class GameEngine {
 
   _resetMonsterFlags(owner: Owner){
     this.state[owner].field.monsters.forEach(fc => {
-      if(fc){ fc.tempATKBonus = 0; fc.hasAttacked = false; fc.summonedThisTurn = false; }
+      if(fc){ fc.tempATKBonus = 0; fc.tempDEFBonus = 0; fc.hasAttacked = false; fc.summonedThisTurn = false; }
     });
   }
 
@@ -888,7 +891,11 @@ export class GameEngine {
         if(card.type !== CardType.Spell) continue;
         let activated = false;
         if(card.spellType === 'normal'){
-          if(shouldActivateNormalSpell(card.id, bh, plr.lp, ai.lp)){
+          const actions = card.effect?.actions ?? [];
+          const dealsDamage = actions.some((a: any) => a.type === 'dealDamage');
+          const heals = actions.some((a: any) => a.type === 'gainLP');
+          const should = dealsDamage ? plr.lp > 800 : heals ? ai.lp < 7000 : true;
+          if(should){
             EchoesOfSanguo.log('SPELL', `Aktiviere ${card.name} (normal)`);
             await this._delay(300); await this.activateSpell('opponent', i); activated = true;
           } else {
@@ -934,8 +941,6 @@ export class GameEngine {
       EchoesOfSanguo.log('TRAP', `Lege ${card.name} verdeckt in Zone ${zone}`);
       await this._delay(300);
       this.setSpellTrap('opponent', i, zone);
-      // index may have shifted after removal; restart from new end
-      i = Math.min(i, ai.hand.length);
     }
   }
 
