@@ -1,28 +1,28 @@
 // ============================================================
-// ECHOES OF SANGUO — AC Archive Validator
-// Validates the structure and content of a .ac (ZIP) file
+// ECHOES OF SANGUO — TCG Archive Validator
+// Validates the structure and content of a .tcg (ZIP) file
 // ============================================================
 
 import type JSZip from 'jszip';
-import type { AcCard, AcCardDefinition, ValidationResult } from './types.js';
-import { validateAcCards } from './card-validator.js';
-import { validateAcDefinitions } from './def-validator.js';
+import type { TcgCard, TcgCardDefinition, ValidationResult } from './types.js';
+import { validateTcgCards } from './card-validator.js';
+import { validateTcgDefinitions } from './def-validator.js';
 
 /** Regex matching valid description file names: cards_description.json or xx_cards_description.json */
 const DESC_FILE_REGEX = /^([a-z]{2}_)?cards_description\.json$/;
 
-export interface AcArchiveContents {
-  cards: AcCard[];
-  definitions: Map<string, AcCardDefinition[]>;   // lang (or '') -> definitions
+export interface TcgArchiveContents {
+  cards: TcgCard[];
+  definitions: Map<string, TcgCardDefinition[]>;   // lang (or '') -> definitions
   imageIds: Set<number>;                           // card ids that have images
   missingImageIds: number[];                       // card ids without images
 }
 
 /**
- * Validate an AC archive (JSZip instance) and extract its contents.
+ * Validate a TCG archive (JSZip instance) and extract its contents.
  * Returns both validation results and parsed contents.
  */
-export async function validateAcArchive(zip: JSZip): Promise<ValidationResult & { contents?: AcArchiveContents }> {
+export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult & { contents?: TcgArchiveContents }> {
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -34,16 +34,16 @@ export async function validateAcArchive(zip: JSZip): Promise<ValidationResult & 
   }
 
   // Parse and validate cards.json
-  let cards: AcCard[] = [];
+  let cards: TcgCard[] = [];
   try {
     const cardsJson = await cardsFile.async('string');
     const cardsData = JSON.parse(cardsJson);
-    const cardsResult = validateAcCards(cardsData);
+    const cardsResult = validateTcgCards(cardsData);
     if (!cardsResult.valid) {
       errors.push(...cardsResult.errors.map(e => `cards.json: ${e}`));
     }
     warnings.push(...cardsResult.warnings);
-    if (cardsResult.valid) cards = cardsData as AcCard[];
+    if (cardsResult.valid) cards = cardsData as TcgCard[];
   } catch (e) {
     errors.push(`cards.json: failed to parse JSON: ${e instanceof Error ? e.message : e}`);
   }
@@ -57,7 +57,7 @@ export async function validateAcArchive(zip: JSZip): Promise<ValidationResult & 
   }
 
   // Parse and validate each description file
-  const definitions = new Map<string, AcCardDefinition[]>();
+  const definitions = new Map<string, TcgCardDefinition[]>();
   for (const descFile of descFiles) {
     const match = descFile.match(DESC_FILE_REGEX);
     const lang = match?.[1]?.replace('_', '') ?? '';
@@ -65,12 +65,12 @@ export async function validateAcArchive(zip: JSZip): Promise<ValidationResult & 
     try {
       const descJson = await zip.file(descFile)!.async('string');
       const descData = JSON.parse(descJson);
-      const descResult = validateAcDefinitions(descData);
+      const descResult = validateTcgDefinitions(descData);
       if (!descResult.valid) {
         errors.push(...descResult.errors.map(e => `${descFile}: ${e}`));
       }
       warnings.push(...descResult.warnings);
-      if (descResult.valid) definitions.set(lang, descData as AcCardDefinition[]);
+      if (descResult.valid) definitions.set(lang, descData as TcgCardDefinition[]);
     } catch (e) {
       errors.push(`${descFile}: failed to parse JSON: ${e instanceof Error ? e.message : e}`);
     }
@@ -124,7 +124,7 @@ export async function validateAcArchive(zip: JSZip): Promise<ValidationResult & 
   }
 
   const valid = errors.length === 0;
-  const contents: AcArchiveContents | undefined = valid
+  const contents: TcgArchiveContents | undefined = valid
     ? { cards, definitions, imageIds, missingImageIds }
     : undefined;
 

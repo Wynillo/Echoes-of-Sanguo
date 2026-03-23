@@ -1,16 +1,16 @@
 // ============================================================
 // ECHOES OF SANGUO — Card JSON Validator
-// Validates AcCard[] from cards.json
+// Validates TcgCard[] from cards.json
 // ============================================================
 
-import type { AcCard, ValidationResult } from './types.js';
-import { AC_TYPES, AC_ATTRIBUTES, AC_RACES, AC_RARITIES, AC_TYPE_SPELL, AC_TYPE_TRAP, AC_TYPE_MONSTER, AC_TYPE_FUSION } from './types.js';
+import type { TcgCard, ValidationResult } from './types.js';
+import { TCG_TYPES, TCG_ATTRIBUTES, TCG_RACES, TCG_RARITIES, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_MONSTER, TCG_TYPE_FUSION } from './types.js';
 import { isValidEffectString } from './effect-serializer.js';
 
-const VALID_TYPES      = new Set(AC_TYPES);
-const VALID_ATTRIBUTES = new Set(AC_ATTRIBUTES);
-const VALID_RACES      = new Set(AC_RACES);
-const VALID_RARITIES   = new Set(AC_RARITIES);
+const VALID_TYPES      = new Set(TCG_TYPES);
+const VALID_ATTRIBUTES = new Set(TCG_ATTRIBUTES);
+const VALID_RACES      = new Set(TCG_RACES);
+const VALID_RARITIES   = new Set(TCG_RARITIES);
 
 function validateSingleCard(card: unknown, index: number): string[] {
   const errors: string[] = [];
@@ -38,8 +38,8 @@ function validateSingleCard(card: unknown, index: number): string[] {
     errors.push(`${prefix}.type: must be one of [${[...VALID_TYPES].join(',')}], got ${c.type}`);
   }
 
-  const isSpellOrTrap = c.type === AC_TYPE_SPELL || c.type === AC_TYPE_TRAP;
-  const isMonsterOrFusion = c.type === AC_TYPE_MONSTER || c.type === AC_TYPE_FUSION;
+  const isSpellOrTrap = c.type === TCG_TYPE_SPELL || c.type === TCG_TYPE_TRAP;
+  const isMonsterOrFusion = c.type === TCG_TYPE_MONSTER || c.type === TCG_TYPE_FUSION;
 
   // atk: optional, required for monsters/fusions, absent for spells/traps
   if (isMonsterOrFusion) {
@@ -93,9 +93,9 @@ function validateSingleCard(card: unknown, index: number): string[] {
 }
 
 /**
- * Validate an array of AcCard objects from cards.json
+ * Validate an array of TcgCard objects from cards.json
  */
-export function validateAcCards(data: unknown): ValidationResult {
+export function validateTcgCards(data: unknown): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
