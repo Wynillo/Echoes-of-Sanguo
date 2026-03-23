@@ -6,5 +6,6 @@
   "flavor": "Unbeugsam wie der Stein selbst.",
   "coinsWin": 300,
   "coinsLoss": 60,
-  "deckIds": [2, 2, 7, 7, 12, 12, 15, 19, 22, 36, 36, 37, 39, 40, 41, 42, 42, 43, 44]
+  "deckIds": [2, 2, 7, 7, 12, 12, 15, 19, 22, 36, 36, 37, 39, 40, 41, 42, 42, 43, 44],
+  "behavior": "defensive"
 }

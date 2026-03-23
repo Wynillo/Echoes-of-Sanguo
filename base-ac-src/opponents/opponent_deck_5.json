@@ -6,5 +6,6 @@
   "flavor": "Sein Feuer kennt keine Gnade.",
   "coinsWin": 250,
   "coinsLoss": 50,
-  "deckIds": [1, 1, 13, 13, 16, 16, 20, 20, 21, 35, 35, 36, 37, 39, 41, 41, 43]
+  "deckIds": [1, 1, 13, 13, 16, 16, 20, 20, 21, 35, 35, 36, 37, 39, 41, 41, 43],
+  "behavior": "aggressive"
 }

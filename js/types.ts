@@ -176,17 +176,39 @@ export interface FusionRecipe {
   result:    string;
 }
 
+// ── AI Behavior ─────────────────────────────────────────────
+
+export type AISummonPriority   = 'highestATK' | 'highestDEF' | 'effectFirst' | 'lowestLevel';
+export type AIPositionStrategy = 'smart' | 'aggressive' | 'defensive';
+export type AIBattleStrategy   = 'smart' | 'aggressive' | 'conservative';
+
+export interface AISpellRule {
+  when: 'always' | 'oppLP>N' | 'selfLP<N';
+  threshold?: number;
+}
+
+export interface AIBehavior {
+  fusionFirst?:             boolean;
+  fusionMinATK?:            number;
+  summonPriority?:          AISummonPriority;
+  positionStrategy?:        AIPositionStrategy;
+  battleStrategy?:          AIBattleStrategy;
+  spellRules?:              Record<string, AISpellRule>;
+  defaultSpellActivation?:  'always' | 'never' | 'smart';
+}
+
 // ── Opponent ─────────────────────────────────────────────────
 
 export interface OpponentConfig {
-  id:        number;
-  name:      string;
-  title:     string;
-  race:      Race;
-  flavor:    string;
-  coinsWin:  number;
-  coinsLoss: number;
-  deckIds:   string[];
+  id:          number;
+  name:        string;
+  title:       string;
+  race:        Race;
+  flavor:      string;
+  coinsWin:    number;
+  coinsLoss:   number;
+  deckIds:     string[];
+  behaviorId?: string;
 }
 
 // ── Game state ───────────────────────────────────────────────
