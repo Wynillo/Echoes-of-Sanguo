@@ -6,7 +6,7 @@
 import {
   Attribute, Race,
   type EffectDescriptor, type EffectContext, type EffectSignal, type CardEffectBlock,
-  type ValueExpr, type StatTarget, type Owner,
+  type ValueExpr, type StatTarget, type Owner, type FieldCard,
 } from './types.js';
 
 // ── Value Resolution ────────────────────────────────────────
@@ -30,12 +30,12 @@ function resolveTarget(target: 'opponent' | 'self', owner: Owner): Owner {
 }
 
 /** Resolve a StatTarget to the actual FieldCard from context */
-function resolveStatTarget(target: StatTarget, ctx: EffectContext): { card: { atk?: number }; tempATKBonus: number; permATKBonus: number; tempDEFBonus: number; permDEFBonus: number } | null {
-  if (target === 'attacker')    return ctx.attacker as any ?? null;
-  if (target === 'defender')    return ctx.defender as any ?? null;
-  if (target === 'summonedFC')  return ctx.summonedFC as any ?? null;
-  if (target === 'ownMonster')  return ctx.targetFC as any ?? null;
-  if (target === 'oppMonster')  return ctx.targetFC as any ?? null;
+function resolveStatTarget(target: StatTarget, ctx: EffectContext): FieldCard | null {
+  if (target === 'attacker')    return ctx.attacker ?? null;
+  if (target === 'defender')    return ctx.defender ?? null;
+  if (target === 'summonedFC')  return ctx.summonedFC ?? null;
+  if (target === 'ownMonster')  return ctx.targetFC ?? null;
+  if (target === 'oppMonster')  return ctx.targetFC ?? null;
   return null;
 }
 
@@ -172,7 +172,7 @@ const IMPL: Record<string, EffectImpl> = {
   },
 
   permAtkBonus(desc: { target: StatTarget; value: number; attrFilter?: Attribute }, ctx) {
-    const fc = resolveStatTarget(desc.target, ctx) as any;
+    const fc = resolveStatTarget(desc.target, ctx);
     if (!fc) return {};
     if (desc.attrFilter && fc.card?.attribute !== desc.attrFilter) return {};
     fc.permATKBonus = (fc.permATKBonus || 0) + desc.value;

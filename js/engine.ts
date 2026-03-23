@@ -21,8 +21,8 @@ export const EchoesOfSanguo = {
   debug: false,
 
   // ── Log-Puffer (immer aktiv, unabhängig von debug-Flag) ──
-  _entries: [],        // { ts, category, msg, data }
-  _sessionStart: null, // ISO-Timestamp des Spielstarts
+  _entries: [] as Array<{ ts: string; category: string; msg: string; dataStr: string }>,
+  _sessionStart: null as string | null, // ISO-Timestamp des Spielstarts
 
   _colors: {
     PHASE:  '#7ecfff',
@@ -34,14 +34,14 @@ export const EchoesOfSanguo = {
     TRAP:   '#ff7eb8',
     GAME:   '#ffffff',
     ERROR:  '#ff4444',
-  },
+  } as Record<string, string>,
 
   // Wird von GameEngine.addLog() aufgerufen, um Spielereignisse zu puffern
-  gameEvent(msg){
+  gameEvent(msg: string){
     this._push('GAME', msg);
   },
 
-  log(category, msg, data: unknown = undefined){
+  log(category: string, msg: string, data: unknown = undefined){
     this._push(category, msg, data);
     if(!this.debug && category !== 'ERROR') return;
     const color  = this._colors[category] || '#aaa';
@@ -54,7 +54,7 @@ export const EchoesOfSanguo = {
     }
   },
 
-  _push(category, msg, data: unknown = undefined){
+  _push(category: string, msg: string, data: unknown = undefined){
     const ts = new Date().toISOString();
     const dataStr = data !== undefined
       ? (typeof data === 'object' ? JSON.stringify(data) : String(data))
@@ -62,7 +62,7 @@ export const EchoesOfSanguo = {
     this._entries.push({ ts, category, msg, dataStr });
   },
 
-  group(label){
+  group(label: string){
     this._push('PHASE', `>>> ${label}`);
     if(!this.debug) return;
     console.group(`%c${label}`, 'color:#ffd700;font-weight:bold;font-family:monospace');
@@ -179,11 +179,10 @@ export class FieldSpellTrap {
 
 // ── GameEngine ─────────────────────────────────────────────
 export class GameEngine {
-  uiCallbacks: UICallbacks;
   state!: GameState; // initialized in initGame() before any gameplay method is called
-  ui: any;
-  _trapResolve: any;
-  _currentOpponentId: any;
+  ui: UICallbacks;
+  _trapResolve: ((result: boolean) => void) | null;
+  _currentOpponentId: number | null;
   _aiBehavior!: Required<AIBehavior>;
 
   constructor(uiCallbacks: UICallbacks){
@@ -235,7 +234,7 @@ export class GameEngine {
   getState(): GameState { return this.state; }
 
   // ───────── Utility ──────────────────────────────────────
-  _shuffle(arr){
+  _shuffle<T>(arr: T[]): T[] {
     for(let i=arr.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
       [arr[i],arr[j]]=[arr[j],arr[i]];
@@ -288,14 +287,14 @@ export class GameEngine {
     return false;
   }
 
-  _endDuel(result){
+  _endDuel(result: 'victory' | 'defeat'){
     const logSuffix = result === 'victory' ? 'sieg' : 'niederlage';
     EchoesOfSanguo.downloadLog(logSuffix);
     // onDuelEnd ermöglicht Progressions-Auswertung in ui.js
     if(typeof this.ui.onDuelEnd === 'function'){
       this.ui.onDuelEnd(result, this._currentOpponentId);
     } else {
-      this.ui.showResult(result);
+      this.ui.showResult?.(result);
     }
   }
 
@@ -315,7 +314,7 @@ export class GameEngine {
   }
 
   // ───────── Summon ────────────────────────────────────────
-  summonMonster(owner, handIndex, zone, position: Position = 'atk', faceDown=false){
+  summonMonster(owner: Owner, handIndex: number, zone: number, position: Position = 'atk', faceDown=false){
     const st = this.state[owner];
     if(zone < 0 || zone > 4 || st.field.monsters[zone]){
       this.addLog('Ungültige Zone!'); return false;
@@ -333,11 +332,11 @@ export class GameEngine {
     return true;
   }
 
-  setMonster(owner, handIndex, zone){
+  setMonster(owner: Owner, handIndex: number, zone: number){
     return this.summonMonster(owner, handIndex, zone, 'def', true);
   }
 
-  specialSummon(owner, card, zone){
+  specialSummon(owner: Owner, card: CardData, zone?: number){
     const st = this.state[owner];
     if(zone === undefined){
       zone = st.field.monsters.findIndex(z => z === null);
@@ -354,7 +353,7 @@ export class GameEngine {
     return true;
   }
 
-  specialSummonFromGrave(owner, card){
+  specialSummonFromGrave(owner: Owner, card: CardData){
     const st = this.state[owner];
     const graveIdx = st.graveyard.findIndex(c => c.id === card.id);
     if(graveIdx === -1){ this.addLog('Karte nicht im Friedhof!'); return false; }
@@ -372,7 +371,7 @@ export class GameEngine {
   }
 
   // ───────── Spell / Trap ──────────────────────────────────
-  setSpellTrap(owner, handIndex, zone){
+  setSpellTrap(owner: Owner, handIndex: number, zone: number){
     const st = this.state[owner];
     if(zone < 0 || zone > 4 || st.field.spellTraps[zone]){
       this.addLog('Ungültige Zauberkarten-Zone!'); return false;
@@ -385,7 +384,7 @@ export class GameEngine {
     return true;
   }
 
-  async activateSpell(owner, handIndex, targetInfo: FieldCard | CardData | null = null){
+  async activateSpell(owner: Owner, handIndex: number, targetInfo: FieldCard | CardData | null = null){
     const st = this.state[owner];
     const card = st.hand[handIndex];
     if(!card || card.type !== CardType.Spell){ this.addLog('Keine Zauberkarte!'); return false; }
@@ -404,7 +403,7 @@ export class GameEngine {
     return true;
   }
 
-  activateSpellFromField(owner, zone, targetInfo: FieldCard | CardData | null = null){
+  activateSpellFromField(owner: Owner, zone: number, targetInfo: FieldCard | CardData | null = null){
     const st = this.state[owner];
     const fst = st.field.spellTraps[zone];
     if(!fst || fst.card.type !== CardType.Spell) return false;
@@ -423,7 +422,7 @@ export class GameEngine {
     return true;
   }
 
-  activateTrapFromField(owner, zone, ...args){
+  activateTrapFromField(owner: Owner, zone: number, ...args: FieldCard[]){
     const st = this.state[owner];
     const fst = st.field.spellTraps[zone];
     if(!fst || fst.card.type !== CardType.Trap || fst.used) return null;
@@ -447,7 +446,7 @@ export class GameEngine {
   }
 
   // ───────── Fusion ────────────────────────────────────────
-  canFuse(owner){
+  canFuse(owner: Owner){
     const hand = this.state[owner].hand;
     for(let i=0;i<hand.length;i++){
       for(let j=i+1;j<hand.length;j++){
@@ -457,7 +456,7 @@ export class GameEngine {
     return false;
   }
 
-  getAllFusionOptions(owner){
+  getAllFusionOptions(owner: Owner){
     const hand = this.state[owner].hand;
     const options: Array<{i1:number, i2:number, card1:CardData, card2:CardData, result:CardData}> = [];
     for(let i=0;i<hand.length;i++){
@@ -471,7 +470,7 @@ export class GameEngine {
     return options;
   }
 
-  performFusion(owner, handIdx1, handIdx2){
+  performFusion(owner: Owner, handIdx1: number, handIdx2: number){
     const st = this.state[owner];
     const hand = st.hand;
     // indices might shift, work with sorted desc
@@ -504,7 +503,7 @@ export class GameEngine {
   }
 
   // ───────── Battle ────────────────────────────────────────
-  async attack(attackerOwner, attackerZone, defenderZone){
+  async attack(attackerOwner: Owner, attackerZone: number, defenderZone: number){
     const atkSt  = this.state[attackerOwner];
     const defOwn = attackerOwner === 'player' ? 'opponent' : 'player';
     const defSt  = this.state[defOwn];
@@ -540,7 +539,7 @@ export class GameEngine {
     this.ui.render(this.state);
   }
 
-  async attackDirect(attackerOwner, attackerZone){
+  async attackDirect(attackerOwner: Owner, attackerZone: number){
     const defOwn  = attackerOwner === 'player' ? 'opponent' : 'player';
     const defMons = this.state[defOwn].field.monsters;
     const attFC   = this.state[attackerOwner].field.monsters[attackerZone];
@@ -563,7 +562,7 @@ export class GameEngine {
     this.ui.render(this.state);
   }
 
-  async _resolveBattle(atkOwner, atkZone, defOwner, defZone, attFC, defFC){
+  async _resolveBattle(atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number, attFC: FieldCard, defFC: FieldCard){
     const atkVal = attFC.effectiveATK();
 
     if(defFC.faceDown){
@@ -622,7 +621,7 @@ export class GameEngine {
     }
   }
 
-  _destroyMonster(owner, zone, reason, byOwner){
+  _destroyMonster(owner: Owner, zone: number, reason: string, byOwner: Owner){
     const st  = this.state[owner];
     const fc  = st.field.monsters[zone];
     if(!fc) return;
@@ -634,7 +633,7 @@ export class GameEngine {
       st.graveyard.push(fc.card);
       st.field.monsters[zone] = null;
       // Special summon from grave with ATK penalty
-      const revCard = Object.assign({}, fc.card, { atk: fc.card.atk + GAME_RULES.phoenixRevivePenalty });
+      const revCard = Object.assign({}, fc.card, { atk: (fc.card.atk ?? 0) + GAME_RULES.phoenixRevivePenalty });
       const newZone = st.field.monsters.findIndex(z => z === null);
       if(newZone !== -1){
         const newFC = new FieldCard(revCard, 'atk');
@@ -657,7 +656,7 @@ export class GameEngine {
     this.ui.render(this.state);
   }
 
-  _buildSpellContext(owner: Owner, targetInfo: any): EffectContext {
+  _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): EffectContext {
     const ctx: EffectContext = { engine: this, owner };
     if(targetInfo instanceof FieldCard){
       ctx.targetFC = targetInfo;
@@ -667,7 +666,7 @@ export class GameEngine {
     return ctx;
   }
 
-  _buildTrapContext(owner: Owner, trapTrigger: string | undefined, args: any[]): EffectContext {
+  _buildTrapContext(owner: Owner, trapTrigger: string | undefined, args: FieldCard[]): EffectContext {
     const ctx: EffectContext = { engine: this, owner };
     if(trapTrigger === 'onAttack'){
       ctx.attacker = args[0];
@@ -680,7 +679,7 @@ export class GameEngine {
     return ctx;
   }
 
-  _triggerEffect(fc, owner, trigger, zone){
+  _triggerEffect(fc: FieldCard, owner: Owner, trigger: string, zone: number | null){
     const card = fc.card;
     if(!card.effect || card.effect.trigger !== trigger) return;
     EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: ${trigger}`);
@@ -694,7 +693,7 @@ export class GameEngine {
   }
 
   // ───────── Trap prompts ──────────────────────────────────
-  async _promptPlayerTraps(triggerType, ...args){
+  async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]){
     // check player's face-down traps
     const traps = this.state.player.field.spellTraps;
     for(let i=0;i<5;i++){
@@ -703,7 +702,9 @@ export class GameEngine {
         // Race UI prompt against an 8-second timeout so the game never hangs
         // if the modal is closed or the promise never resolves.
         const timeout = new Promise<boolean>(resolve => setTimeout(() => resolve(false), 8000));
-        const activate = await Promise.race([this.ui.prompt({
+        const promptFn = this.ui.prompt;
+        if (!promptFn) continue;
+        const activate = await Promise.race([promptFn({
           title: 'Falle aktivieren?',
           cardId: fst.card.id,
           message: `${fst.card.name}: ${fst.card.description}`,
@@ -724,8 +725,8 @@ export class GameEngine {
     const idx = phases.indexOf(this.state.phase);
     if(idx < phases.length - 1){
       this.state.phase = phases[idx+1] as Phase;
-      const names = { main:'Hauptphase', battle:'Kampfphase', end:'Endphase' };
-      this.addLog(`--- ${names[this.state.phase]} ---`);
+      const names: Partial<Record<Phase, string>> = { main:'Hauptphase', battle:'Kampfphase', end:'Endphase' };
+      this.addLog(`--- ${names[this.state.phase] ?? this.state.phase} ---`);
       this.ui.render(this.state);
     } else {
       this.endTurn();
@@ -989,7 +990,7 @@ export class GameEngine {
     return false;
   }
 
-  _delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+  _delay(ms: number){ return new Promise<void>(r => setTimeout(r, ms)); }
 
   /** Pick the best attack target based on the active battle strategy. Returns zone index or -1. */
   _aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard | null>): number {
@@ -1047,7 +1048,7 @@ export class GameEngine {
   }
 
   // ───────── Position change ───────────────────────────────
-  changePosition(owner, zone){
+  changePosition(owner: Owner, zone: number){
     const fc = this.state[owner].field.monsters[zone];
     if(!fc || fc.summonedThisTurn){ this.addLog('Kann Position nicht ändern!'); return; }
     fc.position = fc.position === 'atk' ? 'def' : 'atk';

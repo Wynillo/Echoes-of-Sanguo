@@ -40,7 +40,9 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
     Progression.init();
     refresh();
     loadDeck();
-  }, [refresh, loadDeck]);
+  // intentional: runs once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const value = useMemo(
     () => ({ coins, collection, opponents, currentDeck, refresh, setCurrentDeck, loadDeck }),

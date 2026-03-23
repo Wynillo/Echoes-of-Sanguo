@@ -32,7 +32,7 @@ export const Progression = (() => {
    * @param {*}         fallback  value returned when key is absent, unparseable, or invalid
    * @param {Function}  [validator]  optional fn(parsed) → boolean; returns fallback when false
    */
-  function _load(key, fallback, validator?) {
+  function _load<T>(key: string, fallback: T, validator?: (v: unknown) => boolean): T {
     try {
       const raw = localStorage.getItem(key);
       if (raw === null) return fallback;
@@ -47,7 +47,7 @@ export const Progression = (() => {
     }
   }
 
-  function _save(key, value) {
+  function _save(key: string, value: unknown) {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
@@ -97,7 +97,7 @@ export const Progression = (() => {
     return !localStorage.getItem(KEYS.starterChosen);
   }
 
-  function markStarterChosen(race) {
+  function markStarterChosen(race: string) {
     localStorage.setItem(KEYS.starterChosen, '1');
     localStorage.setItem(KEYS.starterRace, race);
   }
