@@ -1,6 +1,6 @@
 // ============================================================
 // ECHOES OF SANGUO — Card Definition Validator
-// Validates AcCardDefinition[] from *cards_description.json
+// Validates TcgCardDefinition[] from *cards_description.json
 // ============================================================
 
 import type { ValidationResult } from './types.js';
@@ -35,9 +35,9 @@ function validateSingleDefinition(def: unknown, index: number): string[] {
 }
 
 /**
- * Validate an array of AcCardDefinition objects from a cards_description.json file
+ * Validate an array of TcgCardDefinition objects from a cards_description.json file
  */
-export function validateAcDefinitions(data: unknown): ValidationResult {
+export function validateTcgDefinitions(data: unknown): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 

@@ -12,7 +12,7 @@
     "build:android": "vite build && cap sync android",
     "cap:sync": "cap sync",
     "cap:open": "cap open android",
-    "generate:ac": "vite-node js/ac-format/generate-base-ac.ts"
+    "generate:tcg": "vite-node js/tcg-format/generate-base-tcg.ts"
   },
   "repository": {
     "type": "git",

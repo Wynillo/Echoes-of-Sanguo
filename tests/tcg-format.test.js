@@ -9,13 +9,13 @@ import {
   // Effect serializer
   serializeEffect, deserializeEffect, isValidEffectString,
   // Validators
-  validateAcCards, validateAcDefinitions,
+  validateTcgCards, validateTcgDefinitions,
   // Builder
-  cardDataToAcCard, cardDataToAcDef,
+  cardDataToTcgCard, cardDataToTcgDef,
   // Constants
-  AC_TYPE_MONSTER, AC_TYPE_FUSION, AC_TYPE_SPELL, AC_TYPE_TRAP,
-  AC_RARITY_COMMON, AC_RARITY_ULTRA_RARE,
-} from '../js/ac-format/index.js';
+  TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP,
+  TCG_RARITY_COMMON, TCG_RARITY_ULTRA_RARE,
+} from '../js/tcg-format/index.js';
 import { CardType, Attribute, Race, Rarity } from '../js/types.js';
 
 // ── Enum Converter Tests ────────────────────────────────────
@@ -23,21 +23,21 @@ import { CardType, Attribute, Race, Rarity } from '../js/types.js';
 describe('Enum Converters', () => {
   describe('CardType', () => {
     it('maps Monster to 1', () => {
-      expect(cardTypeToInt(CardType.Monster)).toBe(AC_TYPE_MONSTER);
+      expect(cardTypeToInt(CardType.Monster)).toBe(TCG_TYPE_MONSTER);
     });
 
     it('maps fusion to 2, spell to 3, trap to 4', () => {
-      expect(cardTypeToInt(CardType.Fusion)).toBe(AC_TYPE_FUSION);
-      expect(cardTypeToInt(CardType.Spell)).toBe(AC_TYPE_SPELL);
-      expect(cardTypeToInt(CardType.Trap)).toBe(AC_TYPE_TRAP);
+      expect(cardTypeToInt(CardType.Fusion)).toBe(TCG_TYPE_FUSION);
+      expect(cardTypeToInt(CardType.Spell)).toBe(TCG_TYPE_SPELL);
+      expect(cardTypeToInt(CardType.Trap)).toBe(TCG_TYPE_TRAP);
     });
 
     it('converts back from int', () => {
-      expect(intToCardType(AC_TYPE_MONSTER, false)).toBe(CardType.Monster);
-      expect(intToCardType(AC_TYPE_MONSTER, true)).toBe(CardType.Monster);
-      expect(intToCardType(AC_TYPE_FUSION, false)).toBe(CardType.Fusion);
-      expect(intToCardType(AC_TYPE_SPELL, false)).toBe(CardType.Spell);
-      expect(intToCardType(AC_TYPE_TRAP, false)).toBe(CardType.Trap);
+      expect(intToCardType(TCG_TYPE_MONSTER, false)).toBe(CardType.Monster);
+      expect(intToCardType(TCG_TYPE_MONSTER, true)).toBe(CardType.Monster);
+      expect(intToCardType(TCG_TYPE_FUSION, false)).toBe(CardType.Fusion);
+      expect(intToCardType(TCG_TYPE_SPELL, false)).toBe(CardType.Spell);
+      expect(intToCardType(TCG_TYPE_TRAP, false)).toBe(CardType.Trap);
     });
 
     it('throws for unknown types', () => {
@@ -196,75 +196,75 @@ describe('Card Validator', () => {
   const validTrap = { id: 3, level: 1, rarity: 1, type: 4 };
 
   it('validates a correct card array', () => {
-    const result = validateAcCards([validMonster, validSpell, validTrap]);
+    const result = validateTcgCards([validMonster, validSpell, validTrap]);
     expect(result.valid).toBe(true);
     expect(result.errors).toHaveLength(0);
   });
 
   it('rejects non-array', () => {
-    const result = validateAcCards({});
+    const result = validateTcgCards({});
     expect(result.valid).toBe(false);
   });
 
   it('rejects empty array', () => {
-    const result = validateAcCards([]);
+    const result = validateTcgCards([]);
     expect(result.valid).toBe(false);
   });
 
   it('rejects invalid id', () => {
-    const result = validateAcCards([{ ...validMonster, id: -1 }]);
+    const result = validateTcgCards([{ ...validMonster, id: -1 }]);
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('id');
   });
 
   it('rejects invalid level', () => {
-    const result = validateAcCards([{ ...validMonster, level: 0 }]);
+    const result = validateTcgCards([{ ...validMonster, level: 0 }]);
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('level');
   });
 
   it('rejects invalid rarity', () => {
-    const result = validateAcCards([{ ...validMonster, rarity: 3 }]);
+    const result = validateTcgCards([{ ...validMonster, rarity: 3 }]);
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('rarity');
   });
 
   it('rejects invalid type', () => {
-    const result = validateAcCards([{ ...validMonster, type: 5 }]);
+    const result = validateTcgCards([{ ...validMonster, type: 5 }]);
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('type');
   });
 
   it('allows attribute on spells (race-specific spells)', () => {
-    const result = validateAcCards([{ ...validSpell, attribute: 1 }]);
+    const result = validateTcgCards([{ ...validSpell, attribute: 1 }]);
     expect(result.valid).toBe(true);
   });
 
   it('allows race on traps (race-specific traps)', () => {
-    const result = validateAcCards([{ ...validTrap, race: 1 }]);
+    const result = validateTcgCards([{ ...validTrap, race: 1 }]);
     expect(result.valid).toBe(true);
   });
 
   it('rejects atk on spells', () => {
-    const result = validateAcCards([{ ...validSpell, atk: 100 }]);
+    const result = validateTcgCards([{ ...validSpell, atk: 100 }]);
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('atk');
   });
 
   it('detects duplicate ids', () => {
-    const result = validateAcCards([validMonster, { ...validSpell, id: 1 }]);
+    const result = validateTcgCards([validMonster, { ...validSpell, id: 1 }]);
     expect(result.valid).toBe(false);
     expect(result.errors.some(e => e.includes('duplicate'))).toBe(true);
   });
 
   it('rejects invalid effect syntax', () => {
-    const result = validateAcCards([{ ...validMonster, effect: 'not_a_valid_effect' }]);
+    const result = validateTcgCards([{ ...validMonster, effect: 'not_a_valid_effect' }]);
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('effect');
   });
 
   it('accepts valid effect syntax', () => {
-    const result = validateAcCards([{ ...validMonster, effect: 'onSummon:dealDamage(opponent,300)' }]);
+    const result = validateTcgCards([{ ...validMonster, effect: 'onSummon:dealDamage(opponent,300)' }]);
     expect(result.valid).toBe(true);
   });
 });
@@ -273,7 +273,7 @@ describe('Card Validator', () => {
 
 describe('Definition Validator', () => {
   it('validates correct definitions', () => {
-    const result = validateAcDefinitions([
+    const result = validateTcgDefinitions([
       { id: 1, name: 'Fire Dragon', description: 'A fiery dragon' },
       { id: 2, name: 'Ice Spell', description: 'A cold spell' },
     ]);
@@ -281,32 +281,32 @@ describe('Definition Validator', () => {
   });
 
   it('rejects non-array', () => {
-    const result = validateAcDefinitions('not an array');
+    const result = validateTcgDefinitions('not an array');
     expect(result.valid).toBe(false);
   });
 
   it('rejects empty array', () => {
-    const result = validateAcDefinitions([]);
+    const result = validateTcgDefinitions([]);
     expect(result.valid).toBe(false);
   });
 
   it('rejects missing name', () => {
-    const result = validateAcDefinitions([{ id: 1, name: '', description: 'test' }]);
+    const result = validateTcgDefinitions([{ id: 1, name: '', description: 'test' }]);
     expect(result.valid).toBe(false);
   });
 
   it('rejects missing description', () => {
-    const result = validateAcDefinitions([{ id: 1, name: 'Test', description: '' }]);
+    const result = validateTcgDefinitions([{ id: 1, name: 'Test', description: '' }]);
     expect(result.valid).toBe(false);
   });
 
   it('rejects invalid id', () => {
-    const result = validateAcDefinitions([{ id: 0, name: 'Test', description: 'Test' }]);
+    const result = validateTcgDefinitions([{ id: 0, name: 'Test', description: 'Test' }]);
     expect(result.valid).toBe(false);
   });
 
   it('detects duplicate ids', () => {
-    const result = validateAcDefinitions([
+    const result = validateTcgDefinitions([
       { id: 1, name: 'A', description: 'A' },
       { id: 1, name: 'B', description: 'B' },
     ]);
@@ -317,44 +317,44 @@ describe('Definition Validator', () => {
 
 // ── Builder Tests ───────────────────────────────────────────
 
-describe('AC Builder', () => {
-  it('converts a monster CardData to AcCard', () => {
+describe('TCG Builder', () => {
+  it('converts a monster CardData to TcgCard', () => {
     const card = {
       id: 'M001', name: 'Feuersalamander', type: CardType.Monster,
       attribute: Attribute.Fire, race: Race.Fire, rarity: Rarity.Common, level: 3, atk: 1000, def: 800,
       description: 'A fire salamander',
     };
-    const ac = cardDataToAcCard(card, 1);
-    expect(ac.id).toBe(1);
-    expect(ac.type).toBe(AC_TYPE_MONSTER);
-    expect(ac.level).toBe(3);
-    expect(ac.atk).toBe(1000);
-    expect(ac.def).toBe(800);
-    expect(ac.rarity).toBe(AC_RARITY_COMMON);
-    expect(ac.attribute).toBe(attributeToInt(Attribute.Fire));
-    expect(ac.race).toBe(raceToInt(Race.Fire));
-    expect(ac.effect).toBeUndefined();
+    const tc = cardDataToTcgCard(card, 1);
+    expect(tc.id).toBe(1);
+    expect(tc.type).toBe(TCG_TYPE_MONSTER);
+    expect(tc.level).toBe(3);
+    expect(tc.atk).toBe(1000);
+    expect(tc.def).toBe(800);
+    expect(tc.rarity).toBe(TCG_RARITY_COMMON);
+    expect(tc.attribute).toBe(attributeToInt(Attribute.Fire));
+    expect(tc.race).toBe(raceToInt(Race.Fire));
+    expect(tc.effect).toBeUndefined();
   });
 
-  it('converts a spell CardData to AcCard (no atk/def/attribute/race)', () => {
+  it('converts a spell CardData to TcgCard (no atk/def/attribute/race)', () => {
     const card = {
       id: 'S001', name: 'Feuerball', type: CardType.Spell,
       description: 'Deal damage',
       spellType: 'normal',
       effect: { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 800 }] }
     };
-    const ac = cardDataToAcCard(card, 100);
-    expect(ac.id).toBe(100);
-    expect(ac.type).toBe(AC_TYPE_SPELL);
-    expect(ac.atk).toBeUndefined();
-    expect(ac.def).toBeUndefined();
-    expect(ac.attribute).toBeUndefined();
-    expect(ac.effect).toBe('onSummon:dealDamage(opponent,800)');
+    const tc = cardDataToTcgCard(card, 100);
+    expect(tc.id).toBe(100);
+    expect(tc.type).toBe(TCG_TYPE_SPELL);
+    expect(tc.atk).toBeUndefined();
+    expect(tc.def).toBeUndefined();
+    expect(tc.attribute).toBeUndefined();
+    expect(tc.effect).toBe('onSummon:dealDamage(opponent,800)');
   });
 
   it('extracts card definition', () => {
     const card = { id: 'M001', name: 'Feuersalamander', description: 'A fire salamander', type: CardType.Monster };
-    const def = cardDataToAcDef(card, 1);
+    const def = cardDataToTcgDef(card, 1);
     expect(def.id).toBe(1);
     expect(def.name).toBe('Feuersalamander');
     expect(def.description).toBe('A fire salamander');

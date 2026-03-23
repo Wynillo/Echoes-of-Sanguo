@@ -1,23 +1,23 @@
 // ============================================================
-// ECHOES OF SANGUO — AC File Loader
-// Loads .ac (ZIP) files and populates the card database
+// ECHOES OF SANGUO — TCG File Loader
+// Loads .tcg (ZIP) files and populates the card database
 // ============================================================
 
 import JSZip from 'jszip';
 import type { CardData, CardEffectBlock, FusionRecipe, OpponentConfig } from '../types.js';
 import { Race } from '../types.js';
-import type { AcCard, AcCardDefinition, AcMeta, AcLoadResult } from './types.js';
-import { validateAcArchive } from './ac-validator.js';
+import type { TcgCard, TcgCardDefinition, TcgMeta, TcgLoadResult } from './types.js';
+import { validateTcgArchive } from './tcg-validator.js';
 import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
 import { deserializeEffect } from './effect-serializer.js';
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../cards.js';
 
 /**
- * Load an .ac file from a URL or ArrayBuffer.
+ * Load a .tcg file from a URL or ArrayBuffer.
  * Validates the archive, converts cards to internal format, and populates
  * CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, and STARTER_DECKS.
  */
-export async function loadAcFile(source: string | ArrayBuffer): Promise<AcLoadResult> {
+export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoadResult> {
   // Fetch if URL
   let buffer: ArrayBuffer;
   if (typeof source === 'string') {
@@ -32,9 +32,9 @@ export async function loadAcFile(source: string | ArrayBuffer): Promise<AcLoadRe
   const zip = await JSZip.loadAsync(buffer);
 
   // Validate
-  const result = await validateAcArchive(zip);
+  const result = await validateTcgArchive(zip);
   if (!result.valid || !result.contents) {
-    throw new Error(`Invalid .ac file:\n${result.errors.join('\n')}`);
+    throw new Error(`Invalid .tcg file:\n${result.errors.join('\n')}`);
   }
 
   const { cards, definitions, imageIds } = result.contents;
@@ -66,7 +66,7 @@ export async function loadAcFile(source: string | ArrayBuffer): Promise<AcLoadRe
   }
 
   // Load meta.json if present
-  let meta: AcMeta | undefined;
+  let meta: TcgMeta | undefined;
   const metaFile = zip.file('meta.json');
   if (metaFile) {
     try {
@@ -77,25 +77,25 @@ export async function loadAcFile(source: string | ArrayBuffer): Promise<AcLoadRe
     }
   }
 
-  // Convert AcCards to CardData and populate CARD_DB
+  // Convert TcgCards to CardData and populate CARD_DB
   // Pick the best description file (prefer browser language, fallback to first)
   const lang = typeof navigator !== 'undefined'
     ? navigator.language.substring(0, 2)
     : '';
   const defs = definitions.get(lang) ?? definitions.values().next().value!;
-  const defMap = new Map<number, AcCardDefinition>();
+  const defMap = new Map<number, TcgCardDefinition>();
   for (const d of defs) defMap.set(d.id, d);
 
-  for (const ac of cards) {
-    const def = defMap.get(ac.id);
-    const originalId = reverseIdMap[ac.id];
-    const cardData = acCardToCardData(ac, def, originalId);
+  for (const tc of cards) {
+    const def = defMap.get(tc.id);
+    const originalId = reverseIdMap[tc.id];
+    const cardData = tcgCardToCardData(tc, def, originalId);
     CARD_DB[cardData.id] = cardData;
   }
 
   // Apply meta to game data stores
   if (meta) {
-    applyAcMeta(meta, reverseIdMap);
+    applyTcgMeta(meta, reverseIdMap);
   }
 
   return {
@@ -108,43 +108,43 @@ export async function loadAcFile(source: string | ArrayBuffer): Promise<AcLoadRe
 }
 
 /**
- * Convert an AcCard + AcCardDefinition to the internal CardData format.
+ * Convert a TcgCard + TcgCardDefinition to the internal CardData format.
  */
-function acCardToCardData(ac: AcCard, def?: AcCardDefinition, originalId?: string): CardData {
+function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition, originalId?: string): CardData {
   let effect: CardEffectBlock | undefined;
-  if (ac.effect) {
-    effect = deserializeEffect(ac.effect);
+  if (tc.effect) {
+    effect = deserializeEffect(tc.effect);
   }
 
-  const hasEffect = !!ac.effect;
-  const type = intToCardType(ac.type, hasEffect);
+  const hasEffect = !!tc.effect;
+  const type = intToCardType(tc.type, hasEffect);
 
   const card: CardData = {
-    id:          originalId ?? String(ac.id),
-    name:        def?.name ?? `Card #${ac.id}`,
+    id:          originalId ?? String(tc.id),
+    name:        def?.name ?? `Card #${tc.id}`,
     type,
     description: def?.description ?? '',
-    level:       ac.level,
-    rarity:      intToRarity(ac.rarity),
+    level:       tc.level,
+    rarity:      intToRarity(tc.rarity),
   };
 
-  if (ac.atk !== undefined) card.atk = ac.atk;
-  if (ac.def !== undefined) card.def = ac.def;
-  if (ac.attribute !== undefined && ac.attribute > 0) card.attribute = intToAttribute(ac.attribute);
-  if (ac.race !== undefined && ac.race > 0) card.race = intToRace(ac.race);
+  if (tc.atk !== undefined) card.atk = tc.atk;
+  if (tc.def !== undefined) card.def = tc.def;
+  if (tc.attribute !== undefined && tc.attribute > 0) card.attribute = intToAttribute(tc.attribute);
+  if (tc.race !== undefined && tc.race > 0) card.race = intToRace(tc.race);
   if (effect) card.effect = effect;
-  if (ac.spellType)   card.spellType   = intToSpellType(ac.spellType);
-  if (ac.trapTrigger) card.trapTrigger = intToTrapTrigger(ac.trapTrigger);
-  if (ac.target)      card.target      = ac.target;
+  if (tc.spellType)   card.spellType   = intToSpellType(tc.spellType);
+  if (tc.trapTrigger) card.trapTrigger = intToTrapTrigger(tc.trapTrigger);
+  if (tc.target)      card.target      = tc.target;
 
   return card;
 }
 
 /**
- * Apply AcMeta to the game's live data stores, converting numeric IDs
+ * Apply TcgMeta to the game's live data stores, converting numeric IDs
  * back to original string IDs using the reverse migration map.
  */
-function applyAcMeta(meta: AcMeta, reverseIdMap: Record<number, string>): void {
+function applyTcgMeta(meta: TcgMeta, reverseIdMap: Record<number, string>): void {
   const rid = (numId: number): string => reverseIdMap[numId] ?? String(numId);
 
   if (meta.fusionRecipes) {
@@ -186,7 +186,7 @@ function applyAcMeta(meta: AcMeta, reverseIdMap: Record<number, string>): void {
 /**
  * Revoke all blob URLs from a previous load to free memory.
  */
-export function revokeAcImages(images: Map<number, string>): void {
+export function revokeTcgImages(images: Map<number, string>): void {
   for (const url of images.values()) {
     URL.revokeObjectURL(url);
   }

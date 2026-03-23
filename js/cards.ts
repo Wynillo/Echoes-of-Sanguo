@@ -1,6 +1,6 @@
 // ============================================================
 // ECHOES OF SANGUO - Kartendatenbank
-// Runtime data store — populated at startup by loading base.ac
+// Runtime data store — populated at startup by loading base.tcg
 // ============================================================
 import type { CardData, FusionRecipe, OpponentConfig } from './types.js';
 import { CardType, Attribute, Race, Rarity } from './types.js';
@@ -46,7 +46,7 @@ export const ATTR_NAME: Record<string, string> = {
   fire: 'Feuer', water: 'Wasser', earth: 'Erde', wind: 'Wind', light: 'Licht', dark: 'Dunkel',
 };
 
-// ── Runtime data stores (populated by ac-loader from base.ac) ──
+// ── Runtime data stores (populated by tcg-loader from base.tcg) ──
 export const CARD_DB: Record<string, CardData> = {};
 export const FUSION_RECIPES: FusionRecipe[] = [];
 export const OPPONENT_CONFIGS: OpponentConfig[] = [];

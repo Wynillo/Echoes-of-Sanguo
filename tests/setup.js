@@ -12,14 +12,14 @@ global.localStorage = {
   clear:      ()     => { Object.keys(store).forEach(k => delete store[k]); },
 };
 
-// Load card database from base.ac so engine tests have real card data.
+// Load card database from base.tcg so engine tests have real card data.
 // Only runs in the 'node' vitest environment — jsdom tests don't need card data
 // and would fail due to cross-realm ArrayBuffer incompatibility with JSZip.
 if (typeof window === 'undefined') {
-  URL.createObjectURL ??= () => 'blob:mock'; // polyfill for ac-loader image extraction
+  URL.createObjectURL ??= () => 'blob:mock'; // polyfill for tcg-loader image extraction
   const __dirname = dirname(fileURLToPath(import.meta.url));
-  const { loadAcFile } = await import('../js/ac-format/ac-loader.js');
-  const acBuf = readFileSync(join(__dirname, '../public/base.ac'));
+  const { loadTcgFile } = await import('../js/tcg-format/tcg-loader.js');
+  const tcgBuf = readFileSync(join(__dirname, '../public/base.tcg'));
   // Node.js Buffer uses a shared pool — slice to get a proper standalone ArrayBuffer
-  await loadAcFile(acBuf.buffer.slice(acBuf.byteOffset, acBuf.byteOffset + acBuf.byteLength));
+  await loadTcgFile(tcgBuf.buffer.slice(tcgBuf.byteOffset, tcgBuf.byteOffset + tcgBuf.byteLength));
 }

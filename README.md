@@ -150,7 +150,7 @@ ECHOES-OF-SANGUO/
 │   ├── animations.css          – Karten- & Kampfanimationen
 │   └── progression.css         – Shop/Sammlung-Screens
 ├── js/
-│   ├── main.js                 – Einstiegspunkt (lädt base.ac, startet React)
+│   ├── main.js                 – Einstiegspunkt (lädt base.tcg, startet React)
 │   ├── types.ts                – Kern-Typdefinitionen (Enums, Interfaces)
 │   ├── cards.ts                – Kartendatenbank-Store & Lookup-Funktionen
 │   ├── cards-data.ts           – Erweiterte Kartendefinitionen
@@ -160,12 +160,12 @@ ECHOES-OF-SANGUO/
 │   ├── audio.ts                – SFX/Musik-Manager
 │   ├── i18n.ts                 – i18next-Setup
 │   ├── mod-api.ts              – Modding-API (window.EchoesOfSanguoMod)
-│   ├── ac-format/              – Eigenes binäres Kartenformat (.ac)
-│   │   ├── ac-builder.ts       – Serialisierer: Kartendaten → Binär
-│   │   ├── ac-loader.ts        – Deserialisierer: Binär → Spielobjekte
-│   │   ├── ac-validator.ts     – Validierungslogik
+│   ├── tcg-format/              – Eigenes binäres Kartenformat (.tcg)
+│   │   ├── tcg-builder.ts       – Serialisierer: Kartendaten → Binär
+│   │   ├── tcg-loader.ts        – Deserialisierer: Binär → Spielobjekte
+│   │   ├── tcg-validator.ts     – Validierungslogik
 │   │   ├── effect-serializer.ts – Effekt-Binär-Codec
-│   │   └── generate-base-ac.ts – CLI: base.ac aus cards-data.ts generieren
+│   │   └── generate-base-tcg.ts – CLI: base.tcg aus cards-data.ts generieren
 │   └── react/
 │       ├── App.tsx             – Root-Komponente (Provider-Tree + Router)
 │       ├── contexts/           – React Contexts (Game, Screen, Progression, Modal, Selection)
@@ -176,7 +176,7 @@ ECHOES-OF-SANGUO/
 │       └── utils/
 │           └── pack-logic.ts   – Booster-Pack-Generierung
 ├── public/
-│   ├── base.ac                 – Kompilierte Kartendatenbank (Binärformat)
+│   ├── base.tcg                 – Kompilierte Kartendatenbank (Binärformat)
 │   └── audio/                  – Sound-Effekte
 ├── locales/
 │   ├── de.json                 – Deutsche Übersetzungen
@@ -188,34 +188,34 @@ ECHOES-OF-SANGUO/
 
 ---
 
-## Eigenes Binärformat (.ac)
+## Eigenes Binärformat (.tcg)
 
-Kartendaten werden in einem eigenen Binärformat (`base.ac`) gespeichert und beim Start geladen:
+Kartendaten werden in einem eigenen Binärformat (`base.tcg`) gespeichert und beim Start geladen:
 
-- **ac-builder.ts** – Kodiert TypeScript-Objekte zu Binärdaten
-- **ac-loader.ts** – Dekodiert Binärdaten zu Laufzeitobjekten (CARD_DB, FUSION_RECIPES, etc.)
+- **tcg-builder.ts** – Kodiert TypeScript-Objekte zu Binärdaten
+- **tcg-loader.ts** – Dekodiert Binärdaten zu Laufzeitobjekten (CARD_DB, FUSION_RECIPES, etc.)
 - **effect-serializer.ts** – Effekt-Bäume als kompakter Binär-Codec
 
-Generierung via `npm run generate:ac` aus `js/cards-data.ts`.
+Generierung via `npm run generate:tcg` aus `js/cards-data.ts`.
 
 ---
 
 ## Persistenz
 
-Alle Fortschrittsdaten werden in `localStorage` gespeichert (Präfix `ac_`):
+Alle Fortschrittsdaten werden in `localStorage` gespeichert (Präfix `tcg_`):
 
 | Key | Inhalt |
 |---|---|
-| `ac_initialized` | Erststart markiert |
-| `ac_starter_chosen` | Starterauswahl abgeschlossen |
-| `ac_starter_race` | Gewählte Starterrasse |
-| `ac_collection` | Kartensammlung `[{id, count}, ...]` |
-| `ac_deck` | Aktuelles Deck (40 Karten) |
-| `ac_aether_coins` | Aktuelle Münzen |
-| `ac_opponents` | Gegner-Status `{1: {unlocked, wins, losses}, ...}` |
-| `ac_settings` | Benutzereinstellungen |
-| `ac_seen_cards` | Gesehene Karten |
-| `ac_save_version` | Migrations-Version |
+| `tcg_initialized` | Erststart markiert |
+| `tcg_starter_chosen` | Starterauswahl abgeschlossen |
+| `tcg_starter_race` | Gewählte Starterrasse |
+| `tcg_collection` | Kartensammlung `[{id, count}, ...]` |
+| `tcg_deck` | Aktuelles Deck (40 Karten) |
+| `eos_jade_coins` | Aktuelle Münzen |
+| `tcg_opponents` | Gegner-Status `{1: {unlocked, wins, losses}, ...}` |
+| `tcg_settings` | Benutzereinstellungen |
+| `tcg_seen_cards` | Gesehene Karten |
+| `tcg_save_version` | Migrations-Version |
 
 ---
 
@@ -239,7 +239,7 @@ npm install              # Abhängigkeiten installieren
 
 npm run dev              # Dev-Server starten (http://localhost:5173)
 npm run build            # Produktions-Build → dist/
-npm run generate:ac      # base.ac aus Kartendaten generieren
+npm run generate:tcg      # base.tcg aus Kartendaten generieren
 
 npm test                 # Tests einmalig ausführen
 npm run test:watch       # Tests im Watch-Modus

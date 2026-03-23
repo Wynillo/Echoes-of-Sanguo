@@ -1,5 +1,5 @@
 // ============================================================
-// ECHOES OF SANGUO — Effect Serializer/Deserializer
+// ECHOES OF SANGUO — Effect Serializer/Deserializer (TCG Format)
 // Converts CardEffectBlock ↔ compact string notation
 //
 // Format: "trigger:action1(args);action2(args)"

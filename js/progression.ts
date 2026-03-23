@@ -8,16 +8,16 @@ import type { CollectionEntry, OpponentRecord } from './types.js';
 export const Progression = (() => {
 
   const KEYS = {
-    initialized:    'ac_initialized',
-    starterChosen:  'ac_starter_chosen',
-    starterRace:    'ac_starter_race',
-    collection:     'ac_collection',
-    deck:           'ac_deck',
+    initialized:    'tcg_initialized',
+    starterChosen:  'tcg_starter_chosen',
+    starterRace:    'tcg_starter_race',
+    collection:     'tcg_collection',
+    deck:           'tcg_deck',
     coins:          'eos_jade_coins',
-    opponents:      'ac_opponents',
-    version:        'ac_save_version',
-    settings:       'ac_settings',
-    seenCards:      'ac_seen_cards',
+    opponents:      'tcg_opponents',
+    version:        'tcg_save_version',
+    settings:       'tcg_settings',
+    seenCards:      'tcg_seen_cards',
   };
 
   const SAVE_VERSION   = 1;   // increment when save format changes incompatibly
@@ -248,29 +248,29 @@ export const Progression = (() => {
   function backupToSession(): void {
     const backup: Record<string, string | null> = {};
     Object.values(KEYS).forEach(k => { backup[k] = localStorage.getItem(k); });
-    sessionStorage.setItem('ac_save_backup', JSON.stringify(backup));
+    sessionStorage.setItem('tcg_save_backup', JSON.stringify(backup));
   }
 
   /** Gibt true zurück wenn ein Backup im sessionStorage vorhanden ist */
   function hasBackup(): boolean {
-    return sessionStorage.getItem('ac_save_backup') !== null;
+    return sessionStorage.getItem('tcg_save_backup') !== null;
   }
 
   /** Stellt den gesicherten Stand wieder her und löscht das Backup */
   function restoreFromBackup(): void {
-    const raw = sessionStorage.getItem('ac_save_backup');
+    const raw = sessionStorage.getItem('tcg_save_backup');
     if (!raw) return;
     const backup = JSON.parse(raw) as Record<string, string | null>;
     Object.entries(backup).forEach(([k, v]) => {
       if (v === null) localStorage.removeItem(k);
       else localStorage.setItem(k, v);
     });
-    sessionStorage.removeItem('ac_save_backup');
+    sessionStorage.removeItem('tcg_save_backup');
   }
 
   /** Löscht das Backup ohne Wiederherstellung (neues Spiel bestätigt) */
   function clearBackup(): void {
-    sessionStorage.removeItem('ac_save_backup');
+    sessionStorage.removeItem('tcg_save_backup');
   }
 
   // ── Public API ───────────────────────────────────────────

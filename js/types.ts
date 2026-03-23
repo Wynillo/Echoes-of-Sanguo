@@ -11,7 +11,7 @@ export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSumm
 export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive';
 export type SpellType    = 'normal' | 'targeted' | 'fromGrave';
 
-// ── Int-based Enums (card data — stored in .ac format) ────
+// ── Int-based Enums (card data — stored in .tcg format) ────
 // Monster covers both normal and effect cards; distinction via effect field.
 
 export enum CardType {
