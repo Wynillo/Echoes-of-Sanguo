@@ -1,0 +1,10 @@
+{
+  "id": 4,
+  "name": "Tiefseefischer Rok",
+  "title": "Herr der Tiefsee",
+  "race": 10,
+  "flavor": "Die Tiefsee birgt ungeahnte Gefahren.",
+  "coinsWin": 200,
+  "coinsLoss": 40,
+  "deckIds": [3, 3, 14, 14, 8, 8, 17, 17, 24, 35, 36, 39, 40, 41, 43, 44]
+}

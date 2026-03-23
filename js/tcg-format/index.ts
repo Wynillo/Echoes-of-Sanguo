@@ -3,7 +3,7 @@
 // ============================================================
 
 // Types
-export type { TcgCard, TcgCardDefinition, TcgMeta, TcgLoadResult, ValidationResult } from './types.js';
+export type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgLoadResult, ValidationResult } from './types.js';
 export {
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPES,
   TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG_ATTR_WATER, TCG_ATTR_EARTH, TCG_ATTR_WIND, TCG_ATTRIBUTES,
@@ -30,6 +30,7 @@ export { serializeEffect, deserializeEffect, isValidEffectString } from './effec
 export { validateTcgCards } from './card-validator.js';
 export { validateTcgDefinitions } from './def-validator.js';
 export { validateTcgArchive } from './tcg-validator.js';
+export type { TcgArchiveContents } from './tcg-validator.js';
 
 // Builder
 export { cardDataToTcgCard, cardDataToTcgDef } from './tcg-builder.js';

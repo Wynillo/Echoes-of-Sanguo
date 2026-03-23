@@ -14,8 +14,8 @@ const DESC_FILE_REGEX = /^([a-z]{2}_)?cards_description\.json$/;
 export interface TcgArchiveContents {
   cards: TcgCard[];
   definitions: Map<string, TcgCardDefinition[]>;   // lang (or '') -> definitions
-  imageIds: Set<number>;                           // card ids that have images
-  missingImageIds: number[];                       // card ids without images
+  imageIds: Set<number>;                            // card ids that have images
+  missingImageIds: number[];                        // card ids without images
 }
 
 /**

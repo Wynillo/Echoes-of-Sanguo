@@ -1,0 +1,10 @@
+{
+  "id": 5,
+  "name": "Vulkanschmied Tor",
+  "title": "Meister der Flammen",
+  "race": 4,
+  "flavor": "Sein Feuer kennt keine Gnade.",
+  "coinsWin": 250,
+  "coinsLoss": 50,
+  "deckIds": [1, 1, 13, 13, 16, 16, 20, 20, 21, 35, 35, 36, 37, 39, 41, 41, 43]
+}

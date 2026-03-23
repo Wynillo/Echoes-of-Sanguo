@@ -1,0 +1,10 @@
+{
+  "id": 3,
+  "name": "Flüsterin Syl",
+  "title": "Elfische Verzauberin",
+  "race": 8,
+  "flavor": "Ihre magischen Worte lähmen jeden Angreifer.",
+  "coinsWin": 200,
+  "coinsLoss": 40,
+  "deckIds": [8, 8, 10, 10, 6, 6, 17, 19, 15, 36, 37, 37, 39, 40, 42, 43]
+}

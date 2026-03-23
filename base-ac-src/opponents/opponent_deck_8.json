@@ -1,0 +1,10 @@
+{
+  "id": 8,
+  "name": "Windweberin Ara",
+  "title": "Beherrscherin der Lüfte",
+  "race": 7,
+  "flavor": "Der Wind trägt ihre Botschaften ans Ende der Welt.",
+  "coinsWin": 400,
+  "coinsLoss": 80,
+  "deckIds": [4, 4, 9, 9, 21, 21, 15, 24, 20, 35, 37, 37, 39, 40, 41, 42, 43, 43, 44]
+}

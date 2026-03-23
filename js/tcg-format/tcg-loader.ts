@@ -6,7 +6,7 @@
 import JSZip from 'jszip';
 import type { CardData, CardEffectBlock, FusionRecipe, OpponentConfig } from '../types.js';
 import { Race } from '../types.js';
-import type { TcgCard, TcgCardDefinition, TcgMeta, TcgLoadResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgLoadResult } from './types.js';
 import { validateTcgArchive } from './tcg-validator.js';
 import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
 import { deserializeEffect } from './effect-serializer.js';
@@ -77,6 +77,23 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     }
   }
 
+  // Scan opponents/*.json — takes priority over meta.opponentConfigs
+  const oppPaths = Object.keys(zip.files)
+    .filter(f => /^opponents\/[^/]+\.json$/.test(f))
+    .sort();
+  let tcgOpponents: TcgOpponentDeck[] | undefined;
+  if (oppPaths.length > 0) {
+    tcgOpponents = [];
+    for (const p of oppPaths) {
+      try {
+        tcgOpponents.push(JSON.parse(await zip.file(p)!.async('string')));
+      } catch {
+        result.warnings.push(`${p}: failed to parse, skipping`);
+      }
+    }
+    tcgOpponents.sort((a, b) => a.id - b.id);
+  }
+
   // Convert TcgCards to CardData and populate CARD_DB
   // Pick the best description file (prefer browser language, fallback to first)
   const lang = typeof navigator !== 'undefined'
@@ -95,7 +112,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
 
   // Apply meta to game data stores
   if (meta) {
-    applyTcgMeta(meta, reverseIdMap);
+    applyTcgMeta(meta, reverseIdMap, tcgOpponents);
   }
 
   return {
@@ -143,8 +160,14 @@ function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition, originalId?: st
 /**
  * Apply TcgMeta to the game's live data stores, converting numeric IDs
  * back to original string IDs using the reverse migration map.
+ * If tcgOpponents is provided (from opponents/ folder), it takes priority
+ * over meta.opponentConfigs (fallback for archives without the folder).
  */
-function applyTcgMeta(meta: TcgMeta, reverseIdMap: Record<number, string>): void {
+function applyTcgMeta(
+  meta: TcgMeta,
+  reverseIdMap: Record<number, string>,
+  tcgOpponents?: TcgOpponentDeck[],
+): void {
   const rid = (numId: number): string => reverseIdMap[numId] ?? String(numId);
 
   if (meta.fusionRecipes) {
@@ -155,8 +178,10 @@ function applyTcgMeta(meta: TcgMeta, reverseIdMap: Record<number, string>): void
     FUSION_RECIPES.push(...recipes);
   }
 
-  if (meta.opponentConfigs) {
-    const configs: OpponentConfig[] = meta.opponentConfigs.map(o => ({
+  // Use opponents/ folder if available, else fall back to meta.opponentConfigs
+  const rawOpponents = tcgOpponents ?? meta.opponentConfigs;
+  if (rawOpponents) {
+    const configs: OpponentConfig[] = rawOpponents.map(o => ({
       id:        o.id,
       name:      o.name,
       title:     o.title,

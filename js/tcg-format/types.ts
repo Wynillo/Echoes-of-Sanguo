@@ -66,20 +66,25 @@ export interface TcgCardDefinition {
   description: string;
 }
 
+// ── Opponent Deck (opponents/opponent_deck_N.json inside base.tcg) ──
+
+export interface TcgOpponentDeck {
+  id:        number;
+  name:      string;
+  title:     string;
+  race:      number;   // TCG int (1-10), converted to Race enum by loader
+  flavor:    string;
+  coinsWin:  number;
+  coinsLoss: number;
+  deckIds:   number[]; // numeric card IDs, converted to string IDs by loader
+}
+
 // ── TCG Archive metadata ──────────────────────────────────────
+
 
 export interface TcgMeta {
   fusionRecipes?: Array<{ materials: [number, number]; result: number }>;
-  opponentConfigs?: Array<{
-    id:        number;
-    name:      string;
-    title:     string;
-    race:      number;
-    flavor:    string;
-    coinsWin:  number;
-    coinsLoss: number;
-    deckIds:   number[];
-  }>;
+  opponentConfigs?: TcgOpponentDeck[];
   starterDecks?: Record<string, number[]>;
 }
 
