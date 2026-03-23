@@ -202,20 +202,20 @@ Generierung via `npm run generate:tcg` aus `js/cards-data.ts`.
 
 ## Persistenz
 
-Alle Fortschrittsdaten werden in `localStorage` gespeichert (Präfix `ac_`):
+Alle Fortschrittsdaten werden in `localStorage` gespeichert (Präfix `tcg_`):
 
 | Key | Inhalt |
 |---|---|
-| `ac_initialized` | Erststart markiert |
-| `ac_starter_chosen` | Starterauswahl abgeschlossen |
-| `ac_starter_race` | Gewählte Starterrasse |
-| `ac_collection` | Kartensammlung `[{id, count}, ...]` |
-| `ac_deck` | Aktuelles Deck (40 Karten) |
-| `ac_aether_coins` | Aktuelle Münzen |
-| `ac_opponents` | Gegner-Status `{1: {unlocked, wins, losses}, ...}` |
-| `ac_settings` | Benutzereinstellungen |
-| `ac_seen_cards` | Gesehene Karten |
-| `ac_save_version` | Migrations-Version |
+| `tcg_initialized` | Erststart markiert |
+| `tcg_starter_chosen` | Starterauswahl abgeschlossen |
+| `tcg_starter_race` | Gewählte Starterrasse |
+| `tcg_collection` | Kartensammlung `[{id, count}, ...]` |
+| `tcg_deck` | Aktuelles Deck (40 Karten) |
+| `eos_jade_coins` | Aktuelle Münzen |
+| `tcg_opponents` | Gegner-Status `{1: {unlocked, wins, losses}, ...}` |
+| `tcg_settings` | Benutzereinstellungen |
+| `tcg_seen_cards` | Gesehene Karten |
+| `tcg_save_version` | Migrations-Version |
 
 ---
 
