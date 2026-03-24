@@ -3,7 +3,7 @@ import './cards.js';           // empty data stores + helpers
 import './mod-api.js';         // exposes window.EchoesOfSanguoMod (live references to stores)
 import { loadTcgFile } from './tcg-format/tcg-loader.js';
 
-await loadTcgFile(import.meta.env.BASE_URL + 'base.tcg-src/'); // populates CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS
+await loadTcgFile(import.meta.env.BASE_URL + 'base.tcg'); // populates CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS
 
 await import('./progression.js');
 await import('./i18n.js');          // must come after progression.js (reads saved language)

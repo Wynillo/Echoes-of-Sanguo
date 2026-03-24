@@ -9,11 +9,11 @@ import { validateTcgCards } from './card-validator.js';
 import { validateTcgDefinitions } from './def-validator.js';
 import { validateTcgOpponentDescriptions } from './opp-desc-validator.js';
 
-/** Regex matching valid description file names: cards_description.json or xx_cards_description.json */
-const DESC_FILE_REGEX = /^([a-z]{2}_)?cards_description\.json$/;
+/** Regex matching valid description file names: cards_description.json, xx_cards_description.json, or locales/xx_cards_description.json */
+const DESC_FILE_REGEX = /^(?:locales\/)?([a-z]{2}_)?cards_description\.json$/;
 
-/** Regex matching opponent description files: opponents_description.json or xx_opponents_description.json */
-const OPP_DESC_FILE_REGEX = /^([a-z]{2}_)?opponents_description\.json$/;
+/** Regex matching opponent description files: opponents_description.json, xx_opponents_description.json, or locales/xx_opponents_description.json */
+const OPP_DESC_FILE_REGEX = /^(?:locales\/)?([a-z]{2}_)?opponents_description\.json$/;
 
 export interface TcgArchiveContents {
   cards: TcgCard[];
