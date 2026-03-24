@@ -4,18 +4,17 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { Progression }    from '../../progression.js';
 import { STARTER_DECKS }  from '../../cards.js';
+import { getRaceByKey }   from '../../type-metadata.js';
+import { Race } from '../../types.js';
 import styles from './StarterScreen.module.css';
 
-const RACE_INFO: Record<string, { icon: string; color: string }> = {
-  drache:  { icon: '🐲', color: '#8040c0' },
-  magier:  { icon: '🔮', color: '#6060c0' },
-  krieger: { icon: '⚔️', color: '#c09030' },
-};
+// Starter deck race options (subset of all races)
+const STARTER_RACES = ['drache', 'magier', 'krieger'] as const;
 
 const RACE_TO_NUM: Record<string, number> = {
-  drache:  1,  // Race.Dragon
-  magier:  2,  // Race.Spellcaster
-  krieger: 3,  // Race.Warrior
+  drache:  Race.Dragon,
+  magier:  Race.Spellcaster,
+  krieger: Race.Warrior,
 };
 
 export default function StarterScreen() {
@@ -36,7 +35,7 @@ export default function StarterScreen() {
     navigateTo('save-point');
   }
 
-  const info = selected ? RACE_INFO[selected] : null;
+  const selectedMeta = selected ? getRaceByKey(selected) : null;
 
   return (
     <div className={styles.screen}>
@@ -47,23 +46,26 @@ export default function StarterScreen() {
       </div>
 
       <div className={styles.raceGrid}>
-        {Object.entries(RACE_INFO).map(([race, ri]) => (
-          <div
-            key={race}
-            className={`${styles.raceCard}${selected === race ? ` ${styles.selected}` : ''}`}
-            style={{ '--race-color': ri.color } as React.CSSProperties}
-            onClick={() => setSelected(race)}
-          >
-            <div className={styles.raceIcon}>{ri.icon}</div>
-            <div className={styles.raceName}>{t(`cards.race_${race}`)}</div>
-            <div className={styles.raceStyle}>{t(`starter.${race}_style`)}</div>
-          </div>
-        ))}
+        {STARTER_RACES.map(race => {
+          const meta = getRaceByKey(race);
+          return (
+            <div
+              key={race}
+              className={`${styles.raceCard}${selected === race ? ` ${styles.selected}` : ''}`}
+              style={{ '--race-color': meta?.color ?? '#888' } as React.CSSProperties}
+              onClick={() => setSelected(race)}
+            >
+              <div className={styles.raceIcon}>{meta?.icon ?? '?'}</div>
+              <div className={styles.raceName}>{t(`cards.race_${race}`)}</div>
+              <div className={styles.raceStyle}>{t(`starter.${race}_style`)}</div>
+            </div>
+          );
+        })}
       </div>
 
       <div className={styles.preview}>
         <p id="starter-preview-name">
-          {info ? `${info.icon} ${t(`cards.race_${selected!}`)}${t('starter.deck_suffix')}` : ''}
+          {selectedMeta ? `${selectedMeta.icon} ${t(`cards.race_${selected!}`)}${t('starter.deck_suffix')}` : ''}
         </p>
         <p id="starter-preview-desc">{selected ? t(`starter.${selected}_flavor`) : ''}</p>
         {selected && (

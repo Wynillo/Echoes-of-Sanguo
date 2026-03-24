@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useEffect }   from 'react';
 import { useScreen }   from '../contexts/ScreenContext.js';
-import { RARITY_COLOR } from '../../cards.js';
+import { getRarityById } from '../../type-metadata.js';
 import { TYPE_CSS, ATTR_CSS } from '../components/Card.js';
 import { Audio }        from '../../audio.js';
 import { CardType, isEffectMonster } from '../../types.js';
@@ -43,7 +43,7 @@ export default function PackOpeningScreen() {
       <div className={styles.grid}>
         {_cards.map((card, i) => {
           const isNew    = !ownedBefore.has(card.id);
-          const rarColor = (RARITY_COLOR as any)[(card as any).rarity] || '#aaa';
+          const rarColor = getRarityById((card as any).rarity)?.color ?? '#aaa';
           return (
             <div
               key={i}

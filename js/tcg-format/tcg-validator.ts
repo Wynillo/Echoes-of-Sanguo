@@ -103,6 +103,21 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
     }
   }
 
+  // 3b. Validate types.json if present (optional file)
+  const typesFile = zip.file('types.json');
+  if (typesFile) {
+    try {
+      const typesJson = await typesFile.async('string');
+      const typesData = JSON.parse(typesJson);
+      const typesErrors = validateTypesJson(typesData);
+      if (typesErrors.length > 0) {
+        warnings.push(...typesErrors.map(e => `types.json: ${e}`));
+      }
+    } catch (e) {
+      warnings.push(`types.json: failed to parse JSON: ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
   // 4. Check img/ folder exists
   const hasImgFolder = allFiles.some(f => f.startsWith('img/'));
   if (!hasImgFolder) {
@@ -175,4 +190,50 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
     : undefined;
 
   return { valid, errors, warnings, contents };
+}
+
+/**
+ * Validate a types.json object. Returns an array of warning strings
+ * (types.json is optional, so issues are warnings not errors).
+ */
+function validateTypesJson(data: unknown): string[] {
+  const warnings: string[] = [];
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    warnings.push('must be a JSON object');
+    return warnings;
+  }
+
+  const obj = data as Record<string, unknown>;
+  const REQUIRED_KEYS: Record<string, string[]> = {
+    races:      ['id', 'key', 'color', 'icon', 'symbol', 'abbr'],
+    attributes: ['id', 'key', 'color', 'symbol', 'name'],
+    rarities:   ['id', 'key', 'color', 'name'],
+    cardTypes:  ['id', 'key', 'label', 'css'],
+  };
+
+  for (const [section, requiredFields] of Object.entries(REQUIRED_KEYS)) {
+    if (!(section in obj)) continue;
+    const arr = obj[section];
+    if (!Array.isArray(arr)) {
+      warnings.push(`${section} must be an array`);
+      continue;
+    }
+    for (let i = 0; i < arr.length; i++) {
+      const item = arr[i];
+      if (typeof item !== 'object' || item === null) {
+        warnings.push(`${section}[${i}] must be an object`);
+        continue;
+      }
+      for (const field of requiredFields) {
+        if (!(field in item)) {
+          warnings.push(`${section}[${i}] missing required field '${field}'`);
+        }
+      }
+      if (typeof item.id !== 'number') {
+        warnings.push(`${section}[${i}].id must be a number`);
+      }
+    }
+  }
+
+  return warnings;
 }

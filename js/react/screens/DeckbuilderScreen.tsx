@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }        from '../contexts/ModalContext.js';
-import { CARD_DB, RARITY_COLOR, RARITY_NAME } from '../../cards.js';
+import { CARD_DB } from '../../cards.js';
 import { Progression }     from '../../progression.js';
 import { Card, TYPE_CSS, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { CardType, Race, Rarity, isMonsterType } from '../../types.js';
+import { getAllRaces, getAllRarities, getRarityById, getCardTypeById } from '../../type-metadata.js';
 import type { CardData }   from '../../types.js';
 import styles from './DeckbuilderScreen.module.css';
 import { GAME_RULES } from '../../rules.js';
@@ -16,20 +17,6 @@ const MAX_DECK = GAME_RULES.maxDeckSize;
 const MAX_COPIES = GAME_RULES.maxCardCopies;
 
 type ViewMode = 'large' | 'small' | 'table';
-
-const RACE_FILTERS: { key: 'all' | Race; label: string }[] = [
-  { key: 'all',             label: '🌐' },
-  { key: Race.Fire,         label: '🔥' },
-  { key: Race.Dragon,       label: '🐲' },
-  { key: Race.Flyer,        label: '🦅' },
-  { key: Race.Stone,        label: '🪨' },
-  { key: Race.Plant,        label: '🌿' },
-  { key: Race.Warrior,      label: '⚔️' },
-  { key: Race.Spellcaster,  label: '🔮' },
-  { key: Race.Elf,          label: '✨' },
-  { key: Race.Demon,        label: '💀' },
-  { key: Race.Water,        label: '🌊' },
-];
 
 export default function DeckbuilderScreen() {
   const { navigateTo }                        = useScreen();
@@ -205,12 +192,17 @@ export default function DeckbuilderScreen() {
               ))}
             </div>
             <div className={styles.filterGroup}>
-              {RACE_FILTERS.map(f => (
+              <button
+                key="all"
+                className={`${styles.filterBtn} ${styles.raceBtn}${raceFilter === 'all' ? ` ${styles.active}` : ''}`}
+                onClick={() => setRaceFilter('all')}
+              >🌐</button>
+              {getAllRaces().map(rm => (
                 <button
-                  key={f.key}
-                  className={`${styles.filterBtn} ${styles.raceBtn}${raceFilter === f.key ? ` ${styles.active}` : ''}`}
-                  onClick={() => setRaceFilter(f.key)}
-                >{f.label}</button>
+                  key={rm.id}
+                  className={`${styles.filterBtn} ${styles.raceBtn}${raceFilter === rm.id ? ` ${styles.active}` : ''}`}
+                  onClick={() => setRaceFilter(rm.id as Race)}
+                >{rm.icon}</button>
               ))}
             </div>
             <div className={styles.filterGroup}>
@@ -220,11 +212,9 @@ export default function DeckbuilderScreen() {
                 onChange={e => setRarityFilter(e.target.value === 'all' ? 'all' : Number(e.target.value) as Rarity)}
               >
                 <option value="all">{t('deckbuilder.rarity_all')}</option>
-                <option value={Rarity.Common}>Common</option>
-                <option value={Rarity.Uncommon}>Uncommon</option>
-                <option value={Rarity.Rare}>Rare</option>
-                <option value={Rarity.SuperRare}>Super Rare</option>
-                <option value={Rarity.UltraRare}>Ultra Rare</option>
+                {getAllRarities().map(rm => (
+                  <option key={rm.id} value={rm.id}>{rm.name}</option>
+                ))}
               </select>
               <input
                 className={styles.nameSearch}
@@ -300,7 +290,8 @@ export default function DeckbuilderScreen() {
                     const atMax      = copies >= MAX_COPIES;
                     const full       = currentDeck.length >= MAX_DECK;
                     const ownedCount = collectionCount[card.id] || 0;
-                    const rarColor   = RARITY_COLOR[card.rarity as number] || '#aaa';
+                    const rarMeta    = getRarityById(card.rarity as number);
+                    const rarColor   = rarMeta?.color ?? '#aaa';
                     const typeLbl    = card.type === CardType.Monster && card.effect
                       ? t('deckbuilder.type_label_effect')
                       : (TYPE_LABEL[card.type] || '');
@@ -319,7 +310,7 @@ export default function DeckbuilderScreen() {
                         </td>
                         <td>
                           <span style={{ color: rarColor }}>
-                            {card.rarity ? RARITY_NAME[card.rarity] || '—' : '—'}
+                            {rarMeta?.name ?? '—'}
                           </span>
                         </td>
                         <td>{card.name}</td>

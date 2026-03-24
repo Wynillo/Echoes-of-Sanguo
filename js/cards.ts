@@ -4,47 +4,57 @@
 // ============================================================
 import type { CardData, FusionRecipe, OpponentConfig } from './types.js';
 import { CardType, Attribute, Race, Rarity } from './types.js';
+import {
+  getRaceByKey, getAttrByKey, getRarityById,
+  getAllRaces, getAllRarities, TYPE_META,
+} from './type-metadata.js';
 
 export const TYPE = CardType;
 export const RARITY = Rarity;
 
-// ── Display helpers (static, used by React screens) ──────────
-export const RARITY_COLOR: Record<number, string> = {
-  [Rarity.Common]:    '#aaa',
-  [Rarity.Uncommon]:  '#7ec8e3',
-  [Rarity.Rare]:      '#f5c518',
-  [Rarity.SuperRare]: '#c084fc',
-  [Rarity.UltraRare]: '#f97316',
-};
+// ── Display helpers (backward-compatible re-exports from type-metadata) ──
 
-export const RARITY_NAME: Record<number, string> = {
-  [Rarity.Common]:    'Common',
-  [Rarity.Uncommon]:  'Uncommon',
-  [Rarity.Rare]:      'Rare',
-  [Rarity.SuperRare]: 'Super Rare',
-  [Rarity.UltraRare]: 'Ultra Rare',
-};
+/** @deprecated Use getRarityById() from type-metadata.ts instead */
+export const RARITY_COLOR: Record<number, string> = new Proxy({} as Record<number, string>, {
+  get(_t, prop) { const id = Number(prop); return getRarityById(id)?.color ?? '#aaa'; },
+  ownKeys() { return TYPE_META.rarities.map(r => String(r.id)); },
+  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
+});
 
-// Keys match i18n suffixes (cards.race_<key>) and old card string values
-export const RACE_ICON: Record<string, string> = {
-  feuer: '🔥', drache: '🐲', flug: '🦅', stein: '🪨',
-  pflanze: '🌿', krieger: '⚔️', magier: '🔮',
-  elfe: '✨', daemon: '💀', wasser: '🌊',
-};
+/** @deprecated Use getRarityById() from type-metadata.ts instead */
+export const RARITY_NAME: Record<number, string> = new Proxy({} as Record<number, string>, {
+  get(_t, prop) { const id = Number(prop); return getRarityById(id)?.name ?? ''; },
+  ownKeys() { return TYPE_META.rarities.map(r => String(r.id)); },
+  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
+});
 
-export const RACE_NAME: Record<string, string> = {
-  feuer: 'Feuer', drache: 'Drache', flug: 'Flug', stein: 'Stein',
-  pflanze: 'Pflanze', krieger: 'Krieger', magier: 'Magier',
-  elfe: 'Elfe', daemon: 'Dämon', wasser: 'Wasser',
-};
+/** @deprecated Use getRaceByKey() from type-metadata.ts instead */
+export const RACE_ICON: Record<string, string> = new Proxy({} as Record<string, string>, {
+  get(_t, prop) { return getRaceByKey(String(prop))?.icon ?? ''; },
+  ownKeys() { return TYPE_META.races.map(r => r.key); },
+  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
+});
 
-export const ATTR_SYMBOL: Record<string, string> = {
-  fire: '♨', water: '◎', earth: '◆', wind: '∿', light: '☀', dark: '☽',
-};
+/** @deprecated Use getRaceByKey() from type-metadata.ts instead */
+export const RACE_NAME: Record<string, string> = new Proxy({} as Record<string, string>, {
+  get(_t, prop) { return getRaceByKey(String(prop))?.abbr ?? ''; },
+  ownKeys() { return TYPE_META.races.map(r => r.key); },
+  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
+});
 
-export const ATTR_NAME: Record<string, string> = {
-  fire: 'Feuer', water: 'Wasser', earth: 'Erde', wind: 'Wind', light: 'Licht', dark: 'Dunkel',
-};
+/** @deprecated Use getAttrByKey() from type-metadata.ts instead */
+export const ATTR_SYMBOL: Record<string, string> = new Proxy({} as Record<string, string>, {
+  get(_t, prop) { return getAttrByKey(String(prop))?.symbol ?? '✦'; },
+  ownKeys() { return TYPE_META.attributes.map(a => a.key); },
+  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
+});
+
+/** @deprecated Use getAttrByKey() from type-metadata.ts instead */
+export const ATTR_NAME: Record<string, string> = new Proxy({} as Record<string, string>, {
+  get(_t, prop) { return getAttrByKey(String(prop))?.name ?? ''; },
+  ownKeys() { return TYPE_META.attributes.map(a => a.key); },
+  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
+});
 
 // ── Runtime data stores (populated by tcg-loader from base.tcg) ──
 export const CARD_DB: Record<string, CardData> = {};
