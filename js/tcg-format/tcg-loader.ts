@@ -37,7 +37,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     throw new Error(`Invalid .tcg file:\n${result.errors.join('\n')}`);
   }
 
-  const { cards, definitions, imageIds } = result.contents;
+  const { cards, definitions, imageIds, manifest } = result.contents;
 
   // Load id_migration.json for reverse mapping (numeric → original string ID)
   let reverseIdMap: Record<number, string> = {};
@@ -120,6 +120,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     definitions,
     images,
     meta,
+    manifest,
     warnings: result.warnings,
   };
 }

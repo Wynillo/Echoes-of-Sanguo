@@ -80,6 +80,16 @@ export interface TcgOpponentDeck {
   behavior?: string;    // AI behavior profile name (e.g. 'aggressive', 'defensive')
 }
 
+// ── Manifest (format versioning & feature flags) ────────────────
+
+export interface TcgManifest {
+  formatVersion: number;
+  name?: string;
+  author?: string;
+  features?: string[];
+  minEngineVersion?: string;
+}
+
 // ── TCG Archive metadata ──────────────────────────────────────
 
 
@@ -104,5 +114,6 @@ export interface TcgLoadResult {
   definitions: Map<string, TcgCardDefinition[]>;  // lang -> definitions
   images:      Map<number, string>;               // card id -> blob URL
   meta?:       TcgMeta;
+  manifest?:   TcgManifest;
   warnings:    string[];
 }

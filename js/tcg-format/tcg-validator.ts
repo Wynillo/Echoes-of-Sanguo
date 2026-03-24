@@ -4,7 +4,7 @@
 // ============================================================
 
 import type JSZip from 'jszip';
-import type { TcgCard, TcgCardDefinition, ValidationResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgManifest, ValidationResult } from './types.js';
 import { validateTcgCards } from './card-validator.js';
 import { validateTcgDefinitions } from './def-validator.js';
 
@@ -16,6 +16,7 @@ export interface TcgArchiveContents {
   definitions: Map<string, TcgCardDefinition[]>;   // lang (or '') -> definitions
   imageIds: Set<number>;                            // card ids that have images
   missingImageIds: number[];                        // card ids without images
+  manifest?: TcgManifest;                           // parsed manifest.json if present
 }
 
 /**
@@ -123,9 +124,28 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
     }
   }
 
+  // 6. Validate manifest.json (optional)
+  let manifest: TcgManifest | undefined;
+  const manifestFile = zip.file('manifest.json');
+  if (manifestFile) {
+    try {
+      const manifestJson = await manifestFile.async('string');
+      const parsed = JSON.parse(manifestJson);
+      if (typeof parsed.formatVersion !== 'number' || parsed.formatVersion <= 0) {
+        errors.push('manifest.json: formatVersion must be a positive number');
+      } else {
+        manifest = parsed as TcgManifest;
+      }
+    } catch (e) {
+      errors.push(`manifest.json: failed to parse JSON: ${e instanceof Error ? e.message : e}`);
+    }
+  } else {
+    warnings.push('manifest.json not found — consider adding one for format versioning');
+  }
+
   const valid = errors.length === 0;
   const contents: TcgArchiveContents | undefined = valid
-    ? { cards, definitions, imageIds, missingImageIds }
+    ? { cards, definitions, imageIds, missingImageIds, manifest }
     : undefined;
 
   return { valid, errors, warnings, contents };

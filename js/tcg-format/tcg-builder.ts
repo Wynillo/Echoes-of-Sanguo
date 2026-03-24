@@ -4,7 +4,7 @@
 // ============================================================
 import type { CardData } from '../types.js';
 import { CardType } from '../types.js';
-import type { TcgCard, TcgCardDefinition } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgManifest } from './types.js';
 import { cardTypeToInt, attributeToInt, raceToInt, rarityToInt, spellTypeToInt, trapTriggerToInt } from './enums.js';
 import { serializeEffect } from './effect-serializer.js';
 
@@ -34,5 +34,15 @@ export function cardDataToTcgDef(card: CardData, numId: number): TcgCardDefiniti
     id:          numId,
     name:        card.name,
     description: card.description ?? '',
+  };
+}
+
+/**
+ * Create a default TcgManifest with sensible defaults.
+ */
+export function buildManifest(overrides?: Partial<TcgManifest>): TcgManifest {
+  return {
+    formatVersion: 1,
+    ...overrides,
   };
 }
