@@ -1,0 +1,135 @@
+{
+  "chapters": [
+    {
+      "id": "ch1_egypt",
+      "titleKey": "chapter_1_title",
+      "nodes": [
+        {
+          "id": "n_prologue",
+          "type": "story",
+          "position": { "x": 120, "y": 100 },
+          "mapIcon": null,
+          "unlockCondition": null,
+          "rewards": null,
+          "scene": {
+            "background": "campaign/backgrounds/egypt_palace.png",
+            "dialogue": [
+              {
+                "textKey": "n_prologue_line_1",
+                "speaker": "narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": []
+              },
+              {
+                "textKey": "n_prologue_line_2",
+                "speaker": "narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              }
+            ]
+          }
+        },
+        {
+          "id": "n_warmup_duel",
+          "type": "duel",
+          "position": { "x": 240, "y": 220 },
+          "mapIcon": null,
+          "unlockCondition": { "type": "nodeComplete", "nodeId": "n_prologue" },
+          "rewards": { "coins": 100, "cards": null, "unlocks": null },
+          "opponentId": 1,
+          "isBoss": false,
+          "preDialogue": null,
+          "postDialogue": {
+            "background": "campaign/backgrounds/egypt_palace.png",
+            "dialogue": [
+              {
+                "textKey": "n_warmup_post_1",
+                "speaker": "teana",
+                "portrait": "campaign/portraits/teana_happy.png",
+                "side": "right",
+                "foregrounds": [
+                  {
+                    "sprite": "campaign/sprites/teana_idle.png",
+                    "position": "right",
+                    "flipX": true,
+                    "active": true
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "n_heishin",
+          "type": "duel",
+          "position": { "x": 340, "y": 448 },
+          "mapIcon": "campaign/map_icons/heishin_icon.png",
+          "unlockCondition": { "type": "nodeComplete", "nodeId": "n_warmup_duel" },
+          "rewards": { "coins": 500, "cards": null, "unlocks": null },
+          "opponentId": 6,
+          "isBoss": true,
+          "preDialogue": {
+            "background": "campaign/backgrounds/egypt_palace.png",
+            "dialogue": [
+              {
+                "textKey": "heishin_pre_duel_1",
+                "speaker": "heishin",
+                "portrait": "campaign/portraits/heishin_neutral.png",
+                "side": "left",
+                "foregrounds": [
+                  {
+                    "sprite": "campaign/sprites/heishin_idle.png",
+                    "position": "left",
+                    "flipX": false,
+                    "active": true
+                  }
+                ]
+              },
+              {
+                "textKey": "heishin_pre_duel_2",
+                "speaker": "heishin",
+                "portrait": "campaign/portraits/heishin_angry.png",
+                "side": "left",
+                "foregrounds": [
+                  {
+                    "sprite": "campaign/sprites/heishin_angry.png",
+                    "position": "left",
+                    "flipX": false,
+                    "active": true
+                  },
+                  {
+                    "sprite": "campaign/sprites/player_idle.png",
+                    "position": "right",
+                    "flipX": true,
+                    "active": true
+                  }
+                ]
+              }
+            ]
+          },
+          "postDialogue": {
+            "background": "campaign/backgrounds/egypt_palace.png",
+            "dialogue": [
+              {
+                "textKey": "heishin_post_duel_1",
+                "speaker": "heishin",
+                "portrait": "campaign/portraits/heishin_neutral.png",
+                "side": "left",
+                "foregrounds": [
+                  {
+                    "sprite": "campaign/sprites/heishin_idle.png",
+                    "position": "center",
+                    "flipX": false,
+                    "active": false
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -201,3 +201,51 @@ export interface TcgLoadResult {
   manifest?:   TcgManifest;
   warnings:    string[];
 }
+
+// ── Campaign System ───────────────────────────────────────────
+
+export type NodeStatus = 'locked' | 'available' | 'complete';
+export type CampaignProgress = Record<string, NodeStatus>;
+
+export interface CampaignData { chapters: CampaignChapter[]; }
+export interface CampaignChapter { id: string; titleKey: string; nodes: CampaignNode[]; }
+
+export type CampaignNode = DuelNode | StoryNode | RewardNode | ShopNode | BranchNode;
+
+interface NodeBase {
+  id: string;
+  type: string;
+  position: { x: number; y: number };
+  mapIcon: string | null;
+  unlockCondition: UnlockCondition | null;
+  rewards: CampaignRewards | null;
+}
+export interface DuelNode   extends NodeBase { type: 'duel';   opponentId: number; isBoss: boolean; preDialogue: DialogueScene | null; postDialogue: DialogueScene | null; }
+export interface StoryNode  extends NodeBase { type: 'story';  scene: DialogueScene; }
+export interface RewardNode extends NodeBase { type: 'reward'; }
+export interface ShopNode   extends NodeBase { type: 'shop';   shopId: string; }
+export interface BranchNode extends NodeBase { type: 'branch'; promptKey: string; options: { labelKey: string; unlocks: string[] }[]; }
+
+export type UnlockCondition =
+  | { type: 'nodeComplete'; nodeId: string }
+  | { type: 'allComplete';  nodeIds: string[] }
+  | { type: 'anyComplete';  nodeIds: string[] }
+  | { type: 'cardOwned';    cardId: number }
+  | { type: 'winsCount';    count: number };
+
+export interface CampaignRewards { coins: number | null; cards: string[] | null; unlocks: string[] | null; }
+
+export interface DialogueScene { background: string; dialogue: DialogueLine[]; }
+export interface DialogueLine {
+  textKey: string;
+  speaker: string;
+  portrait: string | null;
+  side: 'left' | 'right';
+  foregrounds: ForegroundSprite[] | null;
+}
+export interface ForegroundSprite {
+  sprite: string;
+  position: 'far-left' | 'left' | 'center' | 'right' | 'far-right';
+  flipX: boolean;
+  active: boolean;
+}
