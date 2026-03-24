@@ -61,7 +61,7 @@ tests/                     # Vitest unit/integration tests
 tests-e2e/                 # Playwright E2E tests
 css/                       # style.css, animations.css, progression.css
 locales/                   # de.json, en.json
-public/                    # base.tcg, audio/, images
+public/                    # base.tcg, audio/, title-bg.png
 android/                   # Capacitor Android project
 ```
 
