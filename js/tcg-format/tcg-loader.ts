@@ -6,11 +6,12 @@
 import JSZip from 'jszip';
 import type { CardData, CardEffectBlock, FusionRecipe, OpponentConfig } from '../types.js';
 import { Race } from '../types.js';
-import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgLoadResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgTypesJson, TcgLoadResult } from './types.js';
 import { validateTcgArchive } from './tcg-validator.js';
 import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
 import { deserializeEffect } from './effect-serializer.js';
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../cards.js';
+import { applyTypeMeta } from '../type-metadata.js';
 
 /**
  * Load a .tcg file from a URL or ArrayBuffer.
@@ -108,6 +109,18 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     const originalId = reverseIdMap[tc.id];
     const cardData = tcgCardToCardData(tc, def, originalId);
     CARD_DB[cardData.id] = cardData;
+  }
+
+  // Load types.json if present (enum visual metadata)
+  const typesFile = zip.file('types.json');
+  if (typesFile) {
+    try {
+      const typesJson = await typesFile.async('string');
+      const typesData: TcgTypesJson = JSON.parse(typesJson);
+      applyTypeMeta(typesData);
+    } catch {
+      result.warnings.push('types.json: failed to parse, using defaults');
+    }
   }
 
   // Apply meta to game data stores

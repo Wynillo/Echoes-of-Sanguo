@@ -3,26 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }        from '../contexts/ModalContext.js';
-import { CARD_DB, RARITY_COLOR } from '../../cards.js';
+import { CARD_DB } from '../../cards.js';
 import { Card, TYPE_CSS, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { Race, Rarity } from '../../types.js';
+import { getAllRaces, getAllRarities, getRarityById } from '../../type-metadata.js';
 import type { CardData } from '../../types.js';
 import styles from './CollectionScreen.module.css';
-
-const RACE_FILTER_BTNS: { filter: 'all' | Race; label: string }[] = [
-  { filter: 'all',             label: '🌐' },
-  { filter: Race.Fire,         label: '🔥' },
-  { filter: Race.Dragon,       label: '🐲' },
-  { filter: Race.Flyer,        label: '🦅' },
-  { filter: Race.Stone,        label: '🪨' },
-  { filter: Race.Plant,        label: '🌿' },
-  { filter: Race.Warrior,      label: '⚔️' },
-  { filter: Race.Spellcaster,  label: '🔮' },
-  { filter: Race.Elf,          label: '✨' },
-  { filter: Race.Demon,        label: '💀' },
-  { filter: Race.Water,        label: '🌊' },
-];
 
 export default function CollectionScreen() {
   const { navigateTo }  = useScreen();
@@ -53,13 +40,20 @@ export default function CollectionScreen() {
       </div>
 
       <div className={styles.filters}>
-        {RACE_FILTER_BTNS.map(({ filter, label }) => (
+        <button
+          key="all"
+          className={`${styles.filterBtn}${raceFilter === 'all' ? ` ${styles.active}` : ''}`}
+          onClick={() => setRaceFilter('all')}
+        >
+          🌐
+        </button>
+        {getAllRaces().map(rm => (
           <button
-            key={filter}
-            className={`${styles.filterBtn}${raceFilter === filter ? ` ${styles.active}` : ''}`}
-            onClick={() => setRaceFilter(filter)}
+            key={rm.id}
+            className={`${styles.filterBtn}${raceFilter === rm.id ? ` ${styles.active}` : ''}`}
+            onClick={() => setRaceFilter(rm.id as Race)}
           >
-            {label}
+            {rm.icon}
           </button>
         ))}
         <select
@@ -68,18 +62,16 @@ export default function CollectionScreen() {
           onChange={e => setRarityFilter(e.target.value === 'all' ? 'all' : Number(e.target.value) as Rarity)}
         >
           <option value="all">{t('collection.rarity_all')}</option>
-          <option value={Rarity.Common}>Common</option>
-          <option value={Rarity.Uncommon}>Uncommon</option>
-          <option value={Rarity.Rare}>Rare</option>
-          <option value={Rarity.SuperRare}>Super Rare</option>
-          <option value={Rarity.UltraRare}>Ultra Rare</option>
+          {getAllRarities().map(rm => (
+            <option key={rm.id} value={rm.id}>{rm.name}</option>
+          ))}
         </select>
       </div>
 
       <div className={styles.grid}>
         {allCards.map(card => {
           const owned = countMap[card.id] || 0;
-          const rarColor = (RARITY_COLOR as any)[(card as any).rarity] || '#aaa';
+          const rarColor = getRarityById((card as any).rarity)?.color ?? '#aaa';
           if (owned) {
             return (
               <div

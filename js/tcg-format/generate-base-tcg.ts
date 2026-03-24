@@ -13,6 +13,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import type { TcgOpponentDeck } from './types.js';
+import { buildTypesJson } from './tcg-builder.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '../../');
@@ -51,6 +52,11 @@ async function main() {
     console.log(`  opponents/${filename} (id=${parsed.id}, name=${parsed.name})`);
     zip.file(`opponents/${filename}`, JSON.stringify(parsed));
   }
+
+  // Add types.json (enum visual metadata)
+  const typesJson = buildTypesJson();
+  zip.file('types.json', JSON.stringify(typesJson));
+  console.log('Added types.json (enum visual metadata)');
 
   // Write back to public/base.tcg
   const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
