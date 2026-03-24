@@ -250,14 +250,10 @@ describe('openPack edge cases', () => {
     localStorage.clear();
   });
 
-  it('unknown pack type still returns 9 cards (uses standard rarity slots)', () => {
-    // _pickRarity falls through to the standard distribution for unknown pack types
+  it('unknown pack type returns empty array', () => {
+    // Data-driven packs: unknown pack ID has no definition, so openPack returns []
     const cards = openPack('nonexistent');
-    expect(cards).toHaveLength(9);
-    cards.forEach(card => {
-      expect(card).toBeDefined();
-      expect(card).not.toBeNull();
-    });
+    expect(cards).toHaveLength(0);
   });
 
   it('race with very few cards still returns 9 cards via fallback', () => {

@@ -1,0 +1,102 @@
+// ============================================================
+// ECHOES OF SANGUO — Shop Data Store
+// Runtime store for pack definitions and shop configuration.
+// Loaded from shop.json inside .tcg archives; defaults match
+// the original hardcoded pack-logic values.
+// ============================================================
+
+export interface PackSlotDef {
+  count: number;
+  rarity?: number;                      // Rarity enum int (1=C, 2=U, 4=R, 6=SR, 8=UR)
+  pool?: string;                        // e.g. 'guaranteed_rare_plus', 'guaranteed_sr_plus'
+  distribution?: Record<string, number>; // rarity int -> probability
+}
+
+export interface PackDef {
+  id: string;
+  name: string;
+  desc: string;
+  price: number;
+  icon: string;
+  color: string;
+  slots: PackSlotDef[];
+  filter?: string;                      // 'byRace' or undefined
+}
+
+export interface ShopData {
+  packs: PackDef[];
+  currency: { nameKey: string; icon: string };
+}
+
+// ── Slot templates ──────────────────────────────────────────
+
+const STANDARD_SLOTS: PackSlotDef[] = [
+  { count: 5, rarity: 1 },                                              // slots 1-5: Common
+  { count: 2, rarity: 2 },                                              // slots 6-7: Uncommon
+  { count: 1, rarity: 4 },                                              // slot 8: Rare
+  { count: 1, pool: 'guaranteed_rare_plus', distribution: { '4': 0.75, '6': 0.20, '8': 0.05 } }, // slot 9
+];
+
+const RARITY_SLOTS: PackSlotDef[] = [
+  { count: 7, rarity: 4 },                                              // slots 1-7: Rare
+  { count: 2, pool: 'guaranteed_sr_plus', distribution: { '4': 0.55, '6': 0.30, '8': 0.15 } }, // slots 8-9
+];
+
+// ── Default shop data (matches original hardcoded values) ───
+
+export const SHOP_DATA: ShopData = {
+  packs: [
+    {
+      id: 'starter',
+      name: 'Starterpack',
+      desc: '9 Karten \u00b7 Eine Rasse \u00b7 C/U-lastig',
+      price: 200,
+      icon: '\u2726',
+      color: '#4080a0',
+      slots: STANDARD_SLOTS,
+      filter: 'byRace',
+    },
+    {
+      id: 'race',
+      name: 'Rassen-Pack',
+      desc: '9 Karten \u00b7 Gew\u00e4hlte Rasse \u00b7 Standard',
+      price: 350,
+      icon: '\u2694',
+      color: '#a06020',
+      slots: STANDARD_SLOTS,
+      filter: 'byRace',
+    },
+    {
+      id: 'aether',
+      name: 'Jade-Pack',
+      desc: '9 Karten \u00b7 Alle Rassen \u00b7 Standard',
+      price: 500,
+      icon: '\u25c8',
+      color: '#2a7848',
+      slots: STANDARD_SLOTS,
+    },
+    {
+      id: 'rarity',
+      name: 'Seltenheitspack',
+      desc: '9 Karten \u00b7 Min. Rare \u00b7 Erh\u00f6hte SR/UR-Chance',
+      price: 600,
+      icon: '\u2605',
+      color: '#c0a020',
+      slots: RARITY_SLOTS,
+    },
+  ],
+  currency: { nameKey: 'common.coins', icon: '\u25c8' },
+};
+
+/**
+ * Merge externally loaded shop data into the runtime store.
+ * Partial updates are supported — only provided fields are overwritten.
+ */
+export function applyShopData(data: Partial<ShopData>): void {
+  if (data.packs) {
+    SHOP_DATA.packs = data.packs;
+  }
+  if (data.currency) {
+    Object.assign(SHOP_DATA.currency, data.currency);
+  }
+}

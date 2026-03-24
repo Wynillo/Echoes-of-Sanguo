@@ -125,6 +125,31 @@ export interface ValidationResult {
   warnings: string[];
 }
 
+// ── Shop JSON schema ─────────────────────────────────────────
+
+export interface TcgPackSlot {
+  count: number;
+  rarity?: number;
+  pool?: string;
+  distribution?: Record<string, number>;
+}
+
+export interface TcgPackDef {
+  id: string;
+  name: string;
+  desc: string;
+  price: number;
+  icon: string;
+  color: string;
+  slots: TcgPackSlot[];
+  filter?: string;
+}
+
+export interface TcgShopJson {
+  packs: TcgPackDef[];
+  currency?: { nameKey: string; icon: string };
+}
+
 // ── Load result ──────────────────────────────────────────────
 
 export interface TcgLoadResult {
