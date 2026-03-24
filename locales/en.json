@@ -13,6 +13,7 @@
     "subtitle": "Wolong's Awakening",
     "new_game": "New Game",
     "load_game": "Load Game",
+    "campaign": "Campaign",
     "options": "Options",
     "quit": "Quit Game",
     "confirm_new_game": "Start new game?\nYour progress is preserved until the next save point."

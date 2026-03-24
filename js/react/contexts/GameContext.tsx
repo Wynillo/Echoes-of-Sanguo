@@ -4,6 +4,7 @@ import { useModal } from './ModalContext.js';
 import { useSelection } from './SelectionContext.js';
 import { useProgression } from './ProgressionContext.js';
 import { useScreen } from './ScreenContext.js';
+import { useCampaign } from './CampaignContext.js';
 import { Audio } from '../../audio.js';
 
 interface GameCtx {
@@ -33,14 +34,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const { openModal }     = useModal();
   const { resetSel }      = useSelection();
   const { currentDeck, loadDeck, refresh } = useProgression();
-  const { setScreen }     = useScreen();
+  const { setScreen, navigateTo } = useScreen();
+  const { pendingDuel, setPendingDuel } = useCampaign();
 
   // Stable refs so useMemo(() => uiCallbacks, []) can safely use current values
-  const openModalRef   = useRef(openModal);   openModalRef.current   = openModal;
-  const resetSelRef    = useRef(resetSel);    resetSelRef.current    = resetSel;
-  const setScreenRef   = useRef(setScreen);   setScreenRef.current   = setScreen;
-  const refreshRef     = useRef(refresh);     refreshRef.current     = refresh;
-  const lastOppRef     = useRef<OpponentConfig | null>(null);
+  const openModalRef      = useRef(openModal);      openModalRef.current      = openModal;
+  const resetSelRef       = useRef(resetSel);       resetSelRef.current       = resetSel;
+  const setScreenRef      = useRef(setScreen);      setScreenRef.current      = setScreen;
+  const navigateToRef     = useRef(navigateTo);     navigateToRef.current     = navigateTo;
+  const refreshRef        = useRef(refresh);        refreshRef.current        = refresh;
+  const pendingDuelRef    = useRef(pendingDuel);    pendingDuelRef.current    = pendingDuel;
+  const setPendingDuelRef = useRef(setPendingDuel); setPendingDuelRef.current = setPendingDuel;
+  const lastOppRef        = useRef<OpponentConfig | null>(null);
 
   const uiCallbacks = useMemo<UICallbacks>(() => ({
     render: (state) => setGameState({ ...state }),
@@ -65,6 +70,35 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     },
     onDuelEnd: (result, opponentId) => {
       Audio.playMusic(result === 'victory' ? 'music_victory' : 'music_defeat');
+
+      // Campaign duel: skip normal result modal, route to dialogue/campaign
+      const pending = pendingDuelRef.current;
+      if (pending) {
+        setPendingDuelRef.current(null);
+        import('../../progression.js').then(({ Progression }) => {
+          Progression.setNodeStatus(pending.nodeId, result === 'victory' ? 'complete' : 'available');
+          if (result === 'victory') {
+            if (pending.rewards) {
+              if (pending.rewards.coins) Progression.addCoins(pending.rewards.coins);
+              if (pending.rewards.cards?.length) Progression.addCardsToCollection(pending.rewards.cards);
+            }
+            refreshRef.current();
+            if (pending.postDialogue) {
+              navigateToRef.current('dialogue', {
+                scene: pending.postDialogue as unknown as Record<string, unknown>,
+                nextScreen: 'campaign',
+              });
+            } else {
+              navigateToRef.current('campaign');
+            }
+          } else {
+            navigateToRef.current('campaign');
+          }
+        });
+        return;
+      }
+
+      // Standard (non-campaign) duel flow
       let coinsEarned = 0;
       if (opponentId) {
         import('../../cards.js').then(({ OPPONENT_CONFIGS }) => {
