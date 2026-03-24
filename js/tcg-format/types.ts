@@ -80,6 +80,15 @@ export interface TcgOpponentDeck {
   behavior?: string;    // AI behavior profile name (e.g. 'aggressive', 'defensive')
 }
 
+// ── Opponent Description (localized) ────────────────────────────
+
+export interface TcgOpponentDescription {
+  id:     number;
+  name:   string;
+  title:  string;
+  flavor: string;
+}
+
 // ── TCG Archive metadata ──────────────────────────────────────
 
 

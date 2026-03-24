@@ -18,6 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '../../');
 const TCG_PATH  = join(REPO_ROOT, 'public/base.tcg');
 const SRC_DIR   = join(REPO_ROOT, 'base-ac-src/opponents');
+const BASE_SRC  = join(REPO_ROOT, 'base-ac-src');
 
 async function main() {
   console.log(`Reading ${TCG_PATH} ...`);
@@ -50,6 +51,24 @@ async function main() {
     const parsed: TcgOpponentDeck = JSON.parse(raw);
     console.log(`  opponents/${filename} (id=${parsed.id}, name=${parsed.name})`);
     zip.file(`opponents/${filename}`, JSON.stringify(parsed));
+  }
+
+  // Add opponent description files (xx_opponents_description.json)
+  const OPP_DESC_REGEX = /^[a-z]{2}_opponents_description\.json$/;
+  const baseSrcFiles = await readdir(BASE_SRC);
+  const oppDescFiles = baseSrcFiles.filter(f => OPP_DESC_REGEX.test(f)).sort();
+
+  // Remove any existing opponent description files from the ZIP
+  Object.keys(zip.files)
+    .filter(f => /^([a-z]{2}_)?opponents_description\.json$/.test(f))
+    .forEach(f => zip.remove(f));
+
+  console.log(`Adding ${oppDescFiles.length} opponent description files...`);
+  for (const filename of oppDescFiles) {
+    const raw = await readFile(join(BASE_SRC, filename), 'utf-8');
+    const parsed = JSON.parse(raw);
+    console.log(`  ${filename} (${parsed.length} entries)`);
+    zip.file(filename, JSON.stringify(parsed));
   }
 
   // Write back to public/base.tcg

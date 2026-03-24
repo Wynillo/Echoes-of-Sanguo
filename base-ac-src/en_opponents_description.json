@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "name": "Apprentice Finn",
+    "title": "Warrior Apprentice",
+    "flavor": "An inexperienced fighter. Perfect for practice."
+  },
+  {
+    "id": 2,
+    "name": "Gardener Mira",
+    "title": "Guardian of the Forest",
+    "flavor": "She lets her plants fight for her."
+  },
+  {
+    "id": 3,
+    "name": "Whisperer Syl",
+    "title": "Elven Enchantress",
+    "flavor": "Her magical words paralyze any attacker."
+  },
+  {
+    "id": 4,
+    "name": "Deep Sea Fisher Rok",
+    "title": "Lord of the Deep Sea",
+    "flavor": "The deep sea holds unimagined dangers."
+  },
+  {
+    "id": 5,
+    "name": "Volcano Smith Tor",
+    "title": "Master of Flames",
+    "flavor": "His fire knows no mercy."
+  },
+  {
+    "id": 6,
+    "name": "Stone Guardian Grom",
+    "title": "Warden of the Rocks",
+    "flavor": "Unyielding as the stone itself."
+  },
+  {
+    "id": 7,
+    "name": "Shadow Dealer Vex",
+    "title": "Dealer of Darkness",
+    "flavor": "He trades in souls and secrets."
+  },
+  {
+    "id": 8,
+    "name": "Wind Weaver Ara",
+    "title": "Ruler of the Skies",
+    "flavor": "The wind carries her messages to the ends of the world."
+  },
+  {
+    "id": 9,
+    "name": "Archmage Theron",
+    "title": "Master of the Arcane",
+    "flavor": "Decades of study have made him invincible."
+  },
+  {
+    "id": 10,
+    "name": "Dragon Lord Varek",
+    "title": "Lord of Dragons",
+    "flavor": "The strongest duelist in the realm. Do you dare?"
+  }
+]

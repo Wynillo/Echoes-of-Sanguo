@@ -6,7 +6,7 @@
 import JSZip from 'jszip';
 import type { CardData, CardEffectBlock, FusionRecipe, OpponentConfig } from '../types.js';
 import { Race } from '../types.js';
-import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgLoadResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgLoadResult } from './types.js';
 import { validateTcgArchive } from './tcg-validator.js';
 import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
 import { deserializeEffect } from './effect-serializer.js';
@@ -37,7 +37,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     throw new Error(`Invalid .tcg file:\n${result.errors.join('\n')}`);
   }
 
-  const { cards, definitions, imageIds } = result.contents;
+  const { cards, definitions, opponentDescriptions, imageIds } = result.contents;
 
   // Load id_migration.json for reverse mapping (numeric → original string ID)
   let reverseIdMap: Record<number, string> = {};
@@ -110,9 +110,12 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     CARD_DB[cardData.id] = cardData;
   }
 
+  // Pick the best opponent description file (same logic as card descriptions)
+  const oppDescs = opponentDescriptions.get(lang) ?? (opponentDescriptions.size > 0 ? opponentDescriptions.values().next().value! : undefined);
+
   // Apply meta to game data stores
   if (meta) {
-    applyTcgMeta(meta, reverseIdMap, tcgOpponents);
+    applyTcgMeta(meta, reverseIdMap, tcgOpponents, oppDescs);
   }
 
   return {
@@ -167,6 +170,7 @@ function applyTcgMeta(
   meta: TcgMeta,
   reverseIdMap: Record<number, string>,
   tcgOpponents?: TcgOpponentDeck[],
+  oppDescs?: TcgOpponentDescription[],
 ): void {
   const rid = (numId: number): string => reverseIdMap[numId] ?? String(numId);
 
@@ -181,17 +185,26 @@ function applyTcgMeta(
   // Use opponents/ folder if available, else fall back to meta.opponentConfigs
   const rawOpponents = tcgOpponents ?? meta.opponentConfigs;
   if (rawOpponents) {
-    const configs: OpponentConfig[] = rawOpponents.map(o => ({
-      id:         o.id,
-      name:       o.name,
-      title:      o.title,
-      race:       intToRace(o.race),
-      flavor:     o.flavor,
-      coinsWin:   o.coinsWin,
-      coinsLoss:  o.coinsLoss,
-      deckIds:    o.deckIds.map(rid),
-      behaviorId: o.behavior,
-    }));
+    // Build lookup from opponent descriptions (localized name/title/flavor)
+    const oppDescMap = new Map<number, TcgOpponentDescription>();
+    if (oppDescs) {
+      for (const d of oppDescs) oppDescMap.set(d.id, d);
+    }
+
+    const configs: OpponentConfig[] = rawOpponents.map(o => {
+      const desc = oppDescMap.get(o.id);
+      return {
+        id:         o.id,
+        name:       desc?.name ?? o.name,
+        title:      desc?.title ?? o.title,
+        race:       intToRace(o.race),
+        flavor:     desc?.flavor ?? o.flavor,
+        coinsWin:   o.coinsWin,
+        coinsLoss:  o.coinsLoss,
+        deckIds:    o.deckIds.map(rid),
+        behaviorId: o.behavior,
+      };
+    });
     OPPONENT_CONFIGS.push(...configs);
   }
 

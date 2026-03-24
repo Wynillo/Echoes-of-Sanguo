@@ -4,16 +4,21 @@
 // ============================================================
 
 import type JSZip from 'jszip';
-import type { TcgCard, TcgCardDefinition, ValidationResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgOpponentDescription, ValidationResult } from './types.js';
 import { validateTcgCards } from './card-validator.js';
 import { validateTcgDefinitions } from './def-validator.js';
+import { validateTcgOpponentDescriptions } from './opp-desc-validator.js';
 
 /** Regex matching valid description file names: cards_description.json or xx_cards_description.json */
 const DESC_FILE_REGEX = /^([a-z]{2}_)?cards_description\.json$/;
 
+/** Regex matching opponent description files: opponents_description.json or xx_opponents_description.json */
+const OPP_DESC_FILE_REGEX = /^([a-z]{2}_)?opponents_description\.json$/;
+
 export interface TcgArchiveContents {
   cards: TcgCard[];
   definitions: Map<string, TcgCardDefinition[]>;   // lang (or '') -> definitions
+  opponentDescriptions: Map<string, TcgOpponentDescription[]>;  // lang (or '') -> opponent descriptions
   imageIds: Set<number>;                            // card ids that have images
   missingImageIds: number[];                        // card ids without images
 }
@@ -76,13 +81,34 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
     }
   }
 
-  // 3. Check img/ folder exists
+  // 3. Parse opponent description files (optional)
+  const oppDescFiles = allFiles.filter(f => OPP_DESC_FILE_REGEX.test(f));
+  const opponentDescriptions = new Map<string, TcgOpponentDescription[]>();
+  for (const oppDescFile of oppDescFiles) {
+    const match = oppDescFile.match(OPP_DESC_FILE_REGEX);
+    const lang = match?.[1]?.replace('_', '') ?? '';
+
+    try {
+      const descJson = await zip.file(oppDescFile)!.async('string');
+      const descData = JSON.parse(descJson);
+      const descResult = validateTcgOpponentDescriptions(descData);
+      if (!descResult.valid) {
+        errors.push(...descResult.errors.map(e => `${oppDescFile}: ${e}`));
+      }
+      warnings.push(...descResult.warnings);
+      if (descResult.valid) opponentDescriptions.set(lang, descData as TcgOpponentDescription[]);
+    } catch (e) {
+      errors.push(`${oppDescFile}: failed to parse JSON: ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
+  // 4. Check img/ folder exists
   const hasImgFolder = allFiles.some(f => f.startsWith('img/'));
   if (!hasImgFolder) {
     errors.push('Missing required folder: img/');
   }
 
-  // 4. Cross-validate: every card id must have a definition in at least one description file
+  // 5. Cross-validate: every card id must have a definition in at least one description file
   if (cards.length > 0 && definitions.size > 0) {
     const allDefinedIds = new Set<number>();
     for (const defs of definitions.values()) {
@@ -107,7 +133,7 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
     }
   }
 
-  // 5. Check images: img/{id}.png for each card
+  // 6. Check images: img/{id}.png for each card
   const imageIds = new Set<number>();
   const missingImageIds: number[] = [];
 
@@ -125,7 +151,7 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
 
   const valid = errors.length === 0;
   const contents: TcgArchiveContents | undefined = valid
-    ? { cards, definitions, imageIds, missingImageIds }
+    ? { cards, definitions, opponentDescriptions, imageIds, missingImageIds }
     : undefined;
 
   return { valid, errors, warnings, contents };
