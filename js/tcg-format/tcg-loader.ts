@@ -6,7 +6,7 @@
 import JSZip from 'jszip';
 import type { CardData, CardEffectBlock, FusionRecipe, OpponentConfig } from '../types.js';
 import { Race } from '../types.js';
-import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgTypesJson, TcgShopJson, TcgLoadResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgTypesJson, TcgShopJson, TcgCampaignJson, TcgLoadResult } from './types.js';
 import { validateTcgArchive } from './tcg-validator.js';
 import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
 import { deserializeEffect } from './effect-serializer.js';
@@ -15,6 +15,8 @@ import { applyRules } from '../rules.js';
 import type { GameRules } from '../rules.js';
 import { applyTypeMeta } from '../type-metadata.js';
 import { applyShopData } from '../shop-data.js';
+import { applyCampaignData } from '../campaign-store.js';
+import { validateCampaignJson } from './tcg-validator.js';
 
 /**
  * Load a .tcg file from a URL or ArrayBuffer.
@@ -147,6 +149,20 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
       applyTypeMeta(typesData);
     } catch {
       result.warnings.push('types.json: failed to parse, using defaults');
+    }
+  }
+
+  // Load campaign.json if present
+  const campaignFile = zip.file('campaign.json');
+  if (campaignFile) {
+    try {
+      const campaignJson = await campaignFile.async('string');
+      const campaignData: TcgCampaignJson = JSON.parse(campaignJson);
+      const campaignWarnings = validateCampaignJson(campaignData);
+      result.warnings.push(...campaignWarnings);
+      applyCampaignData(campaignData);
+    } catch {
+      result.warnings.push('campaign.json: failed to parse, skipping');
     }
   }
 

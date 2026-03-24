@@ -4,7 +4,7 @@
 // ============================================================
 
 import type JSZip from 'jszip';
-import type { TcgCard, TcgCardDefinition, TcgOpponentDescription, TcgManifest, ValidationResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgOpponentDescription, TcgManifest, TcgCampaignJson, ValidationResult } from './types.js';
 import { validateTcgCards } from './card-validator.js';
 import { validateTcgDefinitions } from './def-validator.js';
 import { validateTcgOpponentDescriptions } from './opp-desc-validator.js';
@@ -232,6 +232,108 @@ function validateTypesJson(data: unknown): string[] {
       if (typeof item.id !== 'number') {
         warnings.push(`${section}[${i}].id must be a number`);
       }
+    }
+  }
+
+  return warnings;
+}
+
+/**
+ * Validate a campaign.json object. Returns an array of warning strings
+ * (campaign.json is optional, so issues are warnings not errors).
+ */
+export function validateCampaignJson(data: unknown): string[] {
+  const warnings: string[] = [];
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    warnings.push('campaign.json: must be a JSON object');
+    return warnings;
+  }
+
+  const obj = data as Record<string, unknown>;
+  if (!Array.isArray(obj.chapters)) {
+    warnings.push('campaign.json: chapters must be an array');
+    return warnings;
+  }
+
+  const VALID_NODE_TYPES = ['duel', 'story', 'reward', 'shop', 'branch'];
+  const VALID_CONDITION_TYPES = ['nodeComplete', 'allComplete', 'anyComplete', 'cardOwned', 'winsCount'];
+  const allNodeIds = new Set<string>();
+  const referencedNodeIds = new Set<string>();
+
+  // First pass: collect all node IDs and check for duplicates
+  for (const chapter of obj.chapters as unknown[]) {
+    if (typeof chapter !== 'object' || chapter === null) {
+      warnings.push('campaign.json: each chapter must be an object');
+      continue;
+    }
+    const ch = chapter as Record<string, unknown>;
+    if (!Array.isArray(ch.nodes)) {
+      warnings.push(`campaign.json: chapter "${ch.id ?? '?'}": nodes must be an array`);
+      continue;
+    }
+    for (const node of ch.nodes as unknown[]) {
+      if (typeof node !== 'object' || node === null) {
+        warnings.push('campaign.json: each node must be an object');
+        continue;
+      }
+      const n = node as Record<string, unknown>;
+
+      // Required fields
+      if (typeof n.id !== 'string') {
+        warnings.push('campaign.json: node missing required field "id"');
+        continue;
+      }
+      if (allNodeIds.has(n.id)) {
+        warnings.push(`campaign.json: duplicate node ID "${n.id}"`);
+      }
+      allNodeIds.add(n.id);
+
+      if (typeof n.type !== 'string' || !VALID_NODE_TYPES.includes(n.type)) {
+        warnings.push(`campaign.json: node "${n.id}": invalid type "${n.type}" (expected: ${VALID_NODE_TYPES.join(', ')})`);
+      }
+
+      if (typeof n.position !== 'object' || n.position === null) {
+        warnings.push(`campaign.json: node "${n.id}": missing required field "position"`);
+      } else {
+        const pos = n.position as Record<string, unknown>;
+        if (typeof pos.x !== 'number' || typeof pos.y !== 'number') {
+          warnings.push(`campaign.json: node "${n.id}": position must have numeric x and y`);
+        }
+      }
+
+      // Validate unlock conditions and collect referenced node IDs
+      if (n.unlockCondition !== null && n.unlockCondition !== undefined) {
+        const cond = n.unlockCondition as Record<string, unknown>;
+        if (typeof cond.type !== 'string' || !VALID_CONDITION_TYPES.includes(cond.type)) {
+          warnings.push(`campaign.json: node "${n.id}": invalid unlock condition type "${cond.type}"`);
+        } else {
+          switch (cond.type) {
+            case 'nodeComplete':
+              if (typeof cond.nodeId === 'string') referencedNodeIds.add(cond.nodeId);
+              break;
+            case 'allComplete':
+            case 'anyComplete':
+              if (Array.isArray(cond.nodeIds)) {
+                for (const id of cond.nodeIds) {
+                  if (typeof id === 'string') referencedNodeIds.add(id);
+                }
+              }
+              break;
+          }
+        }
+      }
+
+      // Validate opponentId for duel nodes (warning only)
+      if (n.type === 'duel' && n.opponentId !== undefined && typeof n.opponentId !== 'number') {
+        warnings.push(`campaign.json: node "${n.id}": opponentId must be a number`);
+      }
+    }
+  }
+
+  // Second pass: check that referenced node IDs exist
+  for (const refId of referencedNodeIds) {
+    if (!allNodeIds.has(refId)) {
+      warnings.push(`campaign.json: unlock condition references unknown node ID "${refId}"`);
     }
   }
 

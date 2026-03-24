@@ -4,6 +4,7 @@
 // ============================================================
 
 import type { CollectionEntry, OpponentRecord } from './types.js';
+import type { CampaignProgress } from './campaign-types.js';
 
 export const Progression = (() => {
 
@@ -17,7 +18,8 @@ export const Progression = (() => {
     opponents:      'tcg_opponents',
     version:        'tcg_save_version',
     settings:       'tcg_settings',
-    seenCards:      'tcg_seen_cards',
+    seenCards:        'tcg_seen_cards',
+    campaignProgress: 'tcg_campaign_progress',
   };
 
   const SAVE_VERSION   = 1;   // increment when save format changes incompatibly
@@ -234,6 +236,31 @@ export const Progression = (() => {
     _save(KEYS.seenCards, [...seen]);
   }
 
+  // ── Campaign Progress ───────────────────────────────────
+
+  function getCampaignProgress(): CampaignProgress {
+    return _load(KEYS.campaignProgress, { completedNodes: [], currentChapter: 'ch1' },
+      v => v !== null && typeof v === 'object' && Array.isArray(v.completedNodes));
+  }
+
+  function saveCampaignProgress(progress: CampaignProgress): void {
+    _save(KEYS.campaignProgress, progress);
+  }
+
+  function markNodeComplete(nodeId: string): CampaignProgress {
+    const progress = getCampaignProgress();
+    if (!progress.completedNodes.includes(nodeId)) {
+      progress.completedNodes.push(nodeId);
+      saveCampaignProgress(progress);
+    }
+    return progress;
+  }
+
+  function isNodeComplete(nodeId: string): boolean {
+    const progress = getCampaignProgress();
+    return progress.completedNodes.includes(nodeId);
+  }
+
   // ── Debug / Reset ────────────────────────────────────────
 
   /** Setzt alle Progression-Daten zurück (nur für Debug) */
@@ -302,6 +329,11 @@ export const Progression = (() => {
     // Gesehene Karten
     getSeenCards,
     markCardsAsSeen,
+    // Campaign
+    getCampaignProgress,
+    saveCampaignProgress,
+    markNodeComplete,
+    isNodeComplete,
     // Debug
     resetAll,
     // Soft-Reset

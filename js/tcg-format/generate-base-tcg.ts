@@ -92,6 +92,17 @@ async function main() {
   zip.file('shop.json', shopJson);
   console.log('Added shop.json');
 
+  // Add campaign.json if present in base-ac-src/
+  const campaignPath = join(BASE_SRC, 'campaign.json');
+  try {
+    const campaignRaw = await readFile(campaignPath, 'utf-8');
+    JSON.parse(campaignRaw); // validate JSON
+    zip.file('campaign.json', campaignRaw);
+    console.log('Added campaign.json');
+  } catch {
+    console.log('No campaign.json found in base-ac-src/, skipping');
+  }
+
   // Write back to public/base.tcg
   const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
   await writeFile(TCG_PATH, out);

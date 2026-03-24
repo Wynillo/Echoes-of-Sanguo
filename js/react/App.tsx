@@ -2,6 +2,7 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from '../i18n.js';
 import { ScreenProvider, useScreen } from './contexts/ScreenContext.js';
 import { ProgressionProvider } from './contexts/ProgressionContext.js';
+import { CampaignProvider } from './contexts/CampaignContext.js';
 import { ModalProvider } from './contexts/ModalContext.js';
 import { SelectionProvider } from './contexts/SelectionContext.js';
 import { GameProvider } from './contexts/GameContext.js';
@@ -12,6 +13,7 @@ import PressStartScreen from './screens/PressStartScreen.js';
 import TitleScreen      from './screens/TitleScreen.js';
 import StarterScreen    from './screens/StarterScreen.js';
 import OpponentScreen   from './screens/OpponentScreen.js';
+import CampaignScreen   from './screens/CampaignScreen.js';
 import CollectionScreen from './screens/CollectionScreen.js';
 import ShopScreen       from './screens/ShopScreen.js';
 import PackOpeningScreen from './screens/PackOpeningScreen.js';
@@ -32,6 +34,7 @@ function Router() {
       {screen === 'title'        && <TitleScreen />}
       {screen === 'starter'      && <StarterScreen />}
       {screen === 'opponent'     && <OpponentScreen />}
+      {screen === 'campaign'     && <CampaignScreen />}
       {screen === 'collection'   && <CollectionScreen />}
       {screen === 'shop'         && <ShopScreen />}
       {screen === 'pack-opening' && <PackOpeningScreen />}
@@ -56,13 +59,15 @@ export default function App() {
       <ErrorBoundary>
         <ScreenProvider>
           <ProgressionProvider>
-            <ModalProvider>
-              <SelectionProvider>
-                <GameProvider>
-                  <Router />
-                </GameProvider>
-              </SelectionProvider>
-            </ModalProvider>
+            <CampaignProvider>
+              <ModalProvider>
+                <SelectionProvider>
+                  <GameProvider>
+                    <Router />
+                  </GameProvider>
+                </SelectionProvider>
+              </ModalProvider>
+            </CampaignProvider>
           </ProgressionProvider>
         </ScreenProvider>
       </ErrorBoundary>

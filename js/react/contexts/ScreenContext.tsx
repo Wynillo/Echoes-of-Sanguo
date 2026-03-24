@@ -12,7 +12,8 @@ export type Screen =
   | 'pack-opening'
   | 'collection'
   | 'deckbuilder'
-  | 'save-point';
+  | 'save-point'
+  | 'campaign';
 
 interface ScreenCtx {
   screen: Screen;
@@ -26,6 +27,7 @@ const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
   title:          'music_title',
   starter:        'music_title',
   opponent:       'music_title',
+  campaign:       'music_title',
   game:           'music_battle',
   shop:           'music_shop',
   'pack-opening': 'music_shop',

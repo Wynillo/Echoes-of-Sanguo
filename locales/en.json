@@ -197,6 +197,28 @@
     "title": "Choose Monster from Graveyard",
     "cancel": "✕ Cancel"
   },
+  "campaign": {
+    "title": "Campaign",
+    "chapter": "Chapter",
+    "locked": "Locked",
+    "completed": "Completed",
+    "available": "Available",
+    "no_data": "No campaign data loaded.",
+    "chapter_ch1": "The Path of the Warrior",
+    "node_duel_1": "Duel 1",
+    "node_duel_2": "Duel 2",
+    "node_duel_3": "Duel 3",
+    "node_duel_4a": "Duel 4",
+    "node_duel_5a": "Duel 5",
+    "node_duel_4b": "Duel 6",
+    "node_story_mid": "Story",
+    "node_duel_7": "Duel 7",
+    "node_duel_8": "Duel 8",
+    "node_duel_9": "Duel 9",
+    "node_duel_10": "Final Boss",
+    "story_mid_1": "The two paths converge...",
+    "story_mid_2": "A greater threat awaits beyond the river."
+  },
   "cards": {
     "race_feuer": "Fire",
     "race_drache": "Dragon",

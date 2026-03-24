@@ -197,6 +197,28 @@
     "title": "Monster aus dem Friedhof wählen",
     "cancel": "✕ Abbrechen"
   },
+  "campaign": {
+    "title": "Kampagne",
+    "chapter": "Kapitel",
+    "locked": "Gesperrt",
+    "completed": "Abgeschlossen",
+    "available": "Verf\u00fcgbar",
+    "no_data": "Keine Kampagnendaten geladen.",
+    "chapter_ch1": "Der Pfad des Kriegers",
+    "node_duel_1": "Duell 1",
+    "node_duel_2": "Duell 2",
+    "node_duel_3": "Duell 3",
+    "node_duel_4a": "Duell 4",
+    "node_duel_5a": "Duell 5",
+    "node_duel_4b": "Duell 6",
+    "node_story_mid": "Geschichte",
+    "node_duel_7": "Duell 7",
+    "node_duel_8": "Duell 8",
+    "node_duel_9": "Duell 9",
+    "node_duel_10": "Endboss",
+    "story_mid_1": "Die beiden Pfade vereinen sich...",
+    "story_mid_2": "Eine gr\u00f6\u00dfere Bedrohung wartet jenseits des Flusses."
+  },
   "cards": {
     "race_feuer": "Feuer",
     "race_drache": "Drache",
