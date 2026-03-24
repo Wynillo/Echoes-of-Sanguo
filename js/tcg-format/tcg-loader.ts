@@ -145,12 +145,13 @@ export async function loadTcgFolder(baseUrl: string): Promise<TcgLoadResult> {
     applyTypeMeta({ rarities: raritiesData });
   }
 
-  // Scan opponents/ folder — try opponent_deck_1..N
+  // Scan opponents/ folder — load exactly as many as described in en_opponents_description.json
+  // (avoids a probe 404 on the first missing file)
+  const opponentCount = enOppDescs?.length ?? 0;
   const tcgOpponents: TcgOpponentDeck[] = [];
-  for (let i = 1; i <= 50; i++) {
+  for (let i = 1; i <= opponentCount; i++) {
     const oppData = await fetchJson<TcgOpponentDeck>(`opponents/opponent_deck_${i}.json`);
-    if (!oppData) break;
-    tcgOpponents.push(oppData);
+    if (oppData) tcgOpponents.push(oppData);
   }
   tcgOpponents.sort((a, b) => a.id - b.id);
 
