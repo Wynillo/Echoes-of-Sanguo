@@ -182,14 +182,15 @@ function applyTcgMeta(
   const rawOpponents = tcgOpponents ?? meta.opponentConfigs;
   if (rawOpponents) {
     const configs: OpponentConfig[] = rawOpponents.map(o => ({
-      id:        o.id,
-      name:      o.name,
-      title:     o.title,
-      race:      intToRace(o.race),
-      flavor:    o.flavor,
-      coinsWin:  o.coinsWin,
-      coinsLoss: o.coinsLoss,
-      deckIds:   o.deckIds.map(rid),
+      id:         o.id,
+      name:       o.name,
+      title:      o.title,
+      race:       intToRace(o.race),
+      flavor:     o.flavor,
+      coinsWin:   o.coinsWin,
+      coinsLoss:  o.coinsLoss,
+      deckIds:    o.deckIds.map(rid),
+      behaviorId: o.behavior,
     }));
     OPPONENT_CONFIGS.push(...configs);
   }

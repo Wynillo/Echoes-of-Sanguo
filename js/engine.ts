@@ -11,7 +11,8 @@ import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, OPPONENT_DECK_IDS, PLAYER_DE
 import { Progression } from './progression.js';
 import { executeEffectBlock, extractPassiveFlags } from './effect-registry.js';
 import { CardType, Attribute, isMonsterType } from './types.js';
-import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, PlayerState, UICallbacks, OpponentConfig, VsAttrBonus } from './types.js';
+import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, PlayerState, UICallbacks, OpponentConfig, VsAttrBonus, AIBehavior } from './types.js';
+import { resolveAIBehavior, shouldActivateNormalSpell, pickSummonCandidate, decideSummonPosition } from './ai-behaviors.js';
 
 const ownerLabel = (owner: Owner): string => owner === 'player' ? 'Spieler' : 'Gegner';
 
@@ -182,6 +183,7 @@ export class GameEngine {
   ui: any;
   _trapResolve: any;
   _currentOpponentId: any;
+  _aiBehavior!: Required<AIBehavior>;
 
   constructor(uiCallbacks: UICallbacks){
     this.ui = uiCallbacks; // { render, log, prompt, showResult, onDuelEnd }
@@ -198,6 +200,7 @@ export class GameEngine {
     EchoesOfSanguo.startSession();
     const oppDeckIds = (opponentConfig && opponentConfig.deckIds) ? opponentConfig.deckIds : OPPONENT_DECK_IDS;
     this._currentOpponentId = (opponentConfig && opponentConfig.id) ? opponentConfig.id : null;
+    this._aiBehavior = resolveAIBehavior(opponentConfig?.behaviorId);
     this.state = {
       phase: 'main',        // 'draw'|'main'|'battle'|'end'
       turn: 1,
@@ -825,13 +828,15 @@ export class GameEngine {
     await this._delay(400);
 
     // Try fusion first (max. 1 per turn)
+    const bh = this._aiBehavior;
     EchoesOfSanguo.log('AI', 'Hauptphase – prüfe Fusion...');
-    if(!ai.normalSummonUsed){
+    if(!ai.normalSummonUsed && bh.fusionFirst){
       const opts = this.getAllFusionOptions('opponent');
       if(opts.length > 0){
         const best = opts.sort((a,b) => (b.result.atk ?? 0) - (a.result.atk ?? 0))[0];
+        const bestATKValue = best.result.atk ?? 0;
         const zone = ai.field.monsters.findIndex(z => z === null);
-        if(zone !== -1){
+        if(zone !== -1 && bestATKValue >= bh.fusionMinATK){
           EchoesOfSanguo.log('AI', `Fusion: ${best.card1.name} + ${best.card2.name} → ${best.result.name} (Zone ${zone})`);
           await this._delay(500);
           this.performFusion('opponent', best.i1, best.i2);
@@ -842,17 +847,12 @@ export class GameEngine {
     }
 
     // Summon one monster from hand (max. 1 per turn)
-    // Prefer highest-ATK monster; set in DEF if weaker than all player monsters.
     EchoesOfSanguo.log('AI', 'Beschwöre Monster aus Hand:', ai.hand.filter(c => c.type === CardType.Monster).map(c=>c.name));
     if(!ai.normalSummonUsed){
-      let bestIdx = -1, bestATK = -1;
-      for(let i = 0; i < ai.hand.length; i++){
-        const card = ai.hand[i];
-        if(card.type !== CardType.Monster) continue;
-        if((card.atk ?? 0) > bestATK){ bestATK = card.atk ?? 0; bestIdx = i; }
-      }
+      const bestIdx = pickSummonCandidate(ai.hand, bh.summonPriority);
       if(bestIdx !== -1){
         const card = ai.hand[bestIdx];
+        const cardATK = card.atk ?? 0;
         const zone = ai.field.monsters.findIndex(z => z === null);
         if(zone === -1){
           EchoesOfSanguo.log('AI', 'Alle Monsterzonen belegt.');
@@ -860,8 +860,9 @@ export class GameEngine {
           const plrMinVal = plr.field.monsters
             .filter(Boolean)
             .reduce((min, fc) => Math.min(min, fc!.position==='atk' ? fc!.effectiveATK() : fc!.effectiveDEF()), Infinity);
-          const summonPos = (plr.field.monsters.some(Boolean) && bestATK < plrMinVal) ? 'def' : 'atk';
-          EchoesOfSanguo.log('SUMMON', `Beschwöre ${card.name} (ATK:${bestATK}) in Zone ${zone} als ${summonPos.toUpperCase()}`);
+          const playerHasMonsters = plr.field.monsters.some(Boolean);
+          const summonPos = decideSummonPosition(cardATK, plrMinVal, playerHasMonsters, bh.positionStrategy);
+          EchoesOfSanguo.log('SUMMON', `Beschwöre ${card.name} (ATK:${cardATK}) in Zone ${zone} als ${summonPos.toUpperCase()}`);
           await this._delay(350);
           this.summonMonster('opponent', bestIdx, zone, summonPos);
           const summonedFC = ai.field.monsters[zone];
@@ -888,8 +889,7 @@ export class GameEngine {
         if(card.type !== CardType.Spell) continue;
         let activated = false;
         if(card.spellType === 'normal'){
-          const should = (card.id==='S001' && plr.lp>800) || (card.id==='S002' && ai.lp<5000) || card.id==='S005';
-          if(should){
+          if(shouldActivateNormalSpell(card.id, bh, plr.lp, ai.lp)){
             EchoesOfSanguo.log('SPELL', `Aktiviere ${card.name} (normal)`);
             await this._delay(300); await this.activateSpell('opponent', i); activated = true;
           } else {
@@ -970,37 +970,15 @@ export class GameEngine {
         await this.attackDirect('opponent', az);
         if(this.checkWin()) return true;
       } else {
-        // Priority 1: attack the strongest monster we can destroy (maximise board damage)
-        let bestTarget = -1;
-        let bestScore  = -Infinity;
-        for(let dz = 0; dz < 5; dz++){
-          const def = plrMonsters[dz];
-          if(!def) continue;
+        const battleTarget = this._aiBattlePickTarget(atk, plrMonsters);
+        if(battleTarget !== -1){
+          const def = plrMonsters[battleTarget]!;
           const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
-          if(atk.effectiveATK() > defVal){
-            if(defVal > bestScore){ bestScore = defVal; bestTarget = dz; }
-          }
-        }
-        if(bestTarget !== -1){
-          EchoesOfSanguo.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → greift ${plrMonsters[bestTarget]!.card.name}(${bestScore}) an [kann zerstören]`);
-          await this.attack('opponent', az, bestTarget);
+          EchoesOfSanguo.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → greift ${def.card.name}(${defVal}) an`);
+          await this.attack('opponent', az, battleTarget);
           if(this.checkWin()) return true;
         } else {
-          // Priority 2: only attack DEF-position targets to avoid taking LP damage
-          let safeTarget = -1, safeVal = Infinity;
-          for(let dz = 0; dz < 5; dz++){
-            const def = plrMonsters[dz];
-            if(!def || def.position !== 'def') continue;
-            const defVal = def.effectiveDEF();
-            if(atk.effectiveATK() >= defVal && defVal < safeVal){ safeVal = defVal; safeTarget = dz; }
-          }
-          if(safeTarget !== -1){
-            EchoesOfSanguo.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → greift DEF-Monster ${plrMonsters[safeTarget]!.card.name}(DEF:${safeVal}) an [kein LP-Verlust]`);
-            await this.attack('opponent', az, safeTarget);
-            if(this.checkWin()) return true;
-          } else {
-            EchoesOfSanguo.log('BATTLE', `${atk.card.name}: kein günstiges Ziel – überspringen (verhindert unnötigen LP-Verlust)`);
-          }
+          EchoesOfSanguo.log('BATTLE', `${atk.card.name}: kein günstiges Ziel – überspringen`);
         }
       }
     }
@@ -1008,6 +986,61 @@ export class GameEngine {
   }
 
   _delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  /** Pick the best attack target based on the active battle strategy. Returns zone index or -1. */
+  _aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard | null>): number {
+    const strategy = this._aiBehavior.battleStrategy;
+
+    if (strategy === 'aggressive') {
+      // Attack anything — prefer highest-value target we can destroy, then any target at all
+      let bestTarget = -1, bestScore = -Infinity;
+      for (let dz = 0; dz < 5; dz++) {
+        const def = plrMonsters[dz];
+        if (!def) continue;
+        const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
+        if (atk.effectiveATK() > defVal) {
+          if (defVal > bestScore) { bestScore = defVal; bestTarget = dz; }
+        }
+      }
+      if (bestTarget !== -1) return bestTarget;
+      // Aggressive: attack even unfavorably — pick weakest target to minimize damage
+      let weakest = -1, weakVal = Infinity;
+      for (let dz = 0; dz < 5; dz++) {
+        const def = plrMonsters[dz];
+        if (!def) continue;
+        const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
+        if (defVal < weakVal) { weakVal = defVal; weakest = dz; }
+      }
+      return weakest;
+    }
+
+    // 'smart' and 'conservative' both start with: destroy strongest possible
+    let bestTarget = -1, bestScore = -Infinity;
+    for (let dz = 0; dz < 5; dz++) {
+      const def = plrMonsters[dz];
+      if (!def) continue;
+      const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
+      if (atk.effectiveATK() > defVal) {
+        if (defVal > bestScore) { bestScore = defVal; bestTarget = dz; }
+      }
+    }
+    if (bestTarget !== -1) return bestTarget;
+
+    if (strategy === 'conservative') {
+      // Only guaranteed destroys — nothing else
+      return -1;
+    }
+
+    // 'smart': also attack DEF-position targets safely (no LP loss)
+    let safeTarget = -1, safeVal = Infinity;
+    for (let dz = 0; dz < 5; dz++) {
+      const def = plrMonsters[dz];
+      if (!def || def.position !== 'def') continue;
+      const defVal = def.effectiveDEF();
+      if (atk.effectiveATK() >= defVal && defVal < safeVal) { safeVal = defVal; safeTarget = dz; }
+    }
+    return safeTarget;
+  }
 
   // ───────── Position change ───────────────────────────────
   changePosition(owner, zone){

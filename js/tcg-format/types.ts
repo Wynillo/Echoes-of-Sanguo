@@ -72,11 +72,12 @@ export interface TcgOpponentDeck {
   id:        number;
   name:      string;
   title:     string;
-  race:      number;   // TCG int (1-10), converted to Race enum by loader
+  race:      number;    // TCG int (1-10), converted to Race enum by loader
   flavor:    string;
   coinsWin:  number;
   coinsLoss: number;
-  deckIds:   number[]; // numeric card IDs, converted to string IDs by loader
+  deckIds:   number[];  // numeric card IDs, converted to string IDs by loader
+  behavior?: string;    // AI behavior profile name (e.g. 'aggressive', 'defensive')
 }
 
 // ── TCG Archive metadata ──────────────────────────────────────
