@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
 import { executeEffectBlock, extractPassiveFlags, EFFECT_REGISTRY, registerEffect } from '../js/effect-registry.js';
 
@@ -550,5 +550,404 @@ describe('extractPassiveFlags edge cases', () => {
     });
     expect(flags.piercing).toBe(true);
     expect(flags.cannotBeTargeted).toBe(false);
+  });
+});
+
+// ── Additional edge cases for branch coverage ───────────────
+
+describe('bounceAttacker — attacker not on field', () => {
+  it('adds card to hand even when attacker is not found in monsters array', () => {
+    const attacker = { card: { name: 'Ghost' } };
+    const oppHand = [];
+    const monsters = [null, null, null, null, null]; // attacker not present
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: [null, null, null, null, null] } },
+        opponent: { field: { monsters }, hand: oppHand },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onAttack', actions: [{ type: 'bounceAttacker' }] },
+      ctx(e, 'player', { attacker }),
+    );
+    // Card is pushed to hand regardless, but indexOf returns -1 so no slot is nulled
+    expect(oppHand).toContain(attacker.card);
+    expect(monsters.every(m => m === null)).toBe(true);
+  });
+});
+
+describe('bounceStrongestOpp — owner is opponent', () => {
+  it('bounces the strongest player monster when owner is opponent', () => {
+    const fm = { card: { name: 'PlayerMon' }, effectiveATK: () => 800 };
+    const playerHand = [];
+    const monsters = [fm, null, null, null, null];
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters }, hand: playerHand },
+        opponent: { field: { monsters: [null, null, null, null, null] } },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'bounceStrongestOpp' }] },
+      ctx(e, 'opponent'),
+    );
+    expect(monsters[0]).toBeNull();
+    expect(playerHand).toContain(fm.card);
+  });
+
+  it('picks first monster when all have equal ATK', () => {
+    const fm1 = { card: { name: 'A' }, effectiveATK: () => 1500 };
+    const fm2 = { card: { name: 'B' }, effectiveATK: () => 1500 };
+    const oppHand = [];
+    const monsters = [fm1, null, fm2, null, null];
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: [null, null, null, null, null] } },
+        opponent: { field: { monsters }, hand: oppHand },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'bounceStrongestOpp' }] },
+      ctx(e),
+    );
+    // With strict > comparison, the first one (index 0) wins
+    expect(oppHand).toHaveLength(1);
+    expect(monsters.filter(m => m !== null)).toHaveLength(1);
+  });
+});
+
+describe('searchDeckToHand — opponent owner', () => {
+  it('logs with "Gegner" prefix when owner is opponent', () => {
+    const waterCard = { name: 'Wasserkarte', attribute: 'water' };
+    const deck = [waterCard];
+    const hand = [];
+    const e = mockEngine({
+      getState: () => ({
+        player: { deck: [], hand: [] },
+        opponent: { deck, hand },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', attr: 'water' }] },
+      ctx(e, 'opponent'),
+    );
+    expect(hand).toContain(waterCard);
+    expect(e.addLog).toHaveBeenCalledWith(expect.stringContaining('Gegner'));
+  });
+
+  it('takes only the first matching card', () => {
+    const w1 = { name: 'W1', attribute: 'water' };
+    const w2 = { name: 'W2', attribute: 'water' };
+    const deck = [w1, w2];
+    const hand = [];
+    const e = mockEngine({
+      getState: () => ({
+        player: { deck, hand },
+        opponent: { deck: [], hand: [] },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', attr: 'water' }] },
+      ctx(e),
+    );
+    expect(hand).toHaveLength(1);
+    expect(hand[0]).toBe(w1);
+    expect(deck).toEqual([w2]);
+  });
+});
+
+describe('tempDebuffAllOpp — atkD of 0 (falsy branch)', () => {
+  it('does not modify tempATKBonus when atkD is 0', () => {
+    const fm = { card: {}, tempATKBonus: 50, permDEFBonus: 0 };
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: [null, null, null, null, null] } },
+        opponent: { field: { monsters: [fm, null, null, null, null] } },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'tempDebuffAllOpp', atkD: 0 }] },
+      ctx(e),
+    );
+    // atkD is 0 (falsy) so if(desc.atkD) is false, tempATKBonus unchanged
+    expect(fm.tempATKBonus).toBe(50);
+  });
+});
+
+describe('debuffAllOpp — owner is opponent', () => {
+  it('targets player monsters when owner is opponent', () => {
+    const fm = { card: {}, permATKBonus: 0, permDEFBonus: 0 };
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: [fm, null, null, null, null] } },
+        opponent: { field: { monsters: [null, null, null, null, null] } },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'debuffAllOpp', atkD: 100, defD: 50 }] },
+      ctx(e, 'opponent'),
+    );
+    expect(fm.permATKBonus).toBe(-100);
+    expect(fm.permDEFBonus).toBe(-50);
+  });
+
+  it('skips both debuffs when atkD=0 and defD=0', () => {
+    const fm = { card: {}, permATKBonus: 100, permDEFBonus: 100 };
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: [null, null, null, null, null] } },
+        opponent: { field: { monsters: [fm, null, null, null, null] } },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'debuffAllOpp', atkD: 0, defD: 0 }] },
+      ctx(e),
+    );
+    // Both are falsy so both if-branches are skipped
+    expect(fm.permATKBonus).toBe(100);
+    expect(fm.permDEFBonus).toBe(100);
+  });
+});
+
+describe('reviveFromGrave — opponent owner', () => {
+  it('calls specialSummonFromGrave with opponent owner', () => {
+    const card = { id: 'M005', name: 'OppRevive' };
+    const e = mockEngine();
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'reviveFromGrave' }] },
+      ctx(e, 'opponent', { targetCard: card }),
+    );
+    expect(e.specialSummonFromGrave).toHaveBeenCalledWith('opponent', card);
+  });
+});
+
+describe('gainLP edge cases', () => {
+  it('heals 0 LP', () => {
+    const e = mockEngine();
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'gainLP', target: 'self', value: 0 }] },
+      ctx(e),
+    );
+    expect(e.gainLP).toHaveBeenCalledWith('player', 0);
+  });
+
+  it('heals opponent when target is opponent', () => {
+    const e = mockEngine();
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'gainLP', target: 'opponent', value: 500 }] },
+      ctx(e),
+    );
+    expect(e.gainLP).toHaveBeenCalledWith('opponent', 500);
+  });
+});
+
+describe('dealDamage — zero value', () => {
+  it('deals 0 damage without error', () => {
+    const e = mockEngine();
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 0 }] },
+      ctx(e),
+    );
+    expect(e.dealDamage).toHaveBeenCalledWith('opponent', 0);
+  });
+});
+
+describe('bounceAllOppMonsters edge cases', () => {
+  it('does nothing when opponent field is empty', () => {
+    const oppHand = [];
+    const monsters = [null, null, null, null, null];
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: [null, null, null, null, null] } },
+        opponent: { field: { monsters }, hand: oppHand },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'bounceAllOppMonsters' }] },
+      ctx(e),
+    );
+    expect(oppHand).toHaveLength(0);
+  });
+
+  it('bounces player monsters when owner is opponent', () => {
+    const fm = { card: { name: 'PM' } };
+    const playerHand = [];
+    const monsters = [fm, null, null, null, null];
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters }, hand: playerHand },
+        opponent: { field: { monsters: [null, null, null, null, null] } },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'bounceAllOppMonsters' }] },
+      ctx(e, 'opponent'),
+    );
+    expect(monsters[0]).toBeNull();
+    expect(playerHand).toContain(fm.card);
+  });
+});
+
+describe('permAtkBonus — card without attribute and attrFilter set', () => {
+  it('skips bonus when card has no attribute property', () => {
+    const target = { card: {}, permATKBonus: 0 }; // no attribute
+    const e = mockEngine();
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 400, attrFilter: 'fire' }] },
+      ctx(e, 'player', { targetFC: target }),
+    );
+    expect(target.permATKBonus).toBe(0);
+  });
+});
+
+describe('permDefBonus — null target', () => {
+  it('does nothing when target cannot be resolved', () => {
+    const e = mockEngine();
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'permDefBonus', target: 'attacker', value: 100 }] },
+      ctx(e), // no attacker
+    );
+    // should not throw
+  });
+});
+
+describe('tempDefBonus — null target', () => {
+  it('does nothing when target cannot be resolved', () => {
+    const e = mockEngine();
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'tempDefBonus', target: 'summonedFC', value: 200 }] },
+      ctx(e), // no summonedFC
+    );
+    // should not throw
+  });
+});
+
+describe('resolveStatTarget — oppMonster via targetFC', () => {
+  it('resolves oppMonster to the same targetFC as ownMonster', () => {
+    const target = { permATKBonus: 0 };
+    const e = mockEngine();
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'oppMonster', value: -200 }] },
+      ctx(e, 'player', { targetFC: target }),
+    );
+    expect(target.permATKBonus).toBe(-200);
+  });
+});
+
+describe('summoned.atk — ceil rounding', () => {
+  it('uses ceil rounding for summoned.atk value expression', () => {
+    const e = mockEngine();
+    const summonedFC = { card: { atk: 1001 } };
+    executeEffectBlock(
+      { trigger: 'onOpponentSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: { from: 'summoned.atk', multiply: 0.5, round: 'ceil' } }] },
+      ctx(e, 'player', { summonedFC }),
+    );
+    // 1001 * 0.5 = 500.5 → ceil = 501
+    expect(e.dealDamage).toHaveBeenCalledWith('opponent', 501);
+  });
+});
+
+describe('draw — owner is opponent with self target', () => {
+  it('draws for opponent when owner is opponent and target is self', () => {
+    const e = mockEngine();
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'draw', target: 'self', count: 3 }] },
+      ctx(e, 'opponent'),
+    );
+    expect(e.drawCard).toHaveBeenCalledWith('opponent', 3);
+  });
+});
+
+describe('passive effect runtime execution', () => {
+  it('passive_piercing returns empty signal at runtime', () => {
+    const e = mockEngine();
+    const signal = executeEffectBlock(
+      { trigger: 'passive', actions: [{ type: 'passive_piercing' }] },
+      ctx(e),
+    );
+    expect(signal).toEqual({});
+  });
+
+  it('passive_untargetable returns empty signal at runtime', () => {
+    const e = mockEngine();
+    const signal = executeEffectBlock(
+      { trigger: 'passive', actions: [{ type: 'passive_untargetable' }] },
+      ctx(e),
+    );
+    expect(signal).toEqual({});
+  });
+
+  it('passive_directAttack returns empty signal at runtime', () => {
+    const e = mockEngine();
+    const signal = executeEffectBlock(
+      { trigger: 'passive', actions: [{ type: 'passive_directAttack' }] },
+      ctx(e),
+    );
+    expect(signal).toEqual({});
+  });
+
+  it('passive_vsAttrBonus returns empty signal at runtime', () => {
+    const e = mockEngine();
+    const signal = executeEffectBlock(
+      { trigger: 'passive', actions: [{ type: 'passive_vsAttrBonus', attr: 'dark', atk: 500 }] },
+      ctx(e),
+    );
+    expect(signal).toEqual({});
+  });
+
+  it('passive_phoenixRevival returns empty signal at runtime', () => {
+    const e = mockEngine();
+    const signal = executeEffectBlock(
+      { trigger: 'passive', actions: [{ type: 'passive_phoenixRevival' }] },
+      ctx(e),
+    );
+    expect(signal).toEqual({});
+  });
+});
+
+describe('destroySummonedIf — atk is 0 with minAtk 0', () => {
+  it('destroys when atk is 0 and minAtk is 0 (0 >= 0)', () => {
+    const summonedFC = { card: { name: 'ZeroAtk', atk: 0 } };
+    const e = mockEngine();
+    const signal = executeEffectBlock(
+      { trigger: 'onOpponentSummon', actions: [{ type: 'destroySummonedIf', minAtk: 0 }] },
+      ctx(e, 'player', { summonedFC }),
+    );
+    expect(signal.destroySummoned).toBe(true);
+  });
+});
+
+describe('buffAtkAttr — owner is opponent', () => {
+  it('buffs opponent field monsters when owner is opponent', () => {
+    const fm = { card: { attribute: 'fire' }, permATKBonus: 0 };
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: [null, null, null, null, null] } },
+        opponent: { field: { monsters: [fm, null, null, null, null] } },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'buffAtkAttr', attr: 'fire', value: 250 }] },
+      ctx(e, 'opponent'),
+    );
+    expect(fm.permATKBonus).toBe(250);
+  });
+});
+
+describe('tempDebuffAllOpp — owner is opponent (targets player)', () => {
+  it('debuffs player monsters when owner is opponent', () => {
+    const fm = { card: {}, tempATKBonus: 0, permDEFBonus: 0 };
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: [fm, null, null, null, null] } },
+        opponent: { field: { monsters: [null, null, null, null, null] } },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'tempDebuffAllOpp', atkD: 300, defD: 100 }] },
+      ctx(e, 'opponent'),
+    );
+    expect(fm.tempATKBonus).toBe(-300);
+    expect(fm.permDEFBonus).toBe(-100);
   });
 });
