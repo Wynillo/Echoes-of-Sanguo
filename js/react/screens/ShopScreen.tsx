@@ -4,8 +4,6 @@ import { useProgression } from '../contexts/ProgressionContext.js';
 import { Progression }    from '../../progression.js';
 import { getAllRaces, getRaceByKey } from '../../type-metadata.js';
 import { PACK_TYPES, openPack } from '../utils/pack-logic.js';
-import type { PackTypeInfo } from '../utils/pack-logic.js';
-import { setPackOpeningCards }  from './PackOpeningScreen.js';
 import { Audio }               from '../../audio.js';
 import { Race } from '../../types.js';
 import type { CardData } from '../../types.js';
@@ -24,8 +22,7 @@ export default function ShopScreen() {
     const cards   = openPack(packType, race !== null ? Number(race) as Race : null);
     Progression.addCardsToCollection(cards.map((c: CardData) => c.id));
     refresh();
-    setPackOpeningCards(cards, preOpen);
-    navigateTo('pack-opening');
+    navigateTo('pack-opening', { cards, preOpen });
   }
 
   const { t } = useTranslation();

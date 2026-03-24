@@ -72,6 +72,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
   }
 
   // Load meta.json if present
+  const SUPPORTED_TCG_VERSION = 1;
   let meta: TcgMeta | undefined;
   const metaFile = zip.file('meta.json');
   if (metaFile) {
@@ -80,6 +81,15 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
       meta = JSON.parse(metaJson);
     } catch {
       result.warnings.push('meta.json: failed to parse, skipping');
+    }
+  }
+  if (meta !== undefined) {
+    const metaVersion = (meta as any)?.version ?? 0;
+    if (typeof metaVersion === 'number' && metaVersion !== SUPPORTED_TCG_VERSION) {
+      console.warn(
+        `[TCG] Format version mismatch: archive has v${metaVersion}, ` +
+        `loader expects v${SUPPORTED_TCG_VERSION}. Some cards may fail to load.`
+      );
     }
   }
 

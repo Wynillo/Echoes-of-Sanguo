@@ -9,20 +9,13 @@ import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
 import styles from './PackOpeningScreen.module.css';
 
-// Module-level store — set by ShopScreen before navigating here
-let _cards: CardData[]           = [];
-let _preOpen: CollectionEntry[]  = [];
-
-export function setPackOpeningCards(cards: CardData[], preOpen: CollectionEntry[]) {
-  _cards   = cards;
-  _preOpen = preOpen;
-}
-
 export default function PackOpeningScreen() {
-  const { navigateTo } = useScreen();
+  const { navigateTo, screenData } = useScreen();
   const { t } = useTranslation();
 
   useEffect(() => { Audio.playSfx('sfx_pack_open'); }, []);
+
+  const { cards: _cards, preOpen: _preOpen } = (screenData as { cards: CardData[]; preOpen: CollectionEntry[] } | null) ?? { cards: [], preOpen: [] };
 
   const ownedBefore = new Set(_preOpen.filter(e => e.count > 0).map(e => e.id));
 

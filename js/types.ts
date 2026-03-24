@@ -280,6 +280,7 @@ export declare class FieldCard {
   hasAttacked:      boolean;
   summonedThisTurn: boolean;
   tempATKBonus:     number;
+  tempDEFBonus:     number;
   permATKBonus:     number;
   permDEFBonus:     number;
   phoenixRevivalUsed: boolean;
