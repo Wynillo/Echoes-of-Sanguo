@@ -1,6 +1,6 @@
 # CLAUDE.md — Echoes of Sanguo
 
-Browser-based TCG inspired by Yu-Gi-Oh! Forbidden Memories. Built with React 19, TypeScript, Vite, and a custom binary card format (.tcg).
+Browser-based TCG inspired by Yu-Gi-Oh! Forbidden Memories. Built with React 19, TypeScript, Vite, and a custom ZIP-based card format (.tcg).
 
 ## Quick Commands
 
@@ -42,9 +42,9 @@ js/
 ├── mod-api.ts             # window.EchoesOfSanguoMod API for community mods
 ├── i18n.ts                # i18next setup (de + en)
 ├── main.js                # Entry point (loads base.tcg-src, mounts React)
-├── tcg-format/            # Binary card format serialization/deserialization
-│   ├── tcg-loader.ts      # Load .tcg folder (trailing /) or ZIP → CARD_DB
-│   ├── tcg-builder.ts     # Build .tcg from card data
+├── tcg-format/            # ZIP-based card format (.tcg) — pack, load, validate
+│   ├── tcg-loader.ts      # Load .tcg ZIP → CARD_DB, FUSION_RECIPES, etc.
+│   ├── tcg-builder.ts     # Pack base.tcg-src/ → base.tcg (ZIP)
 │   ├── tcg-validator.ts   # Format validation
 │   ├── effect-serializer.ts
 │   └── generate-base-tcg.ts  # CLI script for npm run generate:tcg
@@ -72,11 +72,9 @@ public/
 │   ├── manifest.json      # Format version
 │   ├── shop.json          # Shop/booster pack definitions
 │   ├── campaign.json      # Campaign map data
-│   ├── locales/           # Key-based translation overrides (de_races.json, etc.)
-│   ├── opponents/         # Per-opponent deck JSON files
-│   ├── img/               # Card artwork PNGs
-│   ├── en_cards_description.json
-│   └── de_cards_description.json
+│   ├── id_migration.json  # String-ID → Numeric-ID mapping
+│   ├── locales/           # Translation overrides (de_cards_description.json, de_races.json, …)
+│   └── opponents/         # Per-opponent deck JSON files
 ├── audio/                 # Sound effects
 └── title-bg.png
 android/                   # Capacitor Android project
