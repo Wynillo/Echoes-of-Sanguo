@@ -154,18 +154,19 @@ ECHOES-OF-SANGUO/
 │   ├── types.ts                – Kern-Typdefinitionen (Enums, Interfaces)
 │   ├── cards.ts                – Kartendatenbank-Store & Lookup-Funktionen
 │   ├── cards-data.ts           – Erweiterte Kartendefinitionen
-│   ├── engine.ts               – Game Engine (Spiellogik, KI, Kampf, Fusion, Effekte)
+│   ├── engine.ts               – Game Engine (Spiellogik, Kampf, Fusion, Effekte)
 │   ├── effect-registry.ts      – Datengetriebener Effekt-Executor
+│   ├── ai-behaviors.ts         – KI-Verhaltensprofile (AI_BEHAVIOR_REGISTRY)
 │   ├── progression.ts          – localStorage-Manager (Münzen, Sammlung, Deck)
 │   ├── audio.ts                – SFX/Musik-Manager
 │   ├── i18n.ts                 – i18next-Setup
 │   ├── mod-api.ts              – Modding-API (window.EchoesOfSanguoMod)
-│   ├── tcg-format/              – Eigenes binäres Kartenformat (.tcg)
-│   │   ├── tcg-builder.ts       – Serialisierer: Kartendaten → Binär
-│   │   ├── tcg-loader.ts        – Deserialisierer: Binär → Spielobjekte
-│   │   ├── tcg-validator.ts     – Validierungslogik
-│   │   ├── effect-serializer.ts – Effekt-Binär-Codec
-│   │   └── generate-base-tcg.ts – CLI: base.tcg aus cards-data.ts generieren
+│   ├── tcg-format/              – Eigenes Kartenformat (.tcg = ZIP-Archiv mit JSON)
+│   │   ├── tcg-builder.ts       – Packt base.tcg-src/ → base.tcg (ZIP)
+│   │   ├── tcg-loader.ts        – Lädt .tcg ZIP → CARD_DB, FUSION_RECIPES etc.
+│   │   ├── tcg-validator.ts     – Validierungslogik für TCG-Archive
+│   │   ├── effect-serializer.ts – Effekt-String-Codec
+│   │   └── generate-base-tcg.ts – CLI: base.tcg-src/ validieren & packen
 │   └── react/
 │       ├── App.tsx             – Root-Komponente (Provider-Tree + Router)
 │       ├── contexts/           – React Contexts (Game, Screen, Progression, Modal, Selection)
@@ -176,7 +177,17 @@ ECHOES-OF-SANGUO/
 │       └── utils/
 │           └── pack-logic.ts   – Booster-Pack-Generierung
 ├── public/
-│   ├── base.tcg                 – Kompilierte Kartendatenbank (Binärformat)
+│   ├── base.tcg                 – Kompiliertes Kartenarchiv (ZIP-Format)
+│   ├── base.tcg-src/            – Quelldaten für base.tcg (direkt von Vite ausgeliefert)
+│   │   ├── cards.json           – Kartenstats (numerische IDs)
+│   │   ├── meta.json            – Fusionsrezepte & Starterdecks
+│   │   ├── races/attributes/card_types/rarities.json – Enum-Metadaten
+│   │   ├── manifest.json        – Format-Version
+│   │   ├── shop.json            – Booster-Pack-Definitionen
+│   │   ├── campaign.json        – Kampagnengraph
+│   │   ├── id_migration.json    – String-ID → Numerische-ID Mapping
+│   │   ├── opponents/           – Pro-Gegner Deck-JSON-Dateien
+│   │   └── locales/             – Übersetzungs-Overrides (de_cards_description.json etc.)
 │   └── audio/                  – Sound-Effekte
 ├── locales/
 │   ├── de.json                 – Deutsche Übersetzungen
@@ -188,15 +199,16 @@ ECHOES-OF-SANGUO/
 
 ---
 
-## Eigenes Binärformat (.tcg)
+## Kartenformat (.tcg)
 
-Kartendaten werden in einem eigenen Binärformat (`base.tcg`) gespeichert und beim Start geladen:
+`base.tcg` ist ein **ZIP-Archiv** (umbenannt zu `.tcg`) mit JSON-Dateien und Karten-Artwork. Es wird beim Start geladen:
 
-- **tcg-builder.ts** – Kodiert TypeScript-Objekte zu Binärdaten
-- **tcg-loader.ts** – Dekodiert Binärdaten zu Laufzeitobjekten (CARD_DB, FUSION_RECIPES, etc.)
-- **effect-serializer.ts** – Effekt-Bäume als kompakter Binär-Codec
+- **tcg-builder.ts** – Packt `public/base.tcg-src/` → `public/base.tcg` (ZIP)
+- **tcg-loader.ts** – Entpackt das ZIP und befüllt CARD_DB, FUSION_RECIPES etc.
+- **tcg-validator.ts** – Prüft Vollständigkeit und Konsistenz des Archivs
+- **effect-serializer.ts** – Parst und serialisiert Effekt-Strings
 
-Generierung via `npm run generate:tcg` aus `js/cards-data.ts`.
+Generierung via `npm run generate:tcg` — validiert `public/base.tcg-src/` und packt es neu.
 
 ---
 
