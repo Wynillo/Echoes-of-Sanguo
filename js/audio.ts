@@ -34,6 +34,7 @@ let _sfxGain: GainNode | null = null;
 
 const _bufferCache = new Map<string, AudioBuffer>();
 let _currentMusic: { source: AudioBufferSourceNode; id: string } | null = null;
+let _musicRequestId = 0;
 
 function _ensureContext(): AudioContext {
   if (!_ctx) {
@@ -91,8 +92,10 @@ async function playMusic(trackId: string): Promise<void> {
   if (_currentMusic?.id === trackId) return;
   stopMusic();
 
+  const requestId = ++_musicRequestId;
   const buf = await _loadBuffer(trackId);
-  if (!buf) return;
+  // Another playMusic call was made while loading — abort this one
+  if (!buf || requestId !== _musicRequestId) return;
 
   const ctx = _ensureContext();
   const source = ctx.createBufferSource();

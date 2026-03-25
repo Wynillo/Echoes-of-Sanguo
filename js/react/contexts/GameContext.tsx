@@ -86,7 +86,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     onDuelEnd: (result, opponentId) => {
       Audio.playMusic(result === 'victory' ? 'music_victory' : 'music_defeat');
 
-      // Campaign duel: skip normal result modal, route to dialogue/campaign
+      // Campaign duel
       const pending = pendingDuelRef.current;
       if (pending) {
         setPendingDuelRef.current(null);
@@ -110,8 +110,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               scene: pending.postDialogue as unknown as Record<string, unknown>,
               nextScreen: 'campaign',
             });
-          } else {
+          } else if (isComplete) {
             navigateToRef.current('campaign');
+          } else {
+            // Defeat in campaign: show result modal so the player sees the defeat screen
+            openModalRef.current({ type: 'result', resultType: result, coinsEarned: 0 });
           }
         });
         return;
