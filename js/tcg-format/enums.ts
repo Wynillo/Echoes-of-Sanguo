@@ -156,7 +156,7 @@ export function intToRarity(n: number): Rarity {
 // Effect triggers and trap triggers share the same string space in serialization
 
 const TRIGGER_STRINGS: ReadonlySet<string> = new Set([
-  'onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive',
+  'onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive', 'onFlip',
   'onAttack', 'onOwnMonsterAttacked', 'onOpponentSummon', 'manual',
 ]);
 

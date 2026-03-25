@@ -107,7 +107,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             Progression.recordDuelResult(opponentId, result === 'victory');
             const cfg = OPPONENT_CONFIGS.find((o: any) => o.id === opponentId);
             if (cfg) {
-              coinsEarned = result === 'victory' ? cfg.coinsWin : cfg.coinsLoss;
+              coinsEarned = result === 'victory' ? cfg.coinsWin : 0;
               Progression.addCoins(coinsEarned);
             }
             refreshRef.current();

@@ -73,7 +73,9 @@
   "shop": {
     "title": "◈ JADE SHOP",
     "back": "← Main Menu",
-    "buy_btn": "Buy Pack"
+    "buy_btn": "Buy Pack",
+    "packages_title": "◈ Card Packages",
+    "locked": "🔒 Locked"
   },
   "pack": {
     "starter_name": "Starter Pack",
@@ -158,7 +160,11 @@
     "hint_selected": "{{name}} selected.",
     "grave_opp": "Opponent Graveyard",
     "grave_player": "Player Graveyard",
-    "aria_next_phase": "Next Phase (B/E/T)"
+    "aria_next_phase": "Next Phase (B/E/T)",
+    "surrender": "⚑ Surrender",
+    "surrender_confirm": "Really surrender? The duel will be counted as a defeat.",
+    "surrender_yes": "⚑ Yes, surrender",
+    "surrender_cancel": "← Back"
   },
   "card_action": {
     "already_played": "⛔ Monster already played",
@@ -170,6 +176,8 @@
     "set_spell": "🔽 Set",
     "set_trap": "🔽 Set Trap",
     "activate_trap": "⚠ Activate Trap",
+    "flip_summon": "🔄 Flip Summon",
+    "set_atk": "🔽 Set Face-Down (ATK)",
     "view": "🔍 View",
     "cancel": "✕ Cancel",
     "hint_spell_own": "Choose your own monster as a target.",
