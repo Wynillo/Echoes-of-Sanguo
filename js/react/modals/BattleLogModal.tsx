@@ -7,6 +7,17 @@ export function BattleLogModal() {
   const { t } = useTranslation();
   const { logEntries } = useGame();
 
+  const handleDownload = () => {
+    const text = logEntries.join('\n');
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `battle-log-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="modal" id="battle-log-modal">
       <h2>{t('options.view_log')}</h2>
@@ -19,6 +30,13 @@ export function BattleLogModal() {
         }
       </div>
       <div className="options-buttons">
+        <button
+          className="btn-secondary"
+          onClick={handleDownload}
+          disabled={logEntries.length === 0}
+        >
+          {t('options.download_log')}
+        </button>
         <button className="btn-primary" onClick={closeModal}>{t('common.ok')}</button>
       </div>
     </div>

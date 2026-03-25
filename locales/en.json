@@ -70,7 +70,8 @@
     "vol_music": "Background Music",
     "vol_sfx": "Sound Effects",
     "view_log": "📜 Battle Log",
-    "log_empty": "No log entries yet."
+    "log_empty": "No log entries yet.",
+    "download_log": "⬇ Download Log"
   },
   "shop": {
     "title": "◈ JADE SHOP",

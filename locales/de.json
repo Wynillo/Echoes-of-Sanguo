@@ -70,7 +70,8 @@
     "vol_music": "Hintergrundmusik",
     "vol_sfx": "Soundeffekte",
     "view_log": "📜 Kampfprotokoll",
-    "log_empty": "Noch keine Einträge."
+    "log_empty": "Noch keine Einträge.",
+    "download_log": "⬇ Protokoll herunterladen"
   },
   "shop": {
     "title": "◈ JADE-SHOP",
