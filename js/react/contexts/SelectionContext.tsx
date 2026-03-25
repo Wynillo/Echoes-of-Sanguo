@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import type { CardData } from '../../types.js';
 
 export type SelMode =
-  | 'hand' | 'attack' | 'fusion1' | 'spell-target'
+  | 'hand' | 'attack' | 'fusion1' | 'spell-target' | 'field-spell-target'
   | 'grave-target' | 'trap-target' | null;
 
 export interface Selection {
@@ -11,6 +11,7 @@ export interface Selection {
   attackerZone:   number | null;
   fusion1:        { handIndex: number } | null;
   spellHandIndex: number | null;
+  spellFieldZone: number | null;
   spellCard:      CardData | null;
   trapFieldZone:  number | null;
   callback:       ((card: CardData) => void) | null;
@@ -19,7 +20,7 @@ export interface Selection {
 
 const EMPTY: Selection = {
   mode: null, handIndex: null, attackerZone: null, fusion1: null,
-  spellHandIndex: null, spellCard: null, trapFieldZone: null, callback: null, hint: '',
+  spellHandIndex: null, spellFieldZone: null, spellCard: null, trapFieldZone: null, callback: null, hint: '',
 };
 
 interface SelectionCtx {

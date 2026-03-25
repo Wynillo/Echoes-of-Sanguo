@@ -48,7 +48,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
   }
 
   function isPlayerMonsterSpellTarget(zone: number) {
-    return selMode === 'spell-target' && !!player.field.monsters[zone];
+    return (selMode === 'spell-target' || selMode === 'field-spell-target') && !!player.field.monsters[zone];
   }
 
   const onOwnFieldCardClick = useCallback((fc: any, zone: number) => {
@@ -70,12 +70,18 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
 
   const onSpellTargetSelect = useCallback((zone: number) => {
     const game = gameRef.current;
-    if (!game || selMode !== 'spell-target') return;
+    if (!game) return;
     const target = player.field.monsters[zone];
     if (!target) return;
-    game.activateSpell('player', sel.spellHandIndex, target);
+    if (selMode === 'spell-target') {
+      game.activateSpell('player', sel.spellHandIndex, target);
+    } else if (selMode === 'field-spell-target') {
+      game.activateSpellFromField('player', sel.spellFieldZone!, target);
+    } else {
+      return;
+    }
     resetSel();
-  }, [gameRef, selMode, player.field.monsters, sel.spellHandIndex, resetSel]);
+  }, [gameRef, selMode, player.field.monsters, sel.spellHandIndex, sel.spellFieldZone, resetSel]);
 
   const onFieldSpellTrapClick = useCallback((zone: number, fst: any) => {
     const game = gameRef.current;

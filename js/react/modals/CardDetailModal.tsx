@@ -68,7 +68,11 @@ export function CardDetailModal({ modal }: Props) {
     }
 
     if (isSp && phase === 'main' && source === 'field-spell') {
-      if (card.spellType !== 'targeted' && card.spellType !== 'fromGrave') {
+      if (card.spellType === 'targeted' || card.spellType === 'fromGrave') {
+        actions.push(actionBtn(t('card_action.activate'), () => {
+          startFieldSpellTargeting(card, index, state, game, setSel, openModal, closeModal, t);
+        }));
+      } else {
         actions.push(actionBtn(t('card_action.activate'), () => {
           game.activateSpellFromField('player', index);
           closeModal();
@@ -155,6 +159,25 @@ function startSpellTargeting(card: any, handIndex: number, state: any, game: any
     const monsters = state.player.graveyard.filter((c: any) => isMonsterType(c.type));
     if (!monsters.length) return;
     openModal({ type: 'grave-select', cards: monsters, resolve: (chosen: any) => game.activateSpell('player', handIndex, chosen) });
+  }
+}
+
+function startFieldSpellTargeting(card: any, zone: number, state: any, game: any, setSel: any, openModal: any, close: any, t: any) {
+  if (card.spellType === 'targeted' && card.target === 'ownMonster') {
+    const targets = state.player.field.monsters
+      .map((fc: any, i: number) => ({ fc, zone: i }))
+      .filter(({ fc }: any) => fc);
+    if (!targets.length) return;
+    if (targets.length === 1) { game.activateSpellFromField('player', zone, targets[0].fc); close(); return; }
+    setSel({ mode: 'field-spell-target', spellFieldZone: zone, spellCard: card, hint: t('card_action.hint_spell_own') });
+    close();
+  } else if (card.spellType === 'targeted' && card.target === 'ownDarkMonster') {
+    const fc = state.player.field.monsters.find((m: any) => m && m.card.attribute === Attribute.Dark);
+    if (fc) { game.activateSpellFromField('player', zone, fc); close(); }
+  } else if (card.spellType === 'fromGrave') {
+    const monsters = state.player.graveyard.filter((c: any) => isMonsterType(c.type));
+    if (!monsters.length) return;
+    openModal({ type: 'grave-select', cards: monsters, resolve: (chosen: any) => game.activateSpellFromField('player', zone, chosen) });
   }
 }
 
