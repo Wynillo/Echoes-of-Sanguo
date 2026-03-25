@@ -213,6 +213,7 @@ async function aiBattlePhase(engine: GameEngine): Promise<boolean> {
     if(!atk){ continue; }
     if(atk.position !== 'atk'){ EchoesOfSanguo.log('AI', `Zone ${az}: ${atk.card.name} is in DEF mode – skipping`); continue; }
     if(atk.hasAttacked){       EchoesOfSanguo.log('AI', `Zone ${az}: ${atk.card.name} has already attacked`);      continue; }
+    if(atk.summonedThisTurn){  EchoesOfSanguo.log('AI', `Zone ${az}: ${atk.card.name} was just summoned – skipping`); continue; }
     await _delay(500);
 
     // Recalculate each iteration in case earlier attacks destroyed monsters
