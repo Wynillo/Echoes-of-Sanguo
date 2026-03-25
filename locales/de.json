@@ -184,6 +184,7 @@
     "activate_trap": "⚠ Falle aktivieren",
     "flip_summon": "🔄 Flip-Beschwörung",
     "set_atk": "🔽 Verdeckt setzen (ATK)",
+    "set_def": "🔽 Verdeckt setzen (DEF)",
     "view": "🔍 Ansehen",
     "cancel": "✕ Abbrechen",
     "hint_spell_own": "Wähle ein eigenes Monster als Ziel.",

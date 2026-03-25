@@ -28,9 +28,9 @@ export function FieldCardComponent({
 
   let cls: string;
   if (fc.faceDown && !isPlayer) {
-    cls = 'card field-card face-down';
+    cls = `card field-card face-down${fc.position === 'def' ? ' pos-def' : ''}`;
   } else if (fc.faceDown && isPlayer) {
-    cls = `card field-card face-down own-facedown attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`;
+    cls = `card field-card face-down own-facedown attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}${fc.position === 'def' ? ' pos-def' : ''}`;
   } else {
     cls = `card field-card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'} pos-${fc.position}`;
   }
