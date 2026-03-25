@@ -47,7 +47,7 @@ export default function SavePointScreen() {
           <p className={styles.backupWarning}>{t('save.backup_warning')}</p>
         )}
         <div className={styles.menu}>
-          <button className="btn-secondary" onClick={() => navigateTo('opponent', { mode: 'story' })}>{t('save.btn_story')}</button>
+          <button className="btn-secondary" onClick={() => navigateTo('campaign')}>{t('save.btn_story')}</button>
           <button className="btn-secondary" onClick={() => navigateTo('opponent', { mode: 'free-duel' })}>{t('save.btn_duel')}</button>
           <button className="btn-secondary" onClick={() => navigateTo('shop')}>{t('save.btn_shop')}</button>
           <button className="btn-secondary" onClick={() => navigateTo('collection')}>{t('save.btn_collection')}</button>
