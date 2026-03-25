@@ -275,10 +275,12 @@ export interface BattleContext {
   triggerType: string;
   attackerName?: string;
   attackerAtk?: number;
+  attackerCardId?: number;
   defenderName?: string;
   defenderDef?: number;
   defenderAtk?: number;
   defenderPos?: string;
+  defenderCardId?: number;
 }
 
 export interface PromptOptions {

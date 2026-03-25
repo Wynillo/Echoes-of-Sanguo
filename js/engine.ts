@@ -579,14 +579,16 @@ export class GameEngine {
         // Build battle context so the UI can show who attacks what
         const battleContext: import('./types.js').BattleContext = { triggerType };
         if (args[0]) {
-          battleContext.attackerName = args[0].card.name;
-          battleContext.attackerAtk  = args[0].effectiveATK();
+          battleContext.attackerName   = args[0].card.name;
+          battleContext.attackerAtk    = args[0].effectiveATK();
+          battleContext.attackerCardId = args[0].card.id;
         }
         if (args[1]) {
-          battleContext.defenderName = args[1].card.name;
-          battleContext.defenderDef  = args[1].effectiveDEF();
-          battleContext.defenderAtk  = args[1].effectiveATK();
-          battleContext.defenderPos  = args[1].position;
+          battleContext.defenderName   = args[1].card.name;
+          battleContext.defenderDef    = args[1].effectiveDEF();
+          battleContext.defenderAtk    = args[1].effectiveATK();
+          battleContext.defenderPos    = args[1].position;
+          battleContext.defenderCardId = args[1].card.id;
         }
 
         const activate = await promptFn({

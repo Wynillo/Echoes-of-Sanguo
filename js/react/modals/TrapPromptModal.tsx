@@ -36,11 +36,29 @@ export function TrapPromptModal({ modal }: Props) {
     }
   }
 
+  const attackerCard = bc?.attackerCardId != null ? (CARD_DB as any)[bc.attackerCardId] : null;
+  const defenderCard = bc?.defenderCardId != null ? (CARD_DB as any)[bc.defenderCardId] : null;
+
   return (
     <div id="trap-prompt-modal" className="modal" role="dialog" aria-modal="true">
       <h3 id="trap-prompt-title">{opts.title}</h3>
       {contextLine && (
         <div className="trap-battle-context">{contextLine}</div>
+      )}
+      {(attackerCard || defenderCard) && (
+        <div className="trap-battle-cards">
+          {attackerCard && (
+            <div className="trap-battle-card">
+              <Card card={attackerCard} small />
+            </div>
+          )}
+          <span className="trap-battle-vs">&#x2694;</span>
+          {defenderCard && (
+            <div className="trap-battle-card">
+              <Card card={defenderCard} small />
+            </div>
+          )}
+        </div>
       )}
       <div id="trap-prompt-card" style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
         {card && <Card card={card} />}

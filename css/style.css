@@ -643,6 +643,19 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 #trap-prompt-card { display: flex; justify-content: center; margin: 10px 0; }
 #trap-prompt-msg  { font-size: 0.75rem; color: var(--text); margin: 8px 0; }
 .prompt-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+.trap-battle-cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+.trap-battle-card { flex: 0 0 auto; }
+.trap-battle-vs {
+  font-size: 1.5rem;
+  color: var(--gold);
+  text-shadow: 0 0 6px rgba(255, 200, 50, 0.6);
+}
 .trap-battle-context {
   background: rgba(40, 10, 10, 0.85);
   border: 1px solid rgba(255, 80, 80, 0.5);
