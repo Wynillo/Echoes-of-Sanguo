@@ -885,8 +885,10 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
     --card-h: calc(var(--card-w) / 0.715);
     --card-w-opp: var(--card-w);
     --card-h-opp: var(--card-h);
+    height: calc(100vh - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - env(safe-area-inset-bottom, 0px));
     grid-template-rows:
-      48px calc(var(--card-h-opp) * 0.25) 1fr calc(var(--card-h) * 0.75);
+      48px calc(var(--card-h-opp) * 0.25) 1fr var(--card-h);
   }
 
   /* Shift all rows down by 1 to make room for portrait bar */
@@ -991,6 +993,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 
   /* Hands: only right-pad by the 30px graves strip */
   #hand-area     { padding-right: 30px; padding-left: 0; }
+  #player-hand   { margin-top: -8px; }
   #opp-hand-area { padding-left: 0; }
 
   /* Hand card overlap for up to 7 cards */
