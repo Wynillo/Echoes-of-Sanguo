@@ -56,7 +56,7 @@ export function CardDetailModal({ modal }: Props) {
         if (freeZone !== -1) {
           actions.push(actionBtn(t('card_action.summon_atk'), () => { game.summonMonster('player', index, freeZone, 'atk'); closeModal(); }));
           actions.push(actionBtn(t('card_action.summon_def'), () => { game.summonMonster('player', index, freeZone, 'def'); closeModal(); }));
-          actions.push(actionBtn(t('card_action.set_atk'), () => { game.summonMonster('player', index, freeZone, 'atk', true); closeModal(); }));
+          actions.push(actionBtn(t('card_action.set_def'), () => { game.setMonster('player', index, freeZone); closeModal(); }));
         }
       }
       if (fusionOpts.length > 0 && !state.player.normalSummonUsed) {
