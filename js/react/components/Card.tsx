@@ -94,17 +94,22 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
     extraClass,
   ].filter(Boolean).join(' ');
 
-  // Small layout: only artwork area + ATK/DEF
+  // Small layout: artwork + ATK/DEF + name
   if (small) {
     return (
       <div className={cls}>
-        <div className={styles.cardArt} />
+        <div className={styles.cardArt}>
+          {raceBadge}
+        </div>
         {isMonster
           ? <div className={styles.cardStats}>
               <span className={styles.atkVal}>{effATK}</span>
               <span className={styles.defVal}>{effDEF}</span>
             </div>
-          : null}
+          : <div className={styles.cardStats}>
+              <span className={styles.typeLabel}>{typeLabel}</span>
+            </div>}
+        <div className={styles.cardNameSmall}>{card.name}</div>
       </div>
     );
   }
