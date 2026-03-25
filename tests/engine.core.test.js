@@ -412,6 +412,7 @@ describe('advancePhase', () => {
   it('main → battle', () => {
     const { engine } = makeEngine();
     engine.state.phase = 'main';
+    engine.state.firstTurnNoAttack = false;
     engine.advancePhase();
     expect(engine.state.phase).toBe('battle');
   });
