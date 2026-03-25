@@ -1,5 +1,4 @@
 import { useModal } from '../contexts/ModalContext.js';
-import { CardActionMenu }   from './CardActionMenu.js';
 import { CardDetailModal }  from './CardDetailModal.js';
 import { TrapPromptModal }  from './TrapPromptModal.js';
 import { GraveSelectModal } from './GraveSelectModal.js';
@@ -21,7 +20,6 @@ export function ModalOverlay() {
         closeModal();
       }
     }}>
-      {modal.type === 'card-action'  && <CardActionMenu   modal={modal} />}
       {modal.type === 'card-detail'  && <CardDetailModal  modal={modal} />}
       {modal.type === 'trap-prompt'  && <TrapPromptModal  modal={modal} />}
       {modal.type === 'grave-select' && <GraveSelectModal modal={modal} />}

@@ -35,7 +35,7 @@ export function HandArea() {
       resetSel();
       return;
     }
-    openModal({ type: 'card-action', card, index, state: gameState });
+    openModal({ type: 'card-detail', card, index, state: gameState });
   }, [gameRef, selMode, sel.fusion1, player.hand, player.field.monsters, resetSel, openModal, gameState]);
 
   return (

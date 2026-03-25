@@ -54,7 +54,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
   const onOwnFieldCardClick = useCallback((fc: any, zone: number) => {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'main') return;
-    openModal({ type: 'card-action', card: fc.card, index: zone, state: gameState, source: 'field' });
+    openModal({ type: 'card-detail', card: fc.card, fc, index: zone, state: gameState, source: 'field' });
   }, [gameRef, isMyTurn, phase, openModal, gameState]);
 
   const onAttackerSelect = useCallback((zone: number) => {
@@ -81,7 +81,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'main' || !fst.faceDown) return;
     if (fst.card.type === CardType.Spell) {
-      openModal({ type: 'card-action', card: fst.card, index: zone, state: gameState, source: 'field-spell' });
+      openModal({ type: 'card-detail', card: fst.card, index: zone, state: gameState, source: 'field-spell' });
     }
   }, [gameRef, isMyTurn, phase, openModal, gameState]);
 
