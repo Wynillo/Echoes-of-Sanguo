@@ -8,7 +8,7 @@ export type Owner        = 'player' | 'opponent';
 export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
 export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual';
-export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive';
+export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip';
 export type SpellType    = 'normal' | 'targeted' | 'fromGrave';
 
 // ── Int-based Enums (card data — stored in .tcg format) ────
@@ -302,7 +302,7 @@ export interface OpponentRecord {
   losses:   number;
 }
 
-// ── Forward declarations — implemented in engine.ts ──────────
+// ── Forward declarations — implemented in field.ts / engine.ts ──
 // (Used in type signatures above before the class files are loaded)
 
 export declare class FieldCard {
@@ -311,6 +311,7 @@ export declare class FieldCard {
   position:         Position;
   faceDown:         boolean;
   hasAttacked:      boolean;
+  hasFlipped:       boolean;
   summonedThisTurn: boolean;
   tempATKBonus:     number;
   tempDEFBonus:     number;

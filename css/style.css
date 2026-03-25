@@ -821,16 +821,227 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   border-top: 1px solid var(--border);
 }
 
-/* ── Landscape Smartphone (niedrige Höhe) ────────────────── */
-@media (max-height: 450px) {
+/* Surrender section */
+.options-surrender {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(180,40,40,0.4);
+}
+
+.btn-surrender {
+  width: 100%;
+  background: #4a0a0a;
+  border: 2px solid rgba(200,50,50,0.7);
+  color: #ffaaaa;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: bold;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-radius: 0;
+  letter-spacing: 1px;
+  transition: none;
+}
+.btn-surrender:hover { background: #6a1010; border-color: #e05050; }
+.btn-surrender:active { background: #8a1a1a; }
+
+.surrender-confirm p {
+  font-size: 0.75rem;
+  color: #ffaaaa;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.surrender-confirm-btns {
+  display: flex; gap: 8px;
+}
+.surrender-confirm-btns .btn-cancel {
+  flex: 1;
+}
+.surrender-confirm-btns .btn-surrender {
+  flex: 2;
+}
+
+/* Portrait bar: hidden on desktop, shown in portrait mobile */
+#portrait-bar { display: none; }
+
+/* ── Portrait Smartphone (≤ 540px) — Top-bar layout ──────── */
+/*
+  Strategy: replace side panels with a 48px top control bar.
+  Cards use full viewport width minus tiny 30px graves-only right strip.
+  Formula: (100vw - 30px - 8px padding - 4 gaps×2px) / 5 ≈ (100vw - 46px) / 5
+  At 375px: (375 - 46) / 5 ≈ 65.8px wide cards — nearly double the old 49px.
+*/
+@media (max-width: 540px) {
+  #game-screen {
+    --card-w: calc((100vw - 46px) / 5);
+    --card-h: calc(var(--card-w) / 0.715);
+    --card-w-opp: var(--card-w);
+    --card-h-opp: var(--card-h);
+    grid-template-rows:
+      48px calc(var(--card-h-opp) * 0.25) 1fr calc(var(--card-h) * 0.75);
+  }
+
+  /* Shift all rows down by 1 to make room for portrait bar */
+  #opp-hand-area { grid-row: 2; }
+  #field         { grid-row: 3; }
+  #hand-area     { grid-row: 4; }
+
+  /* Portrait top bar — visible in portrait only */
+  #portrait-bar {
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+    background: rgba(2, 8, 4, 0.97);
+    border-bottom: 1px solid rgba(30, 80, 45, 0.5);
+    z-index: 30;
+  }
+
+  .portrait-opts-btn {
+    background: rgba(20, 60, 30, 0.8);
+    border: 1px solid rgba(60, 160, 80, 0.4);
+    border-radius: 4px;
+    color: #a0e0b0;
+    font-size: 18px;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0;
+    flex-shrink: 0;
+  }
+  .portrait-hud {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .phud-lp {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+  .phud-opp    { color: #ff8080; }
+  .phud-player { color: #80ff80; }
+  .phud-phase {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: #d0c090;
+    text-align: center;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .portrait-phase-btn {
+    width: 36px; height: 36px;
+    border-radius: 4px;
+    border: 1px solid rgba(60, 160, 80, 0.4);
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0;
+    flex-shrink: 0;
+  }
+  .portrait-phase-btn.phase-main              { background: rgba(80, 40, 0, 0.9);  color: #ffcc00; border-color: #ffcc00; }
+  .portrait-phase-btn.phase-battle            { background: rgba(100, 0, 0, 0.9);  color: #ff6060; border-color: #ff4040; }
+  .portrait-phase-btn.phase-end,
+  .portrait-phase-btn.phase-draw,
+  .portrait-phase-btn.phase-standby           { background: rgba(20, 60, 30, 0.8); color: #a0e0b0; }
+  .portrait-phase-btn.waiting,
+  .portrait-phase-btn:disabled                { background: rgba(20, 30, 25, 0.8); color: #607060; opacity: 0.6; cursor: default; }
+
+  /* Hide left panel entirely — options button moved to portrait bar */
+  #field-left { display: none; }
+
+  /* Right panel: minimal width — graves only, no background */
+  #field-right {
+    width: 30px; min-width: 30px;
+    padding: 0;
+    background: transparent;
+    border-left: none;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #field-right-center { display: none; }
+
+  /* Graves: compact for 30px panel */
+  .grave-icon       { width: 26px; height: 26px; }
+  .grave-icon-sym   { font-size: 13px; }
+  .grave-icon-count { font-size: 8px; }
+
+  /* Center: full field width */
+  #field-center {
+    flex: 1;
+    width: 100%;
+    padding: 4px 2px;
+    box-sizing: border-box;
+  }
+
   .zone-row { gap: 2px; }
-  #field-left  { min-width: 44px; width: 12%; padding: 6px 2px; }
-  #field-right { min-width: 80px; width: 20%; padding: 6px 4px; }
-  #btn-options { width: 36px; height: 36px; font-size: 15px; }
-  #btn-next-phase { font-size: 0.625rem; padding: 6px 4px; }
-  .grave-icon { width: 34px; height: 34px; }
-  .grave-icon-sym { font-size: 13px; }
-  .lp-value { font-size: 0.75rem; }
-  #player-hand .hand-card { margin-right: -14px; }
+
+  /* Hands: only right-pad by the 30px graves strip */
+  #hand-area     { padding-right: 30px; padding-left: 0; }
+  #opp-hand-area { padding-left: 0; }
+
+  /* Hand card overlap for up to 7 cards */
+  #player-hand .hand-card            { margin-right: -14px; }
+  #player-hand .hand-card:last-child { margin-right: 0; }
+  #opp-hand                          { gap: 0; }
+  #opp-hand .opp-hand-card            { margin-right: -10px; }
+  #opp-hand .opp-hand-card:last-child { margin-right: 0; }
+}
+
+/* ── Landscape Smartphone (niedrige Höhe) ────────────────── */
+/* In landscape, width is sufficient — revert to height-based sizing.
+   This query comes after portrait so it wins on devices matching both.
+   Also restores the side panels and 3-row grid that portrait replaced. */
+@media (max-height: 450px) {
+  #game-screen {
+    --card-h: calc((100vh - 40px) / 5);
+    --card-w: calc(var(--card-h) * 0.715);
+    --card-w-opp: var(--card-w);
+    --card-h-opp: var(--card-h);
+    grid-template-rows:
+      calc(var(--card-h) * 0.25) 1fr calc(var(--card-h) * 0.75);
+  }
+
+  /* Restore 3-row grid assignments (portrait shifted these to rows 2/3/4) */
+  #portrait-bar  { display: none; }
+  #opp-hand-area { grid-row: 1; }
+  #field         { grid-row: 2; }
+  #hand-area     { grid-row: 3; }
+
+  /* Restore side panels */
+  #field-left  { display: flex; min-width: 44px; width: 44px; padding: 0; }
+  #field-right { min-width: 72px; width: 72px; padding: 0; background: rgba(4, 12, 6, 0.88); border-left: 1px solid rgba(30, 80, 45, 0.4); }
+  #field-right-center {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 4px;
+    align-items: stretch;
+  }
+
+  #btn-options    { width: 36px; height: 36px; font-size: 15px; }
+  #btn-next-phase { font-size: 0.5625rem; padding: 5px 2px; white-space: normal; line-height: 1.2; }
+
+  .grave-icon             { width: 34px; height: 34px; }
+  .grave-icon-sym         { font-size: 13px; }
+  .grave-icon-count       { font-size: 8px; }
+
+  #lp-panel               { padding-right: 0; gap: 2px; flex: none; width: 100%; }
+  .lp-row                 { padding: 2px 3px; gap: 1px; }
+  .lp-who                 { font-size: 7px; margin-bottom: 0; }
+  .lp-bottom .io-bar-bg   { display: none; }
+  .lp-value               { font-size: 0.625rem; }
+  .lp-deck                { font-size: 7px; }
+
+  #hand-area              { padding-right: 72px; }
+  #opp-hand-area          { padding-left: 44px; }
+
+  .zone-row { gap: 2px; }
+  #player-hand .hand-card            { margin-right: -14px; }
   #player-hand .hand-card:last-child { margin-right: 0; }
 }

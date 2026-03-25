@@ -123,3 +123,19 @@
 .buyBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .msg { color: #e06040; font-size: 0.9rem; margin-top: 10px; min-height: 1.2em; }
+
+.sectionTitle {
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  letter-spacing: 2px;
+  color: #c8a84b;
+  text-shadow: 2px 2px 0 #000;
+  margin: 28px 0 16px;
+  max-width: 900px;
+  width: 100%;
+}
+
+.packLocked {
+  font-size: 0.75rem;
+  color: #e06040;
+  position: relative;
+}

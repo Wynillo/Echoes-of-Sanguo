@@ -73,7 +73,9 @@
   "shop": {
     "title": "◈ JADE-SHOP",
     "back": "← Hauptmenü",
-    "buy_btn": "Pack kaufen"
+    "buy_btn": "Pack kaufen",
+    "packages_title": "◈ Kartenpakete",
+    "locked": "🔒 Gesperrt"
   },
   "pack": {
     "starter_name": "Starterpack",
@@ -158,7 +160,11 @@
     "hint_selected": "{{name}} ausgewählt.",
     "grave_opp": "Gegner Friedhof",
     "grave_player": "Spieler Friedhof",
-    "aria_next_phase": "Nächste Phase (B/E/T)"
+    "aria_next_phase": "Nächste Phase (B/E/T)",
+    "surrender": "⚑ Aufgeben",
+    "surrender_confirm": "Wirklich aufgeben? Das Duell wird als Niederlage gewertet.",
+    "surrender_yes": "⚑ Ja, aufgeben",
+    "surrender_cancel": "← Zurück"
   },
   "card_action": {
     "already_played": "⛔ Monster bereits gespielt",
@@ -170,6 +176,8 @@
     "set_spell": "🔽 Setzen",
     "set_trap": "🔽 Fallen setzen",
     "activate_trap": "⚠ Falle aktivieren",
+    "flip_summon": "🔄 Flip-Beschwörung",
+    "set_atk": "🔽 Verdeckt setzen (ATK)",
     "view": "🔍 Ansehen",
     "cancel": "✕ Abbrechen",
     "hint_spell_own": "Wähle ein eigenes Monster als Ziel.",
