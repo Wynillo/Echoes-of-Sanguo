@@ -160,7 +160,7 @@ export class GameEngine {
   }
 
   // ───────── Summon ────────────────────────────────────────
-  summonMonster(owner: Owner, handIndex: number, zone: number, position: Position = 'atk', faceDown=false){
+  async summonMonster(owner: Owner, handIndex: number, zone: number, position: Position = 'atk', faceDown=false){
     const st = this.state[owner];
     if(zone < 0 || zone > 4 || st.field.monsters[zone]){
       this.addLog('Invalid zone!'); return false;
@@ -173,7 +173,7 @@ export class GameEngine {
     this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
     this.ui.playSfx?.('sfx_card_play');
     // trigger onSummon effect for every summon method
-    this._triggerEffect(fc, owner, 'onSummon', zone);
+    await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
   }
@@ -182,18 +182,18 @@ export class GameEngine {
     return this.summonMonster(owner, handIndex, zone, 'def', true);
   }
 
-  flipSummon(owner: Owner, zone: number){
+  async flipSummon(owner: Owner, zone: number){
     const fc = this.state[owner].field.monsters[zone];
     if(!fc || !fc.faceDown){ this.addLog('Kein verdecktes Monster!'); return false; }
     if(fc.summonedThisTurn){ this.addLog('Kann nicht im selben Zug geflippt werden!'); return false; }
     fc.faceDown = false;
     this.addLog(`${fc.card.name} wird aufgedeckt (Flip-Beschwörung)!`);
-    this._triggerFlipEffect(fc, owner, zone);
+    await this._triggerFlipEffect(fc, owner, zone);
     this.ui.render(this.state);
     return true;
   }
 
-  specialSummon(owner: Owner, card: CardData, zone?: number){
+  async specialSummon(owner: Owner, card: CardData, zone?: number){
     const st = this.state[owner];
     if(zone === undefined){
       zone = st.field.monsters.findIndex(z => z === null);
@@ -205,12 +205,12 @@ export class GameEngine {
     st.field.monsters[zone] = fc;
     this.addLog(`${ownerLabel(owner)}: ${card.name} Special Summon!`);
     this.ui.playSfx?.('sfx_card_play');
-    this._triggerEffect(fc, owner, 'onSummon', zone);
+    await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
   }
 
-  specialSummonFromGrave(owner: Owner, card: CardData){
+  async specialSummonFromGrave(owner: Owner, card: CardData){
     const st = this.state[owner];
     const graveIdx = st.graveyard.findIndex(c => c.id === card.id);
     if(graveIdx === -1){ this.addLog('Card not in graveyard!'); return false; }
@@ -222,7 +222,7 @@ export class GameEngine {
     st.field.monsters[zone] = fc;
     this.addLog(`${ownerLabel(owner)}: ${c.name} summoned from graveyard!`);
     this.ui.playSfx?.('sfx_card_play');
-    this._triggerEffect(fc, owner, 'onSummon', zone);
+    await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
   }
@@ -260,13 +260,13 @@ export class GameEngine {
     return true;
   }
 
-  activateSpellFromField(owner: Owner, zone: number, targetInfo: FieldCard | CardData | null = null){
+  async activateSpellFromField(owner: Owner, zone: number, targetInfo: FieldCard | CardData | null = null){
     const st = this.state[owner];
     const fst = st.field.spellTraps[zone];
     if(!fst || fst.card.type !== CardType.Spell) return false;
     fst.faceDown = false;
     this.addLog(`${ownerLabel(owner)}: ${fst.card.name} activated!`);
-    if(this.ui.showActivation) this.ui.showActivation(fst.card, fst.card.description);
+    if(this.ui.showActivation) await this.ui.showActivation(fst.card, fst.card.description);
     if(fst.card.effect) try {
       const ctx = this._buildSpellContext(owner, targetInfo);
       executeEffectBlock(fst.card.effect, ctx);
@@ -279,7 +279,7 @@ export class GameEngine {
     return true;
   }
 
-  activateTrapFromField(owner: Owner, zone: number, ...args: FieldCard[]){
+  async activateTrapFromField(owner: Owner, zone: number, ...args: FieldCard[]){
     const st = this.state[owner];
     const fst = st.field.spellTraps[zone];
     if(!fst || fst.card.type !== CardType.Trap || fst.used) return null;
@@ -287,7 +287,7 @@ export class GameEngine {
     fst.faceDown = false;
     this.addLog(`${ownerLabel(owner)}: Trap ${fst.card.name} activated!`);
     this.ui.playSfx?.('sfx_trap');
-    if(this.ui.showActivation) this.ui.showActivation(fst.card, fst.card.description);
+    if(this.ui.showActivation) await this.ui.showActivation(fst.card, fst.card.description);
     let result: EffectSignal | null = null;
     if(fst.card.effect) try {
       const ctx = this._buildTrapContext(owner, fst.card.trapTrigger, args);
@@ -327,7 +327,7 @@ export class GameEngine {
     return options;
   }
 
-  performFusion(owner: Owner, handIdx1: number, handIdx2: number){
+  async performFusion(owner: Owner, handIdx1: number, handIdx2: number){
     const st = this.state[owner];
     const hand = st.hand;
     // indices might shift, work with sorted desc
@@ -354,7 +354,7 @@ export class GameEngine {
 
     this.addLog(`${ownerLabel(owner)}: FUSION! ${card1.name} + ${card2.name} = ${fusionCard.name}!`);
     this.ui.playSfx?.('sfx_fusion');
-    this._triggerEffect(fc, owner, 'onSummon', zone);
+    await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
   }
@@ -373,7 +373,7 @@ export class GameEngine {
       attFC.faceDown = false;
       attFC.position = 'atk';
       this.addLog(`${attFC.card.name} is revealed (attack)!`);
-      this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
+      await this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
     }
     if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
 
@@ -421,7 +421,7 @@ export class GameEngine {
       attFC.faceDown = false;
       attFC.position = 'atk';
       this.addLog(`${attFC.card.name} wird aufgedeckt (Angriff)!`);
-      this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
+      await this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
     }
     if(attFC.position !== 'atk') return;
 
@@ -443,7 +443,7 @@ export class GameEngine {
     if(defFC.faceDown){
       defFC.faceDown = false;
       this.addLog(`${defFC.card.name} is revealed!`);
-      this._triggerFlipEffect(defFC, defOwner, defZone);
+      await this._triggerFlipEffect(defFC, defOwner, defZone);
     }
 
     const defVal = defFC.position === 'atk' ? defFC.effectiveATK() : defFC.effectiveDEF();
@@ -462,27 +462,27 @@ export class GameEngine {
       if(effATK > defVal){
         const dmg = effATK - defVal;
         this.addLog(`${defFC.card.name} destroyed! Opponent: -${dmg} LP`);
-        this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
+        await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
         this.dealDamage(defOwner, dmg);
         // attacker effect: onDestroyByBattle
-        this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
+        await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
       } else if(effATK === defVal){
         this.addLog('Tie! Both monsters destroyed!');
-        this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
-        this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
+        await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
+        await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
       } else {
         const dmg = defVal - effATK;
         this.addLog(`${attFC.card.name} destroyed! Player: -${dmg} LP`);
-        this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
+        await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
         this.dealDamage(atkOwner, dmg);
-        this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
-        this._triggerEffect(defFC, defOwner, 'onDestroyByBattle', null);
+        await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
+        await this._triggerEffect(defFC, defOwner, 'onDestroyByBattle', null);
       }
     } else {
       // defender in DEF mode
       if(effATK > defVal){
         this.addLog(`${defFC.card.name} (DEF) destroyed!`);
-        this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
+        await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
         if(attFC.piercing){
           const pierceDmg = effATK - defVal;
           this.addLog(`Piercing attack! -${pierceDmg} LP`);
@@ -496,7 +496,7 @@ export class GameEngine {
     }
   }
 
-  _destroyMonster(owner: Owner, zone: number, reason: string, byOwner: Owner){
+  async _destroyMonster(owner: Owner, zone: number, reason: string, byOwner: Owner){
     const st  = this.state[owner];
     const fc  = st.field.monsters[zone];
     if(!fc) return;
@@ -509,7 +509,7 @@ export class GameEngine {
 
     // Shadow Reaper / onDestroyByBattle for defender
     if(reason === 'battle' && byOwner !== owner){
-      this._triggerEffect(fc, owner, 'onDestroyByOpponent', zone);
+      await this._triggerEffect(fc, owner, 'onDestroyByOpponent', zone);
     }
 
     st.graveyard.push(fc.card);
@@ -540,11 +540,11 @@ export class GameEngine {
     return ctx;
   }
 
-  _triggerEffect(fc: FieldCard, owner: Owner, trigger: string, zone: number | null){
+  async _triggerEffect(fc: FieldCard, owner: Owner, trigger: string, zone: number | null){
     const card = fc.card;
     if(!card.effect || card.effect.trigger !== trigger) return;
     EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: ${trigger}`);
-    if(this.ui.showActivation) this.ui.showActivation(card, card.description);
+    if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
     try {
       const ctx: EffectContext = { engine: this, owner };
       executeEffectBlock(card.effect, ctx);
@@ -553,13 +553,13 @@ export class GameEngine {
     }
   }
 
-  _triggerFlipEffect(fc: FieldCard, owner: Owner, zone: number){
+  async _triggerFlipEffect(fc: FieldCard, owner: Owner, zone: number){
     if(fc.hasFlipped) return;
     fc.hasFlipped = true;
     const card = fc.card;
     if(!card.effect || card.effect.trigger !== 'onFlip') return;
     EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Flip-Effekt`);
-    if(this.ui.showActivation) this.ui.showActivation(card, card.description);
+    if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
     try {
       const ctx: EffectContext = { engine: this, owner };
       executeEffectBlock(card.effect, ctx);
@@ -602,7 +602,7 @@ export class GameEngine {
           battleContext,
         });
         if(activate){
-          return this.activateTrapFromField('player', i, ...args);
+          return await this.activateTrapFromField('player', i, ...args);
         }
       }
     }

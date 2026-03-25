@@ -87,7 +87,7 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
       if(zone !== -1 && bestATKValue >= bh.fusionMinATK){
         EchoesOfSanguo.log('AI', `Fusion: ${best.card1.name} + ${best.card2.name} → ${best.result.name} (Zone ${zone})`);
         await _delay(500);
-        engine.performFusion('opponent', best.i1, best.i2);
+        await engine.performFusion('opponent', best.i1, best.i2);
       }
     } else {
       EchoesOfSanguo.log('AI', 'No fusion available.');
@@ -112,7 +112,7 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
         const summonPos = decideSummonPosition(cardATK, plrMinVal, playerHasMonsters, bh.positionStrategy);
         EchoesOfSanguo.log('SUMMON', `Summoning ${card.name} (ATK:${cardATK}) to zone ${zone} as ${summonPos.toUpperCase()}`);
         await _delay(350);
-        engine.summonMonster('opponent', bestIdx, zone, summonPos);
+        await engine.summonMonster('opponent', bestIdx, zone, summonPos);
         const summonedFC = ai.field.monsters[zone];
         if(summonedFC){
           const trapResult = await engine._promptPlayerTraps('onOpponentSummon', summonedFC);
