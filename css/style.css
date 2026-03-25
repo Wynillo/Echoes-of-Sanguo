@@ -74,11 +74,11 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .btn-primary:hover { background: #1e6848; box-shadow: none; }
 .btn-secondary {
-  background: #0e2e1c; color: var(--text);
-  padding: 12px 28px; border: 2px solid; border-color: #1e4830 #061810 #061810 #1e4830;
+  background: #185838; color: var(--gold-light);
+  padding: 12px 28px; border: 2px solid; border-color: #2a9858 #0a2c18 #0a2c18 #2a9858;
   border-radius: 0; font-size: 0.9375rem;
 }
-.btn-secondary:hover { border-color: var(--gold); color: var(--gold); box-shadow: none; }
+.btn-secondary:hover { background: #1c6440; border-color: var(--gold); color: var(--gold); box-shadow: none; }
 .btn-cancel {
   background: #3c1414; color: #ff8888;
   padding: 8px 20px; border: 2px solid; border-color: #602020 #200808 #200808 #602020;
