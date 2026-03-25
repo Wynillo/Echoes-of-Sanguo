@@ -481,7 +481,7 @@ describe('init edge cases', () => {
 
   it('init sets save version stamp', () => {
     const ver = JSON.parse(localStorage.getItem('tcg_save_version'));
-    expect(ver).toBe(1);
+    expect(ver).toBe(2);
   });
 
   it('init adds version stamp to existing saves missing it', () => {
@@ -489,6 +489,6 @@ describe('init edge cases', () => {
     localStorage.setItem('tcg_initialized', '1');
     Progression.init();
     const ver = JSON.parse(localStorage.getItem('tcg_save_version'));
-    expect(ver).toBe(1);
+    expect(ver).toBe(2);
   });
 });

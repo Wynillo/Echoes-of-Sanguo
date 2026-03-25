@@ -1,5 +1,5 @@
 // ============================================================
-// AETHERIAL CLASH - Modding API
+// ECHOES OF SANGUO — Modding API
 // Exposes moddable data on window.EchoesOfSanguoMod so that
 // external mod scripts can add cards, opponents, and effects
 // without touching internal ES module imports.

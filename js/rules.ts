@@ -12,7 +12,6 @@ export const GAME_RULES = {
   maxDeckSize: 40,
   maxCardCopies: 3,
   drawPerTurn: 1,
-  phoenixRevivePenalty: -500,
 };
 
 export type GameRules = typeof GAME_RULES;
