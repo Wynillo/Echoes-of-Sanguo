@@ -840,6 +840,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   margin-top: 20px; padding-top: 16px;
   border-top: 1px solid var(--border);
 }
+.options-buttons .btn-cancel { margin-top: 0; }
 
 /* Surrender section */
 .options-surrender {

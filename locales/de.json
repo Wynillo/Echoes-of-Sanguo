@@ -47,20 +47,20 @@
   "opponent": {
     "headline": "FREIES DUELL",
     "subtitle": "Wähle deinen Gegner",
-    "back": "← Hauptmenü"
+    "back": "← Zurück"
   },
   "save": {
     "headline": "SPEICHERPUNKT",
     "backup_warning": "Neues Spiel aktiv — speichere um den alten Stand zu überschreiben, oder kehre zurück um abzubrechen.",
-    "btn_save": "💾 Speichern",
-    "btn_saved": "✓ Gespeichert!",
-    "btn_story": "📖 Story",
-    "btn_duel": "⚔ Freies Duell Beginnen",
-    "btn_shop": "🛒 Shop",
-    "btn_collection": "📚 Sammlung",
-    "btn_deckbuilder": "🃏 Deckbuilder",
-    "btn_cardlist": "📋 Kartenliste",
-    "btn_mainmenu": "🏠 Zum Hauptmenü",
+    "btn_save": "Speichern",
+    "btn_saved": "Gespeichert!",
+    "btn_story": "Story",
+    "btn_duel": "Freies Duell",
+    "btn_shop": "Shop",
+    "btn_collection": "Sammlung",
+    "btn_deckbuilder": "Deckbuilder",
+    "btn_cardlist": "Kartenliste",
+    "btn_mainmenu": "Zum Hauptmenü",
     "confirm_overwrite": "Das alte Spiel wird überschrieben. Fortfahren?"
   },
   "options": {
@@ -72,7 +72,7 @@
   },
   "shop": {
     "title": "◈ JADE-SHOP",
-    "back": "← Hauptmenü",
+    "back": "← Zurück",
     "buy_btn": "Pack kaufen",
     "packages_title": "◈ Kartenpakete",
     "locked": "🔒 Gesperrt"
@@ -101,7 +101,7 @@
   "collection": {
     "title": "📚 MEINE SAMMLUNG",
     "cards_count": "{{owned}} / {{total}} Karten",
-    "back": "← Hauptmenü",
+    "back": "← Zurück",
     "rarity_all": "Alle Seltenheiten"
   },
   "deckbuilder": {

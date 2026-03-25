@@ -36,7 +36,7 @@ export default function CollectionScreen() {
         <div className={styles.stats}>
           <span id="collection-count">{t('collection.cards_count', { owned: ownedCount, total: totalCards })}</span>
         </div>
-        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('title')}>{t('collection.back')}</button>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('collection.back')}</button>
       </div>
 
       <div className={styles.filters}>
