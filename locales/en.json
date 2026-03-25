@@ -170,6 +170,8 @@
     "set_spell": "🔽 Set",
     "set_trap": "🔽 Set Trap",
     "activate_trap": "⚠ Activate Trap",
+    "flip_summon": "🔄 Flip Summon",
+    "set_atk": "🔽 Set Face-Down (ATK)",
     "view": "🔍 View",
     "cancel": "✕ Cancel",
     "hint_spell_own": "Choose your own monster as a target.",

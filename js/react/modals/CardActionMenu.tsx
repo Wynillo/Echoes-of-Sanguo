@@ -8,7 +8,7 @@ import type { ModalState } from '../contexts/ModalContext.js';
 interface Props { modal: Extract<ModalState, { type: 'card-action' }>; }
 
 export function CardActionMenu({ modal }: Props) {
-  const { card, index, state } = modal;
+  const { card, index, state, source } = modal;
   const { gameRef }           = useGame();
   const { openModal, closeModal } = useModal();
   const { setSel }            = useSelection();
@@ -39,13 +39,21 @@ export function CardActionMenu({ modal }: Props) {
 
   const actions: React.ReactNode[] = [];
 
-  if (isMon && phase === 'main') {
+  if (isMon && phase === 'main' && source === 'field') {
+    // Field monster actions
+    const fc = state.player.field.monsters[index];
+    if (fc && fc.faceDown && !fc.summonedThisTurn) {
+      actions.push(btn(t('card_action.flip_summon'), () => { game.flipSummon('player', index); closeModal(); }));
+    }
+  } else if (isMon && phase === 'main') {
+    // Hand monster actions
     if (state.player.normalSummonUsed) {
       actions.push(btn(t('card_action.already_played'), null, true));
     } else {
       if (freeZone !== -1) {
         actions.push(btn(t('card_action.summon_atk'), () => { game.summonMonster('player', index, freeZone, 'atk'); closeModal(); }));
         actions.push(btn(t('card_action.summon_def'), () => { game.summonMonster('player', index, freeZone, 'def'); closeModal(); }));
+        actions.push(btn(t('card_action.set_atk'), () => { game.summonMonster('player', index, freeZone, 'atk', true); closeModal(); }));
       }
     }
     if (fusionOpts.length > 0 && !state.player.normalSummonUsed) {

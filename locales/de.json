@@ -170,6 +170,8 @@
     "set_spell": "🔽 Setzen",
     "set_trap": "🔽 Fallen setzen",
     "activate_trap": "⚠ Falle aktivieren",
+    "flip_summon": "🔄 Flip-Beschwörung",
+    "set_atk": "🔽 Verdeckt setzen (ATK)",
     "view": "🔍 Ansehen",
     "cancel": "✕ Abbrechen",
     "hint_spell_own": "Wähle ein eigenes Monster als Ziel.",
