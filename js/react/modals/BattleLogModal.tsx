@@ -14,8 +14,13 @@ export function BattleLogModal() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `battle-log-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
   };
 
   return (
