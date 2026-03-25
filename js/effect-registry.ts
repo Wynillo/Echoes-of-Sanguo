@@ -108,6 +108,7 @@ const IMPL: Record<string, EffectImpl> = {
   dealDamage(desc: { target: 'opponent' | 'self'; value: ValueExpr }, ctx) {
     const amount = resolveValue(desc.value, ctx);
     const target = resolveTarget(desc.target, ctx.owner);
+    ctx.engine.ui?.playVFX?.('damage', target);
     ctx.engine.dealDamage(target, amount);
     return {};
   },

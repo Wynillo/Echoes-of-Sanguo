@@ -119,7 +119,6 @@ export class GameEngine {
     this.state[target].lp = Math.max(0, this.state[target].lp - amount);
     this.addLog(`${ownerLabel(target)} takes ${amount} damage. (LP: ${this.state[target].lp})`);
     this.ui.playSfx?.('sfx_damage');
-    this.ui.playVFX?.('damage', target);
     this.ui.render(this.state);
     if(this.checkWin()) return;
   }

@@ -47,6 +47,11 @@ export function playVFXAtZone(
     el = (slot?.querySelector<HTMLElement>('.card') ?? slot as HTMLElement) || null;
   }
 
+  // Fallback: monster zone area (center of the field)
+  if (!el) {
+    const zoneId = owner === 'player' ? 'player-monster-zone' : 'opponent-monster-zone';
+    el = document.getElementById(zoneId);
+  }
   // Fallback: LP panel area
   if (!el) {
     const lpId = owner === 'player' ? 'player-lp' : 'opp-lp';
