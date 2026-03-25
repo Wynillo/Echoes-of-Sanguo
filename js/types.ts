@@ -314,6 +314,7 @@ export interface UICallbacks {
   showActivation?:      (card: CardData, text: string) => Promise<void> | void;
   playAttackAnimation?: (atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number | null) => Promise<void>;
   playFusionAnimation?: (owner: Owner, handIdx1: number, handIdx2: number, resultZone: number) => Promise<void>;
+  playFusionChainAnimation?: (owner: Owner, handIndices: number[], resultZone: number) => Promise<void>;
   playVFX?:             (type: 'buff' | 'heal' | 'damage', owner: Owner, zone?: number) => Promise<void>;
   playSfx?:             (sfxId: string) => void;
   onDraw?:              (owner: Owner, count: number) => void;
@@ -382,6 +383,7 @@ export declare class GameEngine {
   refillHand(owner: Owner): void;
   specialSummon(owner: Owner, card: CardData, zone?: number): Promise<boolean>;
   specialSummonFromGrave(owner: Owner, card: CardData): Promise<boolean>;
+  performFusionChain(owner: Owner, handIndices: number[]): Promise<boolean>;
   endTurn(): void;
   advancePhase(): void;
 }

@@ -522,6 +522,57 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   pointer-events: none;
 }
 
+/* FM-style fusion chain selection */
+.hand-card.chain-selected {
+  border-color: #ffd700 !important;
+  outline: 2px solid #ffd700;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+.chain-badge {
+  position: absolute; top: 2px; right: 3px;
+  background: #ffd700; color: #000;
+  font-size: 9px; font-weight: bold; line-height: 1;
+  width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10;
+  font-family: 'Press Start 2P', monospace;
+}
+
+/* Fusion chain bar */
+.fusion-chain-bar {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid #ffd700;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-family: 'Silkscreen', 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: #eee;
+}
+.fusion-chain-cards {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: center;
+}
+.chain-card-name { color: #ccc; }
+.chain-arrow { color: #ffd700; margin: 0 2px; font-weight: bold; }
+.chain-result-name { color: #ffd700; font-weight: bold; }
+.chain-result-stats { color: #aaa; margin-left: 4px; }
+.fusion-chain-steps {
+  display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+  font-size: 9px;
+}
+.chain-step-fused { color: #4caf50; }
+.chain-step-fallback { color: #ff9800; }
+.fusion-chain-actions {
+  display: flex; gap: 8px; margin-top: 4px;
+}
+.chain-confirm-btn {
+  background: #ffd700 !important; color: #000 !important;
+  font-weight: bold;
+}
+
 /* Big card for detail view — internal overrides live in Card.module.css */
 .big-card {
   width: var(--card-w-big);

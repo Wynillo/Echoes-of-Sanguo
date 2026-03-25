@@ -2,7 +2,7 @@
 // ECHOES OF SANGUO - Game Engine
 // ============================================================
 
-import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion } from './cards.js';
+import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, resolveFusionChain } from './cards.js';
 import { executeEffectBlock } from './effect-registry.js';
 import { CardType } from './types.js';
 import type { Owner, Phase, Position, CardData, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior } from './types.js';
@@ -392,6 +392,79 @@ export class GameEngine {
     const fusionCard = Object.assign({}, CARD_DB[recipe.result]);
     const fc = new FieldCard(fusionCard, 'atk');
     fc.summonedThisTurn = false; // fusion monsters can attack immediately
+    st.field.monsters[zone] = fc;
+    st.normalSummonUsed = true;
+
+    this.ui.render(this.state);
+    await this._triggerEffect(fc, owner, 'onSummon', zone);
+    return true;
+  }
+
+  /**
+   * FM-style multi-card fusion chain.
+   * If 1 card: normal summon in ATK position.
+   * If 2+ cards: resolve chain, place final result on field.
+   */
+  async performFusionChain(owner: Owner, handIndices: number[]): Promise<boolean> {
+    const st = this.state[owner];
+    const hand = st.hand;
+
+    if (handIndices.length === 0) return false;
+
+    // Single card = normal summon shortcut
+    if (handIndices.length === 1) {
+      const zone = st.field.monsters.findIndex(z => z === null);
+      if (zone === -1) { this.addLog('No free zone!'); return false; }
+      return this.summonMonster(owner, handIndices[0], zone, 'atk');
+    }
+
+    const zone = st.field.monsters.findIndex(z => z === null);
+    if (zone === -1) { this.addLog('No free zone for fusion monster!'); return false; }
+
+    // Resolve chain using FM rules
+    const cardIds = handIndices.map(i => hand[i].id);
+    const chain = resolveFusionChain(cardIds);
+
+    const finalCard = CARD_DB[chain.finalCardId];
+    if (!finalCard) { this.addLog('Fusion chain failed!'); return false; }
+
+    // Build log message showing the chain
+    const cardNames = handIndices.map(i => hand[i].name);
+    this.addLog(`${ownerLabel(owner)}: FUSION! ${cardNames.join(' + ')} = ${finalCard.name}!`);
+    this.ui.playSfx?.('sfx_fusion');
+
+    // Play animation
+    if (this.ui.playFusionChainAnimation) {
+      await this.ui.playFusionChainAnimation(owner, handIndices, zone);
+    } else if (this.ui.playFusionAnimation && handIndices.length >= 2) {
+      await this.ui.playFusionAnimation(owner, handIndices[0], handIndices[1], zone);
+    }
+
+    // Collect the actual CardData objects before removing from hand
+    const removedCards = handIndices.map(i => hand[i]);
+
+    // Remove cards from hand in descending index order to avoid shift issues
+    const sortedDesc = [...handIndices].sort((a, b) => b - a);
+    for (const idx of sortedDesc) {
+      hand.splice(idx, 1);
+    }
+
+    // Send consumed cards to graveyard (all original cards except: if the final result
+    // is one of the original hand cards, don't graveyard it — it stays as the result)
+    for (const card of removedCards) {
+      if (chain.consumedIds.includes(card.id)) {
+        st.graveyard.push(card);
+      } else {
+        // This is the surviving card from fallback rules — also goes to graveyard
+        // since we replace it with the CARD_DB version on the field
+        st.graveyard.push(card);
+      }
+    }
+
+    // Place final result on field
+    const resultCard = Object.assign({}, finalCard);
+    const fc = new FieldCard(resultCard, 'atk');
+    fc.summonedThisTurn = false; // fusion result can attack immediately
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
 

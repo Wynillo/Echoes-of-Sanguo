@@ -9,8 +9,9 @@
 
 import { EchoesOfSanguo } from './debug-logger.js';
 import { CardType, Attribute, isMonsterType } from './types.js';
-import type { AIBehavior } from './types.js';
+import type { AIBehavior, CardData } from './types.js';
 import type { FieldCard } from './field.js';
+import { checkFusion, CARD_DB } from './cards.js';
 // Use import type to avoid circular dependency (engine.ts → ai-orchestrator.ts → engine.ts)
 import type { GameEngine } from './engine.js';
 import { pickSummonCandidate, decideSummonPosition } from './ai-behaviors.js';
@@ -82,22 +83,19 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
   engine.ui.render(engine.state);
   await _delay(400);
 
-  // Try fusion first (max. 1 per turn)
+  // Try fusion chain first (FM-style: greedy 2-card + extend)
   const bh = engine._aiBehavior;
-  EchoesOfSanguo.log('AI', 'Main Phase – checking fusion...');
+  EchoesOfSanguo.log('AI', 'Main Phase – checking fusion chain...');
   if(!ai.normalSummonUsed && bh.fusionFirst){
-    const opts = engine.getAllFusionOptions('opponent');
-    if(opts.length > 0){
-      const best = opts.sort((a,b) => (b.result.atk ?? 0) - (a.result.atk ?? 0))[0];
-      const bestATKValue = best.result.atk ?? 0;
-      const zone = ai.field.monsters.findIndex(z => z === null);
-      if(zone !== -1 && bestATKValue >= bh.fusionMinATK){
-        EchoesOfSanguo.log('AI', `Fusion: ${best.card1.name} + ${best.card2.name} → ${best.result.name} (Zone ${zone})`);
-        await _delay(500);
-        await engine.performFusion('opponent', best.i1, best.i2);
-      }
+    const bestChain = _findBestFusionChain(ai.hand, bh.fusionMinATK);
+    const zone = ai.field.monsters.findIndex(z => z === null);
+    if(bestChain && zone !== -1){
+      const names = bestChain.indices.map(i => ai.hand[i].name);
+      EchoesOfSanguo.log('AI', `Fusion chain: ${names.join(' + ')} → ${bestChain.resultName} (Zone ${zone})`);
+      await _delay(500);
+      await engine.performFusionChain('opponent', bestChain.indices);
     } else {
-      EchoesOfSanguo.log('AI', 'No fusion available.');
+      EchoesOfSanguo.log('AI', 'No fusion chain available.');
     }
   }
 
@@ -302,4 +300,67 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     if (atk.effectiveATK() >= defVal && defVal < safeVal) { safeVal = defVal; safeTarget = dz; }
   }
   return safeTarget;
+}
+
+// ── AI Fusion Chain (greedy 2-card + extend) ─────────────
+
+function _findBestFusionChain(hand: CardData[], minATK: number): { indices: number[]; resultName: string } | null {
+  let bestChain: number[] | null = null;
+  let bestATK = -1;
+  let bestName = '';
+
+  // Try all 2-card starting pairs
+  for (let i = 0; i < hand.length; i++) {
+    for (let j = i + 1; j < hand.length; j++) {
+      const recipe = checkFusion(hand[i].id, hand[j].id);
+      if (!recipe) continue;
+      const resultCard = CARD_DB[recipe.result];
+      if (!resultCard) continue;
+
+      let chain = [i, j];
+      let currentId = recipe.result;
+      let currentATK = resultCard.atk ?? 0;
+
+      // Greedily try to extend with remaining hand cards
+      const used = new Set(chain);
+      let improved = true;
+      while (improved) {
+        improved = false;
+        let bestExtIdx = -1;
+        let bestExtATK = currentATK;
+        let bestExtId = currentId;
+
+        for (let k = 0; k < hand.length; k++) {
+          if (used.has(k)) continue;
+          const extRecipe = checkFusion(currentId, hand[k].id);
+          if (!extRecipe) continue;
+          const extCard = CARD_DB[extRecipe.result];
+          if (!extCard) continue;
+          const extATK = extCard.atk ?? 0;
+          if (extATK > bestExtATK) {
+            bestExtATK = extATK;
+            bestExtIdx = k;
+            bestExtId = extRecipe.result;
+          }
+        }
+
+        if (bestExtIdx !== -1) {
+          chain = [...chain, bestExtIdx];
+          used.add(bestExtIdx);
+          currentId = bestExtId;
+          currentATK = bestExtATK;
+          improved = true;
+        }
+      }
+
+      if (currentATK > bestATK) {
+        bestATK = currentATK;
+        bestChain = chain;
+        bestName = CARD_DB[currentId]?.name ?? '?';
+      }
+    }
+  }
+
+  if (!bestChain || bestATK < minATK) return null;
+  return { indices: bestChain, resultName: bestName };
 }

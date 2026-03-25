@@ -201,7 +201,16 @@
     "hint_spell_own": "Choose your own monster as a target.",
     "hint_trap_opp": "Choose an opponent's monster as a target.",
     "change_to_def": "🔄 Switch to Defense",
-    "change_to_atk": "🔄 Switch to Attack"
+    "change_to_atk": "🔄 Switch to Attack",
+    "play": "⚔ Play",
+    "hint_play_chain": "Select cards to combine, then confirm. Tap last card to undo."
+  },
+  "fusion_chain": {
+    "confirm": "✨ Fuse & Play",
+    "summon": "⚔ Summon",
+    "cancel": "✕ Cancel",
+    "step_fused": "Fused!",
+    "step_discarded": "{{name}} discarded"
   },
   "coin_toss": {
     "title": "Coin Toss",

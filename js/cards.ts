@@ -3,7 +3,7 @@
 // Runtime data store — populated at startup by loading base.tcg
 // ============================================================
 import type { CardData, FusionRecipe, FusionFormula, OpponentConfig } from './types.js';
-import { CardType, Rarity } from './types.js';
+import { CardType, Rarity, isMonsterType } from './types.js';
 import {
   getRaceByKey, getAttrByKey, getRarityById,
   TYPE_META,
@@ -133,4 +133,81 @@ function selectFusionResult(pool: string[], threshold: number): string | null {
 
   if (candidates.length === 0) return null;
   return candidates[0].id;
+}
+
+// ── Multi-Card Fusion Chain (FM-style) ───────────────────
+
+export interface FusionChainStep {
+  inputA: string;           // current result card ID
+  inputB: string;           // next card ID being combined
+  output: string;           // surviving card ID after this step
+  fused: boolean;           // true if a real fusion occurred
+  discardedId: string | null; // card discarded at this step (null if fused — both consumed into result)
+}
+
+export interface FusionChainResult {
+  finalCardId: string;
+  steps: FusionChainStep[];
+  consumedIds: string[];    // all original input card IDs that were consumed (not the final result)
+}
+
+/**
+ * Resolve a multi-card fusion chain using FM rules.
+ * Cards are combined in order: card[0]+card[1], then result+card[2], etc.
+ *
+ * At each step:
+ * 1. If legitimate fusion → combine into fusion result
+ * 2. If not a fusion and exactly one is a monster → keep the monster, discard the other
+ * 3. If not a fusion and neither/both are monsters → discard inputA (current result), keep inputB
+ *
+ * Pure function — no state mutation. Safe for preview.
+ */
+export function resolveFusionChain(cardIds: string[]): FusionChainResult {
+  if (cardIds.length === 0) {
+    return { finalCardId: '', steps: [], consumedIds: [] };
+  }
+  if (cardIds.length === 1) {
+    return { finalCardId: cardIds[0], steps: [], consumedIds: [] };
+  }
+
+  const steps: FusionChainStep[] = [];
+  const consumedIds: string[] = [];
+  let currentId = cardIds[0];
+
+  for (let i = 1; i < cardIds.length; i++) {
+    const nextId = cardIds[i];
+    const recipe = checkFusion(currentId, nextId);
+
+    if (recipe) {
+      // Legitimate fusion — both consumed, result replaces current
+      steps.push({ inputA: currentId, inputB: nextId, output: recipe.result, fused: true, discardedId: null });
+      consumedIds.push(currentId, nextId);
+      currentId = recipe.result;
+    } else {
+      // No fusion — apply fallback rules
+      const cardA = CARD_DB[currentId];
+      const cardB = CARD_DB[nextId];
+      const aIsMon = cardA && isMonsterType(cardA.type);
+      const bIsMon = cardB && isMonsterType(cardB.type);
+
+      if (aIsMon && !bIsMon) {
+        // Keep monster (A), discard non-monster (B)
+        steps.push({ inputA: currentId, inputB: nextId, output: currentId, fused: false, discardedId: nextId });
+        consumedIds.push(nextId);
+        // currentId stays the same
+      } else if (!aIsMon && bIsMon) {
+        // Keep monster (B), discard non-monster (A)
+        steps.push({ inputA: currentId, inputB: nextId, output: nextId, fused: false, discardedId: currentId });
+        consumedIds.push(currentId);
+        currentId = nextId;
+      } else {
+        // Neither or both are monsters — discard first (A), keep second (B)
+        steps.push({ inputA: currentId, inputB: nextId, output: nextId, fused: false, discardedId: currentId });
+        consumedIds.push(currentId);
+        currentId = nextId;
+      }
+    }
+  }
+
+  return { finalCardId: currentId, steps, consumedIds };
 }

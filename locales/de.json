@@ -201,7 +201,16 @@
     "hint_spell_own": "Wähle ein eigenes Monster als Ziel.",
     "hint_trap_opp": "Wähle ein Monster des Gegners als Ziel.",
     "change_to_def": "🔄 In Verteidigung wechseln",
-    "change_to_atk": "🔄 In Angriff wechseln"
+    "change_to_atk": "🔄 In Angriff wechseln",
+    "play": "⚔ Spielen",
+    "hint_play_chain": "Wähle Karten zum Kombinieren, dann bestätigen. Letzte Karte antippen zum Rückgängig machen."
+  },
+  "fusion_chain": {
+    "confirm": "✨ Fusionieren & Spielen",
+    "summon": "⚔ Beschwören",
+    "cancel": "✕ Abbrechen",
+    "step_fused": "Fusioniert!",
+    "step_discarded": "{{name}} abgeworfen"
   },
   "coin_toss": {
     "title": "Münzwurf",

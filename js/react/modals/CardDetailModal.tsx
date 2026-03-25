@@ -43,7 +43,6 @@ export function CardDetailModal({ modal }: Props) {
     const isSp  = card.type === CardType.Spell;
     const isTr  = card.type === CardType.Trap;
     const freeZone = state.player.field.monsters.findIndex((z: any) => z === null);
-    const fusionOpts = game.getAllFusionOptions('player').filter((o: any) => o.i1 === index || o.i2 === index);
 
     if (isMon && phase === 'main' && source === 'field') {
       const fieldCard = state.player.field.monsters[index];
@@ -57,17 +56,13 @@ export function CardDetailModal({ modal }: Props) {
     } else if (isMon && phase === 'main') {
       if (state.player.normalSummonUsed) {
         actions.push(actionBtn(t('card_action.already_played'), null, true));
-      } else {
-        if (freeZone !== -1) {
-          actions.push(actionBtn(t('card_action.summon_atk'), () => { game.summonMonster('player', index, freeZone, 'atk'); closeModal(); }));
-          actions.push(actionBtn(t('card_action.set_def'), () => { game.setMonster('player', index, freeZone); closeModal(); }));
-        }
-      }
-      if (fusionOpts.length > 0 && !state.player.normalSummonUsed) {
-        actions.push(actionBtn(t('card_action.fusion'), () => {
-          setSel({ mode: 'fusion1', fusion1: { handIndex: index }, hint: t('card_action.hint_fusion') });
+      } else if (freeZone !== -1) {
+        // FM-style "Play" — starts a fusion chain selection (single card = summon, 2+ = fusion)
+        actions.push(actionBtn(t('card_action.play'), () => {
+          setSel({ mode: 'play-chain', playChain: [index], playChainPreview: null, hint: t('card_action.hint_play_chain') });
           closeModal();
         }));
+        actions.push(actionBtn(t('card_action.set_def'), () => { game.setMonster('player', index, freeZone); closeModal(); }));
       }
     }
 
