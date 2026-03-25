@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Card, TYPE_CSS, ATTR_CSS } from './Card.js';
+import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
 import { attachHover } from './hoverApi.js';
 
 interface Props {
@@ -18,7 +18,7 @@ export function HandCard({ card, index, playable, fusionable, targetable, newlyD
 
   const cls = [
     'card hand-card',
-    `${TYPE_CSS[card.type] || 'monster'}-card`,
+    `${cardTypeCss(card)}-card`,
     `attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`,
     playable   ? 'playable'   : '',
     fusionable ? 'fusionable' : '',

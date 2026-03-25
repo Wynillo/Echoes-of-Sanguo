@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useModal }  from '../contexts/ModalContext.js';
 import { Card }       from '../components/Card.js';
 import { CARD_DB }    from '../../cards.js';
@@ -8,13 +9,39 @@ interface Props { modal: Extract<ModalState, { type: 'trap-prompt' }>; }
 export function TrapPromptModal({ modal }: Props) {
   const { opts, resolve } = modal;
   const { closeModal }   = useModal();
+  const { t }            = useTranslation();
   const card             = (CARD_DB as any)[opts.cardId];
+  const bc               = opts.battleContext;
 
   function answer(val: boolean) { closeModal(); resolve(val); }
+
+  // Build context line describing the battle situation
+  let contextLine: string | null = null;
+  if (bc) {
+    if (bc.triggerType === 'onOwnMonsterAttacked' && bc.attackerName && bc.defenderName) {
+      const defStat = bc.defenderPos === 'def' ? 'DEF' : 'ATK';
+      const defVal  = bc.defenderPos === 'def' ? bc.defenderDef : bc.defenderAtk;
+      contextLine = t('game.trap_ctx_attacks_monster', {
+        attacker: bc.attackerName, atk: bc.attackerAtk,
+        defender: bc.defenderName, stat: defStat, val: defVal,
+      });
+    } else if (bc.triggerType === 'onAttack' && bc.attackerName) {
+      contextLine = t('game.trap_ctx_attacks', {
+        attacker: bc.attackerName, atk: bc.attackerAtk,
+      });
+    } else if (bc.triggerType === 'onOpponentSummon' && bc.attackerName) {
+      contextLine = t('game.trap_ctx_summon', {
+        name: bc.attackerName, atk: bc.attackerAtk, def: bc.defenderDef ?? 0,
+      });
+    }
+  }
 
   return (
     <div id="trap-prompt-modal" className="modal" role="dialog" aria-modal="true">
       <h3 id="trap-prompt-title">{opts.title}</h3>
+      {contextLine && (
+        <div className="trap-battle-context">{contextLine}</div>
+      )}
       <div id="trap-prompt-card" style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
         {card && <Card card={card} />}
       </div>

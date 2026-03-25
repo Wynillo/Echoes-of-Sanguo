@@ -5,7 +5,7 @@ import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB } from '../../cards.js';
 import { Progression }     from '../../progression.js';
-import { Card, TYPE_CSS, ATTR_CSS } from '../components/Card.js';
+import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { CardType, Race, Rarity, isMonsterType } from '../../types.js';
 import { getAllRaces, getAllRarities, getRarityById, getCardTypeById } from '../../type-metadata.js';
@@ -147,7 +147,7 @@ export default function DeckbuilderScreen() {
                 return (
                   <div key={id} className={styles.deckCardWrap} onClick={() => removeCard(id)}>
                     <div
-                      className={`card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
+                      className={`card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                       ref={el => { if (el) attachHover(el, card, null); }}
                     >
                       <Card card={card} />
@@ -164,7 +164,7 @@ export default function DeckbuilderScreen() {
                 return (
                   <div key={id} className={styles.deckRow} onClick={() => removeCard(id)}>
                     <div
-                      className={`card ${styles.deckRowMini} ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
+                      className={`card ${styles.deckRowMini} ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                       ref={el => { if (el) attachHover(el, card, null); }}
                     >
                       <Card card={card} />
@@ -257,7 +257,7 @@ export default function DeckbuilderScreen() {
                     onClick={!atMax && !full ? () => addCard(card.id) : undefined}
                   >
                     <div
-                      className={`card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
+                      className={`card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                       ref={el => { if (el) attachHover(el, card, null); }}
                     >
                       <Card card={card} />

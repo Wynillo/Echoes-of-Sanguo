@@ -271,12 +271,23 @@ export interface GameState {
 
 // ── UI callbacks ─────────────────────────────────────────────
 
+export interface BattleContext {
+  triggerType: string;
+  attackerName?: string;
+  attackerAtk?: number;
+  defenderName?: string;
+  defenderDef?: number;
+  defenderAtk?: number;
+  defenderPos?: string;
+}
+
 export interface PromptOptions {
   title:   string;
   cardId:  string;
   message: string;
   yes:     string;
   no:      string;
+  battleContext?: BattleContext;
 }
 
 export interface UICallbacks {

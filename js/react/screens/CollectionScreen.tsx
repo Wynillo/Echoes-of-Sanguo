@@ -4,7 +4,7 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB } from '../../cards.js';
-import { Card, TYPE_CSS, ATTR_CSS } from '../components/Card.js';
+import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { Race, Rarity } from '../../types.js';
 import { getAllRaces, getAllRarities, getRarityById } from '../../type-metadata.js';
@@ -82,7 +82,7 @@ export default function CollectionScreen() {
                 onClick={() => openModal({ type: 'card-detail', card })}
               >
                 <div
-                  className={`card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
+                  className={`card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                 >
                   <Card card={card} small />
                 </div>

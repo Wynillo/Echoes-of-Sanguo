@@ -176,6 +176,20 @@ export default function GameScreen() {
 
       <HandArea />
 
+      {/* Floating phase button — visible only on portrait mobile via CSS */}
+      <button
+        id="floating-phase-btn"
+        className={`floating-phase-btn phase-${phase}${!isMyTurn ? ' waiting' : ''}`}
+        disabled={!isMyTurn}
+        onClick={onPortraitPhase}
+        aria-label={t('game.aria_next_phase')}
+      >
+        {!isMyTurn ? '⏸'
+          : phase === 'main'   ? '⚔ BATTLE'
+          : phase === 'battle' ? '→ END'
+          : '⏭ NEXT'}
+      </button>
+
       {/* Battle log — hidden, accessible via options later */}
       <div id="battle-log" style={{ display: 'none' }}>
         <div className="log-header">📜 Protokoll</div>

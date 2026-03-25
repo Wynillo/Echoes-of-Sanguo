@@ -1,5 +1,5 @@
 import { attachHover } from './hoverApi.js';
-import { Card, TYPE_CSS, ATTR_CSS } from './Card.js';
+import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
 
 interface Props {
   fc: any;
@@ -30,7 +30,7 @@ export function FieldCardComponent({
   } else if (fc.faceDown && isPlayer) {
     cls = `card field-card face-down own-facedown attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`;
   } else {
-    cls = `card field-card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'} pos-${fc.position}`;
+    cls = `card field-card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'} pos-${fc.position}`;
   }
   if (fc.hasAttacked && isPlayer) cls += ' exhausted';
   if (selected)    cls += ' selected';

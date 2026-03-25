@@ -44,25 +44,27 @@
 }
 
 .filterBar {
-  display: flex; gap: 6px; padding: 8px 12px;
+  display: flex; gap: 4px; padding: 6px 8px;
   background: var(--panel);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0; flex-wrap: wrap; align-items: center;
 }
 
 .filterGroup {
-  display: flex; gap: 4px; align-items: center; flex-wrap: wrap;
+  display: flex; gap: 2px; align-items: center;
+  flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
 }
 
 .filterGroup + .filterGroup {
-  padding-left: 8px;
+  padding-left: 6px;
   border-left: 1px solid var(--border);
 }
 
 .filterBtn {
   background: #141e3c; color: var(--text-dim);
-  padding: 4px 12px; border: 1px solid var(--border);
-  border-radius: 0; font-size: 0.75rem; cursor: pointer;
+  padding: 3px 8px; border: 1px solid var(--border);
+  border-radius: 0; font-size: 0.65rem; cursor: pointer;
+  white-space: nowrap;
 }
 
 .filterBtn:hover  { border-color: var(--gold); color: var(--gold); }
@@ -72,12 +74,12 @@
   background: #283c78;
 }
 
-.raceBtn { padding: 4px 7px; font-size: 13px; }
+.raceBtn { padding: 3px 5px; font-size: 11px; }
 
 .raritySelect {
   background: #141e3c; color: var(--text-dim);
   border: 1px solid var(--border); border-radius: 0;
-  font-size: 12px; padding: 4px 8px; cursor: pointer;
+  font-size: 11px; padding: 3px 6px; cursor: pointer;
 }
 
 .raritySelect:focus { outline: none; border-color: var(--gold); }
@@ -86,7 +88,7 @@
   background: #141e3c; color: var(--text);
   border: 2px solid; border-color: #182860 #4068c8 #4068c8 #182860;
   border-radius: 0;
-  font-size: 12px; padding: 4px 8px; width: 130px;
+  font-size: 11px; padding: 3px 6px; width: 100px;
 }
 
 .nameSearch::placeholder { color: var(--text-dim); }
@@ -281,14 +283,21 @@
 
 /* Mobile default: stacked layout */
 .body { flex-direction: column; }
-.deckPanel { width: 100%; flex-shrink: 0; max-height: 200px; }
+.deckPanel { width: 100%; flex-shrink: 0; max-height: 140px; }
 .collectionPanel { border-right: none; border-bottom: 1px solid var(--border); }
 .collectionGrid { gap: 6px; padding: 8px; }
 
-/* Tablet/Desktop: side-by-side layout */
+/* Tablet/Desktop: side-by-side layout + larger filter controls */
 @media (min-width: 700px) {
   .body { flex-direction: row; }
   .deckPanel { width: 280px; max-height: none; }
   .collectionPanel { border-right: 1px solid var(--border); border-bottom: none; }
   .collectionGrid { gap: 8px; padding: 12px; }
+  .filterBar { gap: 6px; padding: 8px 12px; }
+  .filterGroup { gap: 4px; flex-wrap: wrap; overflow-x: visible; }
+  .filterGroup + .filterGroup { padding-left: 8px; }
+  .filterBtn { padding: 4px 12px; font-size: 0.75rem; }
+  .raceBtn { padding: 4px 7px; font-size: 13px; }
+  .raritySelect { font-size: 12px; padding: 4px 8px; }
+  .nameSearch { width: 130px; font-size: 12px; padding: 4px 8px; }
 }

@@ -3,7 +3,7 @@ import { useModal }        from '../contexts/ModalContext.js';
 import { Card }            from '../components/Card.js';
 import { CARD_DB, FUSION_RECIPES } from '../../cards.js';
 import { CardType, isEffectMonster } from '../../types.js';
-import { TYPE_CSS, ATTR_CSS } from '../components/Card.js';
+import { cardTypeCss, ATTR_CSS } from '../components/Card.js';
 
 export function CardListModal() {
   const { openModal, closeModal } = useModal();
@@ -31,7 +31,7 @@ export function CardListModal() {
               {cards.map((card: any) => (
                 <div
                   key={card.id}
-                  className={`card hand-card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
+                  className={`card hand-card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                   style={{ cursor: 'pointer' }}
                   onClick={() => openModal({ type: 'card-detail', card })}
                 >

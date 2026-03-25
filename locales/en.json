@@ -164,7 +164,10 @@
     "surrender": "⚑ Surrender",
     "surrender_confirm": "Really surrender? The duel will be counted as a defeat.",
     "surrender_yes": "⚑ Yes, surrender",
-    "surrender_cancel": "← Back"
+    "surrender_cancel": "← Back",
+    "trap_ctx_attacks_monster": "{{attacker}} (ATK {{atk}}) attacks your {{defender}} ({{stat}} {{val}})",
+    "trap_ctx_attacks": "{{attacker}} (ATK {{atk}}) is attacking!",
+    "trap_ctx_summon": "Opponent summoned {{name}} (ATK {{atk}})"
   },
   "card_action": {
     "already_played": "⛔ Monster already played",

@@ -164,7 +164,10 @@
     "surrender": "⚑ Aufgeben",
     "surrender_confirm": "Wirklich aufgeben? Das Duell wird als Niederlage gewertet.",
     "surrender_yes": "⚑ Ja, aufgeben",
-    "surrender_cancel": "← Zurück"
+    "surrender_cancel": "← Zurück",
+    "trap_ctx_attacks_monster": "{{attacker}} (ATK {{atk}}) greift dein {{defender}} ({{stat}} {{val}}) an!",
+    "trap_ctx_attacks": "{{attacker}} (ATK {{atk}}) greift an!",
+    "trap_ctx_summon": "Gegner beschwört {{name}} (ATK {{atk}})"
   },
   "card_action": {
     "already_played": "⛔ Monster bereits gespielt",

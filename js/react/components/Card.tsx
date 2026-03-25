@@ -12,9 +12,10 @@ function getTypeLabel(card: any): string {
   return getCardTypeById(card.type)?.value ?? '';
 }
 
-/** Map CardType enum to CSS class prefix */
-function typeCss(type: number): string {
-  return getCardTypeById(type)?.key.toLowerCase() ?? 'monster';
+/** Map CardType enum to CSS class prefix — distinguishes normal vs effect monsters */
+function typeCss(card: any): string {
+  if (card.type === CardType.Monster) return card.effect ? 'effect' : 'normal';
+  return getCardTypeById(card.type)?.key.toLowerCase() ?? 'monster';
 }
 
 /** Map Attribute enum to CSS class suffix */
@@ -81,7 +82,7 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
       </div>
     : <div className={`${styles.cardStats} ${styles.noStats}`} />;
 
-  const tCss = typeCss(card.type);
+  const tCss = typeCss(card);
   const aCss = attrCssKey(card.attribute);
 
   const cls = [
@@ -129,10 +130,14 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
 }
 
 // Re-export CSS helpers for use by other components
-export function TYPE_CSS_FN(type: number): string { return typeCss(type); }
+export function TYPE_CSS_FN(card: any): string { return typeCss(card); }
 export function ATTR_CSS_FN(attr: number | undefined): string { return attrCssKey(attr); }
 
-// Backward-compatible record-style exports (used by CollectionScreen, DeckbuilderScreen, PackOpeningScreen)
+/** Card-aware CSS class: distinguishes normal vs effect monsters */
+export function cardTypeCss(card: any): string { return typeCss(card); }
+
+// Backward-compatible record-style exports — NOTE: cannot distinguish normal/effect.
+// Prefer cardTypeCss(card) for monster cards.
 export const TYPE_CSS: Record<number, string> = new Proxy({} as Record<number, string>, {
   get(_t, prop) { return getCardTypeById(Number(prop))?.key.toLowerCase() ?? 'monster'; },
 });
