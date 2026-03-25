@@ -708,7 +708,7 @@ export class GameEngine {
     const fc = this.state[owner].field.monsters[zone];
     if(!fc || fc.summonedThisTurn){ this.addLog('Cannot change position!'); return; }
     fc.position = fc.position === 'atk' ? 'def' : 'atk';
-    fc.hasAttacked = true; // cant attack after changing
+    // position change is free and unlimited — does not consume an action
     this.addLog(`${fc.card.name} switches to ${fc.position === 'atk' ? 'attack' : 'defense'} position.`);
     this.ui.render(this.state);
   }

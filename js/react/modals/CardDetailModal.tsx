@@ -50,7 +50,7 @@ export function CardDetailModal({ modal }: Props) {
       if (fieldCard && fieldCard.faceDown && !fieldCard.summonedThisTurn) {
         actions.push(actionBtn(t('card_action.flip_summon'), () => { game.flipSummon('player', index); closeModal(); }));
       }
-      if (fieldCard && !fieldCard.faceDown && !fieldCard.summonedThisTurn && !fieldCard.hasAttacked) {
+      if (fieldCard && !fieldCard.faceDown && !fieldCard.summonedThisTurn) {
         const label = fieldCard.position === 'atk' ? t('card_action.change_to_def') : t('card_action.change_to_atk');
         actions.push(actionBtn(label, () => { game.changePosition('player', index); closeModal(); }));
       }
