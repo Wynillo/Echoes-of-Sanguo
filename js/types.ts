@@ -267,6 +267,7 @@ export interface GameState {
   player:       PlayerState;
   opponent:     PlayerState;
   log:          string[];
+  firstTurnNoAttack?: boolean;
 }
 
 // ── UI callbacks ─────────────────────────────────────────────
@@ -304,6 +305,7 @@ export interface UICallbacks {
   playSfx?:             (sfxId: string) => void;
   onDraw?:              (owner: Owner, count: number) => void;
   onDuelEnd?:           (result: 'victory' | 'defeat', oppId: number | null) => void;
+  showCoinToss?:        (playerGoesFirst: boolean) => Promise<void>;
 }
 
 // ── Progression ──────────────────────────────────────────────
@@ -358,7 +360,7 @@ export declare class GameEngine {
   constructor(uiCallbacks: UICallbacks);
   ui:      UICallbacks;
   state:   GameState;
-  initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null): void;
+  initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null): Promise<void>;
   getState(): GameState;
   addLog(msg: string): void;
   dealDamage(target: Owner, amount: number): void;

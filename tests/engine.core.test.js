@@ -21,11 +21,16 @@ function makeCallbacks(overrides = {}) {
 function makeEngine(cbOverrides = {}) {
   const cb = makeCallbacks(cbOverrides);
   const engine = new GameEngine(cb);
+  // initGame is async but we don't need to await it in tests
+  // since the coin toss callback is not provided
   engine.initGame(
     [...PLAYER_DECK_IDS],
     { id: 1, name: 'Test', title: '', race: 'krieger', flavor: '',
       coinsWin: 0, coinsLoss: 0, deckIds: [...OPPONENT_DECK_IDS] }
   );
+  // Force player goes first for deterministic tests
+  engine.state.activePlayer = 'player';
+  engine.state.phase = 'main';
   return { engine, cb };
 }
 
@@ -69,10 +74,10 @@ describe('summonMonster', () => {
     expect(engine.state.player.normalSummonUsed).toBe(true);
   });
 
-  it('gives the summoned monster summoning sickness', async () => {
+  it('summoned monster has no summoning sickness (FM-style)', async () => {
     const { engine } = makeEngine();
     await engine.summonMonster('player', 0, 0);
-    expect(engine.state.player.field.monsters[0].summonedThisTurn).toBe(true);
+    expect(engine.state.player.field.monsters[0].summonedThisTurn).toBe(false);
   });
 
   it('rejects an occupied zone', async () => {

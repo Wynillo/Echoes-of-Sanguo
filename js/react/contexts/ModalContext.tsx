@@ -9,7 +9,8 @@ export type ModalState =
   | { type: 'card-list' }
   | { type: 'result'; resultType: 'victory' | 'defeat'; coinsEarned: number }
   | { type: 'main-options' }
-  | { type: 'battle-log' };
+  | { type: 'battle-log' }
+  | { type: 'coin-toss'; playerGoesFirst: boolean; resolve: () => void };
 
 interface ModalCtx {
   modal: ModalState;

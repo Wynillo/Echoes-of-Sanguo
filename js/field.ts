@@ -36,7 +36,7 @@ export class FieldCard {
     this.faceDown   = faceDown;
     this.hasAttacked= false;
     this.hasFlipped = false;
-    this.summonedThisTurn = true; // summoning sickness
+    this.summonedThisTurn = false; // FM-style: no summoning sickness
     this.tempATKBonus = 0;
     this.tempDEFBonus = 0;
     this.permATKBonus = 0;

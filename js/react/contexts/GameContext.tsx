@@ -75,6 +75,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     onDraw: (owner, count) => {
       if (owner === 'player') setPendingDraw(prev => prev + count);
     },
+    showCoinToss: (playerGoesFirst: boolean) => {
+      return new Promise<void>(resolve => {
+        openModalRef.current({ type: 'coin-toss', playerGoesFirst, resolve });
+      });
+    },
     onDuelEnd: (result, opponentId) => {
       Audio.playMusic(result === 'victory' ? 'music_victory' : 'music_defeat');
 
@@ -148,8 +153,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const deck = (saved && saved.length > 0) ? saved : [...PLAYER_DECK_IDS];
         const g = new GameEngine(uiCallbacks);
         gameRef.current = g;
-        g.initGame(deck, cfg);
-        setScreenRef.current('game');
+        g.initGame(deck, cfg).then(() => {
+          setScreenRef.current('game');
+        });
       });
     });
   }, [uiCallbacks, loadDeck]);

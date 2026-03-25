@@ -196,7 +196,15 @@
     "view": "🔍 View",
     "cancel": "✕ Cancel",
     "hint_spell_own": "Choose your own monster as a target.",
-    "hint_trap_opp": "Choose an opponent's monster as a target."
+    "hint_trap_opp": "Choose an opponent's monster as a target.",
+    "change_to_def": "🔄 Switch to Defense",
+    "change_to_atk": "🔄 Switch to Attack"
+  },
+  "coin_toss": {
+    "title": "Coin Toss",
+    "player_first": "You go first!",
+    "opponent_first": "Opponent goes first!",
+    "continue": "Continue"
   },
   "card_detail": {
     "close": "✕ Close",

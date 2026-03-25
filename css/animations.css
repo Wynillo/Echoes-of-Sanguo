@@ -122,6 +122,11 @@
 }
 
 /* ── Progression / Shop ───────────────────────────────────── */
+@keyframes spin-coin {
+  0%   { transform: rotateY(0deg) scale(1.2); }
+  100% { transform: rotateY(360deg) scale(1.2); }
+}
+
 @keyframes coinsPop {
   0%   { transform: scale(0.7); opacity: 0; }
   60%  { transform: scale(1.15); }

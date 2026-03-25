@@ -196,7 +196,15 @@
     "view": "🔍 Ansehen",
     "cancel": "✕ Abbrechen",
     "hint_spell_own": "Wähle ein eigenes Monster als Ziel.",
-    "hint_trap_opp": "Wähle ein Monster des Gegners als Ziel."
+    "hint_trap_opp": "Wähle ein Monster des Gegners als Ziel.",
+    "change_to_def": "🔄 In Verteidigung wechseln",
+    "change_to_atk": "🔄 In Angriff wechseln"
+  },
+  "coin_toss": {
+    "title": "Münzwurf",
+    "player_first": "Du fängst an!",
+    "opponent_first": "Gegner fängt an!",
+    "continue": "Weiter"
   },
   "card_detail": {
     "close": "✕ Schließen",
