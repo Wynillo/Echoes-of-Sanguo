@@ -24,14 +24,16 @@ export const TCG_ATTRIBUTES = [TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG
 export const TCG_RACE_DRAGON      = 1;
 export const TCG_RACE_SPELLCASTER = 2;
 export const TCG_RACE_WARRIOR     = 3;
-export const TCG_RACE_FIRE        = 4;
+export const TCG_RACE_BEAST       = 4;
 export const TCG_RACE_PLANT       = 5;
-export const TCG_RACE_STONE       = 6;
-export const TCG_RACE_FLYER       = 7;
-export const TCG_RACE_ELF         = 8;
-export const TCG_RACE_DEMON       = 9;
-export const TCG_RACE_WATER       = 10;
-export const TCG_RACES = [TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_FIRE, TCG_RACE_PLANT, TCG_RACE_STONE, TCG_RACE_FLYER, TCG_RACE_ELF, TCG_RACE_DEMON, TCG_RACE_WATER] as const;
+export const TCG_RACE_ROCK        = 6;
+export const TCG_RACE_PHOENIX     = 7;
+export const TCG_RACE_UNDEAD      = 8;
+export const TCG_RACE_AQUA        = 9;
+export const TCG_RACE_INSECT      = 10;
+export const TCG_RACE_MACHINE     = 11;
+export const TCG_RACE_PYRO        = 12;
+export const TCG_RACES = [TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_BEAST, TCG_RACE_PLANT, TCG_RACE_ROCK, TCG_RACE_PHOENIX, TCG_RACE_UNDEAD, TCG_RACE_AQUA, TCG_RACE_INSECT, TCG_RACE_MACHINE, TCG_RACE_PYRO] as const;
 
 // ── Rarity (1-8 range) ──────────────────────────────────────
 export const TCG_RARITY_COMMON     = 1;
@@ -51,7 +53,7 @@ export interface TcgCard {
   rarity:     number;       // 1-8
   type:       number;       // 1-4
   attribute?: number;       // 1-6, absent for Spells/Traps
-  race?:      number;       // 1-10, absent for Spells/Traps
+  race?:      number;       // 1-12, absent for Spells/Traps
   effect?:    string;       // serialized effect string
   spellType?:   number;    // 1=normal, 2=targeted, 3=fromGrave
   trapTrigger?: number;    // 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual
@@ -72,7 +74,7 @@ export interface TcgOpponentDeck {
   id:        number;
   name:      string;
   title:     string;
-  race:      number;    // TCG int (1-10), converted to Race enum by loader
+  race:      number;    // TCG int (1-12), converted to Race enum by loader
   flavor:    string;
   coinsWin:  number;
   coinsLoss: number;
@@ -220,7 +222,7 @@ interface NodeBase {
   unlockCondition: UnlockCondition | null;
   rewards: CampaignRewards | null;
 }
-export interface DuelNode   extends NodeBase { type: 'duel';   opponentId: number; isBoss: boolean; preDialogue: DialogueScene | null; postDialogue: DialogueScene | null; }
+export interface DuelNode   extends NodeBase { type: 'duel';   opponentId: number; isBoss: boolean; completeOnLoss?: boolean; preDialogue: DialogueScene | null; postDialogue: DialogueScene | null; }
 export interface StoryNode  extends NodeBase { type: 'story';  scene: DialogueScene; }
 export interface RewardNode extends NodeBase { type: 'reward'; }
 export interface ShopNode   extends NodeBase { type: 'shop';   shopId: string; }

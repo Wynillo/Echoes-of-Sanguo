@@ -311,11 +311,11 @@ describe('attackDirect', () => {
 // ── performFusion ──────────────────────────────────────────
 
 describe('performFusion', () => {
-  // 1 + 2 = 25 per FUSION_RECIPES
+  // 4 + 5 = 246 per FUSION_RECIPES
   function setupFusion(engine) {
     engine.state.player.hand = [
-      { ...CARD_DB['1'] },
-      { ...CARD_DB['2'] },
+      { ...CARD_DB['4'] },
+      { ...CARD_DB['5'] },
     ];
   }
 
@@ -325,7 +325,7 @@ describe('performFusion', () => {
     engine.performFusion('player', 0, 1);
     const placed = engine.state.player.field.monsters.find(fc => fc !== null);
     expect(placed).not.toBeNull();
-    expect(placed.card.id).toBe('25');
+    expect(placed.card.id).toBe('246');
   });
 
   it('sends both materials to graveyard', () => {
@@ -333,8 +333,8 @@ describe('performFusion', () => {
     setupFusion(engine);
     engine.performFusion('player', 0, 1);
     const ids = engine.state.player.graveyard.map(c => c.id);
-    expect(ids).toContain('1');
-    expect(ids).toContain('2');
+    expect(ids).toContain('4');
+    expect(ids).toContain('5');
   });
 
   it('removes materials from hand', () => {

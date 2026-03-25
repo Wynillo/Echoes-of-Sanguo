@@ -76,8 +76,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (pending) {
         setPendingDuelRef.current(null);
         import('../../progression.js').then(({ Progression }) => {
-          Progression.setNodeStatus(pending.nodeId, result === 'victory' ? 'complete' : 'available');
-          if (result === 'victory') {
+          const isComplete = result === 'victory' || !!pending.completeOnLoss;
+          Progression.setNodeStatus(pending.nodeId, isComplete ? 'complete' : 'available');
+          if (isComplete) {
             if (pending.rewards) {
               if (pending.rewards.coins) Progression.addCoins(pending.rewards.coins);
               if (pending.rewards.cards?.length) Progression.addCardsToCollection(pending.rewards.cards);

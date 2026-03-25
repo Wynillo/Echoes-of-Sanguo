@@ -1,1 +1,11 @@
-{"id":9,"name":"Erzmagier Theron","title":"Meister der Arkanen","race":2,"flavor":"Jahrzehnte des Studiums haben ihn unbesiegbar gemacht.","coinsWin":400,"coinsLoss":80,"deckIds":[10,10,21,21,6,6,22,23,24,15,35,36,38,39,40,41,42,43,43,44],"behavior":"smart"}
+{
+  "id": 9,
+  "name": "Tang Long",
+  "title": "Der Tiger",
+  "race": 4,
+  "flavor": "Sein Deck ist so wild wie ein Tiger auf der Jagd.",
+  "coinsWin": 200,
+  "coinsLoss": 40,
+  "deckIds": [79, 79, 80, 80, 81, 81, 82, 82, 83, 84, 84, 85, 86, 268, 274, 295],
+  "behavior": "aggressive"
+}

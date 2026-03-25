@@ -108,7 +108,7 @@ describe('openPack race filtering', () => {
   });
 
   it('race pack works for multiple different races', () => {
-    const races = [Race.Warrior, Race.Spellcaster, Race.Fire];
+    const races = [Race.Warrior, Race.Spellcaster, Race.Beast];
     for (const race of races) {
       const cards = openPack('race', race);
       for (const card of cards) {

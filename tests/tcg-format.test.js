@@ -59,12 +59,12 @@ describe('Enum Converters', () => {
 
   describe('Race', () => {
     it('round-trips all races', () => {
-      const races = [Race.Fire, Race.Dragon, Race.Flyer, Race.Stone, Race.Plant, Race.Warrior, Race.Spellcaster, Race.Elf, Race.Demon, Race.Water];
+      const races = [Race.Dragon, Race.Spellcaster, Race.Warrior, Race.Beast, Race.Plant, Race.Rock, Race.Phoenix, Race.Undead, Race.Aqua, Race.Insect, Race.Machine, Race.Pyro];
       for (const race of races) {
         const n = raceToInt(race);
         expect(intToRace(n)).toBe(race);
         expect(n).toBeGreaterThanOrEqual(1);
-        expect(n).toBeLessThanOrEqual(10);
+        expect(n).toBeLessThanOrEqual(12);
       }
     });
   });
@@ -126,9 +126,9 @@ describe('Effect Serializer', () => {
   });
 
   it('serializes buffAtkRace with int race', () => {
-    const block = { trigger: 'onSummon', actions: [{ type: 'buffAtkRace', race: Race.Fire, value: 200 }] };
+    const block = { trigger: 'onSummon', actions: [{ type: 'buffAtkRace', race: Race.Beast, value: 200 }] };
     const s = serializeEffect(block);
-    expect(s).toBe(`onSummon:buffAtkRace(${raceToInt(Race.Fire)},200)`);
+    expect(s).toBe(`onSummon:buffAtkRace(${raceToInt(Race.Beast)},200)`);
   });
 
   it('serializes passive_vsAttrBonus', () => {
@@ -321,7 +321,7 @@ describe('TCG Builder', () => {
   it('converts a monster CardData to TcgCard', () => {
     const card = {
       id: 'M001', name: 'Feuersalamander', type: CardType.Monster,
-      attribute: Attribute.Fire, race: Race.Fire, rarity: Rarity.Common, level: 3, atk: 1000, def: 800,
+      attribute: Attribute.Fire, race: Race.Beast, rarity: Rarity.Common, level: 3, atk: 1000, def: 800,
       description: 'A fire salamander',
     };
     const tc = cardDataToTcgCard(card, 1);
@@ -332,7 +332,7 @@ describe('TCG Builder', () => {
     expect(tc.def).toBe(800);
     expect(tc.rarity).toBe(TCG_RARITY_COMMON);
     expect(tc.attribute).toBe(attributeToInt(Attribute.Fire));
-    expect(tc.race).toBe(raceToInt(Race.Fire));
+    expect(tc.race).toBe(raceToInt(Race.Beast));
     expect(tc.effect).toBeUndefined();
   });
 

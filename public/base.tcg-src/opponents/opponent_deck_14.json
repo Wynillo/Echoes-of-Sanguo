@@ -1,0 +1,11 @@
+{
+  "id": 14,
+  "name": "Bai Chen",
+  "title": "Herr der Jiangshi",
+  "race": 8,
+  "flavor": "Seine untoten Diener kennen weder Müdigkeit noch Mitleid.",
+  "coinsWin": 300,
+  "coinsLoss": 60,
+  "deckIds": [152, 153, 154, 155, 156, 157, 157, 158, 158, 159, 160, 161, 161, 162, 163, 278, 280, 296],
+  "behavior": "smart"
+}

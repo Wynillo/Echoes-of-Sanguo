@@ -1,1 +1,11 @@
-{"id":3,"name":"Flüsterin Syl","title":"Elfische Verzauberin","race":8,"flavor":"Ihre magischen Worte lähmen jeden Angreifer.","coinsWin":200,"coinsLoss":40,"deckIds":[8,8,10,10,6,6,17,19,15,36,37,37,39,40,42,43]}
+{
+  "id": 3,
+  "name": "Zhao Yun",
+  "title": "Der tapfere General",
+  "race": 3,
+  "flavor": "Ein loyaler General mit unbeugsamer Ehre.",
+  "coinsWin": 80,
+  "coinsLoss": 15,
+  "deckIds": [26, 27, 27, 28, 29, 29, 30, 30, 31, 31, 32, 267, 270, 291],
+  "behavior": "default"
+}

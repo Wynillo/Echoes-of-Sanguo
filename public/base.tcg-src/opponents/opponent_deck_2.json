@@ -1,1 +1,11 @@
-{"id":2,"name":"Gärtnerin Mira","title":"Hüterin des Waldes","race":5,"flavor":"Sie lässt ihre Pflanzen für sich kämpfen.","coinsWin":150,"coinsLoss":30,"deckIds":[12,12,8,8,10,10,19,19,3,14,36,36,39,40,41,42]}
+{
+  "id": 2,
+  "name": "Sun Shangxiang",
+  "title": "Kriegerprinzessin",
+  "race": 3,
+  "flavor": "Die kämpferische Prinzessin von Wu.",
+  "coinsWin": 80,
+  "coinsLoss": 15,
+  "deckIds": [26, 26, 27, 27, 28, 28, 29, 29, 30, 30, 31, 266, 269, 291],
+  "behavior": "default"
+}

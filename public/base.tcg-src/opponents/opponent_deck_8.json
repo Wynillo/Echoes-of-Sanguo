@@ -1,1 +1,11 @@
-{"id":8,"name":"Windweberin Ara","title":"Beherrscherin der Lüfte","race":7,"flavor":"Der Wind trägt ihre Botschaften ans Ende der Welt.","coinsWin":400,"coinsLoss":80,"deckIds":[4,4,9,9,21,21,15,24,20,35,37,37,39,40,41,42,43,43,44]}
+{
+  "id": 8,
+  "name": "Zhang Jue",
+  "title": "Meister des Gelben Himmels",
+  "race": 2,
+  "flavor": "Der Anführer der Gelben Turbane. Sein Zauber ist überwältigend.",
+  "coinsWin": 300,
+  "coinsLoss": 60,
+  "deckIds": [71, 71, 72, 72, 73, 73, 74, 74, 75, 75, 76, 76, 77, 77, 78, 78, 249, 249, 289, 290],
+  "behavior": "cheating"
+}

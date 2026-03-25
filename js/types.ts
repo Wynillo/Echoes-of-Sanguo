@@ -34,13 +34,15 @@ export enum Race {
   Dragon      = 1,
   Spellcaster = 2,
   Warrior     = 3,
-  Fire        = 4,
+  Beast       = 4,
   Plant       = 5,
-  Stone       = 6,
-  Flyer       = 7,
-  Elf         = 8,
-  Demon       = 9,
-  Water       = 10,
+  Rock        = 6,
+  Phoenix     = 7,
+  Undead      = 8,
+  Aqua        = 9,
+  Insect      = 10,
+  Machine     = 11,
+  Pyro        = 12,
 }
 
 export enum Rarity {
