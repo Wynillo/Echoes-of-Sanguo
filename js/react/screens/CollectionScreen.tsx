@@ -7,7 +7,7 @@ import { CARD_DB } from '../../cards.js';
 import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { Race, Rarity } from '../../types.js';
-import { getAllRaces, getAllRarities, getRarityById } from '../../type-metadata.js';
+import { getAllRaces, getAllRarities, getRarityById, getRaceById } from '../../type-metadata.js';
 import type { CardData } from '../../types.js';
 import styles from './CollectionScreen.module.css';
 
@@ -95,7 +95,7 @@ export default function CollectionScreen() {
             <div key={card.id} className={`${styles.card} ${styles.unowned}`}>
               <div className={styles.unknownLabel}>???</div>
               <div className={styles.cardMeta} style={{ textAlign: 'center', opacity: 0.4 }}>
-                {t(`cards.race_${(card as any).race}`) || ''}
+                {(card as any).race ? (getRaceById((card as any).race)?.value ?? '') : ''}
               </div>
             </div>
           );
