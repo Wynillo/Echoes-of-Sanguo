@@ -8,7 +8,7 @@ import { Progression }     from '../../progression.js';
 import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { CardType, Race, Rarity } from '../../types.js';
-import { getAllRaces, getAllRarities, getRarityById } from '../../type-metadata.js';
+import { getAllRaces, getAllRarities, getRarityById, getCardTypeById } from '../../type-metadata.js';
 import type { CardData }   from '../../types.js';
 import styles from './DeckbuilderScreen.module.css';
 import { GAME_RULES } from '../../rules.js';
@@ -378,6 +378,8 @@ export default function DeckbuilderScreen() {
                     const typeLbl    = card.type === CardType.Monster && card.effect
                       ? t('deckbuilder.type_label_effect')
                       : (TYPE_LABEL[card.type] || '');
+                    const typeMeta   = getCardTypeById(card.type as number);
+                    const typeColor  = typeMeta?.color ?? '#aaa';
                     const raceLbl    = card.race ? t(`cards.race_${card.race}`) : '';
                     return (
                       <tr
@@ -396,10 +398,10 @@ export default function DeckbuilderScreen() {
                             {rarMeta?.value ?? '\u2014'}
                           </span>
                         </td>
-                        <td>{card.name}</td>
+                        <td style={{ color: typeColor }}>{card.name}</td>
                         <td>{card.atk !== undefined ? card.atk : '\u2014'}</td>
                         <td>{card.def !== undefined ? card.def : '\u2014'}</td>
-                        <td>{typeLbl}</td>
+                        <td style={{ color: typeColor }}>{typeLbl}</td>
                         <td>{raceLbl}</td>
                         <td>{ownedCount}</td>
                         <td>{copies} / {maxCopiesFor(card.id)}</td>
