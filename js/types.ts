@@ -82,6 +82,20 @@ export type ValueExpr =
 /** Contextual target for stat modifications */
 export type StatTarget = 'ownMonster' | 'oppMonster' | 'attacker' | 'defender' | 'summonedFC';
 
+/** Unified card filter — composable across all effects that target/select cards */
+export interface CardFilter {
+  race?:      Race;
+  attr?:      Attribute;
+  cardType?:  CardType;
+  cardId?:    string;
+  maxAtk?:    number;
+  minAtk?:    number;
+  maxDef?:    number;
+  maxLevel?:  number;
+  minLevel?:  number;
+  random?:    number;
+}
+
 /** Discriminated union of all effect actions */
 export type EffectDescriptor =
   // Damage & healing
@@ -89,22 +103,20 @@ export type EffectDescriptor =
   | { type: 'gainLP';             target: 'opponent' | 'self'; value: number | ValueExpr }
   // Card draw
   | { type: 'draw';               target: 'self' | 'opponent'; count: number }
-  // Field buffs/debuffs (onSummon monster effects)
-  | { type: 'buffAtkRace';        race: Race;      value: number }
-  | { type: 'buffAtkAttr';        attr: Attribute;  value: number }
-  | { type: 'debuffAllOpp';       atkD: number; defD: number }
-  // Temporary field-wide buffs/debuffs (spell effects)
-  | { type: 'tempBuffAtkRace';    race: Race;      value: number }
-  | { type: 'tempDebuffAllOpp';   atkD: number; defD?: number }
+  // Field-wide buffs/debuffs (unified with CardFilter)
+  | { type: 'buffField';          value: number; filter?: CardFilter }
+  | { type: 'tempBuffField';      value: number; filter?: CardFilter }
+  | { type: 'debuffField';        atkD: number; defD: number }
+  | { type: 'tempDebuffField';    atkD: number; defD?: number }
   // Bounce
   | { type: 'bounceStrongestOpp' }
   | { type: 'bounceAttacker' }
   | { type: 'bounceAllOppMonsters' }
   // Search
-  | { type: 'searchDeckToHand';   attr: Attribute }
+  | { type: 'searchDeckToHand';   filter: CardFilter }
   // Targeted stat modification (spells + traps)
   | { type: 'tempAtkBonus';       target: StatTarget; value: number }
-  | { type: 'permAtkBonus';       target: StatTarget; value: number; attrFilter?: Attribute }
+  | { type: 'permAtkBonus';       target: StatTarget; value: number; filter?: CardFilter }
   | { type: 'tempDefBonus';       target: StatTarget; value: number }
   | { type: 'permDefBonus';       target: StatTarget; value: number }
   // Graveyard
@@ -113,12 +125,33 @@ export type EffectDescriptor =
   | { type: 'cancelAttack' }
   | { type: 'destroyAttacker' }
   | { type: 'destroySummonedIf';  minAtk: number }
+  // Destruction
+  | { type: 'destroyAllOpp' }
+  | { type: 'destroyAll' }
+  | { type: 'destroyWeakestOpp' }
+  | { type: 'destroyStrongestOpp' }
+  // Graveyard & Deck manipulation
+  | { type: 'sendTopCardsToGrave';    count: number }
+  | { type: 'sendTopCardsToGraveOpp'; count: number }
+  | { type: 'salvageFromGrave';       filter: CardFilter }
+  | { type: 'recycleFromGraveToDeck'; filter: CardFilter }
+  | { type: 'shuffleGraveIntoDeck' }
+  | { type: 'shuffleDeck' }
+  | { type: 'peekTopCard' }
+  // Special Summon
+  | { type: 'specialSummonFromHand';  filter?: CardFilter }
+  // Hand manipulation
+  | { type: 'discardFromHand';    count: number }
+  | { type: 'discardOppHand';     count: number }
   // Passive flags
   | { type: 'passive_piercing' }
   | { type: 'passive_untargetable' }
   | { type: 'passive_directAttack' }
   | { type: 'passive_vsAttrBonus'; attr: Attribute; atk: number }
-  | { type: 'passive_phoenixRevival' };
+  | { type: 'passive_phoenixRevival' }
+  | { type: 'passive_indestructible' }
+  | { type: 'passive_effectImmune' }
+  | { type: 'passive_cantBeAttacked' };
 
 /** Context passed to effect implementations at runtime */
 export interface EffectContext {
@@ -290,6 +323,9 @@ export declare class FieldCard {
   canDirectAttack:  boolean;
   vsAttrBonus:      VsAttrBonus | null;
   phoenixRevival:   boolean;
+  indestructible:   boolean;
+  effectImmune:     boolean;
+  cantBeAttacked:   boolean;
   effectiveATK():   number;
   effectiveDEF():   number;
 }
@@ -310,6 +346,7 @@ export declare class GameEngine {
   dealDamage(target: Owner, amount: number): void;
   gainLP(target: Owner, amount: number): void;
   drawCard(owner: Owner, count?: number): void;
+  specialSummon(owner: Owner, card: CardData, zone?: number): boolean;
   specialSummonFromGrave(owner: Owner, card: CardData): boolean;
   endTurn(): void;
   advancePhase(): void;

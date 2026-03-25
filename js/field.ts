@@ -23,6 +23,9 @@ export class FieldCard {
   canDirectAttack: boolean;
   vsAttrBonus: VsAttrBonus | null;
   phoenixRevival: boolean;
+  indestructible: boolean;
+  effectImmune: boolean;
+  cantBeAttacked: boolean;
 
   constructor(card: CardData, position: Position = 'atk', faceDown: boolean = false) {
     this.card       = { // deep-copy effect to prevent shared mutations across FieldCard instances
@@ -47,12 +50,18 @@ export class FieldCard {
       this.canDirectAttack = flags.canDirectAttack;
       this.vsAttrBonus     = flags.vsAttrBonus;
       this.phoenixRevival  = flags.phoenixRevival;
+      this.indestructible  = flags.indestructible;
+      this.effectImmune    = flags.effectImmune;
+      this.cantBeAttacked  = flags.cantBeAttacked;
     } else {
       this.piercing = false;
       this.cannotBeTargeted = false;
       this.canDirectAttack  = false;
       this.vsAttrBonus     = null;
       this.phoenixRevival  = false;
+      this.indestructible  = false;
+      this.effectImmune    = false;
+      this.cantBeAttacked  = false;
     }
   }
   effectiveATK(): number {

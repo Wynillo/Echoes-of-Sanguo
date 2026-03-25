@@ -376,6 +376,10 @@ export class GameEngine {
     if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
 
     const defFC = defSt.field.monsters[defenderZone];
+    // cantBeAttacked: this monster cannot be selected as attack target
+    if(defFC && defFC.cantBeAttacked){
+      this.addLog(`${defFC.card.name} cannot be attacked!`); return;
+    }
 
     // Check player traps if attacker is opponent
     if(attackerOwner === 'opponent'){
@@ -494,6 +498,11 @@ export class GameEngine {
     const st  = this.state[owner];
     const fc  = st.field.monsters[zone];
     if(!fc) return;
+    // Indestructible: cannot be destroyed by battle
+    if(fc.indestructible && reason === 'battle'){
+      this.addLog(`${fc.card.name} is indestructible!`);
+      return;
+    }
     this.ui.playSfx?.('sfx_destroy');
 
     // Shadow Reaper / onDestroyByBattle for defender

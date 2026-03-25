@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { executeEffectBlock, extractPassiveFlags, EFFECT_REGISTRY } from '../js/effect-registry.js';
+import { executeEffectBlock, extractPassiveFlags, EFFECT_REGISTRY, matchesFilter } from '../js/effect-registry.js';
 
 // ── Helpers ─────────────────────────────────────────────────
 
@@ -11,6 +11,7 @@ function mockEngine(overrides = {}) {
     drawCard: vi.fn(),
     addLog: vi.fn(),
     specialSummonFromGrave: vi.fn(),
+    specialSummon: vi.fn(),
     getState: vi.fn(() => ({
       player: {
         lp: 4000,
@@ -41,18 +42,51 @@ describe('Effect Registry', () => {
   it('has implementations for all descriptor types', () => {
     const expectedTypes = [
       'dealDamage', 'gainLP', 'draw',
-      'buffAtkRace', 'buffAtkAttr', 'debuffAllOpp',
+      'buffField', 'tempBuffField', 'debuffField', 'tempDebuffField',
       'bounceStrongestOpp', 'bounceAttacker', 'bounceAllOppMonsters',
       'searchDeckToHand',
       'tempAtkBonus', 'permAtkBonus', 'tempDefBonus', 'permDefBonus',
       'reviveFromGrave',
       'cancelAttack', 'destroyAttacker', 'destroySummonedIf',
+      'destroyAllOpp', 'destroyAll', 'destroyWeakestOpp', 'destroyStrongestOpp',
+      'sendTopCardsToGrave', 'sendTopCardsToGraveOpp',
+      'salvageFromGrave', 'recycleFromGraveToDeck',
+      'shuffleGraveIntoDeck', 'shuffleDeck', 'peekTopCard',
+      'specialSummonFromHand',
+      'discardFromHand', 'discardOppHand',
       'passive_piercing', 'passive_untargetable', 'passive_directAttack',
       'passive_vsAttrBonus', 'passive_phoenixRevival',
+      'passive_indestructible', 'passive_effectImmune', 'passive_cantBeAttacked',
     ];
     for (const t of expectedTypes) {
       expect(EFFECT_REGISTRY.has(t), `missing: ${t}`).toBe(true);
     }
+  });
+});
+
+describe('matchesFilter', () => {
+  it('matches by race', () => {
+    expect(matchesFilter({ race: 1, attribute: 2, type: 1, level: 4, atk: 1200, def: 800 }, { race: 1 })).toBe(true);
+    expect(matchesFilter({ race: 2, attribute: 2, type: 1, level: 4, atk: 1200, def: 800 }, { race: 1 })).toBe(false);
+  });
+
+  it('matches by attribute', () => {
+    expect(matchesFilter({ race: 1, attribute: 2, type: 1 }, { attr: 2 })).toBe(true);
+    expect(matchesFilter({ race: 1, attribute: 3, type: 1 }, { attr: 2 })).toBe(false);
+  });
+
+  it('matches by maxAtk', () => {
+    expect(matchesFilter({ atk: 1200 }, { maxAtk: 1500 })).toBe(true);
+    expect(matchesFilter({ atk: 2000 }, { maxAtk: 1500 })).toBe(false);
+  });
+
+  it('matches by multiple filters', () => {
+    expect(matchesFilter({ race: 1, attribute: 2, atk: 1000 }, { race: 1, attr: 2, maxAtk: 1500 })).toBe(true);
+    expect(matchesFilter({ race: 1, attribute: 3, atk: 1000 }, { race: 1, attr: 2, maxAtk: 1500 })).toBe(false);
+  });
+
+  it('empty filter matches everything', () => {
+    expect(matchesFilter({ race: 1, attribute: 2 }, {})).toBe(true);
   });
 });
 
@@ -128,10 +162,10 @@ describe('draw', () => {
   });
 });
 
-describe('buffAtkRace', () => {
-  it('buffs all own monsters of the specified race', () => {
-    const fm1 = { card: { race: 'feuer' }, permATKBonus: 0 };
-    const fm2 = { card: { race: 'drache' }, permATKBonus: 0 };
+describe('buffField', () => {
+  it('buffs all own monsters matching race filter', () => {
+    const fm1 = { card: { race: 4 }, permATKBonus: 0 };
+    const fm2 = { card: { race: 1 }, permATKBonus: 0 };
     const e = mockEngine({
       getState: () => ({
         player: { field: { monsters: [fm1, fm2, null, null, null] } },
@@ -139,18 +173,16 @@ describe('buffAtkRace', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'buffAtkRace', race: 'feuer', value: 200 }] },
+      { trigger: 'onSummon', actions: [{ type: 'buffField', value: 200, filter: { race: 4 } }] },
       ctx(e),
     );
     expect(fm1.permATKBonus).toBe(200);
     expect(fm2.permATKBonus).toBe(0);
   });
-});
 
-describe('buffAtkAttr', () => {
-  it('buffs all own monsters of the specified attribute', () => {
-    const fm1 = { card: { attribute: 'fire' }, permATKBonus: 0 };
-    const fm2 = { card: { attribute: 'water' }, permATKBonus: 0 };
+  it('buffs all own monsters matching attribute filter', () => {
+    const fm1 = { card: { attribute: 5 }, permATKBonus: 0 };
+    const fm2 = { card: { attribute: 4 }, permATKBonus: 0 };
     const e = mockEngine({
       getState: () => ({
         player: { field: { monsters: [fm1, fm2, null, null, null] } },
@@ -158,15 +190,32 @@ describe('buffAtkAttr', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'buffAtkAttr', attr: 'fire', value: 300 }] },
+      { trigger: 'onSummon', actions: [{ type: 'buffField', value: 300, filter: { attr: 5 } }] },
       ctx(e),
     );
     expect(fm1.permATKBonus).toBe(300);
     expect(fm2.permATKBonus).toBe(0);
   });
+
+  it('buffs all own monsters when no filter', () => {
+    const fm1 = { card: { race: 1 }, permATKBonus: 0 };
+    const fm2 = { card: { race: 2 }, permATKBonus: 0 };
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: [fm1, fm2, null, null, null] } },
+        opponent: { field: { monsters: [null, null, null, null, null] } },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'buffField', value: 100 }] },
+      ctx(e),
+    );
+    expect(fm1.permATKBonus).toBe(100);
+    expect(fm2.permATKBonus).toBe(100);
+  });
 });
 
-describe('debuffAllOpp', () => {
+describe('debuffField', () => {
   it('debuffs all opponent monsters', () => {
     const fm = { card: {}, permATKBonus: 0, permDEFBonus: 0 };
     const e = mockEngine({
@@ -176,7 +225,7 @@ describe('debuffAllOpp', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'debuffAllOpp', atkD: 300, defD: 200 }] },
+      { trigger: 'onSummon', actions: [{ type: 'debuffField', atkD: 300, defD: 200 }] },
       ctx(e),
     );
     expect(fm.permATKBonus).toBe(-300);
@@ -247,9 +296,9 @@ describe('bounceAllOppMonsters', () => {
 });
 
 describe('searchDeckToHand', () => {
-  it('searches deck for a card with matching attribute', () => {
-    const waterCard = { name: 'Wasserkarte', attribute: 'water' };
-    const fireCard = { name: 'Feuerkarte', attribute: 'fire' };
+  it('searches deck for a card with matching filter', () => {
+    const waterCard = { name: 'Wasserkarte', attribute: 4 };
+    const fireCard = { name: 'Feuerkarte', attribute: 3 };
     const deck = [fireCard, waterCard];
     const hand = [];
     const e = mockEngine({
@@ -259,7 +308,7 @@ describe('searchDeckToHand', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', attr: 'water' }] },
+      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', filter: { attr: 4 } }] },
       ctx(e),
     );
     expect(hand).toContain(waterCard);
@@ -300,21 +349,21 @@ describe('tempAtkBonus', () => {
 });
 
 describe('permAtkBonus', () => {
-  it('applies permanent ATK bonus', () => {
-    const target = { card: { attribute: 'dark' }, permATKBonus: 0 };
+  it('applies permanent ATK bonus with filter', () => {
+    const target = { card: { attribute: 2 }, permATKBonus: 0 };
     const e = mockEngine();
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, attrFilter: 'dark' }] },
+      { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: 2 } }] },
       ctx(e, 'player', { targetFC: target }),
     );
     expect(target.permATKBonus).toBe(500);
   });
 
-  it('skips if attribute filter does not match', () => {
-    const target = { card: { attribute: 'fire' }, permATKBonus: 0 };
+  it('skips if filter does not match', () => {
+    const target = { card: { attribute: 3 }, permATKBonus: 0 };
     const e = mockEngine();
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, attrFilter: 'dark' }] },
+      { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: 2 } }] },
       ctx(e, 'player', { targetFC: target }),
     );
     expect(target.permATKBonus).toBe(0);
@@ -412,6 +461,95 @@ describe('destroySummonedIf', () => {
   });
 });
 
+describe('destroyAllOpp', () => {
+  it('destroys all opponent monsters', () => {
+    const fm1 = { card: { name: 'A' } };
+    const fm2 = { card: { name: 'B' } };
+    const oppGrave = [];
+    const monsters = [fm1, null, fm2, null, null];
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: [null, null, null, null, null] } },
+        opponent: { field: { monsters }, graveyard: oppGrave },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'destroyAllOpp' }] },
+      ctx(e),
+    );
+    expect(monsters.every(m => m === null)).toBe(true);
+    expect(oppGrave).toHaveLength(2);
+  });
+});
+
+describe('destroyAll', () => {
+  it('destroys all monsters on both sides', () => {
+    const pfm = { card: { name: 'P' } };
+    const ofm = { card: { name: 'O' } };
+    const pGrave = [];
+    const oGrave = [];
+    const pMons = [pfm, null, null, null, null];
+    const oMons = [ofm, null, null, null, null];
+    const e = mockEngine({
+      getState: () => ({
+        player: { field: { monsters: pMons }, graveyard: pGrave },
+        opponent: { field: { monsters: oMons }, graveyard: oGrave },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'destroyAll' }] },
+      ctx(e),
+    );
+    expect(pMons.every(m => m === null)).toBe(true);
+    expect(oMons.every(m => m === null)).toBe(true);
+    expect(pGrave).toHaveLength(1);
+    expect(oGrave).toHaveLength(1);
+  });
+});
+
+describe('sendTopCardsToGrave', () => {
+  it('mills own deck to graveyard', () => {
+    const c1 = { name: 'A' };
+    const c2 = { name: 'B' };
+    const c3 = { name: 'C' };
+    const deck = [c1, c2, c3];
+    const grave = [];
+    const e = mockEngine({
+      getState: () => ({
+        player: { deck, graveyard: grave },
+        opponent: { deck: [], graveyard: [] },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'sendTopCardsToGrave', count: 2 }] },
+      ctx(e),
+    );
+    expect(deck).toHaveLength(1);
+    expect(grave).toHaveLength(2);
+  });
+});
+
+describe('discardOppHand', () => {
+  it('discards from opponent hand randomly', () => {
+    const c1 = { name: 'A' };
+    const c2 = { name: 'B' };
+    const oppHand = [c1, c2];
+    const oppGrave = [];
+    const e = mockEngine({
+      getState: () => ({
+        player: { hand: [], graveyard: [] },
+        opponent: { hand: oppHand, graveyard: oppGrave },
+      }),
+    });
+    executeEffectBlock(
+      { trigger: 'onSummon', actions: [{ type: 'discardOppHand', count: 1 }] },
+      ctx(e),
+    );
+    expect(oppHand).toHaveLength(1);
+    expect(oppGrave).toHaveLength(1);
+  });
+});
+
 describe('Multiple actions in one block', () => {
   it('executes all actions and merges signals', () => {
     const e = mockEngine();
@@ -437,9 +575,9 @@ describe('extractPassiveFlags', () => {
   it('extracts vsAttrBonus', () => {
     const flags = extractPassiveFlags({
       trigger: 'passive',
-      actions: [{ type: 'passive_vsAttrBonus', attr: 'dark', atk: 500 }],
+      actions: [{ type: 'passive_vsAttrBonus', attr: 2, atk: 500 }],
     });
-    expect(flags.vsAttrBonus).toEqual({ attr: 'dark', atk: 500 });
+    expect(flags.vsAttrBonus).toEqual({ attr: 2, atk: 500 });
   });
 
   it('extracts multiple flags', () => {
@@ -449,5 +587,15 @@ describe('extractPassiveFlags', () => {
     });
     expect(flags.piercing).toBe(true);
     expect(flags.cannotBeTargeted).toBe(true);
+  });
+
+  it('extracts new passive flags', () => {
+    const flags = extractPassiveFlags({
+      trigger: 'passive',
+      actions: [{ type: 'passive_indestructible' }, { type: 'passive_effectImmune' }, { type: 'passive_cantBeAttacked' }],
+    });
+    expect(flags.indestructible).toBe(true);
+    expect(flags.effectImmune).toBe(true);
+    expect(flags.cantBeAttacked).toBe(true);
   });
 });
