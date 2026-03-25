@@ -9,7 +9,8 @@ export type ModalState =
   | { type: 'grave-select'; cards: CardData[]; resolve: (card: CardData) => void }
   | { type: 'card-list' }
   | { type: 'result'; resultType: 'victory' | 'defeat'; coinsEarned: number }
-  | { type: 'main-options' };
+  | { type: 'main-options' }
+  | { type: 'battle-log' };
 
 interface ModalCtx {
   modal: ModalState;

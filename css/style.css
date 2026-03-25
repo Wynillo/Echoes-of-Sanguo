@@ -842,6 +842,31 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .options-buttons .btn-cancel { margin-top: 0; }
 
+/* View Log button */
+.options-log {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.options-log .btn-secondary { width: 100%; }
+
+/* Battle Log Modal */
+#battle-log-modal { min-width: 320px; max-width: 460px; }
+#battle-log-modal h2 { margin-bottom: 14px; }
+.battle-log-entries {
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: rgba(0,0,0,0.3);
+  padding: 4px;
+}
+.battle-log-entries .log-empty {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 16px;
+}
+
 /* Surrender section */
 .options-surrender {
   margin-top: 16px;

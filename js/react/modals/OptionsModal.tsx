@@ -7,7 +7,7 @@ import { Audio }        from '../../audio.js';
 import i18n             from '../../i18n.js';
 
 export function OptionsModal() {
-  const { closeModal } = useModal();
+  const { closeModal, openModal } = useModal();
   const { t } = useTranslation();
   const { gameState, gameRef } = useGame();
   const saved = Progression.getSettings();
@@ -74,6 +74,14 @@ export function OptionsModal() {
         <button className="btn-secondary" onClick={apply}>{t('common.apply')}</button>
         <button className="btn-primary"   onClick={() => { apply(); closeModal(); }}>{t('common.ok')}</button>
       </div>
+
+      {gameState !== null && (
+        <div className="options-log">
+          <button className="btn-secondary" onClick={() => { apply(); openModal({ type: 'battle-log' }); }}>
+            {t('options.view_log')}
+          </button>
+        </div>
+      )}
 
       {gameState !== null && (
         <div className="options-surrender">

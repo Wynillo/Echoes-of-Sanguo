@@ -68,7 +68,9 @@
     "lang": "Language",
     "vol_master": "Master Volume",
     "vol_music": "Background Music",
-    "vol_sfx": "Sound Effects"
+    "vol_sfx": "Sound Effects",
+    "view_log": "📜 Battle Log",
+    "log_empty": "No log entries yet."
   },
   "shop": {
     "title": "◈ JADE SHOP",

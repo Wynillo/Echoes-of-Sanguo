@@ -68,7 +68,9 @@
     "lang": "Sprache",
     "vol_master": "Gesamtlautstärke",
     "vol_music": "Hintergrundmusik",
-    "vol_sfx": "Soundeffekte"
+    "vol_sfx": "Soundeffekte",
+    "view_log": "📜 Kampfprotokoll",
+    "log_empty": "Noch keine Einträge."
   },
   "shop": {
     "title": "◈ JADE-SHOP",

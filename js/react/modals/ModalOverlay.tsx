@@ -6,6 +6,7 @@ import { GraveSelectModal } from './GraveSelectModal.js';
 import { CardListModal }    from './CardListModal.js';
 import { ResultModal }      from './ResultModal.js';
 import { OptionsModal }     from './OptionsModal.js';
+import { BattleLogModal }  from './BattleLogModal.js';
 
 export function ModalOverlay() {
   const { modal, closeModal } = useModal();
@@ -27,6 +28,7 @@ export function ModalOverlay() {
       {modal.type === 'card-list'    && <CardListModal />}
       {modal.type === 'result'       && <ResultModal      modal={modal} />}
       {modal.type === 'main-options' && <OptionsModal />}
+      {modal.type === 'battle-log'  && <BattleLogModal />}
     </div>
   );
 }
