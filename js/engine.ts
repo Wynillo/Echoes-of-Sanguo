@@ -298,6 +298,11 @@ export class GameEngine {
     }
   }
 
+  surrender(): void {
+    this.addLog('=== SURRENDER ===');
+    this._endDuel('defeat');
+  }
+
   // ───────── Draw ─────────────────────────────────────────
   drawCard(owner: Owner, count = 1){
     const st = this.state[owner];

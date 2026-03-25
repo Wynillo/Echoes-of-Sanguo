@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModal }     from '../contexts/ModalContext.js';
+import { useGame }      from '../contexts/GameContext.js';
 import { Progression }  from '../../progression.js';
 import { Audio }        from '../../audio.js';
 import i18n             from '../../i18n.js';
@@ -8,17 +9,25 @@ import i18n             from '../../i18n.js';
 export function OptionsModal() {
   const { closeModal } = useModal();
   const { t } = useTranslation();
+  const { gameState, gameRef } = useGame();
   const saved = Progression.getSettings();
 
-  const [lang,      setLang]      = useState(saved.lang);
-  const [volMaster, setVolMaster] = useState(saved.volMaster);
-  const [volMusic,  setVolMusic]  = useState(saved.volMusic);
-  const [volSfx,    setVolSfx]    = useState(saved.volSfx);
+  const [lang,        setLang]        = useState(saved.lang);
+  const [volMaster,   setVolMaster]   = useState(saved.volMaster);
+  const [volMusic,    setVolMusic]    = useState(saved.volMusic);
+  const [volSfx,      setVolSfx]      = useState(saved.volSfx);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   function apply() {
     i18n.changeLanguage(lang);
     Progression.saveSettings({ lang, volMaster, volMusic, volSfx });
     Audio.setVolumes(volMaster, volMusic, volSfx);
+  }
+
+  function handleSurrender() {
+    apply();
+    gameRef.current?.surrender();
+    closeModal();
   }
 
   return (
@@ -65,7 +74,28 @@ export function OptionsModal() {
         <button className="btn-secondary" onClick={apply}>{t('common.apply')}</button>
         <button className="btn-primary"   onClick={() => { apply(); closeModal(); }}>{t('common.ok')}</button>
       </div>
+
+      {gameState !== null && (
+        <div className="options-surrender">
+          {!showConfirm ? (
+            <button className="btn-surrender" onClick={() => setShowConfirm(true)}>
+              {t('game.surrender')}
+            </button>
+          ) : (
+            <div className="surrender-confirm">
+              <p>{t('game.surrender_confirm')}</p>
+              <div className="surrender-confirm-btns">
+                <button className="btn-cancel" onClick={() => setShowConfirm(false)}>
+                  {t('game.surrender_cancel')}
+                </button>
+                <button className="btn-surrender" onClick={handleSurrender}>
+                  {t('game.surrender_yes')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
-
