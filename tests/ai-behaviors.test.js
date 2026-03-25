@@ -330,7 +330,10 @@ describe('shouldActivateNormalSpell', () => {
     });
 
     it('does not activate S001 when player LP is at or below threshold', () => {
-      const behavior = resolveAIBehavior('default');
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'S001': { when: 'oppLP>N', threshold: 800 } },
+      };
       expect(shouldActivateNormalSpell('S001', behavior, 800, 8000)).toBe(false);
       expect(shouldActivateNormalSpell('S001', behavior, 500, 8000)).toBe(false);
     });
@@ -342,7 +345,10 @@ describe('shouldActivateNormalSpell', () => {
     });
 
     it('does not activate S002 when AI LP is at or above threshold', () => {
-      const behavior = resolveAIBehavior('default');
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'S002': { when: 'selfLP<N', threshold: 5000 } },
+      };
       expect(shouldActivateNormalSpell('S002', behavior, 8000, 5000)).toBe(false);
       expect(shouldActivateNormalSpell('S002', behavior, 8000, 6000)).toBe(false);
     });

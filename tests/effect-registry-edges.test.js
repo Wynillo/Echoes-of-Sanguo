@@ -228,8 +228,8 @@ describe('tempDebuffAllOpp', () => {
     expect(fm2.tempATKBonus).toBe(-400);
   });
 
-  it('applies DEF debuff as permanent when defD is provided', () => {
-    const fm = { card: {}, tempATKBonus: 0, permDEFBonus: 0 };
+  it('applies DEF debuff as temporary when defD is provided', () => {
+    const fm = { card: {}, tempATKBonus: 0, tempDEFBonus: 0 };
     const e = mockEngine({
       getState: () => ({
         player: { field: { monsters: [null, null, null, null, null] } },
@@ -241,7 +241,7 @@ describe('tempDebuffAllOpp', () => {
       ctx(e),
     );
     expect(fm.tempATKBonus).toBe(-200);
-    expect(fm.permDEFBonus).toBe(-100);
+    expect(fm.tempDEFBonus).toBe(-100);
   });
 
   it('skips null slots without error', () => {
@@ -936,7 +936,7 @@ describe('buffAtkAttr — owner is opponent', () => {
 
 describe('tempDebuffAllOpp — owner is opponent (targets player)', () => {
   it('debuffs player monsters when owner is opponent', () => {
-    const fm = { card: {}, tempATKBonus: 0, permDEFBonus: 0 };
+    const fm = { card: {}, tempATKBonus: 0, tempDEFBonus: 0 };
     const e = mockEngine({
       getState: () => ({
         player: { field: { monsters: [fm, null, null, null, null] } },
@@ -948,6 +948,6 @@ describe('tempDebuffAllOpp — owner is opponent (targets player)', () => {
       ctx(e, 'opponent'),
     );
     expect(fm.tempATKBonus).toBe(-300);
-    expect(fm.permDEFBonus).toBe(-100);
+    expect(fm.tempDEFBonus).toBe(-100);
   });
 });
