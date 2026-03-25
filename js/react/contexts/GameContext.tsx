@@ -62,6 +62,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     playAttackAnimation: (ao, az, dO, dZ) => {
       return import('../hooks/useAttackAnimation.js').then(m => m.playAttackAnim(ao, az, dO, dZ));
     },
+    playVFX: (type, owner, zone) => {
+      return import('../components/vfxApi.js').then(m => m.playVFXAtZone(type, owner, zone));
+    },
     playSfx: (sfxId: string) => {
       Audio.playSfx(sfxId);
     },

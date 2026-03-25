@@ -299,6 +299,7 @@ export interface UICallbacks {
   showResult?:          (result: 'victory' | 'defeat') => void;
   showActivation?:      (card: CardData, text: string) => Promise<void> | void;
   playAttackAnimation?: (atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number | null) => Promise<void>;
+  playVFX?:             (type: 'buff' | 'heal' | 'damage', owner: Owner, zone?: number) => Promise<void>;
   playSfx?:             (sfxId: string) => void;
   onDraw?:              (owner: Owner, count: number) => void;
   onDuelEnd?:           (result: 'victory' | 'defeat', oppId: number | null) => void;
@@ -354,6 +355,7 @@ export declare class FieldSpellTrap {
 
 export declare class GameEngine {
   constructor(uiCallbacks: UICallbacks);
+  ui:      UICallbacks;
   state:   GameState;
   initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null): void;
   getState(): GameState;

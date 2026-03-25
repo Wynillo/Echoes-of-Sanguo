@@ -90,6 +90,22 @@ function shuffleArray<T>(arr: T[]): void {
   }
 }
 
+// ── VFX Helper ──────────────────────────────────────────────
+
+/** Fire a buff VFX on the zone where a FieldCard sits */
+function _triggerBuffVFX(fc: FieldCard, ctx: EffectContext): void {
+  const ui = ctx.engine.ui;
+  if (!ui?.playVFX) return;
+  const st = ctx.engine.getState();
+  for (const side of ['player', 'opponent'] as Owner[]) {
+    const zone = st[side].field.monsters.indexOf(fc);
+    if (zone !== -1) {
+      ui.playVFX('buff', side, zone);
+      return;
+    }
+  }
+}
+
 // ── Effect Implementations ──────────────────────────────────
 
 type EffectImpl = (desc: any, ctx: EffectContext) => EffectSignal;
@@ -127,6 +143,8 @@ const IMPL: Record<string, EffectImpl> = {
     const monsters = filterFieldMonsters(st[ctx.owner].field.monsters, desc.filter);
     for (const fm of monsters) {
       fm.permATKBonus = (fm.permATKBonus || 0) + desc.value;
+      const zone = st[ctx.owner].field.monsters.indexOf(fm);
+      if (zone !== -1) ctx.engine.ui?.playVFX?.('buff', ctx.owner, zone);
     }
     return {};
   },
@@ -136,6 +154,8 @@ const IMPL: Record<string, EffectImpl> = {
     const monsters = filterFieldMonsters(st[ctx.owner].field.monsters, desc.filter);
     for (const fm of monsters) {
       fm.tempATKBonus = (fm.tempATKBonus || 0) + desc.value;
+      const zone = st[ctx.owner].field.monsters.indexOf(fm);
+      if (zone !== -1) ctx.engine.ui?.playVFX?.('buff', ctx.owner, zone);
     }
     return {};
   },
@@ -224,7 +244,10 @@ const IMPL: Record<string, EffectImpl> = {
 
   tempAtkBonus(desc: { target: StatTarget; value: number }, ctx) {
     const fc = resolveStatTarget(desc.target, ctx);
-    if (fc) fc.tempATKBonus = (fc.tempATKBonus || 0) + desc.value;
+    if (fc) {
+      fc.tempATKBonus = (fc.tempATKBonus || 0) + desc.value;
+      _triggerBuffVFX(fc, ctx);
+    }
     return {};
   },
 
@@ -233,18 +256,25 @@ const IMPL: Record<string, EffectImpl> = {
     if (!fc) return {};
     if (desc.filter && !matchesFilter(fc.card, desc.filter)) return {};
     fc.permATKBonus = (fc.permATKBonus || 0) + desc.value;
+    _triggerBuffVFX(fc, ctx);
     return {};
   },
 
   tempDefBonus(desc: { target: StatTarget; value: number }, ctx) {
     const fc = resolveStatTarget(desc.target, ctx);
-    if (fc) fc.tempDEFBonus = (fc.tempDEFBonus || 0) + desc.value;
+    if (fc) {
+      fc.tempDEFBonus = (fc.tempDEFBonus || 0) + desc.value;
+      _triggerBuffVFX(fc, ctx);
+    }
     return {};
   },
 
   permDefBonus(desc: { target: StatTarget; value: number }, ctx) {
     const fc = resolveStatTarget(desc.target, ctx);
-    if (fc) fc.permDEFBonus = (fc.permDEFBonus || 0) + desc.value;
+    if (fc) {
+      fc.permDEFBonus = (fc.permDEFBonus || 0) + desc.value;
+      _triggerBuffVFX(fc, ctx);
+    }
     return {};
   },
 

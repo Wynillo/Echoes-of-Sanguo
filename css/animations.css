@@ -107,3 +107,123 @@
   from { opacity: 0; transform: scale(0.7); }
   to   { opacity: 1; transform: scale(1); }
 }
+
+/* ── VFX Particles ───────────────────────────────────────── */
+
+/* Shared particle base */
+.vfx-particle {
+  position: fixed;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* ── Buff: spinning air swirl particles ─────────────────── */
+.vfx-buff {
+  width: 10px; height: 10px;
+  left: var(--vfx-cx); top: var(--vfx-cy);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(180,220,255,0.9) 0%, rgba(100,180,255,0.4) 60%, transparent 100%);
+  box-shadow: 0 0 6px rgba(130,200,255,0.7);
+  animation: vfxBuffSwirl 0.9s ease-out forwards;
+}
+
+@keyframes vfxBuffSwirl {
+  0% {
+    transform: translate(-50%, -50%) rotate(var(--vfx-angle)) translateY(0px) scale(0.3);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(calc(var(--vfx-angle) + 180deg)) translateY(-30px) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(calc(var(--vfx-angle) + 360deg)) translateY(-55px) scale(0.4);
+    opacity: 0;
+  }
+}
+
+/* ── Heal: green stars floating upward ──────────────────── */
+.vfx-heal {
+  width: 14px; height: 14px;
+  left: var(--vfx-cx); top: var(--vfx-cy);
+  /* CSS star shape via clip-path */
+  clip-path: polygon(
+    50% 0%, 61% 35%, 98% 35%, 68% 57%,
+    79% 91%, 50% 70%, 21% 91%, 32% 57%,
+    2% 35%, 39% 35%
+  );
+  background: linear-gradient(135deg, #50ff80 0%, #80ffa0 50%, #a0ffd0 100%);
+  box-shadow: 0 0 8px rgba(80,255,120,0.6);
+  animation: vfxHealStar 1s ease-out forwards;
+}
+
+@keyframes vfxHealStar {
+  0% {
+    transform: translate(calc(-50% + var(--vfx-spread, 0px)), -50%) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(calc(-50% + var(--vfx-spread, 0px)), -50%) scale(1.2) rotate(30deg);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(calc(-50% + var(--vfx-spread, 0px)), calc(-50% - 40px)) scale(1) rotate(90deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--vfx-spread, 0px)), calc(-50% - 75px)) scale(0.5) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+/* Override spread per particle index for horizontal scatter */
+.vfx-heal:nth-child(odd)  { --vfx-spread: -18px; }
+.vfx-heal:nth-child(even) { --vfx-spread: 14px; }
+.vfx-heal:nth-child(3n)   { --vfx-spread: -8px; }
+.vfx-heal:nth-child(3n+1) { --vfx-spread: 22px; }
+.vfx-heal:nth-child(3n+2) { --vfx-spread: -24px; }
+
+/* ── Damage: fireballs flying inward ────────────────────── */
+.vfx-damage {
+  width: 16px; height: 16px;
+  left: var(--vfx-cx); top: var(--vfx-cy);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%,
+    #fff8 0%, #ffe050 20%, #ff8800 50%, #ff3300 75%, rgba(200,0,0,0) 100%);
+  box-shadow: 0 0 10px rgba(255,100,0,0.8), 0 0 20px rgba(255,50,0,0.4);
+  animation: vfxFireball 0.8s ease-in forwards;
+}
+
+@keyframes vfxFireball {
+  0% {
+    transform: translate(calc(-50% + var(--vfx-fire-ox, 60px)), calc(-50% + var(--vfx-fire-oy, -60px))) scale(0.5);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--vfx-fire-ox, 60px) * 0.5), calc(-50% + var(--vfx-fire-oy, -60px) * 0.5)) scale(1.1);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  85% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Scatter fireball origins around the target */
+.vfx-damage:nth-child(1)  { --vfx-fire-ox:  70px; --vfx-fire-oy: -50px; }
+.vfx-damage:nth-child(2)  { --vfx-fire-ox: -60px; --vfx-fire-oy: -70px; }
+.vfx-damage:nth-child(3)  { --vfx-fire-ox:  80px; --vfx-fire-oy:  40px; }
+.vfx-damage:nth-child(4)  { --vfx-fire-ox: -70px; --vfx-fire-oy:  60px; }
+.vfx-damage:nth-child(5)  { --vfx-fire-ox:  40px; --vfx-fire-oy: -80px; }
+.vfx-damage:nth-child(6)  { --vfx-fire-ox: -50px; --vfx-fire-oy:  30px; }
