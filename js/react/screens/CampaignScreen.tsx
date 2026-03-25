@@ -17,7 +17,7 @@ const NODE_ICONS: Record<CampaignNode['type'], string> = {
 export default function CampaignScreen() {
   const { t } = useTranslation();
   const { navigateTo } = useScreen();
-  const { campaignData, progress, isNodeUnlocked, completeNode, getOpponentForNode } = useCampaign();
+  const { campaignData, progress, isNodeUnlocked, completeNode, getOpponentForNode, setPendingDuel } = useCampaign();
   const { startGame } = useGame();
   const [activeChapterIdx, setActiveChapterIdx] = useState(0);
   const [dialogueNode, setDialogueNode] = useState<CampaignNode | null>(null);
@@ -51,6 +51,12 @@ export default function CampaignScreen() {
       case 'duel': {
         const opponent = getOpponentForNode(node.id);
         if (opponent) {
+          setPendingDuel({
+            nodeId: node.id,
+            completeOnLoss: node.completeOnLoss,
+            rewards: node.rewards,
+            postDialogue: node.dialogueKeys,
+          });
           startGame(opponent);
           navigateTo('game');
         }

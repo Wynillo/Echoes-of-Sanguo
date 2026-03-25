@@ -35,7 +35,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const { resetSel }      = useSelection();
   const { currentDeck, loadDeck, refresh } = useProgression();
   const { setScreen, navigateTo } = useScreen();
-  const { pendingDuel, setPendingDuel } = useCampaign();
+  const { pendingDuel, setPendingDuel, refreshCampaignProgress } = useCampaign();
 
   // Stable refs so useMemo(() => uiCallbacks, []) can safely use current values
   const openModalRef      = useRef(openModal);      openModalRef.current      = openModal;
@@ -45,6 +45,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const refreshRef        = useRef(refresh);        refreshRef.current        = refresh;
   const pendingDuelRef    = useRef(pendingDuel);    pendingDuelRef.current    = pendingDuel;
   const setPendingDuelRef = useRef(setPendingDuel); setPendingDuelRef.current = setPendingDuel;
+  const refreshCampaignRef = useRef(refreshCampaignProgress); refreshCampaignRef.current = refreshCampaignProgress;
   const lastOppRef        = useRef<OpponentConfig | null>(null);
 
   const uiCallbacks = useMemo<UICallbacks>(() => ({
@@ -80,21 +81,24 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         setPendingDuelRef.current(null);
         import('../../progression.js').then(({ Progression }) => {
           const isComplete = result === 'victory' || !!pending.completeOnLoss;
-          Progression.setNodeStatus(pending.nodeId, isComplete ? 'complete' : 'available');
           if (isComplete) {
+            Progression.markNodeComplete(pending.nodeId);
             if (pending.rewards) {
               if (pending.rewards.coins) Progression.addCoins(pending.rewards.coins);
               if (pending.rewards.cards?.length) Progression.addCardsToCollection(pending.rewards.cards);
             }
-            refreshRef.current();
-            if (pending.postDialogue) {
-              navigateToRef.current('dialogue', {
-                scene: pending.postDialogue as unknown as Record<string, unknown>,
-                nextScreen: 'campaign',
-              });
-            } else {
-              navigateToRef.current('campaign');
-            }
+          }
+          // Also record the duel result for win/loss stats
+          if (opponentId) {
+            Progression.recordDuelResult(opponentId, result === 'victory');
+          }
+          refreshRef.current();
+          refreshCampaignRef.current();
+          if (isComplete && pending.postDialogue && pending.postDialogue.length > 0) {
+            navigateToRef.current('dialogue', {
+              scene: pending.postDialogue as unknown as Record<string, unknown>,
+              nextScreen: 'campaign',
+            });
           } else {
             navigateToRef.current('campaign');
           }
