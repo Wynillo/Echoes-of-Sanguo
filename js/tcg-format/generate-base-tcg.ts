@@ -69,6 +69,10 @@ async function main() {
   console.log(`\nPacking ${TCG_FOLDER} → ${OUT_ZIP} ...`);
   const zip = new JSZip();
   const count = await addDirToZip(zip, TCG_FOLDER, '');
+
+  // Ensure img/ directory always exists in archive (required by validator)
+  const hasImgFolder = Object.keys(zip.files).some(f => f.startsWith('img/'));
+  if (!hasImgFolder) zip.folder('img');
   console.log(`  Added ${count} files`);
 
   const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
