@@ -100,8 +100,8 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
         <div className={styles.cardArt} />
         {isMonster
           ? <div className={styles.cardStats}>
-              <span className={styles.atkVal}>ATK: {effATK}</span>
-              <span className={styles.defVal}>DEF: {effDEF}</span>
+              <span className={styles.atkVal}>{effATK}</span>
+              <span className={styles.defVal}>{effDEF}</span>
             </div>
           : null}
       </div>

@@ -153,8 +153,8 @@
 :global(.small-card) .defVal {
   flex: 1; text-align: center; padding: 3px 0; font-size: 9px;
 }
-:global(.opponent-side.small-card) .atkVal,
-:global(.opponent-side.small-card) .defVal { font-size: 7px; padding: 2px 0; }
+:global(.opponent-side) :global(.small-card) .atkVal,
+:global(.opponent-side) :global(.small-card) .defVal { font-size: 7px; padding: 2px 0; }
 
 /* ── Big-card overrides (180×248px) ─────────────────────────────── */
 :global(.big-card) .nameShort   { font-size: 13px; max-width: 120px; }

@@ -441,6 +441,14 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   transition: none;
 }
 
+/* Nested card inside card: let inner fill parent, remove duplicate border/sizing */
+.card > .card {
+  width: 100%;
+  height: 100%;
+  border: none;
+  flex-shrink: 1;
+}
+
 /* Type borders */
 .normal-card { border-color: rgba(200,180,80,0.6); }
 .effect-card  { border-color: rgba(200,120,40,0.8); }
