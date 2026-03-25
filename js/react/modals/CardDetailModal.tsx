@@ -9,7 +9,7 @@ import type { ModalState } from '../contexts/ModalContext.js';
 interface Props { modal: Extract<ModalState, { type: 'card-detail' }>; }
 
 export function CardDetailModal({ modal }: Props) {
-  const { card, fc, index, state, source } = modal;
+  const { card, fc, index, state, source, onDeckAction } = modal;
   const { closeModal, openModal } = useModal();
   const { gameRef }           = useGame();
   const { setSel }            = useSelection();
@@ -109,6 +109,20 @@ export function CardDetailModal({ modal }: Props) {
         }));
       }
     }
+  }
+
+  // Deckbuilder action buttons
+  if (source === 'deckbuilder-collection' && onDeckAction) {
+    actions.push(actionBtn(t('deckbuilder.add_to_deck'), () => {
+      onDeckAction('add');
+      closeModal();
+    }));
+  }
+  if (source === 'deckbuilder-deck' && onDeckAction) {
+    actions.push(actionBtn(t('deckbuilder.remove_from_deck'), () => {
+      onDeckAction('remove');
+      closeModal();
+    }));
   }
 
   return (
