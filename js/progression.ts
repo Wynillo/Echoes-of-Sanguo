@@ -1,6 +1,6 @@
 // ============================================================
 // ECHOES OF SANGUO - Progression System
-// Verwaltet: Münzen, Sammlung, Deck, Gegner-Unlock
+// Manages: coins, collection, deck, opponent unlocks
 // ============================================================
 
 import type { CollectionEntry, OpponentRecord } from './types.js';
@@ -22,10 +22,10 @@ export const Progression = (() => {
     campaignProgress: 'tcg_campaign_progress',
   };
 
-  const SAVE_VERSION   = 1;   // increment when save format changes incompatibly
+  const SAVE_VERSION   = 2;   // increment when save format changes incompatibly
   const OPPONENT_COUNT = 10;
 
-  // ── Hilfsfunktionen ──────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────
 
   /**
    * @param {string}    key       localStorage key
@@ -38,7 +38,7 @@ export const Progression = (() => {
       if (raw === null) return fallback;
       const parsed = JSON.parse(raw);
       if (validator && !validator(parsed)) {
-        console.warn(`[Progression] Ungültiges Format für "${key}" – Fallback wird genutzt.`);
+        console.warn(`[Progression] Invalid format for "${key}" – using fallback.`);
         return fallback;
       }
       return parsed;
@@ -52,7 +52,7 @@ export const Progression = (() => {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
       // QuotaExceededError (storage full) or SecurityError (private browsing blocked)
-      console.error(`[Progression] Speichern fehlgeschlagen für "${key}":`, e);
+      console.error(`[Progression] Save failed for "${key}":`, e);
     }
   }
 
@@ -64,15 +64,15 @@ export const Progression = (() => {
     return ops;
   }
 
-  // ── Initialisierung ──────────────────────────────────────
+  // ── Initialization ───────────────────────────────────────
 
   function init() {
     if (!localStorage.getItem(KEYS.initialized)) {
-      // Erstmaliger Start – Standardwerte setzen
+      // First launch – set defaults
       _save(KEYS.coins, 0);
       _save(KEYS.collection, []);
       _save(KEYS.opponents, _defaultOpponents());
-      // Deck: alten Key migrieren falls vorhanden
+      // Deck: migrate old key if present
       const legacyDeck = localStorage.getItem('aetherialClash_deck');
       if (legacyDeck) {
         localStorage.setItem(KEYS.deck, legacyDeck);
@@ -80,16 +80,31 @@ export const Progression = (() => {
       localStorage.setItem(KEYS.initialized, '1');
       _save(KEYS.version, SAVE_VERSION);
     } else {
-      // Fehlende Felder ergänzen (nach Updates)
-      // Legacy-Migration: alte Äther-Münzen auf neuen Jade-Key übertragen
+      // Fill in missing fields (after updates)
+      // Legacy migration: move old aether coins to new jade key
       if (!localStorage.getItem(KEYS.coins)) {
         const legacyCoins = localStorage.getItem('ac_aether_coins');
         _save(KEYS.coins, legacyCoins !== null ? JSON.parse(legacyCoins) : 0);
       }
       if (!localStorage.getItem(KEYS.collection)) _save(KEYS.collection, []);
       if (!localStorage.getItem(KEYS.opponents)) _save(KEYS.opponents, _defaultOpponents());
-      // Versionsstempel setzen falls fehlend (bestehende Saves von vor v1)
-      if (!localStorage.getItem(KEYS.version)) _save(KEYS.version, SAVE_VERSION);
+      // Set version stamp if missing (saves from before v1)
+      if (!localStorage.getItem(KEYS.version)) _save(KEYS.version, 1);
+
+      // v1 → v2: card IDs changed from string format ("M001") to numeric strings ("1").
+      // Old IDs are unresolvable without the removed id_migration.json, so reset
+      // collection and deck if old-format IDs are detected.
+      const savedVersion = _load(KEYS.version, 0, v => typeof v === 'number');
+      if (savedVersion < 2) {
+        const col = _load(KEYS.collection, [], v => Array.isArray(v)) as Array<{ id: string }>;
+        const hasOldIds = col.some(e => /^[A-Z]/.test(e.id));
+        if (hasOldIds) {
+          console.info('[Progression] Migrating save data to v2: clearing collection and deck (card ID format changed).');
+          _save(KEYS.collection, []);
+          localStorage.removeItem(KEYS.deck);
+        }
+        _save(KEYS.version, SAVE_VERSION);
+      }
     }
   }
 
@@ -106,7 +121,7 @@ export const Progression = (() => {
     return localStorage.getItem(KEYS.starterRace) || null;
   }
 
-  // ── Münzen ───────────────────────────────────────────────
+  // ── Coins ────────────────────────────────────────────────
 
   function getCoins(): number {
     return _load(KEYS.coins, 0, v => typeof v === 'number' && v >= 0);
@@ -118,7 +133,7 @@ export const Progression = (() => {
     return getCoins();
   }
 
-  /** Gibt false zurück wenn nicht genug Münzen vorhanden */
+  /** Returns false if not enough coins */
   function spendCoins(amount: number): boolean {
     const current = getCoins();
     if (current < amount) return false;
@@ -126,13 +141,13 @@ export const Progression = (() => {
     return true;
   }
 
-  // ── Sammlung ─────────────────────────────────────────────
+  // ── Collection ───────────────────────────────────────────
 
   function getCollection(): CollectionEntry[] {
     return _load(KEYS.collection, [], v => Array.isArray(v));
   }
 
-  /** cards: Array von Card-Objekten oder ID-Strings */
+  /** cards: array of Card objects or ID strings */
   function addCardsToCollection(cards: (string | { id: string })[]): void {
     const col = getCollection();
     const map: Record<string, number> = {};
@@ -147,14 +162,14 @@ export const Progression = (() => {
     _save(KEYS.collection, newCol);
   }
 
-  /** Gibt true zurück wenn der Spieler mindestens 1 Exemplar der Karte besitzt */
+  /** Returns true if the player owns at least 1 copy of the card */
   function ownsCard(cardId: string): boolean {
     const col = getCollection();
     const entry = col.find(e => e.id === cardId);
     return !!entry && entry.count > 0;
   }
 
-  /** Gibt die Anzahl der besessenen Exemplare zurück */
+  /** Returns the number of owned copies */
   function cardCount(cardId: string): number {
     const col = getCollection();
     const entry = col.find(e => e.id === cardId);
@@ -164,23 +179,23 @@ export const Progression = (() => {
   // ── Deck ─────────────────────────────────────────────────
 
   function getDeck(): string[] | null {
-    // Versuche neuen Key, dann alten Legacy-Key
+    // Try new key, then old legacy key
     const deck = _load(KEYS.deck, null, v => Array.isArray(v) && v.every(id => typeof id === 'string'));
     if (deck) return deck;
     try {
       const legacy = localStorage.getItem('aetherialClash_deck');
       if (legacy) return JSON.parse(legacy);
-    } catch (e) { console.warn('[Progression] Legacy-Deck-Migration fehlgeschlagen:', e); }
+    } catch (e) { console.warn('[Progression] Legacy deck migration failed:', e); }
     return null;
   }
 
   function saveDeck(deckIds: string[]): void {
     _save(KEYS.deck, deckIds);
-    // Legacy-Key synchron halten für Abwärtskompatibilität
+    // Keep legacy key in sync for backward compatibility
     localStorage.setItem('echoesOfSanguo_deck', JSON.stringify(deckIds));
   }
 
-  // ── Gegner ───────────────────────────────────────────────
+  // ── Opponents ────────────────────────────────────────────
 
   function getOpponents(): Record<number, OpponentRecord> {
     return _load(KEYS.opponents, _defaultOpponents(),
@@ -194,7 +209,7 @@ export const Progression = (() => {
 
     if (won) {
       ops[id].wins++;
-      // Nächsten Gegner freischalten
+      // Unlock next opponent
       if (id < OPPONENT_COUNT && ops[id + 1] && !ops[id + 1].unlocked) {
         ops[id + 1].unlocked = true;
       }
@@ -210,7 +225,7 @@ export const Progression = (() => {
     return !!(ops[id] && ops[id].unlocked);
   }
 
-  // ── Einstellungen ────────────────────────────────────────
+  // ── Settings ─────────────────────────────────────────────
 
   interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; }
 
@@ -222,7 +237,7 @@ export const Progression = (() => {
     _save(KEYS.settings, s);
   }
 
-  // ── Gesehene Karten ──────────────────────────────────────
+  // ── Seen Cards ───────────────────────────────────────────
 
   function getSeenCards(): Set<string> {
     const arr = _load(KEYS.seenCards, [], v => Array.isArray(v));
@@ -263,27 +278,27 @@ export const Progression = (() => {
 
   // ── Debug / Reset ────────────────────────────────────────
 
-  /** Setzt alle Progression-Daten zurück (nur für Debug) */
+  /** Resets all progression data (debug only) */
   function resetAll() {
     Object.values(KEYS).forEach(k => localStorage.removeItem(k));
-    console.warn('[Progression] Alle Daten zurückgesetzt.');
+    console.warn('[Progression] All data reset.');
   }
 
   // ── Soft-Reset / Backup ──────────────────────────────────
 
-  /** Sichert den aktuellen Stand in sessionStorage (für "Neues Spiel"-Flow) */
+  /** Backs up current state to sessionStorage (for "New Game" flow) */
   function backupToSession(): void {
     const backup: Record<string, string | null> = {};
     Object.values(KEYS).forEach(k => { backup[k] = localStorage.getItem(k); });
     sessionStorage.setItem('tcg_save_backup', JSON.stringify(backup));
   }
 
-  /** Gibt true zurück wenn ein Backup im sessionStorage vorhanden ist */
+  /** Returns true if a backup exists in sessionStorage */
   function hasBackup(): boolean {
     return sessionStorage.getItem('tcg_save_backup') !== null;
   }
 
-  /** Stellt den gesicherten Stand wieder her und löscht das Backup */
+  /** Restores the backed-up state and clears the backup */
   function restoreFromBackup(): void {
     const raw = sessionStorage.getItem('tcg_save_backup');
     if (!raw) return;
@@ -295,7 +310,7 @@ export const Progression = (() => {
     sessionStorage.removeItem('tcg_save_backup');
   }
 
-  /** Löscht das Backup ohne Wiederherstellung (neues Spiel bestätigt) */
+  /** Clears the backup without restoring (new game confirmed) */
   function clearBackup(): void {
     sessionStorage.removeItem('tcg_save_backup');
   }
@@ -307,11 +322,11 @@ export const Progression = (() => {
     isFirstLaunch,
     markStarterChosen,
     getStarterRace,
-    // Münzen
+    // Coins
     getCoins,
     addCoins,
     spendCoins,
-    // Sammlung
+    // Collection
     getCollection,
     addCardsToCollection,
     ownsCard,
@@ -319,14 +334,14 @@ export const Progression = (() => {
     // Deck
     getDeck,
     saveDeck,
-    // Gegner
+    // Opponents
     getOpponents,
     recordDuelResult,
     isOpponentUnlocked,
-    // Einstellungen
+    // Settings
     getSettings,
     saveSettings,
-    // Gesehene Karten
+    // Seen cards
     getSeenCards,
     markCardsAsSeen,
     // Campaign

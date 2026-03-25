@@ -395,7 +395,6 @@ Overrides engine constants. Any field not present keeps its default value.
 | `maxDeckSize` | `40` | Maximum deck size |
 | `maxCardCopies` | `3` | Maximum copies of one card per deck |
 | `drawPerTurn` | `1` | Cards drawn per turn |
-| `phoenixRevivePenalty` | `-500` | LP penalty for Phoenix Revival effect |
 
 ---
 

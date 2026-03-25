@@ -45,21 +45,6 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
 
   const { cards, definitions, opponentDescriptions, imageIds, manifest } = result.contents;
 
-  // Load id_migration.json for reverse mapping (numeric → original string ID)
-  let reverseIdMap: Record<number, string> = {};
-  const migrationFile = zip.file('id_migration.json');
-  if (migrationFile) {
-    try {
-      const migrationJson = await migrationFile.async('string');
-      const idMapping: Record<string, number> = JSON.parse(migrationJson);
-      for (const [oldId, numId] of Object.entries(idMapping)) {
-        reverseIdMap[numId] = oldId;
-      }
-    } catch {
-      result.warnings.push('id_migration.json: failed to parse, using numeric IDs');
-    }
-  }
-
   // Extract images as blob URLs
   const images = new Map<number, string>();
   for (const cardId of imageIds) {
@@ -145,8 +130,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
 
   for (const tc of cards) {
     const def = defMap.get(tc.id);
-    const originalId = reverseIdMap[tc.id];
-    const cardData = tcgCardToCardData(tc, def, originalId);
+    const cardData = tcgCardToCardData(tc, def);
     CARD_DB[cardData.id] = cardData;
   }
 
@@ -229,7 +213,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
 
   // Apply meta to game data stores
   if (meta) {
-    applyTcgMeta(meta, reverseIdMap, tcgOpponents, oppDescs);
+    applyTcgMeta(meta, tcgOpponents, oppDescs);
   }
 
   return {
@@ -245,7 +229,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
 /**
  * Convert a TcgCard + TcgCardDefinition to the internal CardData format.
  */
-function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition, originalId?: string): CardData {
+function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition): CardData {
   let effect: CardEffectBlock | undefined;
   if (tc.effect) {
     effect = deserializeEffect(tc.effect);
@@ -255,7 +239,7 @@ function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition, originalId?: st
   const type = intToCardType(tc.type, hasEffect);
 
   const card: CardData = {
-    id:          originalId ?? String(tc.id),
+    id:          String(tc.id),
     name:        def?.name ?? `Card #${tc.id}`,
     type,
     description: def?.description ?? '',
@@ -276,18 +260,16 @@ function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition, originalId?: st
 }
 
 /**
- * Apply TcgMeta to the game's live data stores, converting numeric IDs
- * back to original string IDs using the reverse migration map.
+ * Apply TcgMeta to the game's live data stores.
  * If tcgOpponents is provided (from opponents/ folder), it takes priority
  * over meta.opponentConfigs (fallback for archives without the folder).
  */
 function applyTcgMeta(
   meta: TcgMeta,
-  reverseIdMap: Record<number, string>,
   tcgOpponents?: TcgOpponentDeck[],
   oppDescs?: TcgOpponentDescription[],
 ): void {
-  const rid = (numId: number): string => reverseIdMap[numId] ?? String(numId);
+  const rid = (numId: number): string => String(numId);
 
   if (meta.fusionRecipes) {
     const recipes: FusionRecipe[] = meta.fusionRecipes.map(r => ({

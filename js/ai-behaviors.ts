@@ -7,14 +7,6 @@
 import type { AIBehavior, AISpellRule, CardData } from './types.js';
 import { CardType } from './types.js';
 
-// ── Legacy spell rules (reproduces the old hardcoded S001/S002/S005 logic) ──
-
-const LEGACY_SPELL_RULES: Record<string, AISpellRule> = {
-  S001: { when: 'oppLP>N', threshold: 800 },
-  S002: { when: 'selfLP<N', threshold: 5000 },
-  S005: { when: 'always' },
-};
-
 // ── Behavior Profiles ───────────────────────────────────────
 
 const DEFAULT: AIBehavior = {
@@ -23,7 +15,7 @@ const DEFAULT: AIBehavior = {
   summonPriority:         'highestATK',
   positionStrategy:       'smart',
   battleStrategy:         'smart',
-  spellRules:             LEGACY_SPELL_RULES,
+  spellRules:             {},
   defaultSpellActivation: 'smart',
 };
 

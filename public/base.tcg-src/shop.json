@@ -2,8 +2,8 @@
   "packs": [
     {
       "id": "starter",
-      "name": "Starterpack",
-      "desc": "9 Karten · Eine Rasse · C/U-lastig",
+      "name": "Starter Pack",
+      "desc": "9 cards · One race · C/U-heavy",
       "price": 200,
       "icon": "✦",
       "color": "#4080a0",
@@ -34,8 +34,8 @@
     },
     {
       "id": "race",
-      "name": "Rassen-Pack",
-      "desc": "9 Karten · Gewählte Rasse · Standard",
+      "name": "Race Pack",
+      "desc": "9 cards · Chosen race · Standard",
       "price": 350,
       "icon": "⚔",
       "color": "#a06020",
@@ -66,8 +66,8 @@
     },
     {
       "id": "aether",
-      "name": "Jade-Pack",
-      "desc": "9 Karten · Alle Rassen · Standard",
+      "name": "Jade Pack",
+      "desc": "9 cards · All races · Standard",
       "price": 500,
       "icon": "◈",
       "color": "#2a7848",
@@ -97,8 +97,8 @@
     },
     {
       "id": "rarity",
-      "name": "Seltenheitspack",
-      "desc": "9 Karten · Min. Rare · Erhöhte SR/UR-Chance",
+      "name": "Rarity Pack",
+      "desc": "9 cards · Min. Rare · Increased SR/UR chance",
       "price": 600,
       "icon": "★",
       "color": "#c0a020",
