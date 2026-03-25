@@ -3,7 +3,7 @@ import type { CardData, GameState, PromptOptions } from '../../types.js';
 
 export type ModalState =
   | null
-  | { type: 'card-detail'; card: CardData; fc?: any | null; index?: number; state?: GameState; source?: 'hand' | 'field' | 'field-spell' }
+  | { type: 'card-detail'; card: CardData; fc?: any | null; index?: number; state?: GameState; source?: 'hand' | 'field' | 'field-spell' | 'deckbuilder-collection' | 'deckbuilder-deck'; onDeckAction?: (action: 'add' | 'remove') => void }
   | { type: 'trap-prompt'; opts: PromptOptions; resolve: (v: boolean) => void }
   | { type: 'grave-select'; cards: CardData[]; resolve: (card: CardData) => void }
   | { type: 'card-list' }

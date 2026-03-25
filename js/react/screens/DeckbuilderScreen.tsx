@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
+import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB } from '../../cards.js';
 import { Progression }     from '../../progression.js';
 import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
@@ -16,17 +17,23 @@ const MAX_DECK = GAME_RULES.maxDeckSize;
 const MAX_COPIES = GAME_RULES.maxCardCopies;
 
 type ViewMode = 'large' | 'small' | 'table';
+type ActiveTab = 'collection' | 'deck';
+type SortColumn = 'id' | 'rarity' | 'name' | 'atk' | 'def' | 'type' | 'race' | 'collection' | 'inDeck';
+type SortDir = 'asc' | 'desc';
 
 export default function DeckbuilderScreen() {
   const { navigateTo }                        = useScreen();
   const { collection, currentDeck, setCurrentDeck } = useProgression();
+  const { openModal } = useModal();
   const { t } = useTranslation();
   const [typeFilter, setTypeFilter]           = useState<'all' | 'monster' | 'effect' | 'spell' | 'trap'>('all');
   const [raceFilter, setRaceFilter]           = useState<'all' | Race>('all');
   const [rarityFilter, setRarityFilter]       = useState<'all' | Rarity>('all');
   const [nameSearch, setNameSearch]           = useState('');
   const [viewMode, setViewMode]               = useState<ViewMode>('small');
-  const [panelExpanded, setPanelExpanded]     = useState(false);
+  const [activeTab, setActiveTab]             = useState<ActiveTab>('collection');
+  const [sortColumn, setSortColumn]           = useState<SortColumn | null>(null);
+  const [sortDirection, setSortDirection]     = useState<SortDir>('asc');
   const [toast, setToast]                     = useState(false);
   const [seenCards, setSeenCards]             = useState<Set<string>>(() => Progression.getSeenCards());
 
@@ -58,22 +65,68 @@ export default function DeckbuilderScreen() {
     return map;
   }, [currentDeck]);
 
-  const allCards = useMemo(() => (Object.values(CARD_DB) as CardData[]).filter(c =>
+  // Filter helper shared between collection and deck tabs
+  function matchesFilters(c: CardData): boolean {
+    return (
+      (typeFilter === 'all'
+        || (typeFilter === 'monster' && c.type === CardType.Monster && !c.effect)
+        || (typeFilter === 'effect'  && c.type === CardType.Monster && !!c.effect)
+        || (typeFilter === 'spell'   && c.type === CardType.Spell)
+        || (typeFilter === 'trap'    && c.type === CardType.Trap)) &&
+      (raceFilter === 'all' || c.race === raceFilter) &&
+      (rarityFilter === 'all' || c.rarity === rarityFilter) &&
+      (!nameSearch || c.name.toLowerCase().includes(nameSearch.toLowerCase()))
+    );
+  }
+
+  // Collection tab: all owned non-fusion cards, filtered
+  const collectionCards = useMemo(() => (Object.values(CARD_DB) as CardData[]).filter(c =>
     c.type !== CardType.Fusion &&
     (!ownedIds || ownedIds.has(c.id)) &&
-    (typeFilter === 'all'
-      || (typeFilter === 'monster' && c.type === CardType.Monster && !c.effect)
-      || (typeFilter === 'effect'  && c.type === CardType.Monster && !!c.effect)
-      || (typeFilter === 'spell'   && c.type === CardType.Spell)
-      || (typeFilter === 'trap'    && c.type === CardType.Trap)) &&
-    (raceFilter === 'all' || c.race === raceFilter) &&
-    (rarityFilter === 'all' || c.rarity === rarityFilter) &&
-    (!nameSearch || c.name.toLowerCase().includes(nameSearch.toLowerCase()))
+    matchesFilters(c)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   ), [ownedIds, typeFilter, raceFilter, rarityFilter, nameSearch]);
+
+  // Deck tab: unique cards in current deck, filtered
+  const deckCards = useMemo(() => {
+    const seen = new Set<string>();
+    const cards: CardData[] = [];
+    currentDeck.forEach(id => {
+      if (seen.has(id)) return;
+      seen.add(id);
+      const card = (CARD_DB as any)[id] as CardData | undefined;
+      if (card && matchesFilters(card)) cards.push(card);
+    });
+    return cards;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDeck, typeFilter, raceFilter, rarityFilter, nameSearch]);
+
+  const displayedCards = activeTab === 'collection' ? collectionCards : deckCards;
+
+  // Sorting
+  const sortedCards = useMemo(() => {
+    if (!sortColumn) return displayedCards;
+    const sorted = [...displayedCards].sort((a, b) => {
+      let cmp = 0;
+      switch (sortColumn) {
+        case 'id':         cmp = Number(a.id) - Number(b.id); break;
+        case 'name':       cmp = a.name.localeCompare(b.name); break;
+        case 'atk':        cmp = (a.atk ?? -1) - (b.atk ?? -1); break;
+        case 'def':        cmp = (a.def ?? -1) - (b.def ?? -1); break;
+        case 'rarity':     cmp = (a.rarity as number) - (b.rarity as number); break;
+        case 'type':       cmp = a.type - b.type; break;
+        case 'race':       cmp = ((a.race as number) ?? 0) - ((b.race as number) ?? 0); break;
+        case 'collection': cmp = (collectionCount[a.id] || 0) - (collectionCount[b.id] || 0); break;
+        case 'inDeck':     cmp = (copyMap[a.id] || 0) - (copyMap[b.id] || 0); break;
+      }
+      return sortDirection === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [displayedCards, sortColumn, sortDirection, collectionCount, copyMap]);
 
   // Mark all visible cards as seen after mount
   useEffect(() => {
-    const ids = allCards.map(c => c.id);
+    const ids = collectionCards.map(c => c.id);
     Progression.markCardsAsSeen(ids);
     setSeenCards(Progression.getSeenCards());
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,7 +136,10 @@ export default function DeckbuilderScreen() {
 
   function addCard(id: string) {
     if (currentDeck.length >= MAX_DECK) return;
-    if ((copyMap[id] || 0) >= MAX_COPIES) return;
+    const copiesInDeck = copyMap[id] || 0;
+    if (copiesInDeck >= MAX_COPIES) return;
+    const owned = collectionCount[id] || 0;
+    if (copiesInDeck >= owned) return;
     setCurrentDeck([...currentDeck, id]);
   }
 
@@ -102,20 +158,74 @@ export default function DeckbuilderScreen() {
     setTimeout(() => setToast(false), 2000);
   }
 
-  const deckFull = currentDeck.length === MAX_DECK;
+  function toggleSort(col: SortColumn) {
+    if (sortColumn === col) {
+      setSortDirection(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(col);
+      setSortDirection('asc');
+    }
+  }
 
-  const orderedIds = useMemo(() => {
-    const seen = new Set<string>();
-    const ids: string[] = [];
-    currentDeck.forEach(id => { if (!seen.has(id)) { seen.add(id); ids.push(id); } });
-    return ids;
-  }, [currentDeck]);
+  function sortIndicator(col: SortColumn) {
+    if (sortColumn !== col) return '';
+    return sortDirection === 'asc' ? ' \u25B2' : ' \u25BC';
+  }
+
+  // Card limit helper
+  function maxCopiesFor(cardId: string) {
+    return Math.min(MAX_COPIES, collectionCount[cardId] || 0);
+  }
+
+  function isAtMax(cardId: string) {
+    const copies = copyMap[cardId] || 0;
+    return copies >= MAX_COPIES || copies >= (collectionCount[cardId] || 0);
+  }
+
+  // Click handlers
+  function handleCardClick(card: CardData) {
+    if (activeTab === 'collection') {
+      openModal({
+        type: 'card-detail',
+        card,
+        source: 'deckbuilder-collection',
+        onDeckAction: (action) => { if (action === 'add') addCard(card.id); },
+      });
+    } else {
+      openModal({
+        type: 'card-detail',
+        card,
+        source: 'deckbuilder-deck',
+        onDeckAction: (action) => { if (action === 'remove') removeCard(card.id); },
+      });
+    }
+  }
+
+  function handleCardDoubleClick(card: CardData) {
+    if (activeTab === 'collection') {
+      addCard(card.id);
+    } else {
+      removeCard(card.id);
+    }
+  }
+
+  const deckFull = currentDeck.length === MAX_DECK;
 
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
         <div className={styles.title}>{t('deckbuilder.title')}</div>
         <div className={styles.count}>{t('deckbuilder.cards_count', { current: currentDeck.length, max: MAX_DECK })}</div>
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tabBtn}${activeTab === 'collection' ? ` ${styles.activeTab}` : ''}`}
+            onClick={() => setActiveTab('collection')}
+          >{t('deckbuilder.tab_collection')}</button>
+          <button
+            className={`${styles.tabBtn}${activeTab === 'deck' ? ` ${styles.activeTab}` : ''}`}
+            onClick={() => setActiveTab('deck')}
+          >{t('deckbuilder.tab_deck')}</button>
+        </div>
         <div className="ml-auto flex gap-2">
           <button
             id="btn-db-save"
@@ -128,57 +238,9 @@ export default function DeckbuilderScreen() {
         </div>
       </div>
 
-      <div className={`${styles.body}${panelExpanded ? ` ${styles.panelExpanded}` : ''}`}>
-        <div className={`${styles.deckPanel}${panelExpanded ? ` ${styles.expanded}` : ''}`}>
-          <div
-            className={styles.panelTitle}
-            id="db-panel-title-btn"
-            onClick={() => setPanelExpanded(e => !e)}
-          >
-            {t('deckbuilder.current_deck')} <span className={styles.panelArrow}>{panelExpanded ? '❮' : '❯'}</span>
-          </div>
-          <div className={panelExpanded ? styles.deckListExpanded : styles.deckList}>
-            {panelExpanded ? (
-              orderedIds.map(id => {
-                const card  = (CARD_DB as any)[id] as CardData;
-                const count = copyMap[id] || 0;
-                return (
-                  <div key={id} className={styles.deckCardWrap} onClick={() => removeCard(id)}>
-                    <div
-                      className={`card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
-                      ref={el => { if (el) attachHover(el, card, null); }}
-                    >
-                      <Card card={card} />
-                    </div>
-                    <div className={styles.copyBadge}>×{count}</div>
-                    <div className={styles.deckRmOverlay}>✕</div>
-                  </div>
-                );
-              })
-            ) : (
-              orderedIds.map(id => {
-                const card  = (CARD_DB as any)[id] as CardData;
-                const count = copyMap[id] || 0;
-                return (
-                  <div key={id} className={styles.deckRow} onClick={() => removeCard(id)}>
-                    <div
-                      className={`card ${styles.deckRowMini} ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
-                      ref={el => { if (el) attachHover(el, card, null); }}
-                    >
-                      <Card card={card} />
-                    </div>
-                    <span className={styles.deckRowName}>{card.name}</span>
-                    <span className={styles.deckRowCount}>×{count}</span>
-                    <span className={styles.deckRowRm} title={t('deckbuilder.remove_hint')}>✕</span>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        <div className={styles.collectionPanel}>
-          {/* Filter row 1: type + zoom */}
+      <div className={styles.body}>
+        <div className={styles.mainPanel}>
+          {/* Filter bar */}
           <div className={styles.filterBar}>
             <div className={styles.filterGroup}>
               {TYPE_FILTERS.map(f => (
@@ -244,15 +306,17 @@ export default function DeckbuilderScreen() {
           {/* Card grid — Large or Small */}
           {viewMode !== 'table' && (
             <div className={`${styles.collectionGrid}${viewMode === 'large' ? ` ${styles.gridLarge}` : ` ${styles.gridSmall}`}`}>
-              {allCards.map(card => {
+              {sortedCards.map(card => {
                 const copies = copyMap[card.id] || 0;
-                const atMax  = copies >= MAX_COPIES;
+                const atMax  = isAtMax(card.id);
                 const full   = currentDeck.length >= MAX_DECK;
+                const dimmed = activeTab === 'collection' && (atMax || full);
                 return (
                   <div
                     key={card.id}
-                    className={`${styles.cardWrap}${atMax || full ? ` ${styles.cardDimmed}` : ''}`}
-                    onClick={!atMax && !full ? () => addCard(card.id) : undefined}
+                    className={`${styles.cardWrap}${dimmed ? ` ${styles.cardDimmed}` : ''}`}
+                    onClick={() => handleCardClick(card)}
+                    onDoubleClick={() => handleCardDoubleClick(card)}
                   >
                     <div
                       className={`card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
@@ -260,7 +324,7 @@ export default function DeckbuilderScreen() {
                     >
                       <Card card={card} />
                     </div>
-                    {copies > 0 && <div className={styles.copyBadge}>{copies}/3</div>}
+                    {copies > 0 && <div className={styles.copyBadge}>{copies}/{maxCopiesFor(card.id)}</div>}
                   </div>
                 );
               })}
@@ -273,20 +337,41 @@ export default function DeckbuilderScreen() {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>{t('deckbuilder.table_nr')}</th>
-                    <th>{t('deckbuilder.table_rarity')}</th>
-                    <th>{t('deckbuilder.table_name')}</th>
-                    <th>{t('deckbuilder.table_atkdef')}</th>
-                    <th>{t('deckbuilder.table_type_race')}</th>
-                    <th>{t('deckbuilder.table_collection')}</th>
-                    <th>{t('deckbuilder.table_in_deck')}</th>
+                    <th className={styles.sortable} onClick={() => toggleSort('id')}>
+                      {t('deckbuilder.table_nr')}{sortIndicator('id')}
+                    </th>
+                    <th className={styles.sortable} onClick={() => toggleSort('rarity')}>
+                      {t('deckbuilder.table_rarity')}{sortIndicator('rarity')}
+                    </th>
+                    <th className={styles.sortable} onClick={() => toggleSort('name')}>
+                      {t('deckbuilder.table_name')}{sortIndicator('name')}
+                    </th>
+                    <th className={styles.sortable} onClick={() => toggleSort('atk')}>
+                      {t('deckbuilder.table_atk')}{sortIndicator('atk')}
+                    </th>
+                    <th className={styles.sortable} onClick={() => toggleSort('def')}>
+                      {t('deckbuilder.table_def')}{sortIndicator('def')}
+                    </th>
+                    <th className={styles.sortable} onClick={() => toggleSort('type')}>
+                      {t('deckbuilder.table_type')}{sortIndicator('type')}
+                    </th>
+                    <th className={styles.sortable} onClick={() => toggleSort('race')}>
+                      {t('deckbuilder.table_race')}{sortIndicator('race')}
+                    </th>
+                    <th className={styles.sortable} onClick={() => toggleSort('collection')}>
+                      {t('deckbuilder.table_collection')}{sortIndicator('collection')}
+                    </th>
+                    <th className={styles.sortable} onClick={() => toggleSort('inDeck')}>
+                      {t('deckbuilder.table_in_deck')}{sortIndicator('inDeck')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {allCards.map(card => {
+                  {sortedCards.map(card => {
                     const copies     = copyMap[card.id] || 0;
-                    const atMax      = copies >= MAX_COPIES;
+                    const atMax      = isAtMax(card.id);
                     const full       = currentDeck.length >= MAX_DECK;
+                    const dimmed     = activeTab === 'collection' && (atMax || full);
                     const ownedCount = collectionCount[card.id] || 0;
                     const rarMeta    = getRarityById(card.rarity as number);
                     const rarColor   = rarMeta?.color ?? '#aaa';
@@ -294,12 +379,12 @@ export default function DeckbuilderScreen() {
                       ? t('deckbuilder.type_label_effect')
                       : (TYPE_LABEL[card.type] || '');
                     const raceLbl    = card.race ? t(`cards.race_${card.race}`) : '';
-                    const typeRace   = raceLbl ? `${typeLbl} / ${raceLbl}` : typeLbl;
                     return (
                       <tr
                         key={card.id}
-                        className={atMax || full ? styles.tableRowDimmed : ''}
-                        onClick={!atMax && !full ? () => addCard(card.id) : undefined}
+                        className={dimmed ? styles.tableRowDimmed : ''}
+                        onClick={() => handleCardClick(card)}
+                        onDoubleClick={() => handleCardDoubleClick(card)}
                         ref={el => { if (el) attachHover(el as any, card, null); }}
                       >
                         <td>
@@ -308,14 +393,16 @@ export default function DeckbuilderScreen() {
                         </td>
                         <td>
                           <span style={{ color: rarColor }}>
-                            {rarMeta?.value ?? '—'}
+                            {rarMeta?.value ?? '\u2014'}
                           </span>
                         </td>
                         <td>{card.name}</td>
-                        <td>{card.atk !== undefined ? `${card.atk} / ${card.def}` : '—'}</td>
-                        <td>{typeRace}</td>
+                        <td>{card.atk !== undefined ? card.atk : '\u2014'}</td>
+                        <td>{card.def !== undefined ? card.def : '\u2014'}</td>
+                        <td>{typeLbl}</td>
+                        <td>{raceLbl}</td>
                         <td>{ownedCount}</td>
-                        <td>{copies} / {MAX_COPIES}</td>
+                        <td>{copies} / {maxCopiesFor(card.id)}</td>
                       </tr>
                     );
                   })}
