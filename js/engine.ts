@@ -35,15 +35,19 @@ export class GameEngine {
    * @param {string[]} playerDeckIds  - Player card IDs
    * @param {object}   opponentConfig - { id, deckIds } from OPPONENT_CONFIGS
    */
-  initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null){
+  async initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null){
     EchoesOfSanguo.startSession();
     const oppDeckIds = (opponentConfig && opponentConfig.deckIds) ? opponentConfig.deckIds : OPPONENT_DECK_IDS;
     this._currentOpponentId = (opponentConfig && opponentConfig.id) ? opponentConfig.id : null;
     this._aiBehavior = resolveAIBehavior(opponentConfig?.behaviorId);
+
+    // Coin toss: determine who goes first
+    const playerGoesFirst = Math.random() < 0.5;
+
     this.state = {
       phase: 'main',        // 'draw'|'main'|'battle'|'end'
       turn: 1,
-      activePlayer: 'player',
+      activePlayer: playerGoesFirst ? 'player' : 'opponent',
       player: {
         lp: GAME_RULES.startingLP,
         deck: this._shuffle(makeDeck(playerDeckIds || PLAYER_DECK_IDS)),
@@ -60,14 +64,37 @@ export class GameEngine {
         graveyard: [],
         normalSummonUsed: false
       },
-      log: []
+      log: [],
+      firstTurnNoAttack: true,
     } as GameState;
     this.drawCard('player',   5);
     this.drawCard('opponent', 5);
-    this.state.phase = 'main';
     this.addLog('=== Duel begins! ===');
-    this.addLog('Round 1 - Your turn!');
-    this.ui.render(this.state);
+
+    // Show coin toss result
+    if(this.ui.showCoinToss) await this.ui.showCoinToss(playerGoesFirst);
+
+    if(playerGoesFirst){
+      this.state.phase = 'main';
+      this.addLog('Round 1 - Your turn!');
+      this.ui.render(this.state);
+    } else {
+      this.addLog('Opponent goes first!');
+      this.state.phase = 'draw';
+      this.ui.render(this.state);
+      // Run AI turn
+      setTimeout(() => {
+        aiTurn(this).catch(err => {
+          EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
+          this.state.activePlayer = 'player';
+          this.state.phase = 'main';
+          this.state.turn++;
+          this.addLog(`[ERROR] Opponent AI crashed. Your turn (Round ${this.state.turn}).`);
+          this.drawCard('player', 1);
+          this.ui.render(this.state);
+        });
+      }, 600);
+    }
   }
 
   getState(): GameState { return this.state; }
@@ -618,7 +645,13 @@ export class GameEngine {
     const phases = ['main','battle','end'];
     const idx = phases.indexOf(this.state.phase);
     if(idx < phases.length - 1){
-      this.state.phase = phases[idx+1] as Phase;
+      let nextPhase = phases[idx+1] as Phase;
+      // First turn: skip battle phase entirely (FM-style)
+      if(nextPhase === 'battle' && this.state.firstTurnNoAttack){
+        this.state.firstTurnNoAttack = false;
+        nextPhase = 'end';
+      }
+      this.state.phase = nextPhase;
       const names: Partial<Record<Phase, string>> = { main:'Main Phase', battle:'Battle Phase', end:'End Phase' };
       this.addLog(`--- ${names[this.state.phase] ?? this.state.phase} ---`);
       this.ui.render(this.state);

@@ -50,13 +50,16 @@ export function CardDetailModal({ modal }: Props) {
       if (fieldCard && fieldCard.faceDown && !fieldCard.summonedThisTurn) {
         actions.push(actionBtn(t('card_action.flip_summon'), () => { game.flipSummon('player', index); closeModal(); }));
       }
+      if (fieldCard && !fieldCard.faceDown && !fieldCard.summonedThisTurn && !fieldCard.hasAttacked) {
+        const label = fieldCard.position === 'atk' ? t('card_action.change_to_def') : t('card_action.change_to_atk');
+        actions.push(actionBtn(label, () => { game.changePosition('player', index); closeModal(); }));
+      }
     } else if (isMon && phase === 'main') {
       if (state.player.normalSummonUsed) {
         actions.push(actionBtn(t('card_action.already_played'), null, true));
       } else {
         if (freeZone !== -1) {
           actions.push(actionBtn(t('card_action.summon_atk'), () => { game.summonMonster('player', index, freeZone, 'atk'); closeModal(); }));
-          actions.push(actionBtn(t('card_action.summon_def'), () => { game.summonMonster('player', index, freeZone, 'def'); closeModal(); }));
           actions.push(actionBtn(t('card_action.set_def'), () => { game.setMonster('player', index, freeZone); closeModal(); }));
         }
       }

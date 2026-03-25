@@ -6,6 +6,7 @@ import { CardListModal }    from './CardListModal.js';
 import { ResultModal }      from './ResultModal.js';
 import { OptionsModal }     from './OptionsModal.js';
 import { BattleLogModal }  from './BattleLogModal.js';
+import { CoinTossModal }   from './CoinTossModal.js';
 
 export function ModalOverlay() {
   const { modal, closeModal } = useModal();
@@ -16,7 +17,8 @@ export function ModalOverlay() {
       // Close on overlay click for non-critical modals
       if (e.target === e.currentTarget &&
           modal.type !== 'trap-prompt' &&
-          modal.type !== 'grave-select') {
+          modal.type !== 'grave-select' &&
+          modal.type !== 'coin-toss') {
         closeModal();
       }
     }}>
@@ -27,6 +29,7 @@ export function ModalOverlay() {
       {modal.type === 'result'       && <ResultModal      modal={modal} />}
       {modal.type === 'main-options' && <OptionsModal />}
       {modal.type === 'battle-log'  && <BattleLogModal />}
+      {modal.type === 'coin-toss'   && <CoinTossModal   modal={modal} />}
     </div>
   );
 }

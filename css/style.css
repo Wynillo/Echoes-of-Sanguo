@@ -450,14 +450,14 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 
 /* Type borders */
-.normal-card { border-color: rgba(200,180,80,0.6); }
+.normal-card { border-color: rgba(220,220,220,0.6); }
 .effect-card  { border-color: rgba(200,120,40,0.8); }
 .fusion-card  { border-color: rgba(160,80,220,0.9); box-shadow: none; outline: 2px solid rgba(160,80,220,0.6); }
 .spell-card   { border-color: rgba(40,160,120,0.8); }
 .trap-card    { border-color: rgba(180,40,80,0.8); }
 
 /* Type background tints — subtle color wash layered over attr gradient */
-.normal-card::before { content:''; position:absolute; inset:0; background:rgba(200,180,80,0.06); z-index:0; pointer-events:none; border-radius:0; }
+.normal-card::before { content:''; position:absolute; inset:0; background:rgba(220,220,220,0.04); z-index:0; pointer-events:none; border-radius:0; }
 .effect-card::before { content:''; position:absolute; inset:0; background:rgba(160,80,20,0.08);  z-index:0; pointer-events:none; border-radius:0; }
 .fusion-card::before { content:''; position:absolute; inset:0; background:rgba(120,40,200,0.09); z-index:0; pointer-events:none; border-radius:0; }
 .spell-card::before  { content:''; position:absolute; inset:0; background:rgba(20,140,80,0.08);  z-index:0; pointer-events:none; border-radius:0; }

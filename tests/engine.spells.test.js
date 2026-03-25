@@ -28,6 +28,9 @@ function makeEngine(cbOverrides = {}) {
     { id: 1, name: 'Test', title: '', race: 'krieger', flavor: '',
       coinsWin: 0, coinsLoss: 0, deckIds: [...OPPONENT_DECK_IDS] }
   );
+  // Force player goes first for deterministic tests
+  engine.state.activePlayer = 'player';
+  engine.state.phase = 'main';
   return { engine, cb };
 }
 

@@ -379,7 +379,9 @@ export default function DeckbuilderScreen() {
                       ? t('deckbuilder.type_label_effect')
                       : (TYPE_LABEL[card.type] || '');
                     const typeMeta   = getCardTypeById(card.type as number);
-                    const typeColor  = typeMeta?.color ?? '#aaa';
+                    const typeColor  = card.type === CardType.Monster
+                      ? (card.effect ? '#c8a850' : '#e8e8e8')
+                      : (typeMeta?.color ?? '#aaa');
                     const raceLbl    = card.race ? (getRaceById(card.race)?.value ?? '') : '';
                     return (
                       <tr
