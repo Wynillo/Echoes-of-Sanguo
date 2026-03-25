@@ -114,6 +114,7 @@ export class FieldCard {
   position: Position;
   faceDown: boolean;
   hasAttacked: boolean;
+  hasFlipped: boolean;
   summonedThisTurn: boolean;
   tempATKBonus: number;
   tempDEFBonus: number;
@@ -134,6 +135,7 @@ export class FieldCard {
     this.position   = position; // 'atk' | 'def'
     this.faceDown   = faceDown;
     this.hasAttacked= false;
+    this.hasFlipped = false;
     this.summonedThisTurn = true; // summoning sickness
     this.tempATKBonus = 0;
     this.tempDEFBonus = 0;
@@ -336,6 +338,17 @@ export class GameEngine {
     return this.summonMonster(owner, handIndex, zone, 'def', true);
   }
 
+  flipSummon(owner: Owner, zone: number){
+    const fc = this.state[owner].field.monsters[zone];
+    if(!fc || !fc.faceDown){ this.addLog('Kein verdecktes Monster!'); return false; }
+    if(fc.summonedThisTurn){ this.addLog('Kann nicht im selben Zug geflippt werden!'); return false; }
+    fc.faceDown = false;
+    this.addLog(`${fc.card.name} wird aufgedeckt (Flip-Beschwörung)!`);
+    this._triggerFlipEffect(fc, owner, zone);
+    this.ui.render(this.state);
+    return true;
+  }
+
   specialSummon(owner: Owner, card: CardData, zone?: number){
     const st = this.state[owner];
     if(zone === undefined){
@@ -511,6 +524,13 @@ export class GameEngine {
     const attFC = atkSt.field.monsters[attackerZone];
     if(!attFC){ this.addLog('No attacking monster!'); return; }
     if(attFC.hasAttacked){ this.addLog(`${attFC.card.name} has already attacked!`); return; }
+    // auto-flip face-down attacker
+    if(attFC.faceDown){
+      attFC.faceDown = false;
+      attFC.position = 'atk';
+      this.addLog(`${attFC.card.name} is revealed (attack)!`);
+      this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
+    }
     if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
 
     const defFC = defSt.field.monsters[defenderZone];
@@ -548,6 +568,13 @@ export class GameEngine {
       this.addLog('Opponent has monsters on the field!'); return;
     }
     if(attFC.hasAttacked) return;
+    // auto-flip face-down attacker
+    if(attFC.faceDown){
+      attFC.faceDown = false;
+      attFC.position = 'atk';
+      this.addLog(`${attFC.card.name} wird aufgedeckt (Angriff)!`);
+      this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
+    }
     if(attFC.position !== 'atk') return;
 
     if(attackerOwner === 'opponent'){
@@ -568,7 +595,7 @@ export class GameEngine {
     if(defFC.faceDown){
       defFC.faceDown = false;
       this.addLog(`${defFC.card.name} is revealed!`);
-      // flip effect if any – simplified
+      this._triggerFlipEffect(defFC, defOwner, defZone);
     }
 
     const defVal = defFC.position === 'atk' ? defFC.effectiveATK() : defFC.effectiveDEF();
@@ -670,6 +697,21 @@ export class GameEngine {
       executeEffectBlock(card.effect, ctx);
     } catch(e) {
       EchoesOfSanguo.log('EFFECT', `Error in effect [${card.id}] trigger=${trigger}: ${e instanceof Error ? e.message : String(e)}`, '#f44');
+    }
+  }
+
+  _triggerFlipEffect(fc: FieldCard, owner: Owner, zone: number){
+    if(fc.hasFlipped) return;
+    fc.hasFlipped = true;
+    const card = fc.card;
+    if(!card.effect || card.effect.trigger !== 'onFlip') return;
+    EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Flip-Effekt`);
+    if(this.ui.showActivation) this.ui.showActivation(card, card.description);
+    try {
+      const ctx: EffectContext = { engine: this, owner };
+      executeEffectBlock(card.effect, ctx);
+    } catch(e) {
+      EchoesOfSanguo.log('EFFECT', `Fehler in Flip-Effekt [${card.id}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
     }
   }
 
