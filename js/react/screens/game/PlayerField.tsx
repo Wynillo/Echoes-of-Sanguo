@@ -38,7 +38,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     const fc = player.field.monsters[zone];
     if (!fc) return false;
     if (!isMyTurn || phase !== 'battle') return false;
-    return !fc.hasAttacked && fc.position === 'atk' && !fc.summonedThisTurn;
+    return !fc.hasAttacked && (fc.position === 'atk' || fc.faceDown) && !fc.summonedThisTurn;
   }
 
   function isPlayerSpellTrapInteractive(zone: number) {
@@ -54,7 +54,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
   const onOwnFieldCardClick = useCallback((fc: any, zone: number) => {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'main') return;
-    openModal({ type: 'card-action', card: fc.card, index: zone, state: gameState });
+    openModal({ type: 'card-action', card: fc.card, index: zone, state: gameState, source: 'field' });
   }, [gameRef, isMyTurn, phase, openModal, gameState]);
 
   const onAttackerSelect = useCallback((zone: number) => {

@@ -73,7 +73,9 @@
   "shop": {
     "title": "◈ JADE SHOP",
     "back": "← Main Menu",
-    "buy_btn": "Buy Pack"
+    "buy_btn": "Buy Pack",
+    "packages_title": "◈ Card Packages",
+    "locked": "🔒 Locked"
   },
   "pack": {
     "starter_name": "Starter Pack",
@@ -170,6 +172,8 @@
     "set_spell": "🔽 Set",
     "set_trap": "🔽 Set Trap",
     "activate_trap": "⚠ Activate Trap",
+    "flip_summon": "🔄 Flip Summon",
+    "set_atk": "🔽 Set Face-Down (ATK)",
     "view": "🔍 View",
     "cancel": "✕ Cancel",
     "hint_spell_own": "Choose your own monster as a target.",

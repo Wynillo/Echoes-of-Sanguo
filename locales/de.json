@@ -73,7 +73,9 @@
   "shop": {
     "title": "◈ JADE-SHOP",
     "back": "← Hauptmenü",
-    "buy_btn": "Pack kaufen"
+    "buy_btn": "Pack kaufen",
+    "packages_title": "◈ Kartenpakete",
+    "locked": "🔒 Gesperrt"
   },
   "pack": {
     "starter_name": "Starterpack",
@@ -170,6 +172,8 @@
     "set_spell": "🔽 Setzen",
     "set_trap": "🔽 Fallen setzen",
     "activate_trap": "⚠ Falle aktivieren",
+    "flip_summon": "🔄 Flip-Beschwörung",
+    "set_atk": "🔽 Verdeckt setzen (ATK)",
     "view": "🔍 Ansehen",
     "cancel": "✕ Abbrechen",
     "hint_spell_own": "Wähle ein eigenes Monster als Ziel.",
