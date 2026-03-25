@@ -255,7 +255,7 @@ function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition): CardData {
     name:        def?.name ?? `Card #${tc.id}`,
     type,
     description: def?.description ?? '',
-    level:       tc.level,
+    level:       tc.level ?? undefined,
     rarity:      intToRarity(tc.rarity),
   };
 

@@ -26,7 +26,8 @@ export function CardDetailModal({ modal }: Props) {
     [CardType.Trap]:    t('card_detail.type_trap'),
   };
   const typeLabel = typeLabels[card.type] || '';
-  const levelStr = card.level ? ` · ${t('card_detail.level_prefix')} ${card.level}` : '';
+  const isMonLevel = card.type === CardType.Monster || card.type === CardType.Fusion;
+  const levelStr = isMonLevel && card.level ? ` · ${t('card_detail.level_prefix')} ${card.level}` : '';
 
   let statsText = '';
   if (card.atk !== undefined) {

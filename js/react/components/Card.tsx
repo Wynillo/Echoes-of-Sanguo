@@ -35,7 +35,8 @@ interface Props {
 }
 
 export function Card({ card, fc = null, dimmed = false, rotated = false, big = false, small = false, extraClass = '' }: Props) {
-  const levelStars = card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
+  const isMonLevelC = card.type === CardType.Monster || card.type === CardType.Fusion;
+  const levelStars = isMonLevelC && card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
   const typeLabel  = getTypeLabel(card);
@@ -152,7 +153,8 @@ export const ATTR_CSS: Record<number, string> = new Proxy({} as Record<number, s
 
 /** Pure helper used by modules that need the inner HTML string for legacy canvas/clone operations */
 export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: any = null): string {
-  const levelStars = card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
+  const isMonsterLevelH = card.type === CardType.Monster || card.type === CardType.Fusion;
+  const levelStars = isMonsterLevelH && card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
   const typeLabel  = getTypeLabel(card);

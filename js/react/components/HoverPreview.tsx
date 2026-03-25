@@ -52,7 +52,8 @@ export function HoverPreview() {
   const attrNameStr = attrMeta?.value ?? '';
   const typeNameMap: Record<number, string> = { [CardType.Monster]:'Normal', [CardType.Fusion]:'Fusion', [CardType.Spell]:'Zauberkarte', [CardType.Trap]:'Fallenkarte' };
   const typeName = card ? (card.type === CardType.Monster && card.effect ? 'Effekt' : typeNameMap[card.type] || '') : '';
-  const levelStr = card?.level ? ` · Lv ${card.level}` : '';
+  const isMonLevel = card && (card.type === CardType.Monster || card.type === CardType.Fusion);
+  const levelStr = isMonLevel && card?.level ? ` · Lv ${card.level}` : '';
   const atkBonus = fc && (fc.permATKBonus || fc.tempATKBonus);
 
   return (

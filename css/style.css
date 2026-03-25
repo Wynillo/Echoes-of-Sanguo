@@ -573,6 +573,30 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   font-weight: bold;
 }
 
+/* ── Fusion chain bar: mobile touch-friendly ── */
+@media (pointer: coarse), (max-width: 600px) {
+  .fusion-chain-bar {
+    padding: 10px 12px;
+    gap: 6px;
+    font-size: 11px;
+    position: relative;
+    z-index: 100;
+  }
+  .fusion-chain-actions {
+    gap: 10px;
+    margin-top: 6px;
+    width: 100%;
+    justify-content: center;
+  }
+  .fusion-chain-actions button {
+    min-height: 44px;
+    min-width: 100px;
+    padding: 10px 16px;
+    font-size: 12px;
+    touch-action: manipulation;
+  }
+}
+
 /* Big card for detail view — internal overrides live in Card.module.css */
 .big-card {
   width: var(--card-w-big);
