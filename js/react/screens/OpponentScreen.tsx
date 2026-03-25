@@ -9,12 +9,11 @@ import type { OpponentConfig } from '../../types.js';
 import styles from './OpponentScreen.module.css';
 
 export default function OpponentScreen() {
-  const { setScreen, navigateTo, screenData } = useScreen();
+  const { setScreen, navigateTo } = useScreen();
   const { opponents }   = useProgression();
   const { startGame }   = useGame();
   const [hovered, setHovered] = useState<OpponentConfig | null>(null);
   const { t } = useTranslation();
-  const mode = (screenData?.mode as string) ?? 'free-duel';
 
   function selectOpponent(cfg: OpponentConfig) {
     startGame(cfg);
@@ -34,7 +33,7 @@ export default function OpponentScreen() {
           const oppData = opponents[cfg.id] || { unlocked: cfg.id === 1, wins: 0, losses: 0 };
           const isUnlocked = oppData.unlocked;
           const hasBeenBeaten = (oppData.wins ?? 0) > 0;
-          const isAvailable = mode === 'free-duel' ? (isUnlocked && hasBeenBeaten) : isUnlocked;
+          const isAvailable = isUnlocked && hasBeenBeaten;
           const raceMeta = getRaceById(cfg.race);
           const accent = raceMeta?.color ?? '#888';
 
