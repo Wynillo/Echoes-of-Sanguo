@@ -47,20 +47,20 @@
   "opponent": {
     "headline": "FREE DUEL",
     "subtitle": "Choose your opponent",
-    "back": "← Main Menu"
+    "back": "← Back"
   },
   "save": {
     "headline": "SAVE POINT",
     "backup_warning": "New game active — save to overwrite the old state, or go back to cancel.",
-    "btn_save": "💾 Save",
-    "btn_saved": "✓ Saved!",
-    "btn_story": "📖 Story",
-    "btn_duel": "⚔ Start Free Duel",
-    "btn_shop": "🛒 Shop",
-    "btn_collection": "📚 Collection",
-    "btn_deckbuilder": "🃏 Deckbuilder",
-    "btn_cardlist": "📋 Card List",
-    "btn_mainmenu": "🏠 Main Menu",
+    "btn_save": "Save",
+    "btn_saved": "Saved!",
+    "btn_story": "Story",
+    "btn_duel": "Free Duel",
+    "btn_shop": "Shop",
+    "btn_collection": "Collection",
+    "btn_deckbuilder": "Deckbuilder",
+    "btn_cardlist": "Card List",
+    "btn_mainmenu": "Main Menu",
     "confirm_overwrite": "Old game will be overwritten. Continue?"
   },
   "options": {
@@ -72,7 +72,7 @@
   },
   "shop": {
     "title": "◈ JADE SHOP",
-    "back": "← Main Menu",
+    "back": "← Back",
     "buy_btn": "Buy Pack",
     "packages_title": "◈ Card Packages",
     "locked": "🔒 Locked"
@@ -101,7 +101,7 @@
   "collection": {
     "title": "📚 MY COLLECTION",
     "cards_count": "{{owned}} / {{total}} Cards",
-    "back": "← Main Menu",
+    "back": "← Back",
     "rarity_all": "All Rarities"
   },
   "deckbuilder": {

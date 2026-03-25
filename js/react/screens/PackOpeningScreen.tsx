@@ -73,7 +73,7 @@ export default function PackOpeningScreen() {
 
       <div className={styles.buttons}>
         <button className="btn-secondary" onClick={() => navigateTo('shop')}>{t('pack_opening.back_shop')}</button>
-        <button className="btn-primary"   onClick={() => navigateTo('title')}>{t('pack_opening.home')}</button>
+        <button className="btn-primary"   onClick={() => navigateTo('save-point')}>{t('pack_opening.home')}</button>
       </div>
     </div>
   );

@@ -9,11 +9,12 @@ import type { OpponentConfig } from '../../types.js';
 import styles from './OpponentScreen.module.css';
 
 export default function OpponentScreen() {
-  const { setScreen, navigateTo } = useScreen();
+  const { setScreen, navigateTo, screenData } = useScreen();
   const { opponents }   = useProgression();
   const { startGame }   = useGame();
   const [hovered, setHovered] = useState<OpponentConfig | null>(null);
   const { t } = useTranslation();
+  const mode = (screenData?.mode as string) ?? 'free-duel';
 
   function selectOpponent(cfg: OpponentConfig) {
     startGame(cfg);
@@ -25,32 +26,34 @@ export default function OpponentScreen() {
       <div className={styles.header}>
         <h2 className={styles.title}>{t('opponent.headline')}</h2>
         <p className={styles.subtitle}>{t('opponent.subtitle')}</p>
-        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('title')}>{t('opponent.back')}</button>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('opponent.back')}</button>
       </div>
 
       <div className={styles.grid}>
         {(OPPONENT_CONFIGS as OpponentConfig[]).map(cfg => {
           const oppData = opponents[cfg.id] || { unlocked: cfg.id === 1, wins: 0, losses: 0 };
           const isUnlocked = oppData.unlocked;
+          const hasBeenBeaten = (oppData.wins ?? 0) > 0;
+          const isAvailable = mode === 'free-duel' ? (isUnlocked && hasBeenBeaten) : isUnlocked;
           const raceMeta = getRaceById(cfg.race);
           const accent = raceMeta?.color ?? '#888';
 
           return (
             <div
               key={cfg.id}
-              className={`${styles.tile}${isUnlocked ? '' : ` ${styles.locked}`}`}
-              onClick={() => isUnlocked && selectOpponent(cfg)}
-              onMouseEnter={() => isUnlocked && setHovered(cfg)}
+              className={`${styles.tile}${isAvailable ? '' : ` ${styles.locked}`}`}
+              onClick={() => isAvailable && selectOpponent(cfg)}
+              onMouseEnter={() => isAvailable && setHovered(cfg)}
               onMouseLeave={() => setHovered(null)}
             >
               <div className={styles.frame} style={{ borderColor: accent }}>
                 <div className={styles.art} style={{ background: `linear-gradient(135deg,${accent}44,#111830)` }}>
                   <div className={styles.symbol}>{raceMeta?.icon ?? '?'}</div>
                 </div>
-                {!isUnlocked && <div className={styles.lockedOverlay}>🔒</div>}
+                {!isAvailable && <div className={styles.lockedOverlay}>🔒</div>}
               </div>
-              <div className={styles.name}>{isUnlocked ? cfg.name : '???'}</div>
-              {isUnlocked && (
+              <div className={styles.name}>{isAvailable ? cfg.name : '???'}</div>
+              {isAvailable && (
                 <div className={styles.record}>{(oppData as any).wins ?? 0}W / {(oppData as any).losses ?? 0}L</div>
               )}
             </div>
