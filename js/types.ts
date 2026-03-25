@@ -211,6 +211,19 @@ export interface FusionRecipe {
   result:    string;
 }
 
+// ── Type-based fusion formulas (Forbidden Memories style) ───
+
+export type FusionComboType = 'race+race' | 'race+attr' | 'attr+attr';
+
+export interface FusionFormula {
+  id:         string;
+  comboType:  FusionComboType;
+  operand1:   number;    // Race (1-12) or Attribute (1-6) enum value
+  operand2:   number;    // Race (1-12) or Attribute (1-6) enum value
+  priority:   number;    // Higher = checked first
+  resultPool: string[];  // Card IDs (string, post-loader conversion)
+}
+
 // ── AI Behavior ─────────────────────────────────────────────
 
 export type AISummonPriority   = 'highestATK' | 'highestDEF' | 'effectFirst' | 'lowestLevel';
