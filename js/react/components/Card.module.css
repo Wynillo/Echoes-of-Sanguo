@@ -111,8 +111,10 @@
 .cardStats.noStats { min-height: 0; padding: 0; }
 
 /* ── Type-specific typeSubtype tints ─────────────────────────────── */
-:global(.normal-card) .typeSubtype { color: rgba(200,180,80,0.9); }
+:global(.normal-card) .typeSubtype { color: rgba(220,220,220,0.9); }
+:global(.normal-card) .cardNameSmall { color: #e8e8e8; }
 :global(.effect-card) .typeSubtype { color: #ffaa60; }
+:global(.effect-card) .cardNameSmall { color: #e0c870; }
 :global(.fusion-card) .typeSubtype { color: #cc88ff; }
 :global(.spell-card)  .typeSubtype { color: #44ddaa; }
 :global(.trap-card)   .typeSubtype { color: #ff6688; }
