@@ -4,6 +4,7 @@ import { useGame }   from '../contexts/GameContext.js';
 import { useSelection } from '../contexts/SelectionContext.js';
 import { Card }       from '../components/Card.js';
 import { CardType, Attribute, isMonsterType } from '../../types.js';
+import { getAttrById } from '../../type-metadata.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 
 interface Props { modal: Extract<ModalState, { type: 'card-detail' }>; }
@@ -17,7 +18,7 @@ export function CardDetailModal({ modal }: Props) {
 
   const game = gameRef.current;
 
-  const attrName = card.attribute ? t(`cards.attr_${card.attribute}`) : '';
+  const attrName = card.attribute ? (getAttrById(card.attribute)?.value ?? '') : '';
   const typeLabels: Record<number, string> = {
     [CardType.Monster]: card.effect ? t('card_detail.type_effect') : t('card_detail.type_normal'),
     [CardType.Fusion]:  t('card_detail.type_fusion'),

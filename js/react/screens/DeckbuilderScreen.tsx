@@ -8,7 +8,7 @@ import { Progression }     from '../../progression.js';
 import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { CardType, Race, Rarity } from '../../types.js';
-import { getAllRaces, getAllRarities, getRarityById, getCardTypeById } from '../../type-metadata.js';
+import { getAllRaces, getAllRarities, getRarityById, getCardTypeById, getRaceById } from '../../type-metadata.js';
 import type { CardData }   from '../../types.js';
 import styles from './DeckbuilderScreen.module.css';
 import { GAME_RULES } from '../../rules.js';
@@ -380,7 +380,7 @@ export default function DeckbuilderScreen() {
                       : (TYPE_LABEL[card.type] || '');
                     const typeMeta   = getCardTypeById(card.type as number);
                     const typeColor  = typeMeta?.color ?? '#aaa';
-                    const raceLbl    = card.race ? t(`cards.race_${card.race}`) : '';
+                    const raceLbl    = card.race ? (getRaceById(card.race)?.value ?? '') : '';
                     return (
                       <tr
                         key={card.id}
