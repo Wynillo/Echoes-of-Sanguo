@@ -269,7 +269,7 @@ export interface OpponentRecord {
   losses:   number;
 }
 
-// ── Forward declarations — implemented in engine.ts ──────────
+// ── Forward declarations — implemented in field.ts / engine.ts ──
 // (Used in type signatures above before the class files are loaded)
 
 export declare class FieldCard {
