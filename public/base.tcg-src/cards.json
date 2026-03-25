@@ -373,10 +373,13 @@
   },
   {
     "id": 37,
+    "level": 5,
     "rarity": 2,
-    "type": 3,
-    "effect": "onSummon:tempAtkBonus(ownMonster,700)",
-    "spellType": 2
+    "type": 1,
+    "atk": 1500,
+    "def": 1350,
+    "attribute": 5,
+    "race": 3
   },
   {
     "id": 38,
