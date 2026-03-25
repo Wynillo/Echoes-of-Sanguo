@@ -108,9 +108,9 @@ describe('Effect Serializer', () => {
     expect(serializeEffect(block)).toBe('passive:passive_piercing()');
   });
 
-  it('serializes debuffAllOpp', () => {
-    const block = { trigger: 'onSummon', actions: [{ type: 'debuffAllOpp', atkD: 600, defD: 0 }] };
-    expect(serializeEffect(block)).toBe('onSummon:debuffAllOpp(600,0)');
+  it('serializes debuffField', () => {
+    const block = { trigger: 'onSummon', actions: [{ type: 'debuffField', atkD: 600, defD: 0 }] };
+    expect(serializeEffect(block)).toBe('onSummon:debuffField(600,0)');
   });
 
   it('serializes ValueExpr with floor rounding', () => {
@@ -125,10 +125,10 @@ describe('Effect Serializer', () => {
     expect(s).toBe('onAttack:dealDamage(opponent,attacker.effectiveATK*0.5f);cancelAttack()');
   });
 
-  it('serializes buffAtkRace with int race', () => {
-    const block = { trigger: 'onSummon', actions: [{ type: 'buffAtkRace', race: Race.Fire, value: 200 }] };
+  it('serializes buffField with race filter', () => {
+    const block = { trigger: 'onSummon', actions: [{ type: 'buffField', value: 200, filter: { race: Race.Fire } }] };
     const s = serializeEffect(block);
-    expect(s).toBe(`onSummon:buffAtkRace(${raceToInt(Race.Fire)},200)`);
+    expect(s).toBe(`onSummon:buffField(200,{r=${raceToInt(Race.Fire)}})`);
   });
 
   it('serializes passive_vsAttrBonus', () => {
@@ -137,10 +137,10 @@ describe('Effect Serializer', () => {
     expect(s).toBe(`passive:passive_vsAttrBonus(${attributeToInt(Attribute.Dark)},500)`);
   });
 
-  it('serializes permAtkBonus with attrFilter', () => {
-    const block = { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, attrFilter: Attribute.Dark }] };
+  it('serializes permAtkBonus with filter', () => {
+    const block = { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: Attribute.Dark } }] };
     const s = serializeEffect(block);
-    expect(s).toContain('permAtkBonus(ownMonster,500,');
+    expect(s).toContain('permAtkBonus(ownMonster,500,{a=');
   });
 
   // Round-trip tests

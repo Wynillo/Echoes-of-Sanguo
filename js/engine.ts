@@ -148,12 +148,18 @@ export class FieldCard {
       this.canDirectAttack = flags.canDirectAttack;
       this.vsAttrBonus     = flags.vsAttrBonus;
       this.phoenixRevival  = flags.phoenixRevival;
+      this.indestructible  = flags.indestructible;
+      this.effectImmune    = flags.effectImmune;
+      this.cantBeAttacked  = flags.cantBeAttacked;
     } else {
       this.piercing = false;
       this.cannotBeTargeted = false;
       this.canDirectAttack  = false;
       this.vsAttrBonus     = null;
       this.phoenixRevival  = false;
+      this.indestructible  = false;
+      this.effectImmune    = false;
+      this.cantBeAttacked  = false;
     }
   }
   effectiveATK(): number {
@@ -514,6 +520,10 @@ export class GameEngine {
     if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
 
     const defFC = defSt.field.monsters[defenderZone];
+    // cantBeAttacked: this monster cannot be selected as attack target
+    if(defFC && defFC.cantBeAttacked){
+      this.addLog(`${defFC.card.name} cannot be attacked!`); return;
+    }
 
     // Check player traps if attacker is opponent
     if(attackerOwner === 'opponent'){
@@ -625,6 +635,11 @@ export class GameEngine {
     const st  = this.state[owner];
     const fc  = st.field.monsters[zone];
     if(!fc) return;
+    // Indestructible: cannot be destroyed by battle
+    if(fc.indestructible && reason === 'battle'){
+      this.addLog(`${fc.card.name} is indestructible!`);
+      return;
+    }
     this.ui.playSfx?.('sfx_destroy');
 
     // Shadow Reaper / onDestroyByBattle for defender

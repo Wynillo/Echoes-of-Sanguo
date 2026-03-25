@@ -190,7 +190,7 @@
     "def": 900,
     "attribute": 5,
     "race": 5,
-    "effect": "onSummon:buffAtkAttr(5,200)"
+    "effect": "onSummon:buffField(200,{a=5})"
   },
   {
     "id": 20,
@@ -245,7 +245,7 @@
     "def": 1700,
     "attribute": 4,
     "race": 1,
-    "effect": "onSummon:searchDeckToHand(4)"
+    "effect": "onSummon:searchDeckToHand({a=4})"
   },
   {
     "id": 25,
@@ -384,7 +384,7 @@
     "rarity": 2,
     "type": 3,
     "race": 9,
-    "effect": "onSummon:permAtkBonus(ownMonster,500,2)",
+    "effect": "onSummon:permAtkBonus(ownMonster,500,{a=2})",
     "spellType": 2,
     "target": "ownDarkMonster"
   },
@@ -3935,7 +3935,7 @@
     "def": 800,
     "attribute": 3,
     "race": 4,
-    "effect": "onSummon:buffAtkRace(4,200)"
+    "effect": "onSummon:buffField(200,{r=4})"
   },
   {
     "id": 394,
@@ -3946,7 +3946,7 @@
     "def": 1100,
     "attribute": 3,
     "race": 4,
-    "effect": "onSummon:buffAtkRace(4,300)"
+    "effect": "onSummon:buffField(300,{r=4})"
   },
   {
     "id": 395,
@@ -4001,7 +4001,7 @@
     "def": 1500,
     "attribute": 3,
     "race": 4,
-    "effect": "onSummon:buffAtkRace(4,400)"
+    "effect": "onSummon:buffField(400,{r=4})"
   },
   {
     "id": 400,
@@ -4056,7 +4056,7 @@
     "def": 2300,
     "attribute": 3,
     "race": 4,
-    "effect": "onSummon:buffAtkRace(4,500)"
+    "effect": "onSummon:buffField(500,{r=4})"
   },
   {
     "id": 405,
@@ -4111,7 +4111,7 @@
     "def": 900,
     "attribute": 6,
     "race": 1,
-    "effect": "onSummon:buffAtkRace(1,200)"
+    "effect": "onSummon:buffField(200,{r=1})"
   },
   {
     "id": 410,
@@ -4122,7 +4122,7 @@
     "def": 1200,
     "attribute": 6,
     "race": 1,
-    "effect": "onSummon:buffAtkRace(1,300)"
+    "effect": "onSummon:buffField(300,{r=1})"
   },
   {
     "id": 411,
@@ -4166,7 +4166,7 @@
     "def": 1600,
     "attribute": 6,
     "race": 1,
-    "effect": "onSummon:buffAtkRace(1,400)"
+    "effect": "onSummon:buffField(400,{r=1})"
   },
   {
     "id": 415,
@@ -4188,7 +4188,7 @@
     "def": 1700,
     "attribute": 6,
     "race": 1,
-    "effect": "onSummon:buffAtkRace(1,500)"
+    "effect": "onSummon:buffField(500,{r=1})"
   },
   {
     "id": 417,
@@ -4221,7 +4221,7 @@
     "def": 1900,
     "attribute": 6,
     "race": 1,
-    "effect": "onSummon:buffAtkRace(1,600)"
+    "effect": "onSummon:buffField(600,{r=1})"
   },
   {
     "id": 420,
@@ -4276,7 +4276,7 @@
     "def": 2500,
     "attribute": 6,
     "race": 1,
-    "effect": "onSummon:buffAtkRace(1,800)"
+    "effect": "onSummon:buffField(800,{r=1})"
   },
   {
     "id": 425,
@@ -4298,7 +4298,7 @@
     "def": 700,
     "attribute": 6,
     "race": 7,
-    "effect": "onSummon:debuffAllOpp(200,200)"
+    "effect": "onSummon:debuffField(200,200)"
   },
   {
     "id": 427,
@@ -4309,7 +4309,7 @@
     "def": 800,
     "attribute": 6,
     "race": 7,
-    "effect": "onSummon:debuffAllOpp(200,0)"
+    "effect": "onSummon:debuffField(200,0)"
   },
   {
     "id": 428,
@@ -4353,7 +4353,7 @@
     "def": 1100,
     "attribute": 6,
     "race": 7,
-    "effect": "onSummon:debuffAllOpp(300,0)"
+    "effect": "onSummon:debuffField(300,0)"
   },
   {
     "id": 432,
@@ -4397,7 +4397,7 @@
     "def": 1450,
     "attribute": 6,
     "race": 7,
-    "effect": "onSummon:debuffAllOpp(400,0)"
+    "effect": "onSummon:debuffField(400,0)"
   },
   {
     "id": 436,
@@ -4419,7 +4419,7 @@
     "def": 1600,
     "attribute": 6,
     "race": 7,
-    "effect": "onSummon:debuffAllOpp(500,0)"
+    "effect": "onSummon:debuffField(500,0)"
   },
   {
     "id": 438,
@@ -4452,7 +4452,7 @@
     "def": 1900,
     "attribute": 6,
     "race": 7,
-    "effect": "onSummon:debuffAllOpp(600,0)"
+    "effect": "onSummon:debuffField(600,0)"
   },
   {
     "id": 441,
@@ -4485,7 +4485,7 @@
     "def": 2350,
     "attribute": 6,
     "race": 7,
-    "effect": "onSummon:debuffAllOpp(800,0)"
+    "effect": "onSummon:debuffField(800,0)"
   },
   {
     "id": 444,
@@ -4837,7 +4837,7 @@
     "def": 1500,
     "attribute": 5,
     "race": 5,
-    "effect": "onSummon:buffAtkRace(5,200)"
+    "effect": "onSummon:buffField(200,{r=5})"
   },
   {
     "id": 476,
@@ -4870,7 +4870,7 @@
     "def": 2000,
     "attribute": 5,
     "race": 5,
-    "effect": "onSummon:buffAtkRace(5,300)"
+    "effect": "onSummon:buffField(300,{r=5})"
   },
   {
     "id": 479,
@@ -4903,7 +4903,7 @@
     "def": 2400,
     "attribute": 5,
     "race": 5,
-    "effect": "onSummon:buffAtkRace(5,400)"
+    "effect": "onSummon:buffField(400,{r=5})"
   },
   {
     "id": 482,
@@ -4936,7 +4936,7 @@
     "def": 3000,
     "attribute": 5,
     "race": 5,
-    "effect": "onSummon:buffAtkRace(5,500)"
+    "effect": "onSummon:buffField(500,{r=5})"
   },
   {
     "id": 485,
@@ -4947,7 +4947,7 @@
     "def": 800,
     "attribute": 1,
     "race": 3,
-    "effect": "onSummon:buffAtkRace(3,200)"
+    "effect": "onSummon:buffField(200,{r=3})"
   },
   {
     "id": 486,
@@ -4969,7 +4969,7 @@
     "def": 950,
     "attribute": 1,
     "race": 3,
-    "effect": "onSummon:buffAtkRace(3,200)"
+    "effect": "onSummon:buffField(200,{r=3})"
   },
   {
     "id": 488,
@@ -4980,7 +4980,7 @@
     "def": 950,
     "attribute": 1,
     "race": 3,
-    "effect": "onSummon:buffAtkRace(3,300)"
+    "effect": "onSummon:buffField(300,{r=3})"
   },
   {
     "id": 489,
@@ -5013,7 +5013,7 @@
     "def": 1200,
     "attribute": 1,
     "race": 3,
-    "effect": "onSummon:buffAtkRace(3,400)"
+    "effect": "onSummon:buffField(400,{r=3})"
   },
   {
     "id": 492,
@@ -5057,7 +5057,7 @@
     "def": 1600,
     "attribute": 1,
     "race": 3,
-    "effect": "onSummon:buffAtkRace(3,500)"
+    "effect": "onSummon:buffField(500,{r=3})"
   },
   {
     "id": 496,
@@ -5079,7 +5079,7 @@
     "def": 1700,
     "attribute": 1,
     "race": 3,
-    "effect": "onSummon:buffAtkRace(3,600)"
+    "effect": "onSummon:buffField(600,{r=3})"
   },
   {
     "id": 498,
@@ -5112,7 +5112,7 @@
     "def": 2000,
     "attribute": 1,
     "race": 3,
-    "effect": "onSummon:buffAtkRace(3,700)"
+    "effect": "onSummon:buffField(700,{r=3})"
   },
   {
     "id": 501,
@@ -5145,7 +5145,7 @@
     "def": 2350,
     "attribute": 1,
     "race": 3,
-    "effect": "onSummon:buffAtkRace(3,800)"
+    "effect": "onSummon:buffField(800,{r=3})"
   },
   {
     "id": 504,
@@ -5255,7 +5255,7 @@
     "def": 1200,
     "attribute": 2,
     "race": 2,
-    "effect": "onSummon:buffAtkRace(2,200)"
+    "effect": "onSummon:buffField(200,{r=2})"
   },
   {
     "id": 514,
@@ -5310,7 +5310,7 @@
     "def": 1700,
     "attribute": 2,
     "race": 2,
-    "effect": "onSummon:buffAtkRace(2,300)"
+    "effect": "onSummon:buffField(300,{r=2})"
   },
   {
     "id": 519,
@@ -5365,7 +5365,7 @@
     "def": 2300,
     "attribute": 2,
     "race": 2,
-    "effect": "onSummon:buffAtkRace(2,500)"
+    "effect": "onSummon:buffField(500,{r=2})"
   },
   {
     "id": 524,
@@ -5387,7 +5387,7 @@
     "def": 900,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(200,0)"
+    "effect": "onSummon:debuffField(200,0)"
   },
   {
     "id": 526,
@@ -5398,7 +5398,7 @@
     "def": 1000,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(0,200)"
+    "effect": "onSummon:debuffField(0,200)"
   },
   {
     "id": 527,
@@ -5409,7 +5409,7 @@
     "def": 1000,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(300,0)"
+    "effect": "onSummon:debuffField(300,0)"
   },
   {
     "id": 528,
@@ -5420,7 +5420,7 @@
     "def": 950,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(200,200)"
+    "effect": "onSummon:debuffField(200,200)"
   },
   {
     "id": 529,
@@ -5453,7 +5453,7 @@
     "def": 1300,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(400,0)"
+    "effect": "onSummon:debuffField(400,0)"
   },
   {
     "id": 532,
@@ -5464,7 +5464,7 @@
     "def": 1350,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(300,300)"
+    "effect": "onSummon:debuffField(300,300)"
   },
   {
     "id": 533,
@@ -5508,7 +5508,7 @@
     "def": 1700,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(500,0)"
+    "effect": "onSummon:debuffField(500,0)"
   },
   {
     "id": 537,
@@ -5519,7 +5519,7 @@
     "def": 1700,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(400,400)"
+    "effect": "onSummon:debuffField(400,400)"
   },
   {
     "id": 538,
@@ -5541,7 +5541,7 @@
     "def": 2200,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(600,0)"
+    "effect": "onSummon:debuffField(600,0)"
   },
   {
     "id": 540,
@@ -5552,7 +5552,7 @@
     "def": 2300,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(500,500)"
+    "effect": "onSummon:debuffField(500,500)"
   },
   {
     "id": 541,
@@ -5574,7 +5574,7 @@
     "def": 2700,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(700,0)"
+    "effect": "onSummon:debuffField(700,0)"
   },
   {
     "id": 543,
@@ -5585,7 +5585,7 @@
     "def": 3000,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(800,800)"
+    "effect": "onSummon:debuffField(800,800)"
   },
   {
     "id": 544,
@@ -5706,7 +5706,7 @@
     "def": 1100,
     "attribute": 2,
     "race": 9,
-    "effect": "onSummon:buffAtkRace(9,300)"
+    "effect": "onSummon:buffField(300,{r=9})"
   },
   {
     "id": 555,
@@ -5772,7 +5772,7 @@
     "def": 2000,
     "attribute": 2,
     "race": 9,
-    "effect": "onSummon:buffAtkRace(9,500)"
+    "effect": "onSummon:buffField(500,{r=9})"
   },
   {
     "id": 561,
@@ -5805,7 +5805,7 @@
     "def": 2450,
     "attribute": 2,
     "race": 9,
-    "effect": "onSummon:buffAtkRace(9,600)"
+    "effect": "onSummon:buffField(600,{r=9})"
   },
   {
     "id": 564,
@@ -6047,7 +6047,7 @@
     "def": 1900,
     "attribute": 3,
     "race": 4,
-    "effect": "onSummon:buffAtkRace(4,400)"
+    "effect": "onSummon:buffField(400,{r=4})"
   },
   {
     "id": 586,
@@ -6080,7 +6080,7 @@
     "def": 2300,
     "attribute": 2,
     "race": 1,
-    "effect": "onSummon:buffAtkRace(1,500)"
+    "effect": "onSummon:buffField(500,{r=1})"
   },
   {
     "id": 589,
@@ -6091,7 +6091,7 @@
     "def": 1800,
     "attribute": 6,
     "race": 7,
-    "effect": "onSummon:debuffAllOpp(400,0)"
+    "effect": "onSummon:debuffField(400,0)"
   },
   {
     "id": 590,
@@ -6102,7 +6102,7 @@
     "def": 2100,
     "attribute": 6,
     "race": 7,
-    "effect": "onSummon:debuffAllOpp(800,0)"
+    "effect": "onSummon:debuffField(800,0)"
   },
   {
     "id": 591,
@@ -6135,7 +6135,7 @@
     "def": 2200,
     "attribute": 5,
     "race": 5,
-    "effect": "onSummon:buffAtkRace(5,300)"
+    "effect": "onSummon:buffField(300,{r=5})"
   },
   {
     "id": 594,
@@ -6168,7 +6168,7 @@
     "def": 2300,
     "attribute": 1,
     "race": 3,
-    "effect": "onSummon:buffAtkRace(3,800)"
+    "effect": "onSummon:buffField(800,{r=3})"
   },
   {
     "id": 597,
@@ -6201,7 +6201,7 @@
     "def": 2300,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(600,600)"
+    "effect": "onSummon:debuffField(600,600)"
   },
   {
     "id": 600,
@@ -6212,7 +6212,7 @@
     "def": 2600,
     "attribute": 1,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(800,0)"
+    "effect": "onSummon:debuffField(800,0)"
   },
   {
     "id": 601,
@@ -6234,7 +6234,7 @@
     "def": 2600,
     "attribute": 2,
     "race": 9,
-    "effect": "onSummon:buffAtkRace(9,800)"
+    "effect": "onSummon:buffField(800,{r=9})"
   },
   {
     "id": 603,
@@ -6282,7 +6282,7 @@
     "rarity": 1,
     "type": 3,
     "race": 4,
-    "effect": "onSummon:tempBuffAtkRace(4,500)",
+    "effect": "onSummon:tempBuffField(500,{r=4})",
     "spellType": 1
   },
   {
@@ -6327,7 +6327,7 @@
     "rarity": 1,
     "type": 3,
     "race": 1,
-    "effect": "onSummon:tempBuffAtkRace(1,600)",
+    "effect": "onSummon:tempBuffField(600,{r=1})",
     "spellType": 1
   },
   {
@@ -6353,7 +6353,7 @@
     "rarity": 2,
     "type": 3,
     "race": 1,
-    "effect": "onSummon:tempBuffAtkRace(1,1000)",
+    "effect": "onSummon:tempBuffField(1000,{r=1})",
     "spellType": 1
   },
   {
@@ -6371,7 +6371,7 @@
     "rarity": 4,
     "type": 3,
     "race": 1,
-    "effect": "onSummon:tempBuffAtkRace(1,1500)",
+    "effect": "onSummon:tempBuffField(1500,{r=1})",
     "spellType": 1
   },
   {
@@ -6380,7 +6380,7 @@
     "rarity": 6,
     "type": 3,
     "race": 1,
-    "effect": "onSummon:debuffAllOpp(1000,0);dealDamage(opponent,500)",
+    "effect": "onSummon:debuffField(1000,0);dealDamage(opponent,500)",
     "spellType": 1
   },
   {
@@ -6389,7 +6389,7 @@
     "rarity": 1,
     "type": 3,
     "race": 7,
-    "effect": "onSummon:tempDebuffAllOpp(300)",
+    "effect": "onSummon:tempDebuffField(300)",
     "spellType": 1
   },
   {
@@ -6398,7 +6398,7 @@
     "rarity": 2,
     "type": 3,
     "race": 7,
-    "effect": "onSummon:tempDebuffAllOpp(500)",
+    "effect": "onSummon:tempDebuffField(500)",
     "spellType": 1
   },
   {
@@ -6416,7 +6416,7 @@
     "rarity": 2,
     "type": 3,
     "race": 7,
-    "effect": "onSummon:tempBuffAtkRace(7,500)",
+    "effect": "onSummon:tempBuffField(500,{r=7})",
     "spellType": 1
   },
   {
@@ -6425,7 +6425,7 @@
     "rarity": 4,
     "type": 3,
     "race": 7,
-    "effect": "onSummon:tempDebuffAllOpp(800)",
+    "effect": "onSummon:tempDebuffField(800)",
     "spellType": 1
   },
   {
@@ -6434,7 +6434,7 @@
     "rarity": 4,
     "type": 3,
     "race": 7,
-    "effect": "onSummon:dealDamage(opponent,1200);tempDebuffAllOpp(400)",
+    "effect": "onSummon:dealDamage(opponent,1200);tempDebuffField(400)",
     "spellType": 1
   },
   {
@@ -6443,7 +6443,7 @@
     "rarity": 6,
     "type": 3,
     "race": 7,
-    "effect": "onSummon:tempDebuffAllOpp(1200)",
+    "effect": "onSummon:tempDebuffField(1200)",
     "spellType": 1
   },
   {
@@ -6470,7 +6470,7 @@
     "rarity": 2,
     "type": 3,
     "race": 6,
-    "effect": "onSummon:tempBuffAtkRace(6,600)",
+    "effect": "onSummon:tempBuffField(600,{r=6})",
     "spellType": 1
   },
   {
@@ -6488,7 +6488,7 @@
     "rarity": 4,
     "type": 3,
     "race": 6,
-    "effect": "onSummon:debuffAllOpp(600,0)",
+    "effect": "onSummon:debuffField(600,0)",
     "spellType": 1
   },
   {
@@ -6533,7 +6533,7 @@
     "rarity": 2,
     "type": 3,
     "race": 5,
-    "effect": "onSummon:tempBuffAtkRace(5,400)",
+    "effect": "onSummon:tempBuffField(400,{r=5})",
     "spellType": 1
   },
   {
@@ -6560,7 +6560,7 @@
     "rarity": 4,
     "type": 3,
     "race": 5,
-    "effect": "onSummon:tempBuffAtkRace(5,700);gainLP(self,500)",
+    "effect": "onSummon:tempBuffField(700,{r=5});gainLP(self,500)",
     "spellType": 1
   },
   {
@@ -6578,7 +6578,7 @@
     "rarity": 1,
     "type": 3,
     "race": 3,
-    "effect": "onSummon:tempBuffAtkRace(3,500)",
+    "effect": "onSummon:tempBuffField(500,{r=3})",
     "spellType": 1
   },
   {
@@ -6604,7 +6604,7 @@
     "rarity": 2,
     "type": 3,
     "race": 3,
-    "effect": "onSummon:tempBuffAtkRace(3,800)",
+    "effect": "onSummon:tempBuffField(800,{r=3})",
     "spellType": 1
   },
   {
@@ -6613,7 +6613,7 @@
     "rarity": 4,
     "type": 3,
     "race": 3,
-    "effect": "onSummon:dealDamage(opponent,800);tempBuffAtkRace(3,500)",
+    "effect": "onSummon:dealDamage(opponent,800);tempBuffField(500,{r=3})",
     "spellType": 1
   },
   {
@@ -6622,7 +6622,7 @@
     "rarity": 4,
     "type": 3,
     "race": 3,
-    "effect": "onSummon:tempBuffAtkRace(3,1200)",
+    "effect": "onSummon:tempBuffField(1200,{r=3})",
     "spellType": 1
   },
   {
@@ -6631,7 +6631,7 @@
     "rarity": 6,
     "type": 3,
     "race": 3,
-    "effect": "onSummon:dealDamage(opponent,1500);tempBuffAtkRace(3,1000)",
+    "effect": "onSummon:dealDamage(opponent,1500);tempBuffField(1000,{r=3})",
     "spellType": 1
   },
   {
@@ -6667,7 +6667,7 @@
     "rarity": 2,
     "type": 3,
     "race": 2,
-    "effect": "onSummon:tempBuffAtkRace(2,500)",
+    "effect": "onSummon:tempBuffField(500,{r=2})",
     "spellType": 1
   },
   {
@@ -6703,7 +6703,7 @@
     "rarity": 1,
     "type": 3,
     "race": 8,
-    "effect": "onSummon:gainLP(self,600);tempDebuffAllOpp(200)",
+    "effect": "onSummon:gainLP(self,600);tempDebuffField(200)",
     "spellType": 1
   },
   {
@@ -6712,7 +6712,7 @@
     "rarity": 1,
     "type": 3,
     "race": 8,
-    "effect": "onSummon:tempDebuffAllOpp(400)",
+    "effect": "onSummon:tempDebuffField(400)",
     "spellType": 1
   },
   {
@@ -6721,7 +6721,7 @@
     "rarity": 2,
     "type": 3,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(300,0)",
+    "effect": "onSummon:debuffField(300,0)",
     "spellType": 1
   },
   {
@@ -6739,7 +6739,7 @@
     "rarity": 4,
     "type": 3,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(500,500)",
+    "effect": "onSummon:debuffField(500,500)",
     "spellType": 1
   },
   {
@@ -6748,7 +6748,7 @@
     "rarity": 4,
     "type": 3,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(700,0)",
+    "effect": "onSummon:debuffField(700,0)",
     "spellType": 1
   },
   {
@@ -6757,7 +6757,7 @@
     "rarity": 6,
     "type": 3,
     "race": 8,
-    "effect": "onSummon:debuffAllOpp(1000,0)",
+    "effect": "onSummon:debuffField(1000,0)",
     "spellType": 1
   },
   {
@@ -6766,7 +6766,7 @@
     "rarity": 1,
     "type": 3,
     "race": 9,
-    "effect": "onSummon:tempBuffAtkRace(9,600)",
+    "effect": "onSummon:tempBuffField(600,{r=9})",
     "spellType": 1
   },
   {
@@ -6784,7 +6784,7 @@
     "rarity": 2,
     "type": 3,
     "race": 9,
-    "effect": "onSummon:buffAtkRace(9,400)",
+    "effect": "onSummon:buffField(400,{r=9})",
     "spellType": 1
   },
   {
@@ -6802,7 +6802,7 @@
     "rarity": 4,
     "type": 3,
     "race": 9,
-    "effect": "onSummon:buffAtkRace(9,600)",
+    "effect": "onSummon:buffField(600,{r=9})",
     "spellType": 1
   },
   {
@@ -6820,7 +6820,7 @@
     "rarity": 6,
     "type": 3,
     "race": 9,
-    "effect": "onSummon:dealDamage(opponent,2500);tempBuffAtkRace(9,800)",
+    "effect": "onSummon:dealDamage(opponent,2500);tempBuffField(800,{r=9})",
     "spellType": 1
   },
   {
@@ -6847,7 +6847,7 @@
     "rarity": 2,
     "type": 3,
     "race": 10,
-    "effect": "onSummon:tempDebuffAllOpp(500)",
+    "effect": "onSummon:tempDebuffField(500)",
     "spellType": 1
   },
   {
@@ -6865,7 +6865,7 @@
     "rarity": 4,
     "type": 3,
     "race": 10,
-    "effect": "onSummon:dealDamage(opponent,1500);tempDebuffAllOpp(300)",
+    "effect": "onSummon:dealDamage(opponent,1500);tempDebuffField(300)",
     "spellType": 1
   },
   {
@@ -7018,7 +7018,7 @@
     "rarity": 4,
     "type": 4,
     "race": 6,
-    "effect": "onOpponentSummon:debuffAllOpp(400,0)",
+    "effect": "onOpponentSummon:debuffField(400,0)",
     "trapTrigger": 3
   },
   {
