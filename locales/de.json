@@ -160,7 +160,11 @@
     "hint_selected": "{{name}} ausgewählt.",
     "grave_opp": "Gegner Friedhof",
     "grave_player": "Spieler Friedhof",
-    "aria_next_phase": "Nächste Phase (B/E/T)"
+    "aria_next_phase": "Nächste Phase (B/E/T)",
+    "surrender": "⚑ Aufgeben",
+    "surrender_confirm": "Wirklich aufgeben? Das Duell wird als Niederlage gewertet.",
+    "surrender_yes": "⚑ Ja, aufgeben",
+    "surrender_cancel": "← Zurück"
   },
   "card_action": {
     "already_played": "⛔ Monster bereits gespielt",

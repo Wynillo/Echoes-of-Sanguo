@@ -160,7 +160,11 @@
     "hint_selected": "{{name}} selected.",
     "grave_opp": "Opponent Graveyard",
     "grave_player": "Player Graveyard",
-    "aria_next_phase": "Next Phase (B/E/T)"
+    "aria_next_phase": "Next Phase (B/E/T)",
+    "surrender": "⚑ Surrender",
+    "surrender_confirm": "Really surrender? The duel will be counted as a defeat.",
+    "surrender_yes": "⚑ Yes, surrender",
+    "surrender_cancel": "← Back"
   },
   "card_action": {
     "already_played": "⛔ Monster already played",
