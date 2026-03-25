@@ -69,6 +69,9 @@
     "vol_master": "Gesamtlautstärke",
     "vol_music": "Hintergrundmusik",
     "vol_sfx": "Soundeffekte",
+    "refill_hand": "Zieh-Regel",
+    "refill_hand_on": "Auffüllen auf 5 (FM)",
+    "refill_hand_off": "1 Karte pro Zug",
     "view_log": "📜 Kampfprotokoll",
     "log_empty": "Noch keine Einträge.",
     "download_log": "⬇ Protokoll herunterladen"

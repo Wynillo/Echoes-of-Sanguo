@@ -69,6 +69,9 @@
     "vol_master": "Master Volume",
     "vol_music": "Background Music",
     "vol_sfx": "Sound Effects",
+    "refill_hand": "Draw Rule",
+    "refill_hand_on": "Refill to 5 (FM)",
+    "refill_hand_off": "Draw 1 per turn",
     "view_log": "📜 Battle Log",
     "log_empty": "No log entries yet.",
     "download_log": "⬇ Download Log"

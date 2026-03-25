@@ -90,7 +90,7 @@ export class GameEngine {
           this.state.phase = 'main';
           this.state.turn++;
           this.addLog(`[ERROR] Opponent AI crashed. Your turn (Round ${this.state.turn}).`);
-          this.drawCard('player', 1);
+          this.refillHand('player');
           this.ui.render(this.state);
         });
       }, 600);
@@ -183,6 +183,17 @@ export class GameEngine {
     // hand limit (draw cap)
     while(st.hand.length > GAME_RULES.handLimitDraw) st.hand.shift();
     if(drawn > 0 && this.ui.onDraw) this.ui.onDraw(owner, drawn);
+  }
+
+  /** Refill hand up to handRefillSize (Forbidden Memories style) or draw 1. */
+  refillHand(owner: Owner){
+    if(GAME_RULES.refillHandEnabled){
+      const st = this.state[owner];
+      const need = GAME_RULES.handRefillSize - st.hand.length;
+      if(need > 0) this.drawCard(owner, need);
+    } else {
+      this.drawCard(owner, GAME_RULES.drawPerTurn);
+    }
   }
 
   // ───────── Summon ────────────────────────────────────────
@@ -697,7 +708,7 @@ export class GameEngine {
         this.state.phase = 'main';
         this.state.turn++;
         this.addLog(`[ERROR] Opponent AI crashed. Your turn (Round ${this.state.turn}).`);
-        this.drawCard('player', 1);
+        this.refillHand('player');
         this.ui.render(this.state);
       });
     }, 600);

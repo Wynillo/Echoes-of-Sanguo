@@ -4,6 +4,7 @@ import { useModal }     from '../contexts/ModalContext.js';
 import { useGame }      from '../contexts/GameContext.js';
 import { Progression }  from '../../progression.js';
 import { Audio }        from '../../audio.js';
+import { GAME_RULES }   from '../../rules.js';
 import i18n             from '../../i18n.js';
 
 export function OptionsModal() {
@@ -16,12 +17,14 @@ export function OptionsModal() {
   const [volMaster,   setVolMaster]   = useState(saved.volMaster);
   const [volMusic,    setVolMusic]    = useState(saved.volMusic);
   const [volSfx,      setVolSfx]      = useState(saved.volSfx);
+  const [refillHand,  setRefillHand]  = useState(saved.refillHand);
   const [showConfirm, setShowConfirm] = useState(false);
 
   function apply() {
     i18n.changeLanguage(lang);
-    Progression.saveSettings({ lang, volMaster, volMusic, volSfx });
+    Progression.saveSettings({ lang, volMaster, volMusic, volSfx, refillHand });
     Audio.setVolumes(volMaster, volMusic, volSfx);
+    GAME_RULES.refillHandEnabled = refillHand;
   }
 
   function handleSurrender() {
@@ -67,6 +70,14 @@ export function OptionsModal() {
         </label>
         <input type="range" min="0" max="100" value={volSfx}
           onChange={e => { const v = +e.target.value; setVolSfx(v); Audio.setVolumes(volMaster, volMusic, v); }} />
+      </div>
+
+      <div className="options-row">
+        <label>{t('options.refill_hand')}</label>
+        <select value={refillHand ? 'refill' : 'draw1'} onChange={e => setRefillHand(e.target.value === 'refill')}>
+          <option value="refill">{t('options.refill_hand_on')}</option>
+          <option value="draw1">{t('options.refill_hand_off')}</option>
+        </select>
       </div>
 
       <div className="options-buttons">
