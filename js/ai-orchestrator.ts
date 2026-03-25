@@ -27,7 +27,14 @@ export async function aiTurn(engine: GameEngine): Promise<void> {
   await aiDrawPhase(engine);
   await aiMainPhase(engine);
   await aiPlaceTraps(engine);
-  if (await aiBattlePhase(engine)) return;
+
+  // First turn: skip battle phase entirely (FM-style rule)
+  if (engine.state.firstTurnNoAttack) {
+    engine.state.firstTurnNoAttack = false;
+    EchoesOfSanguo.log('PHASE', 'First turn – skipping AI battle phase.');
+  } else {
+    if (await aiBattlePhase(engine)) return;
+  }
 
   // End Phase
   EchoesOfSanguo.log('PHASE', 'End Phase – AI cleanup.');
