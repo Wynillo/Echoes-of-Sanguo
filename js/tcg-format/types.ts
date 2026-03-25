@@ -150,6 +150,17 @@ export type TcgLocaleOverrides = Record<string, string>;
 // ── TCG Archive metadata ──────────────────────────────────────
 
 
+// ── Fusion Formulas (type-based, Forbidden Memories style) ──
+
+export interface TcgFusionFormula {
+  id:         string;
+  comboType:  string;    // 'race+race' | 'race+attr' | 'attr+attr'
+  operand1:   number;
+  operand2:   number;
+  priority:   number;
+  resultPool: number[];  // numeric card IDs (converted to string by loader)
+}
+
 export interface TcgMeta {
   fusionRecipes?: Array<{ materials: [number, number]; result: number }>;
   opponentConfigs?: TcgOpponentDeck[];
