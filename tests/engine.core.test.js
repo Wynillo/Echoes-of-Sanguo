@@ -93,7 +93,7 @@ describe('summonMonster', () => {
     expect(engine.state.opponent.lp).toBe(oppLP - 500);
   });
 
-  it('does NOT trigger onSummon for face-down summon', () => {
+  it('triggers onSummon even for face-down summon', () => {
     const { engine } = makeEngine();
     engine.state.player.hand.unshift({
       id: 'TST_FD', name: 'FDTest', type: 'effect', atk: 800, def: 600,
@@ -101,7 +101,7 @@ describe('summonMonster', () => {
     });
     const oppLP = engine.state.opponent.lp;
     engine.summonMonster('player', 0, 0, 'def', true);
-    expect(engine.state.opponent.lp).toBe(oppLP);
+    expect(engine.state.opponent.lp).toBe(oppLP - 500);
   });
 });
 

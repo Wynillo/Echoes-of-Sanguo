@@ -170,8 +170,8 @@ export class GameEngine {
     const posStr = faceDown ? 'face-down DEF' : position.toUpperCase();
     this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
     this.ui.playSfx?.('sfx_card_play');
-    // trigger onSummon effect only if face-up
-    if(!faceDown) this._triggerEffect(fc, owner, 'onSummon', zone);
+    // trigger onSummon effect for every summon method
+    this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
   }
