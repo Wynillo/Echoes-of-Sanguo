@@ -81,11 +81,9 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'main' || !fst.faceDown) return;
     if (fst.card.type === CardType.Spell) {
-      if (fst.card.spellType !== 'targeted' && fst.card.spellType !== 'fromGrave') {
-        game.activateSpellFromField('player', zone);
-      }
+      openModal({ type: 'card-action', card: fst.card, index: zone, state: gameState, source: 'field-spell' });
     }
-  }, [gameRef, isMyTurn, phase]);
+  }, [gameRef, isMyTurn, phase, openModal, gameState]);
 
   return (
     <div className="field-side player-side">

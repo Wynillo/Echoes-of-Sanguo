@@ -30,12 +30,17 @@ export function playAttackAnim(
       impX = r.left + r.width  / 2;
       impY = r.top  + r.height / 2;
     } else {
-      const lpId  = defOwner === 'player' ? 'player-lp' : 'opp-lp';
-      const lpEl  = document.getElementById(lpId);
-      const lpR   = lpEl?.getBoundingClientRect() ?? null;
-      impX = lpR ? lpR.left + lpR.width  / 2 : window.innerWidth / 2;
-      impY = lpR ? lpR.top  + lpR.height / 2
-                 : (defOwner === 'player' ? window.innerHeight - 90 : 70);
+      // Direct attack → aim at the defender's monster zone (field center)
+      const defContId = defOwner === 'player' ? 'player-monster-zone' : 'opponent-monster-zone';
+      const defZoneEl = document.getElementById(defContId);
+      const defZoneR  = defZoneEl?.getBoundingClientRect() ?? null;
+      if (defZoneR) {
+        impX = defZoneR.left + defZoneR.width  / 2;
+        impY = defZoneR.top  + defZoneR.height / 2;
+      } else {
+        impX = window.innerWidth / 2;
+        impY = defOwner === 'player' ? window.innerHeight - 90 : 70;
+      }
     }
 
     const dx = impX - atkCX;

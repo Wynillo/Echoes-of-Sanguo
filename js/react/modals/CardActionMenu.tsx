@@ -64,7 +64,16 @@ export function CardActionMenu({ modal }: Props) {
     }
   }
 
-  if (isSp && phase === 'main') {
+  if (isSp && phase === 'main' && source === 'field-spell') {
+    // Spell card already on the field — offer activate (non-targeted only for now)
+    if (card.spellType !== 'targeted' && card.spellType !== 'fromGrave') {
+      actions.push(btn(t('card_action.activate'), () => {
+        game.activateSpellFromField('player', index);
+        closeModal();
+      }));
+    }
+  } else if (isSp && phase === 'main') {
+    // Spell card in hand
     actions.push(btn(t('card_action.activate'), () => {
       if (card.spellType === 'targeted' || card.spellType === 'fromGrave') {
         startSpellTargeting(card, index, state, game, setSel, openModal, closeModal, t);

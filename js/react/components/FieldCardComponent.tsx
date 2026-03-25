@@ -9,17 +9,19 @@ interface Props {
   targetable: boolean;
   interactive: boolean;
   canAttack: boolean;
+  viewable?: boolean;
   onOwnClick?: () => void;
   onAttackerSelect?: () => void;
   onDefenderClick?: () => void;
+  onViewClick?: () => void;
   onDetail?: () => void;
 }
 
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
 
 export function FieldCardComponent({
-  fc, owner, zone, selected, targetable, interactive, canAttack,
-  onOwnClick, onAttackerSelect, onDefenderClick, onDetail,
+  fc, owner, zone, selected, targetable, interactive, canAttack, viewable,
+  onOwnClick, onAttackerSelect, onDefenderClick, onViewClick, onDetail,
 }: Props) {
   const { card } = fc;
   const isPlayer = owner === 'player';
@@ -37,11 +39,13 @@ export function FieldCardComponent({
   if (interactive) cls += ' interactive';
   if (canAttack)   cls += ' can-attack';
   if (targetable)  cls += ' targetable';
+  if (viewable)    cls += ' viewable';
 
   function handleClick() {
     if (canAttack)     { onAttackerSelect?.(); return; }
     if (interactive)   { onOwnClick?.(); return; }
-    if (targetable)    { onDefenderClick?.(); }
+    if (targetable)    { onDefenderClick?.(); return; }
+    if (viewable)      { onViewClick?.(); }
   }
 
   function handleContextMenu(e: React.MouseEvent) {

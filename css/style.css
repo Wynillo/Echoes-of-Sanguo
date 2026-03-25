@@ -497,6 +497,8 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .field-card { cursor: default; animation: fieldCardIn 0.32s cubic-bezier(0.34,1.56,0.64,1) both; }
 .interactive { cursor: pointer; }
 .interactive:hover { transform: translateY(-4px); z-index: 20; box-shadow: none; outline: 2px solid #30c060; border-color: #30c060 !important; }
+.viewable { cursor: pointer; }
+.viewable:hover { transform: translateY(-4px); z-index: 20; box-shadow: none; outline: 2px solid #6090d0; border-color: #6090d0 !important; }
 .can-attack { cursor: pointer; }
 .can-attack:hover { transform: translateY(-4px); z-index: 20; box-shadow: none; outline: 2px solid #ff8844; border-color: #ff8844 !important; }
 .selected { border-color: #ffdd44 !important; box-shadow: none !important; outline: 2px solid #ffdd44; z-index: 20; }

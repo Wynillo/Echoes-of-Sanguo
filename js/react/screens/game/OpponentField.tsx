@@ -22,6 +22,13 @@ export function OpponentField() {
     return selMode === 'attack' || selMode === 'trap-target';
   }
 
+  /** Face-up opponent monsters are viewable when not in a targeting mode */
+  function isOppMonsterViewable(zone: number) {
+    const fc = opp.field.monsters[zone];
+    if (!fc || fc.faceDown) return false;
+    return selMode === null;
+  }
+
   const onDefenderSelect = useCallback((zone: number) => {
     const game = gameRef.current;
     if (!game || selMode !== 'attack') return;
@@ -38,6 +45,15 @@ export function OpponentField() {
     }
   }, [gameRef, selMode, sel.spellHandIndex, resetSel]);
 
+  const onOppMonsterView = useCallback((fc: any) => {
+    openModal({ type: 'card-detail', card: fc.card, fc });
+  }, [openModal]);
+
+  /** Face-up opponent spell/traps are viewable */
+  const onOppSpellTrapView = useCallback((fst: any) => {
+    openModal({ type: 'card-detail', card: fst.card });
+  }, [openModal]);
+
   return (
     <div className="field-side opponent-side">
       <div id="opp-spelltrap-zone" className="spell-trap-zone zone-row">
@@ -49,6 +65,7 @@ export function OpponentField() {
               {fst && (
                 <FieldSpellTrapComponent
                   fst={fst} owner="opponent" zone={i} interactive={false}
+                  onDetail={() => onOppSpellTrapView(fst)}
                 />
               )}
             </div>
@@ -60,6 +77,7 @@ export function OpponentField() {
         {FIELD_ZONES.map(i => {
           const fc         = opp.field.monsters[i];
           const targetable = isOppMonsterTargetable(i);
+          const viewable   = isOppMonsterViewable(i);
           return (
             <div key={i} className={`zone-slot${targetable ? ' targetable' : ''}`} data-zone={i}>
               {!fc && <div className="zone-label">M</div>}
@@ -68,6 +86,8 @@ export function OpponentField() {
                   fc={fc} owner="opponent" zone={i}
                   selected={false} targetable={targetable}
                   interactive={false} canAttack={false}
+                  viewable={viewable}
+                  onViewClick={() => onOppMonsterView(fc)}
                   onDefenderClick={() => {
                     if (selMode === 'attack')      onDefenderSelect(i);
                     else if (selMode === 'trap-target') onTrapTargetSelect(fc);

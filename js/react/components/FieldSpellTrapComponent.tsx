@@ -58,6 +58,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
 
   return (
     <div className={cls} ref={attachRef}
+         onClick={!interactive ? () => onDetail?.() : undefined}
          onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
       <Card card={card} small />
     </div>
