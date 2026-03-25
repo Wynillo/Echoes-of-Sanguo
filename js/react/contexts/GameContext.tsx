@@ -63,6 +63,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     playAttackAnimation: (ao, az, dO, dZ) => {
       return import('../hooks/useAttackAnimation.js').then(m => m.playAttackAnim(ao, az, dO, dZ));
     },
+    playFusionAnimation: (owner, handIdx1, handIdx2, resultZone) => {
+      return import('../hooks/useFusionAnimation.js').then(m => m.playFusionAnim(owner, handIdx1, handIdx2, resultZone));
+    },
     playVFX: (type, owner, zone) => {
       return import('../components/vfxApi.js').then(m => m.playVFXAtZone(type, owner, zone));
     },

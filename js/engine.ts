@@ -340,6 +340,12 @@ export class GameEngine {
     const zone = st.field.monsters.findIndex(z => z === null);
     if(zone === -1){ this.addLog('No free zone for fusion monster!'); return false; }
 
+    this.addLog(`${ownerLabel(owner)}: FUSION! ${card1.name} + ${card2.name} = ${CARD_DB[recipe.result].name}!`);
+    this.ui.playSfx?.('sfx_fusion');
+
+    // Play merge animation before removing cards from hand
+    await this.ui.playFusionAnimation?.(owner, handIdx1, handIdx2, zone);
+
     // remove materials
     hand.splice(hi, 1);
     hand.splice(lo, 1);
@@ -352,10 +358,8 @@ export class GameEngine {
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
 
-    this.addLog(`${ownerLabel(owner)}: FUSION! ${card1.name} + ${card2.name} = ${fusionCard.name}!`);
-    this.ui.playSfx?.('sfx_fusion');
-    await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
+    await this._triggerEffect(fc, owner, 'onSummon', zone);
     return true;
   }
 

@@ -299,6 +299,7 @@ export interface UICallbacks {
   showResult?:          (result: 'victory' | 'defeat') => void;
   showActivation?:      (card: CardData, text: string) => Promise<void> | void;
   playAttackAnimation?: (atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number | null) => Promise<void>;
+  playFusionAnimation?: (owner: Owner, handIdx1: number, handIdx2: number, resultZone: number) => Promise<void>;
   playVFX?:             (type: 'buff' | 'heal' | 'damage', owner: Owner, zone?: number) => Promise<void>;
   playSfx?:             (sfxId: string) => void;
   onDraw?:              (owner: Owner, count: number) => void;

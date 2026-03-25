@@ -787,6 +787,28 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   animation: cardDraw 0.38s cubic-bezier(0.22,1,0.36,1) both;
 }
 
+/* ── Fusion Animation ──────────────────────────────────────── */
+.fusion-burst {
+  position: fixed;
+  width: 160px; height: 160px;
+  z-index: 450; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(circle at center,
+    #ffffff 0%, #ffe880 20%, #ffcc00 45%, #ff8800 65%, rgba(255,120,0,0) 85%);
+  box-shadow: 0 0 40px rgba(255,200,60,0.8), 0 0 80px rgba(255,150,0,0.4);
+  animation: fusionBurst 0.55s ease-out forwards;
+}
+.fusion-spark {
+  position: fixed;
+  width: 8px; height: 8px;
+  z-index: 451; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #ffe060 50%, #ff8800 100%);
+  box-shadow: 0 0 6px rgba(255,220,60,0.9);
+  animation: fusionSpark 0.5s ease-out forwards;
+}
+.fusion-result-pop {
+  animation: fusionResultPop 0.45s cubic-bezier(0.22,1,0.36,1) both !important;
+}
+
 /* ── Touch / Coarse Pointer ──────────────────────────────── */
 @media (pointer: coarse) {
   .hand-card:hover,
