@@ -311,11 +311,11 @@ describe('attackDirect', () => {
 // ── performFusion ──────────────────────────────────────────
 
 describe('performFusion', () => {
-  // M001 + M002 = M027 (Lavakoloss) per FUSION_RECIPES
+  // 1 + 2 = 25 per FUSION_RECIPES
   function setupFusion(engine) {
     engine.state.player.hand = [
-      { ...CARD_DB['M001'] },
-      { ...CARD_DB['M002'] },
+      { ...CARD_DB['1'] },
+      { ...CARD_DB['2'] },
     ];
   }
 
@@ -325,7 +325,7 @@ describe('performFusion', () => {
     engine.performFusion('player', 0, 1);
     const placed = engine.state.player.field.monsters.find(fc => fc !== null);
     expect(placed).not.toBeNull();
-    expect(placed.card.id).toBe('M027');
+    expect(placed.card.id).toBe('25');
   });
 
   it('sends both materials to graveyard', () => {
@@ -333,8 +333,8 @@ describe('performFusion', () => {
     setupFusion(engine);
     engine.performFusion('player', 0, 1);
     const ids = engine.state.player.graveyard.map(c => c.id);
-    expect(ids).toContain('M001');
-    expect(ids).toContain('M002');
+    expect(ids).toContain('1');
+    expect(ids).toContain('2');
   });
 
   it('removes materials from hand', () => {
@@ -355,8 +355,8 @@ describe('performFusion', () => {
   it('returns false for non-matching materials', () => {
     const { engine } = makeEngine();
     engine.state.player.hand = [
-      { ...CARD_DB['M001'] },
-      { ...CARD_DB['M003'] },   // not a fusion pair with M001
+      { ...CARD_DB['1'] },
+      { ...CARD_DB['3'] },   // not a fusion pair with 1
     ];
     const result = engine.performFusion('player', 0, 1);
     expect(result).toBe(false);

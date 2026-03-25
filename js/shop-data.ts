@@ -48,8 +48,8 @@ export const SHOP_DATA: ShopData = {
   packs: [
     {
       id: 'starter',
-      name: 'Starterpack',
-      desc: '9 Karten \u00b7 Eine Rasse \u00b7 C/U-lastig',
+      name: 'Starter Pack',
+      desc: '9 cards \u00b7 One race \u00b7 C/U-heavy',
       price: 200,
       icon: '\u2726',
       color: '#4080a0',
@@ -58,8 +58,8 @@ export const SHOP_DATA: ShopData = {
     },
     {
       id: 'race',
-      name: 'Rassen-Pack',
-      desc: '9 Karten \u00b7 Gew\u00e4hlte Rasse \u00b7 Standard',
+      name: 'Race Pack',
+      desc: '9 cards \u00b7 Chosen race \u00b7 Standard',
       price: 350,
       icon: '\u2694',
       color: '#a06020',
@@ -68,8 +68,8 @@ export const SHOP_DATA: ShopData = {
     },
     {
       id: 'aether',
-      name: 'Jade-Pack',
-      desc: '9 Karten \u00b7 Alle Rassen \u00b7 Standard',
+      name: 'Jade Pack',
+      desc: '9 cards \u00b7 All races \u00b7 Standard',
       price: 500,
       icon: '\u25c8',
       color: '#2a7848',
@@ -77,8 +77,8 @@ export const SHOP_DATA: ShopData = {
     },
     {
       id: 'rarity',
-      name: 'Seltenheitspack',
-      desc: '9 Karten \u00b7 Min. Rare \u00b7 Erh\u00f6hte SR/UR-Chance',
+      name: 'Rarity Pack',
+      desc: '9 cards \u00b7 Min. Rare \u00b7 Increased SR/UR chance',
       price: 600,
       icon: '\u2605',
       color: '#c0a020',
