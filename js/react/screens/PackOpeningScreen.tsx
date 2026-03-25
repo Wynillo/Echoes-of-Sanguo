@@ -4,7 +4,7 @@ import { useScreen }   from '../contexts/ScreenContext.js';
 import { getRarityById } from '../../type-metadata.js';
 import { cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { Audio }        from '../../audio.js';
-import { CardType, isEffectMonster } from '../../types.js';
+import { CardType } from '../../types.js';
 import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
 import styles from './PackOpeningScreen.module.css';

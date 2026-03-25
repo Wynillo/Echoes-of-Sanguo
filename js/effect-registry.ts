@@ -4,9 +4,9 @@
 // ============================================================
 
 import {
-  Attribute, Race, CardType,
+  Attribute, CardType,
   type CardData, type CardFilter,
-  type EffectDescriptor, type EffectContext, type EffectSignal, type CardEffectBlock,
+  type EffectContext, type EffectSignal, type CardEffectBlock,
   type ValueExpr, type StatTarget, type Owner, type FieldCard,
 } from './types.js';
 
@@ -37,15 +37,6 @@ function filterFieldMonsters(monsters: Array<FieldCard | null>, filter?: CardFil
   return result;
 }
 
-/** Filter CardData array by CardFilter */
-function filterCards(cards: CardData[], filter: CardFilter): CardData[] {
-  let result = cards.filter(c => matchesFilter(c, filter));
-  if (filter.random !== undefined && filter.random < result.length) {
-    const shuffled = [...result].sort(() => Math.random() - 0.5);
-    result = shuffled.slice(0, filter.random);
-  }
-  return result;
-}
 
 /** Get opponent Owner */
 function oppOf(owner: Owner): Owner {

@@ -3,7 +3,7 @@
 // Validates TcgCard[] from cards.json
 // ============================================================
 
-import type { TcgCard, ValidationResult } from './types.js';
+import type { ValidationResult } from './types.js';
 import { TCG_TYPES, TCG_ATTRIBUTES, TCG_RACES, TCG_RARITIES, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_MONSTER, TCG_TYPE_FUSION } from './types.js';
 import { isValidEffectString } from './effect-serializer.js';
 

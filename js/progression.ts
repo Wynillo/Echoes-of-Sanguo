@@ -255,7 +255,7 @@ export const Progression = (() => {
 
   function getCampaignProgress(): CampaignProgress {
     return _load(KEYS.campaignProgress, { completedNodes: [], currentChapter: 'ch1' },
-      v => v !== null && typeof v === 'object' && Array.isArray(v.completedNodes));
+      v => v !== null && typeof v === 'object' && Array.isArray((v as Record<string, unknown>).completedNodes));
   }
 
   function saveCampaignProgress(progress: CampaignProgress): void {

@@ -1,14 +1,13 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
-import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB } from '../../cards.js';
 import { Progression }     from '../../progression.js';
 import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
-import { CardType, Race, Rarity, isMonsterType } from '../../types.js';
-import { getAllRaces, getAllRarities, getRarityById, getCardTypeById } from '../../type-metadata.js';
+import { CardType, Race, Rarity } from '../../types.js';
+import { getAllRaces, getAllRarities, getRarityById } from '../../type-metadata.js';
 import type { CardData }   from '../../types.js';
 import styles from './DeckbuilderScreen.module.css';
 import { GAME_RULES } from '../../rules.js';
@@ -20,8 +19,7 @@ type ViewMode = 'large' | 'small' | 'table';
 
 export default function DeckbuilderScreen() {
   const { navigateTo }                        = useScreen();
-  const { collection, currentDeck, setCurrentDeck, loadDeck } = useProgression();
-  const { openModal }                         = useModal();
+  const { collection, currentDeck, setCurrentDeck } = useProgression();
   const { t } = useTranslation();
   const [typeFilter, setTypeFilter]           = useState<'all' | 'monster' | 'effect' | 'spell' | 'trap'>('all');
   const [raceFilter, setRaceFilter]           = useState<'all' | Race>('all');

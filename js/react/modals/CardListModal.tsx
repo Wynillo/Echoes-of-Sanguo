@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useModal }        from '../contexts/ModalContext.js';
 import { Card }            from '../components/Card.js';
 import { CARD_DB, FUSION_RECIPES } from '../../cards.js';
-import { CardType, isEffectMonster } from '../../types.js';
+import { CardType } from '../../types.js';
 import { cardTypeCss, ATTR_CSS } from '../components/Card.js';
 
 export function CardListModal() {

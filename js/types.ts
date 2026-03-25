@@ -275,12 +275,12 @@ export interface BattleContext {
   triggerType: string;
   attackerName?: string;
   attackerAtk?: number;
-  attackerCardId?: number;
+  attackerCardId?: string;
   defenderName?: string;
   defenderDef?: number;
   defenderAtk?: number;
   defenderPos?: string;
-  defenderCardId?: number;
+  defenderCardId?: string;
 }
 
 export interface PromptOptions {
@@ -363,8 +363,8 @@ export declare class GameEngine {
   dealDamage(target: Owner, amount: number): void;
   gainLP(target: Owner, amount: number): void;
   drawCard(owner: Owner, count?: number): void;
-  specialSummon(owner: Owner, card: CardData, zone?: number): boolean;
-  specialSummonFromGrave(owner: Owner, card: CardData): boolean;
+  specialSummon(owner: Owner, card: CardData, zone?: number): Promise<boolean>;
+  specialSummonFromGrave(owner: Owner, card: CardData): Promise<boolean>;
   endTurn(): void;
   advancePhase(): void;
 }

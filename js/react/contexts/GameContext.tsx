@@ -33,7 +33,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const { openModal }     = useModal();
   const { resetSel }      = useSelection();
-  const { currentDeck, loadDeck, refresh } = useProgression();
+  const { loadDeck, refresh } = useProgression();
   const { setScreen, navigateTo } = useScreen();
   const { pendingDuel, setPendingDuel, refreshCampaignProgress } = useCampaign();
 

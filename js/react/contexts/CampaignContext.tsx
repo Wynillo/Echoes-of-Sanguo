@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import type { CampaignData, CampaignProgress, CampaignNode, NodeRewards } from '../../campaign-types.js';
+import type { CampaignData, CampaignProgress, NodeRewards } from '../../campaign-types.js';
 import { CAMPAIGN_DATA, isNodeUnlocked as storeIsNodeUnlocked, getNode, hasCampaignData } from '../../campaign-store.js';
 import { Progression } from '../../progression.js';
 import { useProgression } from './ProgressionContext.js';

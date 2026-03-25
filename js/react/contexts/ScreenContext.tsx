@@ -13,7 +13,8 @@ export type Screen =
   | 'collection'
   | 'deckbuilder'
   | 'save-point'
-  | 'campaign';
+  | 'campaign'
+  | 'dialogue';
 
 interface ScreenCtx {
   screen: Screen;

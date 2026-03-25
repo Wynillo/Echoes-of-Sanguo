@@ -39,4 +39,4 @@ export type { TcgArchiveContents } from './tcg-validator.js';
 export { cardDataToTcgCard, cardDataToTcgDef, buildManifest, buildRacesJson, buildAttributesJson, buildCardTypesJson, buildRaritiesJson } from './tcg-builder.js';
 
 // Loader
-export { loadTcgFile, loadTcgFolder, revokeTcgImages } from './tcg-loader.js';
+export { loadTcgFile, revokeTcgImages } from './tcg-loader.js';

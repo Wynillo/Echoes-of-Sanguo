@@ -3,10 +3,10 @@
 // Runtime data store — populated at startup by loading base.tcg
 // ============================================================
 import type { CardData, FusionRecipe, OpponentConfig } from './types.js';
-import { CardType, Attribute, Race, Rarity } from './types.js';
+import { CardType, Rarity } from './types.js';
 import {
   getRaceByKey, getAttrByKey, getRarityById,
-  getAllRaces, getAllRarities, TYPE_META,
+  TYPE_META,
 } from './type-metadata.js';
 
 export const TYPE = CardType;

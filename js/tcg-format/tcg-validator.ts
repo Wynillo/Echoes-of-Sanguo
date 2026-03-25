@@ -4,7 +4,7 @@
 // ============================================================
 
 import type JSZip from 'jszip';
-import type { TcgCard, TcgCardDefinition, TcgOpponentDescription, TcgManifest, TcgCampaignJson, ValidationResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgOpponentDescription, TcgManifest, ValidationResult } from './types.js';
 import { validateTcgCards } from './card-validator.js';
 import { validateTcgDefinitions } from './def-validator.js';
 import { validateTcgOpponentDescriptions } from './opp-desc-validator.js';
