@@ -73,7 +73,9 @@
   "shop": {
     "title": "◈ JADE-SHOP",
     "back": "← Hauptmenü",
-    "buy_btn": "Pack kaufen"
+    "buy_btn": "Pack kaufen",
+    "packages_title": "◈ Kartenpakete",
+    "locked": "🔒 Gesperrt"
   },
   "pack": {
     "starter_name": "Starterpack",

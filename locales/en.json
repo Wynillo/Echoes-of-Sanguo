@@ -73,7 +73,9 @@
   "shop": {
     "title": "◈ JADE SHOP",
     "back": "← Main Menu",
-    "buy_btn": "Buy Pack"
+    "buy_btn": "Buy Pack",
+    "packages_title": "◈ Card Packages",
+    "locked": "🔒 Locked"
   },
   "pack": {
     "starter_name": "Starter Pack",
