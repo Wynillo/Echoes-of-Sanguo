@@ -119,6 +119,44 @@
       ]
     }
   ],
+  "packages": [
+    {
+      "id": "dragon_hoard",
+      "name": "Dragon's Hoard",
+      "desc": "9 cards · Dragons only · Max. Rare",
+      "price": 400,
+      "icon": "🐲",
+      "color": "#8040c0",
+      "cardPool": {
+        "include": { "races": [1], "types": [1, 2], "maxRarity": 4 }
+      },
+      "slots": [
+        { "count": 5, "rarity": 1 },
+        { "count": 2, "rarity": 2 },
+        { "count": 1, "rarity": 4 },
+        { "count": 1, "pool": "guaranteed_rare_plus", "distribution": { "4": 0.75, "6": 0.20, "8": 0.05 } }
+      ]
+    },
+    {
+      "id": "warrior_path",
+      "name": "Warriors of Wei",
+      "desc": "9 cards · Warriors · No Traps · Max. Rare",
+      "price": 450,
+      "icon": "⚔",
+      "color": "#c09030",
+      "unlockCondition": { "type": "nodeComplete", "nodeId": "duel_3" },
+      "cardPool": {
+        "include": { "races": [3], "maxRarity": 4 },
+        "exclude": { "types": [4] }
+      },
+      "slots": [
+        { "count": 5, "rarity": 1 },
+        { "count": 2, "rarity": 2 },
+        { "count": 1, "rarity": 4 },
+        { "count": 1, "pool": "guaranteed_rare_plus", "distribution": { "4": 0.75, "6": 0.20, "8": 0.05 } }
+      ]
+    }
+  ],
   "currency": {
     "nameKey": "common.coins",
     "icon": "◈"
