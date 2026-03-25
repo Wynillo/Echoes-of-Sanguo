@@ -8,6 +8,11 @@ await loadTcgFile(import.meta.env.BASE_URL + 'base.tcg'); // populates CARD_DB, 
 // Call revokeTcgImages() before reloading the TCG file if needed.
 
 await import('./progression.js');
+// Apply persisted game-rule settings
+const { Progression } = await import('./progression.js');
+const { GAME_RULES }  = await import('./rules.js');
+GAME_RULES.refillHandEnabled = Progression.getSettings().refillHand ?? true;
+
 await import('./i18n.js');          // must come after progression.js (reads saved language)
 await import('./engine.js');
 await import('./react/index.js');

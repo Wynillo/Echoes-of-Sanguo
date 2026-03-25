@@ -227,10 +227,12 @@ export const Progression = (() => {
 
   // ── Settings ─────────────────────────────────────────────
 
-  interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; }
+  interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; refillHand: boolean; }
+
+  const SETTINGS_DEFAULTS: Settings = { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, refillHand: true };
 
   function getSettings(): Settings {
-    return _load(KEYS.settings, { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 });
+    return { ...SETTINGS_DEFAULTS, ..._load(KEYS.settings, SETTINGS_DEFAULTS) };
   }
 
   function saveSettings(s: Settings): void {

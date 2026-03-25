@@ -366,6 +366,7 @@ export declare class GameEngine {
   dealDamage(target: Owner, amount: number): void;
   gainLP(target: Owner, amount: number): void;
   drawCard(owner: Owner, count?: number): void;
+  refillHand(owner: Owner): void;
   specialSummon(owner: Owner, card: CardData, zone?: number): Promise<boolean>;
   specialSummonFromGrave(owner: Owner, card: CardData): Promise<boolean>;
   endTurn(): void;

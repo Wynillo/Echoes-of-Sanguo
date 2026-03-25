@@ -52,7 +52,7 @@ export async function aiTurn(engine: GameEngine): Promise<void> {
 
   EchoesOfSanguo.groupEnd();
 
-  engine.drawCard('player', 1);
+  engine.refillHand('player');
   engine.ui.render(engine.state);
   if(engine.checkWin()) return;
 }
@@ -64,8 +64,8 @@ async function aiDrawPhase(engine: GameEngine): Promise<void> {
   engine.state.phase = 'draw';
   engine.ui.render(engine.state);
   await _delay(300);
-  engine.drawCard('opponent', 1);
-  engine.addLog('Opponent draws a card.');
+  engine.refillHand('opponent');
+  engine.addLog('Opponent draws cards.');
   EchoesOfSanguo.log('PHASE', 'Draw Phase – Hand:', ai.hand.map(c => c.name));
   engine.ui.render(engine.state);
   await _delay(400);
