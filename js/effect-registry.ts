@@ -168,10 +168,11 @@ const IMPL: Record<string, EffectImpl> = {
   tempDebuffField(desc: { atkD: number; defD?: number }, ctx) {
     const opp = oppOf(ctx.owner);
     const st = ctx.engine.getState();
+    const defD = desc.defD ?? desc.atkD;
     st[opp].field.monsters.forEach(fm => {
       if (!fm) return;
       if (desc.atkD) fm.tempATKBonus = (fm.tempATKBonus || 0) - desc.atkD;
-      if (desc.defD) fm.tempDEFBonus = (fm.tempDEFBonus || 0) - desc.defD;
+      if (defD) fm.tempDEFBonus = (fm.tempDEFBonus || 0) - defD;
     });
     return {};
   },
