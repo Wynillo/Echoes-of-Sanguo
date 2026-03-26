@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import type { GameState, UICallbacks, OpponentConfig, CardData, PlayerState } from '../../types.js';
 import type { GameEngine as GameEngineType, SerializedCheckpoint, SerializedPlayerState, SerializedFieldCardData, SerializedFieldSpellTrapData } from '../../engine.js';
-import type { PendingDuel } from './CampaignContext.js';
+import type { PendingDuel } from '../../campaign-types.js';
 import { useModal } from './ModalContext.js';
 import { useSelection } from './SelectionContext.js';
 import { useProgression } from './ProgressionContext.js';
