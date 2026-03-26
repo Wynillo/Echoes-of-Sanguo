@@ -341,7 +341,7 @@ export class GameEngine {
     const posStr = faceDown ? 'face-down DEF' : position.toUpperCase();
     this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
     this.ui.playSfx?.('sfx_card_play');
-    this._applyFieldSpellToMonster(owner, fc);
+    this._recalcFieldSpellBonuses(fc);
     // trigger onSummon effect for every summon method
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
@@ -375,7 +375,7 @@ export class GameEngine {
     st.field.monsters[zone] = fc;
     this.addLog(`${ownerLabel(owner)}: ${card.name} Special Summon!`);
     this.ui.playSfx?.('sfx_card_play');
-    this._applyFieldSpellToMonster(owner, fc);
+    this._recalcFieldSpellBonuses(fc);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
@@ -393,7 +393,7 @@ export class GameEngine {
     st.field.monsters[zone] = fc;
     this.addLog(`${ownerLabel(owner)}: ${c.name} summoned from graveyard!`);
     this.ui.playSfx?.('sfx_card_play');
-    this._applyFieldSpellToMonster(owner, fc);
+    this._recalcFieldSpellBonuses(fc);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
@@ -558,8 +558,8 @@ export class GameEngine {
     this.ui.playSfx?.('sfx_spell');
     if (this.ui.showActivation) await this.ui.showActivation(card, card.description);
 
-    // Apply continuous buffs to all matching monsters
-    this._applyFieldSpellBuffs(owner);
+    // Apply continuous buffs/debuffs to all monsters on both sides
+    this._recalcAllFieldSpellBonuses();
     this.ui.render(this.state);
     return true;
   }
@@ -569,41 +569,38 @@ export class GameEngine {
     const fs = st.field.fieldSpell;
     if (!fs) return;
 
-    // Remove field spell bonuses from all monsters
-    for (const fc of st.field.monsters) {
-      if (!fc) continue;
-      fc.fieldSpellATKBonus = 0;
-      fc.fieldSpellDEFBonus = 0;
-    }
-
     st.graveyard.push(fs.card);
     st.field.fieldSpell = null;
     this.addLog(`${fs.card.name} was destroyed.`);
+
+    // Recalculate field spell bonuses for all monsters (both sides)
+    this._recalcAllFieldSpellBonuses();
   }
 
-  _applyFieldSpellBuffs(owner: Owner): void {
-    const st = this.state[owner];
-    const fs = st.field.fieldSpell;
-    if (!fs || !fs.card.effect) return;
-
-    for (const fc of st.field.monsters) {
-      if (!fc) continue;
-      this._applyFieldSpellToMonster(owner, fc);
+  /** Recalculate field spell bonuses for ALL monsters on both sides. */
+  _recalcAllFieldSpellBonuses(): void {
+    for (const side of ['player', 'opponent'] as Owner[]) {
+      for (const fc of this.state[side].field.monsters) {
+        if (!fc) continue;
+        this._recalcFieldSpellBonuses(fc);
+      }
     }
   }
 
-  _applyFieldSpellToMonster(owner: Owner, fc: FieldCard): void {
-    const fs = this.state[owner].field.fieldSpell;
-    if (!fs || !fs.card.effect) return;
-
+  /** Recalculate field spell bonuses for a single monster from both players' field spells. */
+  _recalcFieldSpellBonuses(fc: FieldCard): void {
     let atkBuff = 0;
     let defBuff = 0;
-    for (const action of fs.card.effect.actions) {
-      if (action.type === 'buffField') {
-        const filter = (action as any).filter;
-        if (!filter || matchesFilter(fc.card, filter)) {
-          atkBuff += (action as any).value ?? 0;
-          defBuff += (action as any).value ?? 0;
+    for (const side of ['player', 'opponent'] as Owner[]) {
+      const fs = this.state[side].field.fieldSpell;
+      if (!fs?.card.effect) continue;
+      for (const action of fs.card.effect.actions) {
+        if (action.type === 'buffField') {
+          const filter = (action as any).filter;
+          if (!filter || matchesFilter(fc.card, filter)) {
+            atkBuff += (action as any).value ?? 0;
+            defBuff += (action as any).value ?? 0;
+          }
         }
       }
     }
@@ -747,7 +744,7 @@ export class GameEngine {
     fc.summonedThisTurn = false; // fusion result can attack immediately
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
-    this._applyFieldSpellToMonster(owner, fc);
+    this._recalcFieldSpellBonuses(fc);
 
     this.ui.render(this.state);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
