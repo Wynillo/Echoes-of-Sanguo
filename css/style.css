@@ -74,11 +74,11 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .btn-primary:hover { background: #1e6848; box-shadow: none; }
 .btn-secondary {
-  background: #0e2e1c; color: var(--text);
-  padding: 12px 28px; border: 2px solid; border-color: #1e4830 #061810 #061810 #1e4830;
+  background: #185838; color: var(--gold-light);
+  padding: 12px 28px; border: 2px solid; border-color: #2a9858 #0a2c18 #0a2c18 #2a9858;
   border-radius: 0; font-size: 0.9375rem;
 }
-.btn-secondary:hover { border-color: var(--gold); color: var(--gold); box-shadow: none; }
+.btn-secondary:hover { background: #1c6440; border-color: var(--gold); color: var(--gold); box-shadow: none; }
 .btn-cancel {
   background: #3c1414; color: #ff8888;
   padding: 8px 20px; border: 2px solid; border-color: #602020 #200808 #200808 #602020;
@@ -384,7 +384,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .lp-bottom { display: flex; align-items: center; gap: 4px; }
 .lp-bottom .io-bar-bg { flex: 1; }
 .lp-value { font-size: 0.875rem; font-weight: bold; color: var(--gold-light); line-height: 1; white-space: nowrap; }
-.lp-deck  { font-size: 9px; color: var(--text-dim); white-space: nowrap; }
+.lp-deck  { font-size: 10px; color: var(--gold-light); white-space: nowrap; opacity: 0.8; }
 .io-bar-bg { width: 100%; height: 6px; background: #101c12; border-radius: 0; overflow: hidden; }
 .opp-lp-bar { background: #a82020 !important; }
 .lp-bar { height: 100%; width: 100%; background: #1e6840; border-radius: 0; transition: width 0.3s steps(8); }
@@ -441,15 +441,23 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   transition: none;
 }
 
+/* Nested card inside card: let inner fill parent, remove duplicate border/sizing */
+.card > .card {
+  width: 100%;
+  height: 100%;
+  border: none;
+  flex-shrink: 1;
+}
+
 /* Type borders */
-.normal-card { border-color: rgba(200,180,80,0.6); }
+.normal-card { border-color: rgba(220,220,220,0.6); }
 .effect-card  { border-color: rgba(200,120,40,0.8); }
 .fusion-card  { border-color: rgba(160,80,220,0.9); box-shadow: none; outline: 2px solid rgba(160,80,220,0.6); }
 .spell-card   { border-color: rgba(40,160,120,0.8); }
 .trap-card    { border-color: rgba(180,40,80,0.8); }
 
 /* Type background tints — subtle color wash layered over attr gradient */
-.normal-card::before { content:''; position:absolute; inset:0; background:rgba(200,180,80,0.06); z-index:0; pointer-events:none; border-radius:0; }
+.normal-card::before { content:''; position:absolute; inset:0; background:rgba(220,220,220,0.04); z-index:0; pointer-events:none; border-radius:0; }
 .effect-card::before { content:''; position:absolute; inset:0; background:rgba(160,80,20,0.08);  z-index:0; pointer-events:none; border-radius:0; }
 .fusion-card::before { content:''; position:absolute; inset:0; background:rgba(120,40,200,0.09); z-index:0; pointer-events:none; border-radius:0; }
 .spell-card::before  { content:''; position:absolute; inset:0; background:rgba(20,140,80,0.08);  z-index:0; pointer-events:none; border-radius:0; }
@@ -489,13 +497,15 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .field-card { cursor: default; animation: fieldCardIn 0.32s cubic-bezier(0.34,1.56,0.64,1) both; }
 .interactive { cursor: pointer; }
 .interactive:hover { transform: translateY(-4px); z-index: 20; box-shadow: none; outline: 2px solid #30c060; border-color: #30c060 !important; }
+.viewable { cursor: pointer; }
+.viewable:hover { transform: translateY(-4px); z-index: 20; box-shadow: none; outline: 2px solid #6090d0; border-color: #6090d0 !important; }
 .can-attack { cursor: pointer; }
 .can-attack:hover { transform: translateY(-4px); z-index: 20; box-shadow: none; outline: 2px solid #ff8844; border-color: #ff8844 !important; }
 .selected { border-color: #ffdd44 !important; box-shadow: none !important; outline: 2px solid #ffdd44; z-index: 20; }
 .exhausted { opacity: 0.6; filter: grayscale(40%); }
 
 /* Defense position */
-.pos-def { transform: rotate(90deg); }
+.pos-def { transform: rotate(90deg); animation-name: fieldCardInDef; }
 .pos-def:hover { transform: rotate(90deg) translateY(-4px) !important; }
 .pos-def.selected { transform: rotate(90deg); }
 
@@ -510,6 +520,81 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   position: absolute; bottom: 2px; left: 3px;
   font-size: 10px; line-height: 1;
   pointer-events: none;
+}
+
+/* FM-style fusion chain selection */
+.hand-card.chain-selected {
+  border-color: #ffd700 !important;
+  outline: 2px solid #ffd700;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+.chain-badge {
+  position: absolute; top: 2px; right: 3px;
+  background: #ffd700; color: #000;
+  font-size: 9px; font-weight: bold; line-height: 1;
+  width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10;
+  font-family: 'Press Start 2P', monospace;
+}
+
+/* Fusion chain bar */
+.fusion-chain-bar {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid #ffd700;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-family: 'Silkscreen', 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: #eee;
+}
+.fusion-chain-cards {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: center;
+}
+.chain-card-name { color: #ccc; }
+.chain-arrow { color: #ffd700; margin: 0 2px; font-weight: bold; }
+.chain-result-name { color: #ffd700; font-weight: bold; }
+.chain-result-stats { color: #aaa; margin-left: 4px; }
+.fusion-chain-steps {
+  display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+  font-size: 9px;
+}
+.chain-step-fused { color: #4caf50; }
+.chain-step-fallback { color: #ff9800; }
+.fusion-chain-actions {
+  display: flex; gap: 8px; margin-top: 4px;
+}
+.chain-confirm-btn {
+  background: #ffd700 !important; color: #000 !important;
+  font-weight: bold;
+}
+
+/* ── Fusion chain bar: mobile touch-friendly ── */
+@media (pointer: coarse), (max-width: 600px) {
+  .fusion-chain-bar {
+    padding: 10px 12px;
+    gap: 6px;
+    font-size: 11px;
+    position: relative;
+    z-index: 100;
+  }
+  .fusion-chain-actions {
+    gap: 10px;
+    margin-top: 6px;
+    width: 100%;
+    justify-content: center;
+  }
+  .fusion-chain-actions button {
+    min-height: 44px;
+    min-width: 100px;
+    padding: 10px 16px;
+    font-size: 12px;
+    touch-action: manipulation;
+  }
 }
 
 /* Big card for detail view — internal overrides live in Card.module.css */
@@ -629,10 +714,35 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .detail-stats { font-size: 0.875rem; font-weight: bold; color: var(--gold); }
 
 /* Trap Prompt */
-#trap-prompt-modal { max-width: 340px; text-align: center; }
+#trap-prompt-modal { max-width: 380px; text-align: center; }
 #trap-prompt-card { display: flex; justify-content: center; margin: 10px 0; }
 #trap-prompt-msg  { font-size: 0.75rem; color: var(--text); margin: 8px 0; }
 .prompt-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+.trap-battle-cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+.trap-battle-card { flex: 0 0 auto; }
+.trap-battle-vs {
+  font-size: 1.5rem;
+  color: var(--gold);
+  text-shadow: 0 0 6px rgba(255, 200, 50, 0.6);
+}
+.trap-battle-context {
+  background: rgba(40, 10, 10, 0.85);
+  border: 1px solid rgba(255, 80, 80, 0.5);
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin: 8px 0 4px;
+  text-align: center;
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.75rem;
+  color: #ffcccc;
+  line-height: 1.5;
+}
 
 /* Grave Selection */
 #grave-select-modal { max-width: 500px; }
@@ -752,6 +862,28 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   animation: cardDraw 0.38s cubic-bezier(0.22,1,0.36,1) both;
 }
 
+/* ── Fusion Animation ──────────────────────────────────────── */
+.fusion-burst {
+  position: fixed;
+  width: 160px; height: 160px;
+  z-index: 450; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(circle at center,
+    #ffffff 0%, #ffe880 20%, #ffcc00 45%, #ff8800 65%, rgba(255,120,0,0) 85%);
+  box-shadow: 0 0 40px rgba(255,200,60,0.8), 0 0 80px rgba(255,150,0,0.4);
+  animation: fusionBurst 0.55s ease-out forwards;
+}
+.fusion-spark {
+  position: fixed;
+  width: 8px; height: 8px;
+  z-index: 451; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #ffe060 50%, #ff8800 100%);
+  box-shadow: 0 0 6px rgba(255,220,60,0.9);
+  animation: fusionSpark 0.5s ease-out forwards;
+}
+.fusion-result-pop {
+  animation: fusionResultPop 0.45s cubic-bezier(0.22,1,0.36,1) both !important;
+}
+
 /* ── Touch / Coarse Pointer ──────────────────────────────── */
 @media (pointer: coarse) {
   .hand-card:hover,
@@ -820,17 +952,291 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   margin-top: 20px; padding-top: 16px;
   border-top: 1px solid var(--border);
 }
+.options-buttons .btn-cancel { margin-top: 0; }
+
+/* View Log button */
+.options-log {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.options-log .btn-secondary { width: 100%; }
+
+/* Battle Log Modal */
+#battle-log-modal { min-width: 320px; max-width: 460px; }
+#battle-log-modal h2 { margin-bottom: 14px; }
+.battle-log-entries {
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: rgba(0,0,0,0.3);
+  padding: 4px;
+}
+.battle-log-entries .log-empty {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 16px;
+}
+
+/* Surrender section */
+.options-surrender {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(180,40,40,0.4);
+}
+
+.btn-surrender {
+  width: 100%;
+  background: #4a0a0a;
+  border: 2px solid rgba(200,50,50,0.7);
+  color: #ffaaaa;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: bold;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-radius: 0;
+  letter-spacing: 1px;
+  transition: none;
+}
+.btn-surrender:hover { background: #6a1010; border-color: #e05050; }
+.btn-surrender:active { background: #8a1a1a; }
+
+.surrender-confirm p {
+  font-size: 0.75rem;
+  color: #ffaaaa;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.surrender-confirm-btns {
+  display: flex; gap: 8px;
+}
+.surrender-confirm-btns .btn-cancel {
+  flex: 1;
+}
+.surrender-confirm-btns .btn-surrender {
+  flex: 2;
+}
+
+/* Portrait bar: hidden on desktop, shown in portrait mobile */
+#portrait-bar { display: none; }
+/* Floating phase button: hidden on desktop, shown in portrait mobile */
+.floating-phase-btn { display: none; }
+
+/* ── Portrait Smartphone (≤ 540px) — Top-bar layout ──────── */
+/*
+  Strategy: replace side panels with a 48px top control bar.
+  Cards use full viewport width minus tiny 30px graves-only right strip.
+  Formula: (100vw - 30px - 8px padding - 4 gaps×2px) / 5 ≈ (100vw - 46px) / 5
+  At 375px: (375 - 46) / 5 ≈ 65.8px wide cards — nearly double the old 49px.
+*/
+@media (max-width: 540px) {
+  #game-screen {
+    --card-w: calc((100vw - 46px) / 5);
+    --card-h: calc(var(--card-w) / 0.715);
+    --card-w-opp: var(--card-w);
+    --card-h-opp: var(--card-h);
+    height: calc(100vh - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - env(safe-area-inset-bottom, 0px));
+    grid-template-rows:
+      48px calc(var(--card-h-opp) * 0.25) 1fr var(--card-h);
+  }
+
+  /* Shift all rows down by 1 to make room for portrait bar */
+  #opp-hand-area { grid-row: 2; }
+  #field         { grid-row: 3; }
+  #hand-area     { grid-row: 4; }
+
+  /* Portrait top bar — visible in portrait only */
+  #portrait-bar {
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+    background: rgba(2, 8, 4, 0.97);
+    border-bottom: 1px solid rgba(30, 80, 45, 0.5);
+    z-index: 30;
+  }
+
+  .portrait-opts-btn {
+    background: rgba(20, 60, 30, 0.8);
+    border: 1px solid rgba(60, 160, 80, 0.4);
+    border-radius: 4px;
+    color: #a0e0b0;
+    font-size: 18px;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0;
+    flex-shrink: 0;
+  }
+  .portrait-hud {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .phud-lp {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+  .phud-opp    { color: #ff8080; }
+  .phud-player { color: #80ff80; }
+  .phud-phase {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: #d0c090;
+    text-align: center;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .portrait-phase-btn {
+    width: 36px; height: 36px;
+    border-radius: 4px;
+    border: 1px solid rgba(60, 160, 80, 0.4);
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0;
+    flex-shrink: 0;
+  }
+  .portrait-phase-btn.phase-main              { background: rgba(80, 40, 0, 0.9);  color: #ffcc00; border-color: #ffcc00; }
+  .portrait-phase-btn.phase-battle            { background: rgba(100, 0, 0, 0.9);  color: #ff6060; border-color: #ff4040; }
+  .portrait-phase-btn.phase-end,
+  .portrait-phase-btn.phase-draw,
+  .portrait-phase-btn.phase-standby           { background: rgba(20, 60, 30, 0.8); color: #a0e0b0; }
+  .portrait-phase-btn.waiting,
+  .portrait-phase-btn:disabled                { background: rgba(20, 30, 25, 0.8); color: #607060; opacity: 0.6; cursor: default; }
+
+  /* Hide left panel entirely — options button moved to portrait bar */
+  #field-left { display: none; }
+
+  /* Right panel: minimal width — graves only, no background */
+  #field-right {
+    width: 30px; min-width: 30px;
+    padding: 0;
+    background: transparent;
+    border-left: none;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #field-right-center { display: none; }
+
+  /* Graves: compact for 30px panel */
+  .grave-icon       { width: 26px; height: 26px; }
+  .grave-icon-sym   { font-size: 13px; }
+  .grave-icon-count { font-size: 8px; }
+
+  /* Center: full field width */
+  #field-center {
+    flex: 1;
+    width: 100%;
+    padding: 4px 2px;
+    box-sizing: border-box;
+  }
+
+  .zone-row { gap: 2px; }
+
+  /* Hands: only right-pad by the 30px graves strip */
+  #hand-area     { padding-right: 30px; padding-left: 0; }
+  #player-hand   { margin-top: -8px; }
+  #opp-hand-area { padding-left: 0; }
+
+  /* Hand card overlap for up to 7 cards */
+  #player-hand .hand-card            { margin-right: -14px; }
+  #player-hand .hand-card:last-child { margin-right: 0; }
+  #opp-hand                          { gap: 0; }
+  #opp-hand .opp-hand-card            { margin-right: -10px; }
+  #opp-hand .opp-hand-card:last-child { margin-right: 0; }
+
+  /* Floating phase button — bottom-right, thumb-reachable */
+  .floating-phase-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    z-index: 90;
+    min-width: 80px;
+    height: 48px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    animation: nextPhasePulse 1.6s ease-in-out infinite;
+  }
+  .floating-phase-btn.phase-main    { background: rgba(80, 40, 0, 0.95);  color: #ffcc00; border: 2px solid #ffcc00; }
+  .floating-phase-btn.phase-battle  { background: rgba(100, 0, 0, 0.95);  color: #ff6060; border: 2px solid #ff4040; }
+  .floating-phase-btn.phase-end,
+  .floating-phase-btn.phase-draw,
+  .floating-phase-btn.phase-standby { background: rgba(20, 60, 30, 0.95); color: #a0e0b0; border: 2px solid rgba(60, 160, 80, 0.6); }
+  .floating-phase-btn.waiting,
+  .floating-phase-btn:disabled       { background: rgba(20, 30, 25, 0.85); color: #607060; border: 2px solid #405040; opacity: 0.5; cursor: default; animation: none; }
+
+  /* Dim the portrait-bar phase button since floating button is primary */
+  .portrait-phase-btn { opacity: 0.4; }
+}
 
 /* ── Landscape Smartphone (niedrige Höhe) ────────────────── */
+/* In landscape, width is sufficient — revert to height-based sizing.
+   This query comes after portrait so it wins on devices matching both.
+   Also restores the side panels and 3-row grid that portrait replaced. */
 @media (max-height: 450px) {
+  #game-screen {
+    --card-h: calc((100vh - 40px) / 5);
+    --card-w: calc(var(--card-h) * 0.715);
+    --card-w-opp: var(--card-w);
+    --card-h-opp: var(--card-h);
+    grid-template-rows:
+      calc(var(--card-h) * 0.25) 1fr calc(var(--card-h) * 0.75);
+  }
+
+  /* Restore 3-row grid assignments (portrait shifted these to rows 2/3/4) */
+  #portrait-bar  { display: none; }
+  #opp-hand-area { grid-row: 1; }
+  #field         { grid-row: 2; }
+  #hand-area     { grid-row: 3; }
+
+  /* Restore side panels */
+  #field-left  { display: flex; min-width: 44px; width: 44px; padding: 0; }
+  #field-right { min-width: 72px; width: 72px; padding: 0; background: rgba(4, 12, 6, 0.88); border-left: 1px solid rgba(30, 80, 45, 0.4); }
+  #field-right-center {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 4px;
+    align-items: stretch;
+  }
+
+  #btn-options    { width: 36px; height: 36px; font-size: 15px; }
+  #btn-next-phase { font-size: 0.5625rem; padding: 5px 2px; white-space: normal; line-height: 1.2; }
+
+  .grave-icon             { width: 34px; height: 34px; }
+  .grave-icon-sym         { font-size: 13px; }
+  .grave-icon-count       { font-size: 8px; }
+
+  #lp-panel               { padding-right: 0; gap: 2px; flex: none; width: 100%; }
+  .lp-row                 { padding: 2px 3px; gap: 1px; }
+  .lp-who                 { font-size: 7px; margin-bottom: 0; }
+  .lp-bottom .io-bar-bg   { display: none; }
+  .lp-value               { font-size: 0.625rem; }
+  .lp-deck                { font-size: 7px; }
+
+  #hand-area              { padding-right: 72px; }
+  #opp-hand-area          { padding-left: 44px; }
+
   .zone-row { gap: 2px; }
-  #field-left  { min-width: 44px; width: 12%; padding: 6px 2px; }
-  #field-right { min-width: 80px; width: 20%; padding: 6px 4px; }
-  #btn-options { width: 36px; height: 36px; font-size: 15px; }
-  #btn-next-phase { font-size: 0.625rem; padding: 6px 4px; }
-  .grave-icon { width: 34px; height: 34px; }
-  .grave-icon-sym { font-size: 13px; }
-  .lp-value { font-size: 0.75rem; }
-  #player-hand .hand-card { margin-right: -14px; }
+  #player-hand .hand-card            { margin-right: -14px; }
   #player-hand .hand-card:last-child { margin-right: 0; }
 }

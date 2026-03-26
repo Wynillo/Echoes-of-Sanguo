@@ -3,7 +3,7 @@
 // Validates TcgCard[] from cards.json
 // ============================================================
 
-import type { TcgCard, ValidationResult } from './types.js';
+import type { ValidationResult } from './types.js';
 import { TCG_TYPES, TCG_ATTRIBUTES, TCG_RACES, TCG_RARITIES, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_MONSTER, TCG_TYPE_FUSION } from './types.js';
 import { isValidEffectString } from './effect-serializer.js';
 
@@ -28,9 +28,12 @@ function validateSingleCard(card: unknown, index: number): string[] {
     errors.push(`${prefix}.id: must be a positive integer, got ${c.id}`);
   }
 
-  // level: required int 1-12
-  if (typeof c.level !== 'number' || !Number.isInteger(c.level) || c.level < 1 || c.level > 12) {
-    errors.push(`${prefix}.level: must be integer 1-12, got ${c.level}`);
+  // level: required int 1-12 for monsters/fusions, optional (ignored) for spells/traps
+  const needsLevel = c.type === TCG_TYPE_MONSTER || c.type === TCG_TYPE_FUSION;
+  if (needsLevel) {
+    if (typeof c.level !== 'number' || !Number.isInteger(c.level) || c.level < 1 || c.level > 12) {
+      errors.push(`${prefix}.level: must be integer 1-12, got ${c.level}`);
+    }
   }
 
   // type: required int in {1,2,3,4}

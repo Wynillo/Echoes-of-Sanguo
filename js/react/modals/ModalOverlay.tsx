@@ -1,11 +1,13 @@
 import { useModal } from '../contexts/ModalContext.js';
-import { CardActionMenu }   from './CardActionMenu.js';
 import { CardDetailModal }  from './CardDetailModal.js';
 import { TrapPromptModal }  from './TrapPromptModal.js';
 import { GraveSelectModal } from './GraveSelectModal.js';
 import { CardListModal }    from './CardListModal.js';
 import { ResultModal }      from './ResultModal.js';
 import { OptionsModal }     from './OptionsModal.js';
+import { BattleLogModal }  from './BattleLogModal.js';
+import { CoinTossModal }   from './CoinTossModal.js';
+import { GauntletTransitionModal } from './GauntletTransitionModal.js';
 
 export function ModalOverlay() {
   const { modal, closeModal } = useModal();
@@ -16,17 +18,21 @@ export function ModalOverlay() {
       // Close on overlay click for non-critical modals
       if (e.target === e.currentTarget &&
           modal.type !== 'trap-prompt' &&
-          modal.type !== 'grave-select') {
+          modal.type !== 'grave-select' &&
+          modal.type !== 'coin-toss' &&
+          modal.type !== 'gauntlet-transition') {
         closeModal();
       }
     }}>
-      {modal.type === 'card-action'  && <CardActionMenu   modal={modal} />}
       {modal.type === 'card-detail'  && <CardDetailModal  modal={modal} />}
       {modal.type === 'trap-prompt'  && <TrapPromptModal  modal={modal} />}
       {modal.type === 'grave-select' && <GraveSelectModal modal={modal} />}
       {modal.type === 'card-list'    && <CardListModal />}
       {modal.type === 'result'       && <ResultModal      modal={modal} />}
       {modal.type === 'main-options' && <OptionsModal />}
+      {modal.type === 'battle-log'  && <BattleLogModal />}
+      {modal.type === 'coin-toss'   && <CoinTossModal   modal={modal} />}
+      {modal.type === 'gauntlet-transition' && <GauntletTransitionModal modal={modal} />}
     </div>
   );
 }

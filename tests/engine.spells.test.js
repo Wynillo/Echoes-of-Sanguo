@@ -28,6 +28,9 @@ function makeEngine(cbOverrides = {}) {
     { id: 1, name: 'Test', title: '', race: 'krieger', flavor: '',
       coinsWin: 0, coinsLoss: 0, deckIds: [...OPPONENT_DECK_IDS] }
   );
+  // Force player goes first for deterministic tests
+  engine.state.activePlayer = 'player';
+  engine.state.phase = 'main';
   return { engine, cb };
 }
 
@@ -75,10 +78,10 @@ const CARD = {
 // ── setMonster ───────────────────────────────────────────────
 
 describe('setMonster', () => {
-  it('places monster in face-down DEF position', () => {
+  it('places monster in face-down DEF position', async () => {
     const { engine } = makeEngine();
     engine.state.player.hand.unshift({ ...CARD.monster });
-    engine.setMonster('player', 0, 0);
+    await engine.setMonster('player', 0, 0);
 
     const fc = engine.state.player.field.monsters[0];
     expect(fc).not.toBeNull();
@@ -86,23 +89,23 @@ describe('setMonster', () => {
     expect(fc.faceDown).toBe(true);
   });
 
-  it('removes card from hand', () => {
+  it('removes card from hand', async () => {
     const { engine } = makeEngine();
     engine.state.player.hand.unshift({ ...CARD.monster });
     const handBefore = engine.state.player.hand.length;
-    engine.setMonster('player', 0, 0);
+    await engine.setMonster('player', 0, 0);
     expect(engine.state.player.hand.length).toBe(handBefore - 1);
   });
 
-  it('sets normalSummonUsed', () => {
+  it('sets normalSummonUsed', async () => {
     const { engine } = makeEngine();
     engine.state.player.hand.unshift({ ...CARD.monster });
     expect(engine.state.player.normalSummonUsed).toBe(false);
-    engine.setMonster('player', 0, 0);
+    await engine.setMonster('player', 0, 0);
     expect(engine.state.player.normalSummonUsed).toBe(true);
   });
 
-  it('does NOT trigger onSummon effect when set face-down', () => {
+  it('triggers onSummon effect even when set face-down', async () => {
     const { engine } = makeEngine();
     const effectCard = {
       id: 'TST_FD_EFF', name: 'FDEffect', type: CardType.Monster, atk: 800, def: 600,
@@ -111,15 +114,15 @@ describe('setMonster', () => {
     };
     engine.state.player.hand.unshift(effectCard);
     const oppLP = engine.state.opponent.lp;
-    engine.setMonster('player', 0, 0);
-    expect(engine.state.opponent.lp).toBe(oppLP);
+    await engine.setMonster('player', 0, 0);
+    expect(engine.state.opponent.lp).toBe(oppLP - 500);
   });
 
-  it('rejects an occupied zone', () => {
+  it('rejects an occupied zone', async () => {
     const { engine } = makeEngine();
     placeMonster(engine, 'player', CARD.monster, 0);
     engine.state.player.hand.unshift({ ...CARD.monsterB });
-    const result = engine.setMonster('player', 0, 0);
+    const result = await engine.setMonster('player', 0, 0);
     expect(result).toBe(false);
   });
 });
@@ -258,66 +261,66 @@ describe('activateSpell', () => {
 // ── specialSummonFromGrave ───────────────────────────────────
 
 describe('specialSummonFromGrave', () => {
-  it('revives a monster from graveyard to the field', () => {
+  it('revives a monster from graveyard to the field', async () => {
     const { engine } = makeEngine();
     const card = { ...CARD.monster };
     engine.state.player.graveyard.push(card);
 
-    const result = engine.specialSummonFromGrave('player', card);
+    const result = await engine.specialSummonFromGrave('player', card);
 
     expect(result).toBe(true);
     const fc = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_MON');
     expect(fc).not.toBeNull();
   });
 
-  it('removes the card from graveyard', () => {
+  it('removes the card from graveyard', async () => {
     const { engine } = makeEngine();
     const card = { ...CARD.monster };
     engine.state.player.graveyard.push(card);
 
-    engine.specialSummonFromGrave('player', card);
+    await engine.specialSummonFromGrave('player', card);
 
     const graveIds = engine.state.player.graveyard.map(c => c.id);
     expect(graveIds).not.toContain('TST_MON');
   });
 
-  it('revived monster has no summoning sickness', () => {
+  it('revived monster has no summoning sickness', async () => {
     const { engine } = makeEngine();
     const card = { ...CARD.monster };
     engine.state.player.graveyard.push(card);
 
-    engine.specialSummonFromGrave('player', card);
+    await engine.specialSummonFromGrave('player', card);
 
     const fc = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_MON');
     expect(fc.summonedThisTurn).toBe(false);
   });
 
-  it('revived monster is placed in ATK position', () => {
+  it('revived monster is placed in ATK position', async () => {
     const { engine } = makeEngine();
     const card = { ...CARD.monster };
     engine.state.player.graveyard.push(card);
 
-    engine.specialSummonFromGrave('player', card);
+    await engine.specialSummonFromGrave('player', card);
 
     const fc = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_MON');
     expect(fc.position).toBe('atk');
   });
 
-  it('returns false if card is not in graveyard', () => {
+  it('returns false if card is not in graveyard', async () => {
     const { engine } = makeEngine();
 
-    const result = engine.specialSummonFromGrave('player', CARD.monster);
+    const result = await engine.specialSummonFromGrave('player', CARD.monster);
 
     expect(result).toBe(false);
   });
 
-  it('returns false when no free monster zone', () => {
+  it('returns false when no free monster zone', async () => {
     const { engine } = makeEngine();
     const card = { ...CARD.monster };
     engine.state.player.graveyard.push(card);
     for (let z = 0; z < 5; z++) placeMonster(engine, 'player', CARD.monsterB, z);
 
-    const result = engine.specialSummonFromGrave('player', card);
+    const result = await engine.specialSummonFromGrave('player', card);
 
     expect(result).toBe(false);
   });

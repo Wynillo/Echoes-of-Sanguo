@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import type { CardData } from '../../types.js';
+import type { FusionChainResult } from '../../cards.js';
 
 export type SelMode =
-  | 'hand' | 'attack' | 'fusion1' | 'spell-target'
+  | 'hand' | 'attack' | 'fusion1' | 'play-chain' | 'spell-target' | 'field-spell-target'
   | 'grave-target' | 'trap-target' | null;
 
 export interface Selection {
@@ -10,7 +11,10 @@ export interface Selection {
   handIndex:      number | null;
   attackerZone:   number | null;
   fusion1:        { handIndex: number } | null;
+  playChain:      number[];
+  playChainPreview: FusionChainResult | null;
   spellHandIndex: number | null;
+  spellFieldZone: number | null;
   spellCard:      CardData | null;
   trapFieldZone:  number | null;
   callback:       ((card: CardData) => void) | null;
@@ -19,7 +23,8 @@ export interface Selection {
 
 const EMPTY: Selection = {
   mode: null, handIndex: null, attackerZone: null, fusion1: null,
-  spellHandIndex: null, spellCard: null, trapFieldZone: null, callback: null, hint: '',
+  playChain: [], playChainPreview: null,
+  spellHandIndex: null, spellFieldZone: null, spellCard: null, trapFieldZone: null, callback: null, hint: '',
 };
 
 interface SelectionCtx {

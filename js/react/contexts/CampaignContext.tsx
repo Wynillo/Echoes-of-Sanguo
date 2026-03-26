@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import type { CampaignData, CampaignProgress, CampaignNode, PendingDuel } from '../../campaign-types.js';
+import type { CampaignData, CampaignProgress, CampaignNode, PendingDuel, NodeRewards } from '../../campaign-types.js';
 import { CAMPAIGN_DATA, isNodeUnlocked as storeIsNodeUnlocked, getNode, hasCampaignData } from '../../campaign-store.js';
 import { Progression } from '../../progression.js';
 import { useProgression } from './ProgressionContext.js';
@@ -15,6 +15,7 @@ interface CampaignCtx {
   getOpponentForNode: (nodeId: string) => OpponentConfig | undefined;
   pendingDuel: PendingDuel | null;
   setPendingDuel: (d: PendingDuel | null) => void;
+  refreshCampaignProgress: () => void;
 }
 
 const CampaignContext = createContext<CampaignCtx>({
@@ -26,6 +27,7 @@ const CampaignContext = createContext<CampaignCtx>({
   getOpponentForNode: () => undefined,
   pendingDuel: null,
   setPendingDuel: () => {},
+  refreshCampaignProgress: () => {},
 });
 
 export function CampaignProvider({ children }: { children: React.ReactNode }) {
@@ -51,6 +53,10 @@ export function CampaignProvider({ children }: { children: React.ReactNode }) {
     return (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === node.opponentId);
   }, []);
 
+  const refreshCampaignProgress = useCallback(() => {
+    setProgress({ ...Progression.getCampaignProgress() });
+  }, []);
+
   const completeNode = useCallback((nodeId: string) => {
     const node = getNode(nodeId);
     if (!node) return;
@@ -73,8 +79,8 @@ export function CampaignProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
 
   const value = useMemo(
-    () => ({ campaignData, progress, isNodeUnlocked: isNodeUnlockedFn, completeNode, hasCampaign, getOpponentForNode, pendingDuel, setPendingDuel }),
-    [campaignData, progress, isNodeUnlockedFn, completeNode, hasCampaign, getOpponentForNode, pendingDuel],
+    () => ({ campaignData, progress, isNodeUnlocked: isNodeUnlockedFn, completeNode, hasCampaign, getOpponentForNode, pendingDuel, setPendingDuel, refreshCampaignProgress }),
+    [campaignData, progress, isNodeUnlockedFn, completeNode, hasCampaign, getOpponentForNode, pendingDuel, refreshCampaignProgress],
   );
 
   return (

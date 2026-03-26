@@ -7,6 +7,7 @@ import { useProgression } from './ProgressionContext.js';
 import { useScreen } from './ScreenContext.js';
 import { useCampaign } from './CampaignContext.js';
 import { Audio } from '../../audio.js';
+import { OPPONENT_CONFIGS } from '../../cards.js';
 
 interface GameCtx {
   gameState:          GameState | null;
@@ -34,9 +35,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const { openModal }     = useModal();
   const { resetSel }      = useSelection();
-  const { currentDeck, loadDeck, refresh } = useProgression();
+  const { loadDeck, refresh } = useProgression();
   const { setScreen, navigateTo } = useScreen();
-  const { pendingDuel, setPendingDuel } = useCampaign();
+  const { pendingDuel, setPendingDuel, refreshCampaignProgress } = useCampaign();
 
   // Stable refs so useMemo(() => uiCallbacks, []) can safely use current values
   const openModalRef      = useRef(openModal);      openModalRef.current      = openModal;
@@ -46,7 +47,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const refreshRef        = useRef(refresh);        refreshRef.current        = refresh;
   const pendingDuelRef    = useRef(pendingDuel);    pendingDuelRef.current    = pendingDuel;
   const setPendingDuelRef = useRef(setPendingDuel); setPendingDuelRef.current = setPendingDuel;
+  const refreshCampaignRef = useRef(refreshCampaignProgress); refreshCampaignRef.current = refreshCampaignProgress;
   const lastOppRef        = useRef<OpponentConfig | null>(null);
+  const startGameRef      = useRef<(cfg?: OpponentConfig | null) => void>(() => {});
 
   const uiCallbacks = useMemo<UICallbacks>(() => ({
     render: (state) => setGameState({ ...state }),
@@ -63,44 +66,124 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     playAttackAnimation: (ao, az, dO, dZ) => {
       return import('../hooks/useAttackAnimation.js').then(m => m.playAttackAnim(ao, az, dO, dZ));
     },
+    playFusionAnimation: (owner, handIdx1, handIdx2, resultZone) => {
+      return import('../hooks/useFusionAnimation.js').then(m => m.playFusionAnim(owner, handIdx1, handIdx2, resultZone));
+    },
+    playFusionChainAnimation: (owner, handIndices, resultZone) => {
+      return import('../hooks/useFusionAnimation.js').then(m => m.playFusionChainAnim(owner, handIndices, resultZone));
+    },
+    playVFX: (type, owner, zone) => {
+      return import('../components/vfxApi.js').then(m => m.playVFXAtZone(type, owner, zone));
+    },
     playSfx: (sfxId: string) => {
       Audio.playSfx(sfxId);
     },
     onDraw: (owner, count) => {
       if (owner === 'player') setPendingDraw(prev => prev + count);
     },
+    showCoinToss: (playerGoesFirst: boolean) => {
+      return new Promise<void>(resolve => {
+        openModalRef.current({ type: 'coin-toss', playerGoesFirst, resolve });
+      });
+    },
     onDuelEnd: (result, opponentId) => {
       Audio.playMusic(result === 'victory' ? 'music_victory' : 'music_defeat');
 
-      // Campaign duel: skip normal result modal, route to dialogue/campaign
+      // Campaign duel
       const pending = pendingDuelRef.current;
       if (pending) {
+        // --- Gauntlet: back-to-back duels ---
+        const gauntlet = pending.gauntletOpponents;
+        const gIdx = pending.gauntletIndex ?? 0;
+
+        if (gauntlet && gauntlet.length > 0) {
+          import('../../progression.js').then(({ Progression }) => {
+            // Record individual duel result
+            if (opponentId) Progression.recordDuelResult(opponentId, result === 'victory');
+
+            if (result === 'victory' && gIdx + 1 < gauntlet.length) {
+              // More opponents remain — show transition, then start next duel
+              const nextOppId = gauntlet[gIdx + 1];
+              const nextCfg = (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === nextOppId);
+              const nextName = nextCfg?.name ?? `Opponent #${nextOppId}`;
+
+              // Update pending duel to advance gauntlet index
+              const nextPending = { ...pending, gauntletIndex: gIdx + 1 };
+              setPendingDuelRef.current(nextPending);
+
+              openModalRef.current({
+                type: 'gauntlet-transition',
+                duelIndex: gIdx + 1,
+                totalDuels: gauntlet.length,
+                nextOpponentName: nextName,
+                resolve: () => {
+                  openModalRef.current(null); // close modal
+                  startGameRef.current(nextCfg ?? null);
+                },
+              });
+            } else if (result === 'victory') {
+              // Final gauntlet duel won — complete node, give rewards
+              setPendingDuelRef.current(null);
+              Progression.markNodeComplete(pending.nodeId);
+              if (pending.rewards) {
+                if (pending.rewards.coins) Progression.addCoins(pending.rewards.coins);
+                if (pending.rewards.cards?.length) Progression.addCardsToCollection(pending.rewards.cards);
+              }
+              refreshRef.current();
+              refreshCampaignRef.current();
+              if (pending.postDialogue && pending.postDialogue.length > 0) {
+                navigateToRef.current('dialogue', {
+                  scene: pending.postDialogue as unknown as Record<string, unknown>,
+                  nextScreen: 'campaign',
+                });
+              } else {
+                navigateToRef.current('campaign');
+              }
+            } else {
+              // Defeat in gauntlet — entire gauntlet fails
+              setPendingDuelRef.current(null);
+              refreshRef.current();
+              refreshCampaignRef.current();
+              openModalRef.current({ type: 'result', resultType: result, coinsEarned: 0 });
+            }
+          });
+          return;
+        }
+
+        // --- Standard campaign duel (non-gauntlet) ---
         setPendingDuelRef.current(null);
         Promise.all([
           import('../../progression.js'),
           import('../../campaign-store.js'),
         ]).then(([{ Progression }, { getNode }]) => {
-          if (result === 'victory') {
+          const isComplete = result === 'victory' || !!pending.completeOnLoss;
+          if (isComplete) {
             if (getNode(pending.nodeId)) {
               Progression.markNodeComplete(pending.nodeId);
             } else {
-              console.warn(`[GameContext] Campaign node "${pending.nodeId}" not found in campaign data — skipping markNodeComplete.`);
+              console.warn(`[GameContext] Campaign node "${pending.nodeId}" not found — skipping markNodeComplete.`);
             }
             if (pending.rewards) {
               if (pending.rewards.coins) Progression.addCoins(pending.rewards.coins);
               if (pending.rewards.cards?.length) Progression.addCardsToCollection(pending.rewards.cards);
             }
-            refreshRef.current();
-            if (pending.postDialogue) {
-              navigateToRef.current('dialogue', {
-                scene: pending.postDialogue as unknown as Record<string, unknown>,
-                nextScreen: 'campaign',
-              });
-            } else {
-              navigateToRef.current('campaign');
-            }
-          } else {
+          }
+          // Also record the duel result for win/loss stats
+          if (opponentId) {
+            Progression.recordDuelResult(opponentId, result === 'victory');
+          }
+          refreshRef.current();
+          refreshCampaignRef.current();
+          if (isComplete && pending.postDialogue && pending.postDialogue.length > 0) {
+            navigateToRef.current('dialogue', {
+              scene: pending.postDialogue as unknown as Record<string, unknown>,
+              nextScreen: 'campaign',
+            });
+          } else if (isComplete) {
             navigateToRef.current('campaign');
+          } else {
+            // Defeat in campaign: show result modal so the player sees the defeat screen
+            openModalRef.current({ type: 'result', resultType: result, coinsEarned: 0 });
           }
         }).catch(e => console.error('[GameContext] Failed to apply campaign duel result:', e));
         return;
@@ -114,7 +197,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             Progression.recordDuelResult(opponentId, result === 'victory');
             const cfg = OPPONENT_CONFIGS.find((o: any) => o.id === opponentId);
             if (cfg) {
-              coinsEarned = result === 'victory' ? cfg.coinsWin : cfg.coinsLoss;
+              coinsEarned = result === 'victory' ? cfg.coinsWin : 0;
               Progression.addCoins(coinsEarned);
             }
             refreshRef.current();
@@ -150,11 +233,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         });
         const g = new GameEngine(uiCallbacks);
         gameRef.current = g;
-        g.initGame(deck, cfg);
-        setScreenRef.current('game');
+        g.initGame(deck, cfg).then(() => {
+          setScreenRef.current('game');
+        });
       });
     });
   }, [uiCallbacks, loadDeck]);
+  startGameRef.current = startGame;
 
   const clearPendingDraw = useCallback(() => setPendingDraw(0), []);
 

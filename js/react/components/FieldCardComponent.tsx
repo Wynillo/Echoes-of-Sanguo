@@ -1,5 +1,5 @@
 import { attachHover } from './hoverApi.js';
-import { Card, TYPE_CSS, ATTR_CSS } from './Card.js';
+import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
 
 interface Props {
   fc: any;
@@ -9,39 +9,43 @@ interface Props {
   targetable: boolean;
   interactive: boolean;
   canAttack: boolean;
+  viewable?: boolean;
   onOwnClick?: () => void;
   onAttackerSelect?: () => void;
   onDefenderClick?: () => void;
+  onViewClick?: () => void;
   onDetail?: () => void;
 }
 
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
 
 export function FieldCardComponent({
-  fc, owner, zone, selected, targetable, interactive, canAttack,
-  onOwnClick, onAttackerSelect, onDefenderClick, onDetail,
+  fc, owner, zone, selected, targetable, interactive, canAttack, viewable,
+  onOwnClick, onAttackerSelect, onDefenderClick, onViewClick, onDetail,
 }: Props) {
   const { card } = fc;
   const isPlayer = owner === 'player';
 
   let cls: string;
   if (fc.faceDown && !isPlayer) {
-    cls = 'card field-card face-down';
+    cls = `card field-card face-down${fc.position === 'def' ? ' pos-def' : ''}`;
   } else if (fc.faceDown && isPlayer) {
-    cls = `card field-card face-down own-facedown attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`;
+    cls = `card field-card face-down own-facedown attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}${fc.position === 'def' ? ' pos-def' : ''}`;
   } else {
-    cls = `card field-card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'} pos-${fc.position}`;
+    cls = `card field-card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'} pos-${fc.position}`;
   }
   if (fc.hasAttacked && isPlayer) cls += ' exhausted';
   if (selected)    cls += ' selected';
   if (interactive) cls += ' interactive';
   if (canAttack)   cls += ' can-attack';
   if (targetable)  cls += ' targetable';
+  if (viewable)    cls += ' viewable';
 
   function handleClick() {
     if (canAttack)     { onAttackerSelect?.(); return; }
     if (interactive)   { onOwnClick?.(); return; }
-    if (targetable)    { onDefenderClick?.(); }
+    if (targetable)    { onDefenderClick?.(); return; }
+    if (viewable)      { onViewClick?.(); }
   }
 
   function handleContextMenu(e: React.MouseEvent) {

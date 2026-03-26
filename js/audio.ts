@@ -34,6 +34,7 @@ let _sfxGain: GainNode | null = null;
 
 const _bufferCache = new Map<string, AudioBuffer>();
 let _currentMusic: { source: AudioBufferSourceNode; trackGain: GainNode; id: string } | null = null;
+let _musicRequestId = 0;
 // Concurrency limiter: track active source count per SFX ID
 const _activeSfx = new Map<string, number>();
 const MAX_CONCURRENT_SFX = 3;
@@ -107,8 +108,10 @@ async function playMusic(trackId: string): Promise<void> {
     }, MUSIC_FADE_S * 1000 + 50);
   }
 
+  const requestId = ++_musicRequestId;
   const buf = await _loadBuffer(trackId);
-  if (!buf) return;
+  // Another playMusic call was made while loading — abort this one
+  if (!buf || requestId !== _musicRequestId) return;
 
   const ctx = _ensureContext();
   const trackGain = ctx.createGain();

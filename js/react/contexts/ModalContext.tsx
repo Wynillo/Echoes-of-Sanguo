@@ -3,13 +3,15 @@ import type { CardData, GameState, PromptOptions } from '../../types.js';
 
 export type ModalState =
   | null
-  | { type: 'card-action'; card: CardData; index: number; state: GameState }
-  | { type: 'card-detail'; card: CardData; fc?: any | null }
+  | { type: 'card-detail'; card: CardData; fc?: any | null; index?: number; state?: GameState; source?: 'hand' | 'field' | 'field-spell' | 'deckbuilder-collection' | 'deckbuilder-deck'; onDeckAction?: (action: 'add' | 'remove') => void }
   | { type: 'trap-prompt'; opts: PromptOptions; resolve: (v: boolean) => void }
   | { type: 'grave-select'; cards: CardData[]; resolve: (card: CardData) => void }
   | { type: 'card-list' }
   | { type: 'result'; resultType: 'victory' | 'defeat'; coinsEarned: number }
-  | { type: 'main-options' };
+  | { type: 'main-options' }
+  | { type: 'battle-log' }
+  | { type: 'coin-toss'; playerGoesFirst: boolean; resolve: () => void }
+  | { type: 'gauntlet-transition'; duelIndex: number; totalDuels: number; nextOpponentName: string; resolve: () => void };
 
 interface ModalCtx {
   modal: ModalState;

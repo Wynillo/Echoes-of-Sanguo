@@ -12,9 +12,10 @@ function getTypeLabel(card: any): string {
   return getCardTypeById(card.type)?.value ?? '';
 }
 
-/** Map CardType enum to CSS class prefix */
-function typeCss(type: number): string {
-  return getCardTypeById(type)?.key.toLowerCase() ?? 'monster';
+/** Map CardType enum to CSS class prefix — distinguishes normal vs effect monsters */
+function typeCss(card: any): string {
+  if (card.type === CardType.Monster) return card.effect ? 'effect' : 'normal';
+  return getCardTypeById(card.type)?.key.toLowerCase() ?? 'monster';
 }
 
 /** Map Attribute enum to CSS class suffix */
@@ -34,7 +35,8 @@ interface Props {
 }
 
 export function Card({ card, fc = null, dimmed = false, rotated = false, big = false, small = false, extraClass = '' }: Props) {
-  const levelStars = card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
+  const isMonLevelC = card.type === CardType.Monster || card.type === CardType.Fusion;
+  const levelStars = isMonLevelC && card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
   const typeLabel  = getTypeLabel(card);
@@ -81,7 +83,7 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
       </div>
     : <div className={`${styles.cardStats} ${styles.noStats}`} />;
 
-  const tCss = typeCss(card.type);
+  const tCss = typeCss(card);
   const aCss = attrCssKey(card.attribute);
 
   const cls = [
@@ -93,17 +95,22 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
     extraClass,
   ].filter(Boolean).join(' ');
 
-  // Small layout: only artwork area + ATK/DEF
+  // Small layout: artwork + ATK/DEF + name
   if (small) {
     return (
       <div className={cls}>
-        <div className={styles.cardArt} />
+        <div className={styles.cardArt}>
+          {raceBadge}
+        </div>
         {isMonster
           ? <div className={styles.cardStats}>
-              <span className={styles.atkVal}>ATK: {effATK}</span>
-              <span className={styles.defVal}>DEF: {effDEF}</span>
+              <span className={styles.atkVal}>{effATK}</span>
+              <span className={styles.defVal}>{effDEF}</span>
             </div>
-          : null}
+          : <div className={styles.cardStats}>
+              <span className={styles.typeLabel}>{typeLabel}</span>
+            </div>}
+        <div className={styles.cardNameSmall}>{card.name}</div>
       </div>
     );
   }
@@ -129,10 +136,14 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
 }
 
 // Re-export CSS helpers for use by other components
-export function TYPE_CSS_FN(type: number): string { return typeCss(type); }
+export function TYPE_CSS_FN(card: any): string { return typeCss(card); }
 export function ATTR_CSS_FN(attr: number | undefined): string { return attrCssKey(attr); }
 
-// Backward-compatible record-style exports (used by CollectionScreen, DeckbuilderScreen, PackOpeningScreen)
+/** Card-aware CSS class: distinguishes normal vs effect monsters */
+export function cardTypeCss(card: any): string { return typeCss(card); }
+
+// Backward-compatible record-style exports — NOTE: cannot distinguish normal/effect.
+// Prefer cardTypeCss(card) for monster cards.
 export const TYPE_CSS: Record<number, string> = new Proxy({} as Record<number, string>, {
   get(_t, prop) { return getCardTypeById(Number(prop))?.key.toLowerCase() ?? 'monster'; },
 });
@@ -142,7 +153,8 @@ export const ATTR_CSS: Record<number, string> = new Proxy({} as Record<number, s
 
 /** Pure helper used by modules that need the inner HTML string for legacy canvas/clone operations */
 export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: any = null): string {
-  const levelStars = card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
+  const isMonsterLevelH = card.type === CardType.Monster || card.type === CardType.Fusion;
+  const levelStars = isMonsterLevelH && card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
   const typeLabel  = getTypeLabel(card);

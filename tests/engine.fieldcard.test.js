@@ -52,9 +52,9 @@ describe('FieldCard', () => {
     expect(fc.card.effect.actions).toHaveLength(2);
   });
 
-  it('summonedThisTurn is true by default (summoning sickness)', () => {
+  it('summonedThisTurn is false by default (FM-style no sickness)', () => {
     const fc = new FieldCard(baseCard);
-    expect(fc.summonedThisTurn).toBe(true);
+    expect(fc.summonedThisTurn).toBe(false);
   });
 
   it('reads piercing passive flag', () => {

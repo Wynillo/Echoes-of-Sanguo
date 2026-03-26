@@ -10,9 +10,10 @@
 }
 
 .nameShort {
-  font-size: 10px; font-weight: bold; color: var(--gold-light);
+  font-size: 8px; font-weight: bold; color: var(--gold-light);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 68px;
+  min-width: 0;
+  flex: 1;
 }
 
 .attrOrb {
@@ -110,8 +111,10 @@
 .cardStats.noStats { min-height: 0; padding: 0; }
 
 /* ── Type-specific typeSubtype tints ─────────────────────────────── */
-:global(.normal-card) .typeSubtype { color: rgba(200,180,80,0.9); }
+:global(.normal-card) .typeSubtype { color: rgba(220,220,220,0.9); }
+:global(.normal-card) .cardNameSmall { color: #e8e8e8; }
 :global(.effect-card) .typeSubtype { color: #ffaa60; }
+:global(.effect-card) .cardNameSmall { color: #e0c870; }
 :global(.fusion-card) .typeSubtype { color: #cc88ff; }
 :global(.spell-card)  .typeSubtype { color: #44ddaa; }
 :global(.trap-card)   .typeSubtype { color: #ff6688; }
@@ -137,7 +140,7 @@
 :global(.opponent-side) .atkVal,
 :global(.opponent-side) .defVal       { font-size: 7px; }
 
-/* ── Small-card layout (art + ATK/DEF only) ─────────────────────── */
+/* ── Small-card layout (art + ATK/DEF + name) ───────────────────── */
 :global(.small-card) .cardArt { max-height: 80px; }
 :global(.small-card) .cardHeader { display: none; }
 :global(.small-card) .cardLevel  { display: none; }
@@ -153,11 +156,31 @@
 :global(.small-card) .defVal {
   flex: 1; text-align: center; padding: 3px 0; font-size: 9px;
 }
-:global(.opponent-side.small-card) .atkVal,
-:global(.opponent-side.small-card) .defVal { font-size: 7px; padding: 2px 0; }
+
+/* Card name shown below stats in small layout */
+.cardNameSmall {
+  font-size: 7px;
+  font-weight: bold;
+  color: var(--gold-light, #e0c870);
+  text-align: center;
+  padding: 2px 3px 3px;
+  background: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+/* Spell/Trap type label in small card stats row */
+.typeLabel {
+  flex: 1; text-align: center; padding: 3px 0; font-size: 8px;
+  color: #7090b0; font-weight: bold;
+}
+:global(.opponent-side) :global(.small-card) .atkVal,
+:global(.opponent-side) :global(.small-card) .defVal { font-size: 7px; padding: 2px 0; }
 
 /* ── Big-card overrides (180×248px) ─────────────────────────────── */
-:global(.big-card) .nameShort   { font-size: 13px; max-width: 120px; }
+:global(.big-card) .nameShort   { font-size: 11px; }
 :global(.big-card) .attrOrb     { width: 20px; height: 20px; font-size: 12px; }
 :global(.big-card) .cardLevel   { font-size: 12px; min-height: 15px; letter-spacing: -0.5px; }
 :global(.big-card) .rarityText  { font-size: 9px; }

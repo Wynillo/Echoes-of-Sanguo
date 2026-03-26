@@ -3,8 +3,10 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { Progression }    from '../../progression.js';
 import { getAllRaces, getRaceByKey } from '../../type-metadata.js';
-import { PACK_TYPES, openPack } from '../utils/pack-logic.js';
+import { PACK_TYPES, openPack, openPackage, isPackageUnlocked } from '../utils/pack-logic.js';
 import type { PackTypeInfo } from '../utils/pack-logic.js';
+import { SHOP_DATA } from '../../shop-data.js';
+import type { PackageDef } from '../../shop-data.js';
 import { Audio }               from '../../audio.js';
 import { Race } from '../../types.js';
 import type { CardData } from '../../types.js';
@@ -13,6 +15,18 @@ import styles from './ShopScreen.module.css';
 export default function ShopScreen() {
   const { navigateTo } = useScreen();
   const { coins, refresh } = useProgression();
+
+  function buyPackage(packageId: string) {
+    const pkg = SHOP_DATA.packages.find(p => p.id === packageId);
+    if (!pkg || coins < pkg.price) return;
+    if (!Progression.spendCoins(pkg.price)) return;
+    Audio.playSfx('sfx_coin');
+    const preOpen = Progression.getCollection();
+    const cards   = openPackage(packageId);
+    Progression.addCardsToCollection(cards.map((c: CardData) => c.id));
+    refresh();
+    navigateTo('pack-opening', { cards, preOpen });
+  }
 
   function buy(packType: string, race: string | null) {
     const pt = PACK_TYPES[packType];
@@ -37,7 +51,7 @@ export default function ShopScreen() {
           <span id="shop-coin-display">{coins.toLocaleString()}</span>
           <span className="coins-label">{t('common.coins')}</span>
         </div>
-        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('title')}>{t('shop.back')}</button>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('shop.back')}</button>
       </div>
 
       <div className={styles.grid}>
@@ -48,6 +62,21 @@ export default function ShopScreen() {
           );
         })}
       </div>
+
+      {SHOP_DATA.packages.length > 0 && (
+        <>
+          <h3 className={styles.sectionTitle}>{t('shop.packages_title')}</h3>
+          <div className={styles.grid}>
+            {SHOP_DATA.packages.map(pkg => {
+              const unlocked = isPackageUnlocked(pkg);
+              const affordable = coins >= pkg.price;
+              return (
+                <PackageTile key={pkg.id} pkg={pkg} unlocked={unlocked} affordable={affordable} onBuy={buyPackage} />
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -56,6 +85,36 @@ interface PackTileProps {
   pt: PackTypeInfo;
   affordable: boolean;
   onBuy: (packType: string, race: string | null) => void;
+}
+
+interface PackageTileProps {
+  pkg: PackageDef;
+  unlocked: boolean;
+  affordable: boolean;
+  onBuy: (packageId: string) => void;
+}
+
+function PackageTile({ pkg, unlocked, affordable, onBuy }: PackageTileProps) {
+  const { t } = useTranslation();
+  const canBuy = unlocked && affordable;
+
+  return (
+    <div
+      className={`${styles.packTile}${canBuy ? '' : ` ${styles.packDisabled}`}`}
+      style={{ '--pack-color': pkg.color } as React.CSSProperties}
+    >
+      <div className={styles.packIcon}>{pkg.icon}</div>
+      <div className={styles.packName}>{pkg.name}</div>
+      <div className={styles.packDesc}>{pkg.desc}</div>
+      <div className={styles.packPrice}>◈ {pkg.price.toLocaleString()}</div>
+      {!unlocked && (
+        <div className={styles.packLocked}>{t('shop.locked')}</div>
+      )}
+      <button className={styles.buyBtn} disabled={!canBuy} onClick={() => onBuy(pkg.id)}>
+        {t('shop.buy_btn')}
+      </button>
+    </div>
+  );
 }
 
 function PackTile({ pt, affordable, onBuy }: PackTileProps) {

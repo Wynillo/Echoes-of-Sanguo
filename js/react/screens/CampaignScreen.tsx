@@ -3,6 +3,7 @@ import { useTranslation }   from 'react-i18next';
 import { useScreen }        from '../contexts/ScreenContext.js';
 import { useCampaign }      from '../contexts/CampaignContext.js';
 import { useGame }           from '../contexts/GameContext.js';
+import { OPPONENT_CONFIGS }  from '../../cards.js';
 import type { CampaignNode, Chapter } from '../../campaign-types.js';
 import styles from './CampaignScreen.module.css';
 
@@ -13,6 +14,8 @@ const NODE_ICONS: Record<CampaignNode['type'], string> = {
   shop:   '\uD83D\uDED2', // shopping cart
   branch: '\u2726',   // star
 };
+
+const GAUNTLET_ICON = '\uD83D\uDD25'; // fire — used for gauntlet duel nodes
 
 export default function CampaignScreen() {
   const { t } = useTranslation();
@@ -49,11 +52,35 @@ export default function CampaignScreen() {
 
     switch (node.type) {
       case 'duel': {
-        const opponent = getOpponentForNode(node.id);
-        if (opponent) {
-          setPendingDuel({ nodeId: node.id, rewards: node.rewards });
-          startGame(opponent);
-          navigateTo('game');
+        if (node.gauntlet && node.gauntlet.length > 0) {
+          // Gauntlet: fight all opponents in sequence
+          const firstOppId = node.gauntlet[0];
+          const firstCfg = (OPPONENT_CONFIGS as import('../../types.js').OpponentConfig[]).find(c => c.id === firstOppId);
+          if (firstCfg) {
+            setPendingDuel({
+              nodeId: node.id,
+              completeOnLoss: node.completeOnLoss,
+              rewards: node.rewards,
+              postDialogue: node.dialogueKeys,
+              gauntletOpponents: node.gauntlet,
+              gauntletIndex: 0,
+            });
+            startGame(firstCfg);
+            navigateTo('game');
+          }
+        } else {
+          // Standard single duel
+          const opponent = getOpponentForNode(node.id);
+          if (opponent) {
+            setPendingDuel({
+              nodeId: node.id,
+              completeOnLoss: node.completeOnLoss,
+              rewards: node.rewards,
+              postDialogue: node.dialogueKeys,
+            });
+            startGame(opponent);
+            navigateTo('game');
+          }
         }
         break;
       }
@@ -183,8 +210,17 @@ export default function CampaignScreen() {
                 onClick={() => handleNodeClick(node)}
                 title={state === 'locked' ? t('campaign.locked') : node.id}
               >
-                <span className={styles.nodeIcon}>{NODE_ICONS[node.type]}</span>
-                <span className={labelClass}>{t(`campaign.node_${node.id}`, node.id)}</span>
+                <span className={styles.nodeIcon}>
+                  {node.gauntlet && node.gauntlet.length > 0 ? GAUNTLET_ICON : NODE_ICONS[node.type]}
+                </span>
+                <span className={labelClass}>
+                  {t(`campaign.node_${node.id}`, node.id)}
+                  {node.gauntlet && node.gauntlet.length > 0 && (
+                    <span style={{ fontSize: '0.6em', opacity: 0.7, marginLeft: 4 }}>
+                      ({node.gauntlet.length} {t('gauntlet.duels')})
+                    </span>
+                  )}
+                </span>
                 <span className={`${styles.nodeStatus} ${
                   state === 'completed' ? styles.statusCompleted :
                   state === 'available' ? styles.statusAvailable :

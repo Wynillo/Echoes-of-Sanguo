@@ -4,13 +4,13 @@
 // ============================================================
 
 import JSZip from 'jszip';
-import type { CardData, CardEffectBlock, FusionRecipe, OpponentConfig } from '../types.js';
+import type { CardData, CardEffectBlock, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from '../types.js';
 import { Race } from '../types.js';
-import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson, TcgLocaleOverrides, TcgShopJson, TcgCampaignJson, TcgLoadResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson, TcgLocaleOverrides, TcgShopJson, TcgCampaignJson, TcgLoadResult } from './types.js';
 import { validateTcgArchive } from './tcg-validator.js';
 import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
 import { deserializeEffect } from './effect-serializer.js';
-import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../cards.js';
+import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../cards.js';
 import { applyRules } from '../rules.js';
 import type { GameRules } from '../rules.js';
 import { applyTypeMeta } from '../type-metadata.js';
@@ -211,6 +211,18 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     }
   }
 
+  // Load fusion_formulas.json if present
+  const formulasFile = zip.file('fusion_formulas.json');
+  if (formulasFile) {
+    try {
+      const formulasJson = await formulasFile.async('string');
+      const formulasData: { formulas: TcgFusionFormula[] } = JSON.parse(formulasJson);
+      applyFusionFormulas(formulasData.formulas);
+    } catch {
+      result.warnings.push('fusion_formulas.json: failed to parse, skipping');
+    }
+  }
+
   // Pick the best opponent description file (same logic as card descriptions)
   const oppDescs = opponentDescriptions.get(lang) ?? (opponentDescriptions.size > 0 ? opponentDescriptions.values().next().value! : undefined);
 
@@ -250,7 +262,7 @@ function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition): CardData {
     name:        def?.name ?? `Card #${tc.id}`,
     type,
     description: def?.description ?? '',
-    level:       tc.level,
+    level:       tc.level ?? undefined,
     rarity:      intToRarity(tc.rarity),
   };
 
@@ -324,6 +336,24 @@ function applyTcgMeta(
       OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
     }
   }
+}
+
+/**
+ * Convert raw TcgFusionFormula entries to FusionFormula and populate the store.
+ * Sorted by descending priority for deterministic lookup order.
+ */
+function applyFusionFormulas(raw: TcgFusionFormula[]): void {
+  const rid = (numId: number): string => String(numId);
+  const converted: FusionFormula[] = raw.map(f => ({
+    id:         f.id,
+    comboType:  f.comboType as FusionComboType,
+    operand1:   f.operand1,
+    operand2:   f.operand2,
+    priority:   f.priority,
+    resultPool: f.resultPool.map(rid),
+  }));
+  converted.sort((a, b) => b.priority - a.priority);
+  FUSION_FORMULAS.push(...converted);
 }
 
 /**

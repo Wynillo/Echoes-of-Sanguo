@@ -45,7 +45,7 @@ export function ResultModal({ modal }: Props) {
   function backToTitle() {
     closeModal();
     refresh();
-    navigateTo('title');
+    navigateTo('save-point');
   }
 
   return (

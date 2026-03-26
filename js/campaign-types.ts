@@ -16,6 +16,8 @@ export interface CampaignNode {
   id: string;
   type: 'duel' | 'story' | 'reward' | 'shop' | 'branch';
   opponentId?: number;        // for duel nodes
+  completeOnLoss?: boolean;   // node completes even on defeat (e.g. scripted loss)
+  gauntlet?: number[];        // ordered opponent IDs for back-to-back duels (no saving between)
   position: { x: number; y: number };  // for map rendering
   unlockCondition: UnlockCondition | null;  // null = always unlocked (start node)
   rewards?: NodeRewards;
@@ -43,6 +45,11 @@ export interface CampaignProgress {
 
 export interface PendingDuel {
   nodeId: string;
+  completeOnLoss?: boolean;
   rewards?: NodeRewards;
-  postDialogue?: unknown; // DialogueScene from tcg-format/types.ts
+  postDialogue?: string[];
+  /** Ordered opponent IDs for gauntlet (back-to-back duels, no saving between). */
+  gauntletOpponents?: number[];
+  /** Index of the current opponent within gauntletOpponents (0-based). */
+  gauntletIndex?: number;
 }

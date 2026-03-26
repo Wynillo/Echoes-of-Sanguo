@@ -8,7 +8,7 @@ export type Owner        = 'player' | 'opponent';
 export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
 export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual';
-export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive';
+export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip';
 export type SpellType    = 'normal' | 'targeted' | 'fromGrave';
 
 // ── Int-based Enums (card data — stored in .tcg format) ────
@@ -34,13 +34,15 @@ export enum Race {
   Dragon      = 1,
   Spellcaster = 2,
   Warrior     = 3,
-  Fire        = 4,
+  Beast       = 4,
   Plant       = 5,
-  Stone       = 6,
-  Flyer       = 7,
-  Elf         = 8,
-  Demon       = 9,
-  Water       = 10,
+  Rock        = 6,
+  Phoenix     = 7,
+  Undead      = 8,
+  Aqua        = 9,
+  Insect      = 10,
+  Machine     = 11,
+  Pyro        = 12,
 }
 
 export enum Rarity {
@@ -82,6 +84,20 @@ export type ValueExpr =
 /** Contextual target for stat modifications */
 export type StatTarget = 'ownMonster' | 'oppMonster' | 'attacker' | 'defender' | 'summonedFC';
 
+/** Unified card filter — composable across all effects that target/select cards */
+export interface CardFilter {
+  race?:      Race;
+  attr?:      Attribute;
+  cardType?:  CardType;
+  cardId?:    string;
+  maxAtk?:    number;
+  minAtk?:    number;
+  maxDef?:    number;
+  maxLevel?:  number;
+  minLevel?:  number;
+  random?:    number;
+}
+
 /** Discriminated union of all effect actions */
 export type EffectDescriptor =
   // Damage & healing
@@ -89,22 +105,20 @@ export type EffectDescriptor =
   | { type: 'gainLP';             target: 'opponent' | 'self'; value: number | ValueExpr }
   // Card draw
   | { type: 'draw';               target: 'self' | 'opponent'; count: number }
-  // Field buffs/debuffs (onSummon monster effects)
-  | { type: 'buffAtkRace';        race: Race;      value: number }
-  | { type: 'buffAtkAttr';        attr: Attribute;  value: number }
-  | { type: 'debuffAllOpp';       atkD: number; defD: number }
-  // Temporary field-wide buffs/debuffs (spell effects)
-  | { type: 'tempBuffAtkRace';    race: Race;      value: number }
-  | { type: 'tempDebuffAllOpp';   atkD: number; defD?: number }
+  // Field-wide buffs/debuffs (unified with CardFilter)
+  | { type: 'buffField';          value: number; filter?: CardFilter }
+  | { type: 'tempBuffField';      value: number; filter?: CardFilter }
+  | { type: 'debuffField';        atkD: number; defD: number }
+  | { type: 'tempDebuffField';    atkD: number; defD?: number }
   // Bounce
   | { type: 'bounceStrongestOpp' }
   | { type: 'bounceAttacker' }
   | { type: 'bounceAllOppMonsters' }
   // Search
-  | { type: 'searchDeckToHand';   attr: Attribute }
+  | { type: 'searchDeckToHand';   filter: CardFilter }
   // Targeted stat modification (spells + traps)
   | { type: 'tempAtkBonus';       target: StatTarget; value: number }
-  | { type: 'permAtkBonus';       target: StatTarget; value: number; attrFilter?: Attribute }
+  | { type: 'permAtkBonus';       target: StatTarget; value: number; filter?: CardFilter }
   | { type: 'tempDefBonus';       target: StatTarget; value: number }
   | { type: 'permDefBonus';       target: StatTarget; value: number }
   // Graveyard
@@ -113,12 +127,33 @@ export type EffectDescriptor =
   | { type: 'cancelAttack' }
   | { type: 'destroyAttacker' }
   | { type: 'destroySummonedIf';  minAtk: number }
+  // Destruction
+  | { type: 'destroyAllOpp' }
+  | { type: 'destroyAll' }
+  | { type: 'destroyWeakestOpp' }
+  | { type: 'destroyStrongestOpp' }
+  // Graveyard & Deck manipulation
+  | { type: 'sendTopCardsToGrave';    count: number }
+  | { type: 'sendTopCardsToGraveOpp'; count: number }
+  | { type: 'salvageFromGrave';       filter: CardFilter }
+  | { type: 'recycleFromGraveToDeck'; filter: CardFilter }
+  | { type: 'shuffleGraveIntoDeck' }
+  | { type: 'shuffleDeck' }
+  | { type: 'peekTopCard' }
+  // Special Summon
+  | { type: 'specialSummonFromHand';  filter?: CardFilter }
+  // Hand manipulation
+  | { type: 'discardFromHand';    count: number }
+  | { type: 'discardOppHand';     count: number }
   // Passive flags
   | { type: 'passive_piercing' }
   | { type: 'passive_untargetable' }
   | { type: 'passive_directAttack' }
   | { type: 'passive_vsAttrBonus'; attr: Attribute; atk: number }
-  | { type: 'passive_phoenixRevival' };
+  | { type: 'passive_phoenixRevival' }
+  | { type: 'passive_indestructible' }
+  | { type: 'passive_effectImmune' }
+  | { type: 'passive_cantBeAttacked' };
 
 /** Context passed to effect implementations at runtime */
 export interface EffectContext {
@@ -174,6 +209,19 @@ export interface CardData {
 export interface FusionRecipe {
   materials: [string, string];
   result:    string;
+}
+
+// ── Type-based fusion formulas (Forbidden Memories style) ───
+
+export type FusionComboType = 'race+race' | 'race+attr' | 'attr+attr';
+
+export interface FusionFormula {
+  id:         string;
+  comboType:  FusionComboType;
+  operand1:   number;    // Race (1-12) or Attribute (1-6) enum value
+  operand2:   number;    // Race (1-12) or Attribute (1-6) enum value
+  priority:   number;    // Higher = checked first
+  resultPool: string[];  // Card IDs (string, post-loader conversion)
 }
 
 // ── AI Behavior ─────────────────────────────────────────────
@@ -232,9 +280,22 @@ export interface GameState {
   player:       PlayerState;
   opponent:     PlayerState;
   log:          string[];
+  firstTurnNoAttack?: boolean;
 }
 
 // ── UI callbacks ─────────────────────────────────────────────
+
+export interface BattleContext {
+  triggerType: string;
+  attackerName?: string;
+  attackerAtk?: number;
+  attackerCardId?: string;
+  defenderName?: string;
+  defenderDef?: number;
+  defenderAtk?: number;
+  defenderPos?: string;
+  defenderCardId?: string;
+}
 
 export interface PromptOptions {
   title:   string;
@@ -242,6 +303,7 @@ export interface PromptOptions {
   message: string;
   yes:     string;
   no:      string;
+  battleContext?: BattleContext;
 }
 
 export interface UICallbacks {
@@ -251,9 +313,13 @@ export interface UICallbacks {
   showResult?:          (result: 'victory' | 'defeat') => void;
   showActivation?:      (card: CardData, text: string) => Promise<void> | void;
   playAttackAnimation?: (atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number | null) => Promise<void>;
+  playFusionAnimation?: (owner: Owner, handIdx1: number, handIdx2: number, resultZone: number) => Promise<void>;
+  playFusionChainAnimation?: (owner: Owner, handIndices: number[], resultZone: number) => Promise<void>;
+  playVFX?:             (type: 'buff' | 'heal' | 'damage', owner: Owner, zone?: number) => Promise<void>;
   playSfx?:             (sfxId: string) => void;
   onDraw?:              (owner: Owner, count: number) => void;
   onDuelEnd?:           (result: 'victory' | 'defeat', oppId: number | null) => void;
+  showCoinToss?:        (playerGoesFirst: boolean) => Promise<void>;
 }
 
 // ── Progression ──────────────────────────────────────────────
@@ -269,7 +335,7 @@ export interface OpponentRecord {
   losses:   number;
 }
 
-// ── Forward declarations — implemented in engine.ts ──────────
+// ── Forward declarations — implemented in field.ts / engine.ts ──
 // (Used in type signatures above before the class files are loaded)
 
 export declare class FieldCard {
@@ -278,6 +344,7 @@ export declare class FieldCard {
   position:         Position;
   faceDown:         boolean;
   hasAttacked:      boolean;
+  hasFlipped:       boolean;
   summonedThisTurn: boolean;
   tempATKBonus:     number;
   tempDEFBonus:     number;
@@ -289,6 +356,9 @@ export declare class FieldCard {
   canDirectAttack:  boolean;
   vsAttrBonus:      VsAttrBonus | null;
   phoenixRevival:   boolean;
+  indestructible:   boolean;
+  effectImmune:     boolean;
+  cantBeAttacked:   boolean;
   effectiveATK():   number;
   effectiveDEF():   number;
 }
@@ -302,14 +372,18 @@ export declare class FieldSpellTrap {
 
 export declare class GameEngine {
   constructor(uiCallbacks: UICallbacks);
+  ui:      UICallbacks;
   state:   GameState;
-  initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null): void;
+  initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null): Promise<void>;
   getState(): GameState;
   addLog(msg: string): void;
   dealDamage(target: Owner, amount: number): void;
   gainLP(target: Owner, amount: number): void;
   drawCard(owner: Owner, count?: number): void;
-  specialSummonFromGrave(owner: Owner, card: CardData): boolean;
+  refillHand(owner: Owner): void;
+  specialSummon(owner: Owner, card: CardData, zone?: number): Promise<boolean>;
+  specialSummonFromGrave(owner: Owner, card: CardData): Promise<boolean>;
+  performFusionChain(owner: Owner, handIndices: number[]): Promise<boolean>;
   endTurn(): void;
   advancePhase(): void;
 }

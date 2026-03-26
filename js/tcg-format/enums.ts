@@ -10,8 +10,9 @@ import type { EffectTrigger, TrapTrigger, SpellType } from '../types.js';
 import {
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP,
   TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG_ATTR_WATER, TCG_ATTR_EARTH, TCG_ATTR_WIND,
-  TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_FIRE, TCG_RACE_PLANT,
-  TCG_RACE_STONE, TCG_RACE_FLYER, TCG_RACE_ELF, TCG_RACE_DEMON, TCG_RACE_WATER,
+  TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_BEAST, TCG_RACE_PLANT,
+  TCG_RACE_ROCK, TCG_RACE_PHOENIX, TCG_RACE_UNDEAD, TCG_RACE_AQUA, TCG_RACE_INSECT,
+  TCG_RACE_MACHINE, TCG_RACE_PYRO,
   TCG_RARITY_COMMON, TCG_RARITY_UNCOMMON, TCG_RARITY_RARE, TCG_RARITY_SUPER_RARE, TCG_RARITY_ULTRA_RARE,
 } from './types.js';
 
@@ -83,26 +84,30 @@ const RACE_TO_INT: Record<Race, number> = {
   [Race.Dragon]:      TCG_RACE_DRAGON,
   [Race.Spellcaster]: TCG_RACE_SPELLCASTER,
   [Race.Warrior]:     TCG_RACE_WARRIOR,
-  [Race.Fire]:        TCG_RACE_FIRE,
+  [Race.Beast]:       TCG_RACE_BEAST,
   [Race.Plant]:       TCG_RACE_PLANT,
-  [Race.Stone]:       TCG_RACE_STONE,
-  [Race.Flyer]:       TCG_RACE_FLYER,
-  [Race.Elf]:         TCG_RACE_ELF,
-  [Race.Demon]:       TCG_RACE_DEMON,
-  [Race.Water]:       TCG_RACE_WATER,
+  [Race.Rock]:        TCG_RACE_ROCK,
+  [Race.Phoenix]:     TCG_RACE_PHOENIX,
+  [Race.Undead]:      TCG_RACE_UNDEAD,
+  [Race.Aqua]:        TCG_RACE_AQUA,
+  [Race.Insect]:      TCG_RACE_INSECT,
+  [Race.Machine]:     TCG_RACE_MACHINE,
+  [Race.Pyro]:        TCG_RACE_PYRO,
 };
 
 const INT_TO_RACE: Record<number, Race> = {
   [TCG_RACE_DRAGON]:      Race.Dragon,
   [TCG_RACE_SPELLCASTER]: Race.Spellcaster,
   [TCG_RACE_WARRIOR]:     Race.Warrior,
-  [TCG_RACE_FIRE]:        Race.Fire,
+  [TCG_RACE_BEAST]:       Race.Beast,
   [TCG_RACE_PLANT]:       Race.Plant,
-  [TCG_RACE_STONE]:       Race.Stone,
-  [TCG_RACE_FLYER]:       Race.Flyer,
-  [TCG_RACE_ELF]:         Race.Elf,
-  [TCG_RACE_DEMON]:       Race.Demon,
-  [TCG_RACE_WATER]:       Race.Water,
+  [TCG_RACE_ROCK]:        Race.Rock,
+  [TCG_RACE_PHOENIX]:     Race.Phoenix,
+  [TCG_RACE_UNDEAD]:      Race.Undead,
+  [TCG_RACE_AQUA]:        Race.Aqua,
+  [TCG_RACE_INSECT]:      Race.Insect,
+  [TCG_RACE_MACHINE]:     Race.Machine,
+  [TCG_RACE_PYRO]:        Race.Pyro,
 };
 
 export function raceToInt(r: Race): number {
@@ -151,7 +156,7 @@ export function intToRarity(n: number): Rarity {
 // Effect triggers and trap triggers share the same string space in serialization
 
 const TRIGGER_STRINGS: ReadonlySet<string> = new Set([
-  'onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive',
+  'onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive', 'onFlip',
   'onAttack', 'onOwnMonsterAttacked', 'onOpponentSummon', 'manual',
 ]);
 

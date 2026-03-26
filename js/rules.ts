@@ -12,6 +12,8 @@ export const GAME_RULES = {
   maxDeckSize: 40,
   maxCardCopies: 3,
   drawPerTurn: 1,
+  handRefillSize: 5,
+  refillHandEnabled: true,
 };
 
 export type GameRules = typeof GAME_RULES;

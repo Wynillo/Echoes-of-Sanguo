@@ -4,10 +4,10 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB } from '../../cards.js';
-import { Card, TYPE_CSS, ATTR_CSS } from '../components/Card.js';
+import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { Race, Rarity } from '../../types.js';
-import { getAllRaces, getAllRarities, getRarityById } from '../../type-metadata.js';
+import { getAllRaces, getAllRarities, getRarityById, getRaceById } from '../../type-metadata.js';
 import type { CardData } from '../../types.js';
 import styles from './CollectionScreen.module.css';
 
@@ -42,7 +42,7 @@ export default function CollectionScreen() {
         <div className={styles.stats}>
           <span id="collection-count">{t('collection.cards_count', { owned: ownedCount, total: totalCards })}</span>
         </div>
-        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('title')}>{t('collection.back')}</button>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('collection.back')}</button>
       </div>
 
       <div className={styles.filters}>
@@ -88,7 +88,7 @@ export default function CollectionScreen() {
                 onClick={() => openModal({ type: 'card-detail', card })}
               >
                 <div
-                  className={`card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
+                  className={`card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                 >
                   <Card card={card} small />
                 </div>
@@ -101,7 +101,7 @@ export default function CollectionScreen() {
             <div key={card.id} className={`${styles.card} ${styles.unowned}`}>
               <div className={styles.unknownLabel}>???</div>
               <div className={styles.cardMeta} style={{ textAlign: 'center', opacity: 0.4 }}>
-                {t(`cards.race_${(card as any).race}`) || ''}
+                {(card as any).race ? (getRaceById((card as any).race)?.value ?? '') : ''}
               </div>
             </div>
           );
