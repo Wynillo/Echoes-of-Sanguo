@@ -14,7 +14,17 @@ import type { FieldCard } from './field.js';
 import { checkFusion, CARD_DB } from './cards.js';
 // Use import type to avoid circular dependency (engine.ts → ai-orchestrator.ts → engine.ts)
 import type { GameEngine } from './engine.js';
-import { pickSummonCandidate, decideSummonPosition } from './ai-behaviors.js';
+import {
+  pickSummonCandidate,
+  pickSmartSummonCandidate,
+  decideSummonPosition,
+  planAttacks,
+  pickEquipTarget,
+  pickDebuffTarget,
+  pickBestGraveyardMonster,
+  pickSpellBuffTarget,
+  type AttackPlan,
+} from './ai-behaviors.js';
 
 function _delay(ms: number){ return new Promise<void>(r => setTimeout(r, ms)); }
 
@@ -84,15 +94,19 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
   engine.ui.render(engine.state);
   await _delay(400);
 
-  // Try fusion chain first (FM-style: greedy 2-card + extend)
   const bh = engine._aiBehavior;
+
+  // Activate field spell first (benefits subsequent summons)
+  await _activateFieldSpells(engine);
+
+  // Try fusion chain (FM-style: greedy 2-card + extend)
   EchoesOfSanguo.log('AI', 'Main Phase – checking fusion chain...');
   if(!ai.normalSummonUsed && bh.fusionFirst){
-    const bestChain = _findBestFusionChain(ai.hand, bh.fusionMinATK);
+    const bestChain = _findSmartFusionChain(ai.hand, bh.fusionMinATK, plr.field.monsters);
     const zone = ai.field.monsters.findIndex(z => z === null);
     if(bestChain && zone !== -1){
       const names = bestChain.indices.map(i => ai.hand[i].name);
-      EchoesOfSanguo.log('AI', `Fusion chain: ${names.join(' + ')} → ${bestChain.resultName} (Zone ${zone})`);
+      EchoesOfSanguo.log('AI', `Fusion chain: ${names.join(' + ')} → ${bestChain.resultName} (ATK:${bestChain.resultATK}, Zone ${zone})`);
       await _delay(500);
       await engine.performFusionChain('opponent', bestChain.indices);
     } else {
@@ -101,22 +115,46 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
   }
 
   // Summon one monster from hand (max. 1 per turn)
-  EchoesOfSanguo.log('AI', 'Summoning monster from hand:', ai.hand.filter(c => c.type === CardType.Monster).map(c=>c.name));
+  EchoesOfSanguo.log('AI', 'Considering summon:', ai.hand.filter(c => c.type === CardType.Monster).map(c => `${c.name}(${c.atk})`));
   if(!ai.normalSummonUsed){
-    const bestIdx = pickSummonCandidate(ai.hand, bh.summonPriority);
+    // Use smart summoning for 'smart' behavior, basic for others
+    const bestIdx = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
+      ? pickSmartSummonCandidate(ai.hand, {
+          aiField: ai.field.monsters,
+          playerField: plr.field.monsters,
+          playerLP: plr.lp,
+          aiLP: ai.lp,
+        })
+      : pickSummonCandidate(ai.hand, bh.summonPriority);
+
     if(bestIdx !== -1){
       const card = ai.hand[bestIdx];
       const cardATK = card.atk ?? 0;
-      const zone = ai.field.monsters.findIndex(z => z === null);
+      const cardDEF = card.def ?? 0;
+      let zone = ai.field.monsters.findIndex(z => z === null);
+
+      // Smart: if all zones full, consider replacing weakest monster with a stronger one
+      if(zone === -1 && (bh.positionStrategy === 'smart' || bh.battleStrategy === 'smart')){
+        const replaceZone = _findWeakestMonsterZone(ai.field.monsters, cardATK);
+        if(replaceZone !== -1){
+          const weak = ai.field.monsters[replaceZone]!;
+          EchoesOfSanguo.log('AI', `Replacing weak ${weak.card.name}(${weak.effectiveATK()}) with ${card.name}(${cardATK})`);
+          ai.graveyard.push(weak.card);
+          ai.field.monsters[replaceZone] = null;
+          engine._removeEquipmentForMonster('opponent', replaceZone);
+          zone = replaceZone;
+        }
+      }
+
       if(zone === -1){
-        EchoesOfSanguo.log('AI', 'All monster zones occupied.');
+        EchoesOfSanguo.log('AI', 'All monster zones occupied, no weak monster to replace.');
       } else {
-        const plrMinVal = plr.field.monsters
+        const plrMaxATK = plr.field.monsters
           .filter(Boolean)
-          .reduce((min, fc) => Math.min(min, fc!.position==='atk' ? fc!.effectiveATK() : fc!.effectiveDEF()), Infinity);
+          .reduce((max, fc) => Math.max(max, fc!.effectiveATK()), 0);
         const playerHasMonsters = plr.field.monsters.some(Boolean);
-        const summonPos = decideSummonPosition(cardATK, plrMinVal, playerHasMonsters, bh.positionStrategy);
-        EchoesOfSanguo.log('SUMMON', `Summoning ${card.name} (ATK:${cardATK}) to zone ${zone} as ${summonPos.toUpperCase()}`);
+        const summonPos = decideSummonPosition(cardATK, cardDEF, plrMaxATK, playerHasMonsters, bh.positionStrategy);
+        EchoesOfSanguo.log('SUMMON', `Summoning ${card.name} (ATK:${cardATK}/DEF:${cardDEF}) to zone ${zone} as ${summonPos.toUpperCase()}`);
         await _delay(350);
         await engine.summonMonster('opponent', bestIdx, zone, summonPos);
         const summonedFC = ai.field.monsters[zone];
@@ -133,8 +171,32 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
     }
   }
 
-  // Activate spells — restart loop after each activation to avoid index issues
-  EchoesOfSanguo.log('AI', 'Activating spells...');
+  // Activate spells — smart ordering: buffs and damage spells
+  await _activateSpells(engine);
+}
+
+// ── Smart Spell Activation ──────────────────────────────────
+
+async function _activateFieldSpells(engine: GameEngine): Promise<void> {
+  const ai = engine.state.opponent;
+  // Activate field spells early so summons benefit from buffs
+  for (let i = 0; i < ai.hand.length; i++) {
+    const card = ai.hand[i];
+    if (card.type === CardType.Spell && card.spellType === 'field' && !ai.field.fieldSpell) {
+      EchoesOfSanguo.log('SPELL', `Activating ${card.name} (field spell – pre-summon)`);
+      await _delay(300);
+      await engine.activateFieldSpell('opponent', i);
+      break; // Only one field spell
+    }
+  }
+}
+
+async function _activateSpells(engine: GameEngine): Promise<void> {
+  const ai  = engine.state.opponent;
+  const plr = engine.state.player;
+  const bh  = engine._aiBehavior;
+
+  EchoesOfSanguo.log('AI', 'Activating spells (smart ordering)...');
   let spellActivated = true;
   while(spellActivated){
     spellActivated = false;
@@ -142,16 +204,38 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
       const card = ai.hand[i];
       if(card.type !== CardType.Spell) continue;
       let activated = false;
+
       if(card.spellType === 'normal'){
         const actions = card.effect?.actions ?? [];
         const dealsDamage = actions.some((a: any) => a.type === 'dealDamage');
         const heals = actions.some((a: any) => a.type === 'gainLP');
-        const should = dealsDamage ? plr.lp > 800 : heals ? ai.lp < 7000 : true;
+        const buffs = actions.some((a: any) =>
+          a.type === 'buffAtkAll' || a.type === 'buffAtkRace' ||
+          a.type === 'buffAtk' || a.type === 'buffField');
+        const destroys = actions.some((a: any) =>
+          a.type === 'destroyMonster' || a.type === 'destroyAll' ||
+          a.type === 'destroySpellTrap');
+
+        let should = false;
+        if (dealsDamage) {
+          // Always use damage spells — chip damage adds up
+          should = true;
+        } else if (heals) {
+          // Heal when below 60% LP or losing
+          should = ai.lp < 5000 || ai.lp < plr.lp;
+        } else if (buffs) {
+          // Use buffs when we have monsters on the field
+          should = ai.field.monsters.some(fc => fc !== null);
+        } else if (destroys) {
+          // Use destruction when opponent has monsters
+          should = plr.field.monsters.some(fc => fc !== null);
+        } else {
+          should = true; // Generic spells: always use
+        }
+
         if(should){
           EchoesOfSanguo.log('SPELL', `Activating ${card.name} (normal)`);
           await _delay(300); await engine.activateSpell('opponent', i); activated = true;
-        } else {
-          EchoesOfSanguo.log('SPELL', `${card.name}: Condition not met (plr.lp=${plr.lp}, ai.lp=${ai.lp})`);
         }
       } else if(card.spellType === 'targeted'){
         if(card.target === 'ownDarkMonster'){
@@ -159,26 +243,27 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
           if(t){
             EchoesOfSanguo.log('SPELL', `Activating ${card.name} → target: ${t.card.name}`);
             await _delay(300); await engine.activateSpell('opponent', i, t); activated = true;
-          } else {
-            EchoesOfSanguo.log('SPELL', `${card.name}: No DARK monster on the field.`);
           }
         } else if(card.target === 'ownMonster'){
-          const t = ai.field.monsters.find(m => m !== null);
-          if(t){
-            EchoesOfSanguo.log('SPELL', `Activating ${card.name} → target: ${t.card.name}`);
-            await _delay(300); await engine.activateSpell('opponent', i, t); activated = true;
+          // Smart: pick the best target, not just the first one
+          const target = pickSpellBuffTarget(ai.field.monsters, plr.field.monsters);
+          if(target){
+            EchoesOfSanguo.log('SPELL', `Activating ${card.name} → target: ${target.card.name} (smart pick)`);
+            await _delay(300); await engine.activateSpell('opponent', i, target); activated = true;
           }
         }
       } else if(card.spellType === 'field'){
+        // Already handled in _activateFieldSpells, but handle if we got a new one
         if(!ai.field.fieldSpell){
           EchoesOfSanguo.log('SPELL', `Activating ${card.name} (field spell)`);
           await _delay(300); await engine.activateFieldSpell('opponent', i); activated = true;
         }
       } else if(card.spellType === 'fromGrave'){
-        const gm = ai.graveyard.find(c => isMonsterType(c.type));
-        if(gm && ai.field.monsters.some(z=>z===null)){
-          EchoesOfSanguo.log('SPELL', `Activating ${card.name} → graveyard: ${gm.name}`);
-          await _delay(300); await engine.activateSpell('opponent', i, gm); activated = true;
+        // Smart: pick the best monster from graveyard, not just any
+        const bestGM = pickBestGraveyardMonster(ai.graveyard, plr.field.monsters);
+        if(bestGM && ai.field.monsters.some(z => z === null)){
+          EchoesOfSanguo.log('SPELL', `Activating ${card.name} → reviving ${bestGM.name} (smart pick, ATK:${bestGM.atk})`);
+          await _delay(300); await engine.activateSpell('opponent', i, bestGM); activated = true;
         }
       }
       if(activated){ spellActivated = true; break; }
@@ -203,12 +288,14 @@ async function aiPlaceTraps(engine: GameEngine): Promise<void> {
   }
 }
 
-// ── Equipment ─────────────────────────────────────────────
+// ── Equipment (Smart) ───────────────────────────────────────
 
 async function aiEquipCards(engine: GameEngine): Promise<void> {
   const ai  = engine.state.opponent;
   const plr = engine.state.player;
-  EchoesOfSanguo.log('AI', 'Equipping cards...');
+  const bh  = engine._aiBehavior;
+  EchoesOfSanguo.log('AI', 'Equipping cards (smart targeting)...');
+
   let equipped = true;
   while (equipped) {
     equipped = false;
@@ -222,29 +309,29 @@ async function aiEquipCards(engine: GameEngine): Promise<void> {
       const isNegative = atkB < 0 || defB < 0;
 
       if (isPositive) {
-        // Equip to own strongest monster
-        let best: { zone: number; atk: number } | null = null;
-        ai.field.monsters.forEach((fc, z) => {
-          if (!fc || fc.faceDown) return;
-          if (!best || fc.effectiveATK() > best.atk) best = { zone: z, atk: fc.effectiveATK() };
-        });
-        if (best) {
-          EchoesOfSanguo.log('EQUIP', `Equipping ${card.name} to own monster zone ${best.zone}`);
+        // Smart: equip to the monster that benefits most
+        const targetZone = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
+          ? pickEquipTarget(ai.field.monsters, plr.field.monsters, atkB, defB)
+          : _findStrongestMonsterZone(ai.field.monsters);
+
+        if (targetZone !== -1) {
+          const fc = ai.field.monsters[targetZone]!;
+          EchoesOfSanguo.log('EQUIP', `Equipping ${card.name} (+${atkB}ATK/+${defB}DEF) to ${fc.card.name} (zone ${targetZone})`);
           await _delay(300);
-          await engine.equipCard('opponent', i, 'opponent', best.zone);
+          await engine.equipCard('opponent', i, 'opponent', targetZone);
           equipped = true; break;
         }
       } else if (isNegative) {
-        // Equip to opponent's strongest monster (debuff)
-        let best: { zone: number; atk: number } | null = null;
-        plr.field.monsters.forEach((fc, z) => {
-          if (!fc || fc.faceDown) return;
-          if (!best || fc.effectiveATK() > best.atk) best = { zone: z, atk: fc.effectiveATK() };
-        });
-        if (best) {
-          EchoesOfSanguo.log('EQUIP', `Equipping ${card.name} to player monster zone ${best.zone} (debuff)`);
+        // Smart: debuff the biggest threat
+        const targetZone = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
+          ? pickDebuffTarget(plr.field.monsters, atkB)
+          : _findStrongestMonsterZone(plr.field.monsters);
+
+        if (targetZone !== -1) {
+          const fc = plr.field.monsters[targetZone]!;
+          EchoesOfSanguo.log('EQUIP', `Debuffing ${fc.card.name} with ${card.name} (${atkB}ATK/${defB}DEF) at zone ${targetZone}`);
           await _delay(300);
-          await engine.equipCard('opponent', i, 'player', best.zone);
+          await engine.equipCard('opponent', i, 'player', targetZone);
           equipped = true; break;
         }
       }
@@ -252,7 +339,7 @@ async function aiEquipCards(engine: GameEngine): Promise<void> {
   }
 }
 
-// ── Battle Phase ─────────────────────────────────────────────
+// ── Battle Phase (Smart) ────────────────────────────────────
 
 async function aiBattlePhase(engine: GameEngine): Promise<boolean> {
   const ai  = engine.state.opponent;
@@ -260,47 +347,80 @@ async function aiBattlePhase(engine: GameEngine): Promise<boolean> {
 
   engine.state.phase = 'battle';
   engine.addLog('--- Opponent Battle Phase ---');
-  EchoesOfSanguo.log('PHASE', `Battle Phase – AI field: [${ai.field.monsters.filter((fc): fc is FieldCard => fc !== null).map(fc=>`${fc.card.name}(${fc.effectiveATK()})`).join(', ')}]`);
-  EchoesOfSanguo.log('PHASE', `Player field: [${plr.field.monsters.filter((fc): fc is FieldCard => fc !== null).map(fc=>`${fc.card.name}(${fc.position==='atk'?fc.effectiveATK():fc.effectiveDEF()})`).join(', ')}]`);
+  EchoesOfSanguo.log('PHASE', `Battle Phase – AI field: [${ai.field.monsters.filter((fc): fc is FieldCard => fc !== null).map(fc=>`${fc.card.name}(ATK:${fc.effectiveATK()})`).join(', ')}]`);
+  EchoesOfSanguo.log('PHASE', `Player field: [${plr.field.monsters.filter((fc): fc is FieldCard => fc !== null).map(fc=>`${fc.card.name}(${fc.position==='atk'?'ATK:'+fc.effectiveATK():'DEF:'+fc.effectiveDEF()})`).join(', ')}] LP:${plr.lp}`);
   engine.ui.render(engine.state);
   await _delay(500);
 
-  const aiMonsters  = ai.field.monsters;
-  const plrMonsters = plr.field.monsters;
+  // Use the smart attack planner to determine optimal attack sequence
+  const attackPlan = planAttacks(ai.field.monsters, plr.field.monsters, plr.lp, engine._aiBehavior);
 
-  for(let az = 0; az < 5; az++){
-    const atk = aiMonsters[az];
-    if(!atk){ continue; }
-    if(atk.position !== 'atk'){ EchoesOfSanguo.log('AI', `Zone ${az}: ${atk.card.name} is in DEF mode – skipping`); continue; }
-    if(atk.hasAttacked){       EchoesOfSanguo.log('AI', `Zone ${az}: ${atk.card.name} has already attacked`);      continue; }
-    if(atk.summonedThisTurn){  EchoesOfSanguo.log('AI', `Zone ${az}: ${atk.card.name} was just summoned – skipping`); continue; }
+  if (attackPlan.length > 0) {
+    EchoesOfSanguo.log('AI', `Attack plan: ${attackPlan.length} attacks planned`);
+  }
+
+  for (const plan of attackPlan) {
+    const atk = ai.field.monsters[plan.attackerZone];
+    if (!atk) continue; // Monster may have been destroyed by a trap
+    if (atk.hasAttacked) continue;
+    if (atk.position !== 'atk') continue;
+
     await _delay(500);
 
-    // Recalculate each iteration in case earlier attacks destroyed monsters
-    const plrHasMonsters = plrMonsters.some(m => m !== null);
-
-    // canDirectAttack monsters bypass the normal "player has monsters" check
-    if(!plrHasMonsters || atk.canDirectAttack){
-      EchoesOfSanguo.log('BATTLE', `${atk.card.name} → Direct attack!${atk.canDirectAttack ? ' (canDirectAttack)' : ''}`);
-      await engine.attackDirect('opponent', az);
-      if(engine.checkWin()) return true;
-    } else {
-      const battleTarget = aiBattlePickTarget(atk, plrMonsters, engine._aiBehavior);
-      if(battleTarget !== -1){
-        const def = plrMonsters[battleTarget]!;
-        const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
-        EchoesOfSanguo.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → attacks ${def.card.name}(${defVal})`);
-        await engine.attack('opponent', az, battleTarget);
-        if(engine.checkWin()) return true;
+    if (plan.targetZone === -1) {
+      // Direct attack
+      const plrHasMonsters = plr.field.monsters.some(m => m !== null);
+      if (!plrHasMonsters || atk.canDirectAttack) {
+        EchoesOfSanguo.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → Direct attack!${atk.canDirectAttack ? ' (canDirectAttack)' : ''}`);
+        await engine.attackDirect('opponent', plan.attackerZone);
+        if (engine.checkWin()) return true;
       } else {
-        EchoesOfSanguo.log('BATTLE', `${atk.card.name}: no favorable target – skipping`);
+        // Plan said direct but player now has monsters — find a target instead
+        const fallbackTarget = _findBestAvailableTarget(atk, plr.field.monsters, engine._aiBehavior);
+        if (fallbackTarget !== -1) {
+          const def = plr.field.monsters[fallbackTarget]!;
+          EchoesOfSanguo.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → ${def.card.name} (fallback target)`);
+          await engine.attack('opponent', plan.attackerZone, fallbackTarget);
+          if (engine.checkWin()) return true;
+        }
+      }
+    } else {
+      // Targeted attack
+      const def = plr.field.monsters[plan.targetZone];
+      if (def) {
+        const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
+        EchoesOfSanguo.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → ${def.card.name}(${def.position==='atk'?'ATK':'DEF'}:${defVal})`);
+        await engine.attack('opponent', plan.attackerZone, plan.targetZone);
+        if (engine.checkWin()) return true;
+      } else {
+        // Target already destroyed — go direct if possible
+        const plrHasMonsters = plr.field.monsters.some(m => m !== null);
+        if (!plrHasMonsters) {
+          EchoesOfSanguo.log('BATTLE', `${atk.card.name} → target destroyed, going direct!`);
+          await engine.attackDirect('opponent', plan.attackerZone);
+          if (engine.checkWin()) return true;
+        } else {
+          // Find another valid target
+          const altTarget = _findBestAvailableTarget(atk, plr.field.monsters, engine._aiBehavior);
+          if (altTarget !== -1) {
+            const altDef = plr.field.monsters[altTarget]!;
+            EchoesOfSanguo.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → ${altDef.card.name} (retarget)`);
+            await engine.attack('opponent', plan.attackerZone, altTarget);
+            if (engine.checkWin()) return true;
+          }
+        }
       }
     }
   }
   return false;
 }
 
-// ── Battle Target Picking ────────────────────────────────────
+// ── Battle Target Picking (kept for fallback/retarget) ──────
+
+/** Pick the best available attack target. Returns zone index or -1. */
+function _findBestAvailableTarget(atk: FieldCard, plrMonsters: Array<FieldCard | null>, behavior: Required<AIBehavior>): number {
+  return aiBattlePickTarget(atk, plrMonsters, behavior);
+}
 
 /** Pick the best attack target based on the active battle strategy. Returns zone index or -1. */
 export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard | null>, behavior: Required<AIBehavior>): number {
@@ -311,10 +431,13 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     let bestTarget = -1, bestScore = -Infinity;
     for (let dz = 0; dz < 5; dz++) {
       const def = plrMonsters[dz];
-      if (!def) continue;
+      if (!def || def.cantBeAttacked) continue;
       const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
       if (atk.effectiveATK() > defVal) {
-        if (defVal > bestScore) { bestScore = defVal; bestTarget = dz; }
+        // Prefer destroying effect monsters and high-ATK threats
+        let score = defVal;
+        if (def.card.effect) score += 500;
+        if (score > bestScore) { bestScore = score; bestTarget = dz; }
       }
     }
     if (bestTarget !== -1) return bestTarget;
@@ -322,47 +445,66 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     let weakest = -1, weakVal = Infinity;
     for (let dz = 0; dz < 5; dz++) {
       const def = plrMonsters[dz];
-      if (!def) continue;
+      if (!def || def.cantBeAttacked) continue;
       const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
       if (defVal < weakVal) { weakVal = defVal; weakest = dz; }
     }
     return weakest;
   }
 
-  // 'smart' and 'conservative' both start with: destroy strongest possible
+  // 'smart' and 'conservative': destroy strongest possible, considering threat level
   let bestTarget = -1, bestScore = -Infinity;
   for (let dz = 0; dz < 5; dz++) {
     const def = plrMonsters[dz];
-    if (!def) continue;
+    if (!def || def.cantBeAttacked) continue;
     const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
     if (atk.effectiveATK() > defVal) {
-      if (defVal > bestScore) { bestScore = defVal; bestTarget = dz; }
+      let score = defVal;
+      // Prioritize effect monsters — they're dangerous
+      if (def.card.effect) score += 500;
+      // Prioritize ATK-mode monsters (deal LP damage)
+      if (def.position === 'atk') score += 200;
+      // Bonus for indestructible check
+      if (def.indestructible) score = -Infinity;
+      if (score > bestScore) { bestScore = score; bestTarget = dz; }
     }
   }
   if (bestTarget !== -1) return bestTarget;
 
-  if (strategy === 'conservative') {
-    // Only guaranteed destroys — nothing else
-    return -1;
-  }
+  if (strategy === 'conservative') return -1;
 
-  // 'smart': also attack DEF-position targets safely (no LP loss)
-  let safeTarget = -1, safeVal = Infinity;
+  // 'smart': also attack DEF-position targets safely, prefer face-down (reveal them)
+  let safeTarget = -1, safeScore = -Infinity;
   for (let dz = 0; dz < 5; dz++) {
     const def = plrMonsters[dz];
-    if (!def || def.position !== 'def') continue;
+    if (!def || def.cantBeAttacked || def.position !== 'def') continue;
     const defVal = def.effectiveDEF();
-    if (atk.effectiveATK() >= defVal && defVal < safeVal) { safeVal = defVal; safeTarget = dz; }
+    if (atk.effectiveATK() >= defVal) {
+      let score = 1000 - defVal; // prefer weaker DEF (easier kill)
+      // Face-down monsters are worth revealing
+      if (def.faceDown && atk.effectiveATK() >= 1500) score += 300;
+      if (score > safeScore) { safeScore = score; safeTarget = dz; }
+    }
   }
   return safeTarget;
 }
 
-// ── AI Fusion Chain (greedy 2-card + extend) ─────────────
+// ── AI Fusion Chain (board-aware) ───────────────────────────
 
-function _findBestFusionChain(hand: CardData[], minATK: number): { indices: number[]; resultName: string } | null {
+function _findSmartFusionChain(
+  hand: CardData[],
+  minATK: number,
+  plrMonsters: Array<FieldCard | null>,
+): { indices: number[]; resultName: string; resultATK: number } | null {
+  // Calculate player's strongest monster to know what we need to beat
+  const plrMaxATK = plrMonsters
+    .filter((fc): fc is FieldCard => fc !== null)
+    .reduce((max, fc) => Math.max(max, fc.effectiveATK()), 0);
+
   let bestChain: number[] | null = null;
-  let bestATK = -1;
+  let bestScore = -Infinity;
   let bestName = '';
+  let bestATK = 0;
 
   // Try all 2-card starting pairs
   for (let i = 0; i < hand.length; i++) {
@@ -408,14 +550,64 @@ function _findBestFusionChain(hand: CardData[], minATK: number): { indices: numb
         }
       }
 
-      if (currentATK > bestATK) {
-        bestATK = currentATK;
+      // Score the fusion result considering board state
+      let score = currentATK;
+
+      // Big bonus if the fusion can beat the player's strongest monster
+      if (currentATK > plrMaxATK && plrMaxATK > 0) score += 2000;
+
+      // Bonus for effect on the fusion result
+      const fusionCard = CARD_DB[currentId];
+      if (fusionCard?.effect) score += 500;
+
+      // Slight penalty for using too many cards (card advantage)
+      score -= (chain.length - 2) * 100;
+
+      if (score > bestScore) {
+        bestScore = score;
         bestChain = chain;
         bestName = CARD_DB[currentId]?.name ?? '?';
+        bestATK = currentATK;
       }
     }
   }
 
   if (!bestChain || bestATK < minATK) return null;
-  return { indices: bestChain, resultName: bestName };
+  return { indices: bestChain, resultName: bestName, resultATK: bestATK };
+}
+
+// ── Helper: Find weakest monster zone for replacement ───────
+
+function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementATK: number): number {
+  let weakestZone = -1;
+  let weakestATK = Infinity;
+
+  for (let z = 0; z < monsters.length; z++) {
+    const fc = monsters[z];
+    if (!fc) continue;
+    const atk = fc.effectiveATK();
+    // Only replace if the new monster is significantly stronger (at least 500 ATK more)
+    if (atk < weakestATK && replacementATK >= atk + 500) {
+      weakestATK = atk;
+      weakestZone = z;
+    }
+  }
+  return weakestZone;
+}
+
+// ── Helper: Find strongest monster zone ─────────────────────
+
+function _findStrongestMonsterZone(monsters: Array<FieldCard | null>): number {
+  let bestZone = -1;
+  let bestATK = -1;
+
+  for (let z = 0; z < monsters.length; z++) {
+    const fc = monsters[z];
+    if (!fc || fc.faceDown) continue;
+    if (fc.effectiveATK() > bestATK) {
+      bestATK = fc.effectiveATK();
+      bestZone = z;
+    }
+  }
+  return bestZone;
 }
