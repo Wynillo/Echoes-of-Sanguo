@@ -93,9 +93,7 @@ export const Progression = (() => {
       // Set version stamp if missing (saves from before v1)
       if (!localStorage.getItem(KEYS.version)) _save(KEYS.version, 1);
 
-      // v1 → v2: card IDs changed from string format ("M001") to numeric strings ("1").
-      // Old IDs are unresolvable without the removed id_migration.json, so reset
-      // collection and deck if old-format IDs are detected.
+      // v1 → v2: reset collection and deck if old-format IDs are detected.
       const savedVersion = _load(KEYS.version, 0, v => typeof v === 'number');
       if (savedVersion < 2) {
         const col = _load(KEYS.collection, [], v => Array.isArray(v)) as Array<{ id: string }>;
