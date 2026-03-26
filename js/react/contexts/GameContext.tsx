@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useRef, useCallback, useMemo } from 'react';
 import type { GameState, UICallbacks, OpponentConfig, CardData } from '../../types.js';
+import type { GameEngine as GameEngineType } from '../../engine.js';
 import { useModal } from './ModalContext.js';
 import { useSelection } from './SelectionContext.js';
 import { useProgression } from './ProgressionContext.js';
@@ -9,7 +10,7 @@ import { Audio } from '../../audio.js';
 
 interface GameCtx {
   gameState:          GameState | null;
-  gameRef:            React.MutableRefObject<any>;
+  gameRef:            React.MutableRefObject<GameEngineType | null>;
   logEntries:         string[];
   pendingDraw:        number;
   lastOpponent:       OpponentConfig | null;
@@ -29,7 +30,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [pendingDraw,  setPendingDraw]  = useState(0);
   const [lastOpponent, setLastOpponent] = useState<OpponentConfig | null>(null);
 
-  const gameRef = useRef<any>(null);
+  const gameRef = useRef<GameEngineType | null>(null);
 
   const { openModal }     = useModal();
   const { resetSel }      = useSelection();
@@ -75,9 +76,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const pending = pendingDuelRef.current;
       if (pending) {
         setPendingDuelRef.current(null);
-        import('../../progression.js').then(({ Progression }) => {
-          Progression.setNodeStatus(pending.nodeId, result === 'victory' ? 'complete' : 'available');
+        Promise.all([
+          import('../../progression.js'),
+          import('../../campaign-store.js'),
+        ]).then(([{ Progression }, { getNode }]) => {
           if (result === 'victory') {
+            if (getNode(pending.nodeId)) {
+              Progression.markNodeComplete(pending.nodeId);
+            } else {
+              console.warn(`[GameContext] Campaign node "${pending.nodeId}" not found in campaign data — skipping markNodeComplete.`);
+            }
             if (pending.rewards) {
               if (pending.rewards.coins) Progression.addCoins(pending.rewards.coins);
               if (pending.rewards.cards?.length) Progression.addCardsToCollection(pending.rewards.cards);
@@ -94,14 +102,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           } else {
             navigateToRef.current('campaign');
           }
-        });
+        }).catch(e => console.error('[GameContext] Failed to apply campaign duel result:', e));
         return;
       }
 
       // Standard (non-campaign) duel flow
       let coinsEarned = 0;
       if (opponentId) {
-        import('../../cards.js').then(({ OPPONENT_CONFIGS }) => {
+        import('../../cards.js').then(({ OPPONENT_CONFIGS }) =>
           import('../../progression.js').then(({ Progression }) => {
             Progression.recordDuelResult(opponentId, result === 'victory');
             const cfg = OPPONENT_CONFIGS.find((o: any) => o.id === opponentId);
@@ -111,8 +119,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             }
             refreshRef.current();
             openModalRef.current({ type: 'result', resultType: result, coinsEarned });
-          });
-        });
+          })
+        ).catch(e => console.error('[GameContext] Failed to apply standard duel result:', e));
       } else {
         openModalRef.current({ type: 'result', resultType: result, coinsEarned: 0 });
       }
@@ -129,12 +137,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     Promise.all([
       import('../../engine.js'),
       import('../../cards.js'),
-    ]).then(([{ GameEngine }, { PLAYER_DECK_IDS }]) => {
+    ]).then(([{ GameEngine }, { PLAYER_DECK_IDS, CARD_DB }]) => {
       loadDeck();
       // Read deck from Progression to ensure it's fresh
       import('../../progression.js').then(({ Progression }) => {
         const saved = Progression.getDeck();
-        const deck = (saved && saved.length > 0) ? saved : [...PLAYER_DECK_IDS];
+        const rawIds = (saved && saved.length > 0) ? saved : [...PLAYER_DECK_IDS];
+        // Strip stale or invalid card IDs so makeDeck() never crashes
+        const deck = rawIds.filter(id => {
+          if (!CARD_DB[id]) { console.warn(`[startGame] Removed unknown card ID "${id}" from deck.`); return false; }
+          return true;
+        });
         const g = new GameEngine(uiCallbacks);
         gameRef.current = g;
         g.initGame(deck, cfg);

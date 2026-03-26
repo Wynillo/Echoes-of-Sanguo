@@ -70,7 +70,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
 
   const onSpellTargetSelect = useCallback((zone: number) => {
     const game = gameRef.current;
-    if (!game || selMode !== 'spell-target') return;
+    if (!game || selMode !== 'spell-target' || sel.spellHandIndex === null) return;
     const target = player.field.monsters[zone];
     if (!target) return;
     game.activateSpell('player', sel.spellHandIndex, target);

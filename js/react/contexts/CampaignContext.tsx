@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import type { CampaignData, CampaignProgress, CampaignNode } from '../../campaign-types.js';
+import type { CampaignData, CampaignProgress, CampaignNode, PendingDuel } from '../../campaign-types.js';
 import { CAMPAIGN_DATA, isNodeUnlocked as storeIsNodeUnlocked, getNode, hasCampaignData } from '../../campaign-store.js';
 import { Progression } from '../../progression.js';
 import { useProgression } from './ProgressionContext.js';
@@ -13,6 +13,8 @@ interface CampaignCtx {
   completeNode: (nodeId: string) => void;
   hasCampaign: boolean;
   getOpponentForNode: (nodeId: string) => OpponentConfig | undefined;
+  pendingDuel: PendingDuel | null;
+  setPendingDuel: (d: PendingDuel | null) => void;
 }
 
 const CampaignContext = createContext<CampaignCtx>({
@@ -22,10 +24,13 @@ const CampaignContext = createContext<CampaignCtx>({
   completeNode: () => {},
   hasCampaign: false,
   getOpponentForNode: () => undefined,
+  pendingDuel: null,
+  setPendingDuel: () => {},
 });
 
 export function CampaignProvider({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState<CampaignProgress>(Progression.getCampaignProgress());
+  const [pendingDuel, setPendingDuel] = useState<PendingDuel | null>(null);
   const { refresh } = useProgression();
 
   // Re-read campaign data on mount (it may have been loaded after initial render)
@@ -68,8 +73,8 @@ export function CampaignProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
 
   const value = useMemo(
-    () => ({ campaignData, progress, isNodeUnlocked: isNodeUnlockedFn, completeNode, hasCampaign, getOpponentForNode }),
-    [campaignData, progress, isNodeUnlockedFn, completeNode, hasCampaign, getOpponentForNode],
+    () => ({ campaignData, progress, isNodeUnlocked: isNodeUnlockedFn, completeNode, hasCampaign, getOpponentForNode, pendingDuel, setPendingDuel }),
+    [campaignData, progress, isNodeUnlockedFn, completeNode, hasCampaign, getOpponentForNode, pendingDuel],
   );
 
   return (

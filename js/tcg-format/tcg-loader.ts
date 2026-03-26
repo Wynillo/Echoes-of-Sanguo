@@ -69,11 +69,14 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     }
   }
   if (meta !== undefined) {
-    const metaVersion = (meta as any)?.version ?? 0;
+    const metaVersion = (meta as any)?.version;
+    // Only reject if the archive explicitly declares an incompatible version number.
+    // A missing version field is treated as compatible (pre-versioning archives).
     if (typeof metaVersion === 'number' && metaVersion !== SUPPORTED_TCG_VERSION) {
-      console.warn(
-        `[TCG] Format version mismatch: archive has v${metaVersion}, ` +
-        `loader expects v${SUPPORTED_TCG_VERSION}. Some cards may fail to load.`
+      throw new Error(
+        `TCG format version mismatch: archive is v${metaVersion}, ` +
+        `loader expects v${SUPPORTED_TCG_VERSION}. ` +
+        `Please regenerate base.tcg with \`npm run generate:tcg\`.`
       );
     }
   }
@@ -232,7 +235,11 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
 function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition): CardData {
   let effect: CardEffectBlock | undefined;
   if (tc.effect) {
-    effect = deserializeEffect(tc.effect);
+    try {
+      effect = deserializeEffect(tc.effect);
+    } catch (e) {
+      console.warn(`[TCG] Card #${tc.id} (${def?.name ?? 'unknown'}): failed to deserialize effect — effect disabled. ${e instanceof Error ? e.message : e}`);
+    }
   }
 
   const hasEffect = !!tc.effect;

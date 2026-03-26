@@ -13,7 +13,8 @@ export type Screen =
   | 'collection'
   | 'deckbuilder'
   | 'save-point'
-  | 'campaign';
+  | 'campaign'
+  | 'dialogue';
 
 interface ScreenCtx {
   screen: Screen;
@@ -40,17 +41,21 @@ const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
 export function ScreenProvider({ children }: { children: React.ReactNode }) {
   const [screen, setScreen] = useState<Screen>('press-start');
   const [screenData, setScreenData] = useState<Record<string, unknown> | null>(null);
+  // Track the active transition tween to kill it on rapid re-navigation
+  let _transitionTween: gsap.core.Tween | null = null;
 
   function navigateTo(s: Screen, data?: Record<string, unknown>) {
     const overlay = document.getElementById('screen-transition-overlay');
     if (!overlay) { setScreenData(data ?? null); setScreen(s); playScreenMusic(s); return; }
-    gsap.to(overlay, {
+    // Kill any in-flight transition to prevent stacking
+    if (_transitionTween) { _transitionTween.kill(); gsap.set(overlay, { opacity: 0 }); }
+    _transitionTween = gsap.to(overlay, {
       opacity: 1, duration: 0.18, ease: 'none',
       onComplete() {
         setScreenData(data ?? null);
         setScreen(s);
         playScreenMusic(s);
-        gsap.to(overlay, { opacity: 0, duration: 0.28, delay: 0.05, ease: 'none' });
+        _transitionTween = gsap.to(overlay, { opacity: 0, duration: 0.28, delay: 0.05, ease: 'none' });
       },
     });
   }

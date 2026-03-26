@@ -41,9 +41,13 @@ function resolveStatTarget(target: StatTarget, ctx: EffectContext): FieldCard | 
 
 // ── Effect Implementations ──────────────────────────────────
 
-type EffectImpl = (desc: any, ctx: EffectContext) => EffectSignal;
+// Public API type — call sites receive EffectDescriptor (no `any`)
+export type EffectImpl = (desc: EffectDescriptor, ctx: EffectContext) => EffectSignal;
+// Internal type — allows handlers to declare specific desc subtypes while still
+// being assignable to the Record annotation (ctx stays typed).
+type InternalImpl = (desc: any, ctx: EffectContext) => EffectSignal;
 
-const IMPL: Record<string, EffectImpl> = {
+const IMPL: Record<string, InternalImpl> = {
 
   dealDamage(desc: { target: 'opponent' | 'self'; value: ValueExpr }, ctx) {
     const amount = resolveValue(desc.value, ctx);
@@ -117,7 +121,7 @@ const IMPL: Record<string, EffectImpl> = {
     const monsters = st[opp].field.monsters;
     let strongest: number | null = null;
     monsters.forEach((fm, i) => {
-      if (!fm) return;
+      if (!fm || fm.cannotBeTargeted) return;
       if (strongest === null || fm.effectiveATK() > monsters[strongest]!.effectiveATK()) strongest = i;
     });
     if (strongest !== null && monsters[strongest]) {
@@ -222,7 +226,9 @@ const IMPL: Record<string, EffectImpl> = {
 
 // ── Public Registry ─────────────────────────────────────────
 
-export const EFFECT_REGISTRY = new Map<string, EffectImpl>(Object.entries(IMPL));
+export const EFFECT_REGISTRY = new Map<string, EffectImpl>(
+  Object.entries(IMPL) as [string, EffectImpl][],
+);
 
 /** Register a custom effect type (for mods) */
 export function registerEffect(type: string, impl: EffectImpl): void {
@@ -238,6 +244,8 @@ export function executeEffectBlock(block: CardEffectBlock, ctx: EffectContext): 
     const impl = EFFECT_REGISTRY.get(action.type);
     if (impl) {
       Object.assign(signal, impl(action, ctx));
+    } else {
+      console.warn(`[EffectRegistry] No handler for effect type: "${action.type}" — skipping.`);
     }
   }
   return signal;

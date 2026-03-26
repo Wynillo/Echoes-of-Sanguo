@@ -640,7 +640,12 @@ export class GameEngine {
   _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): EffectContext {
     const ctx: EffectContext = { engine: this, owner };
     if(targetInfo instanceof FieldCard){
-      ctx.targetFC = targetInfo;
+      if(targetInfo.cannotBeTargeted){
+        EchoesOfSanguo.log('EFFECT', `${targetInfo.card.name} cannot be targeted by effects – target ignored.`, '#fa0');
+        this.addLog(`${targetInfo.card.name} cannot be targeted by effects!`);
+      } else {
+        ctx.targetFC = targetInfo;
+      }
     } else if(targetInfo && typeof targetInfo === 'object' && 'id' in targetInfo){
       ctx.targetCard = targetInfo as CardData;
     }
@@ -776,7 +781,7 @@ export class GameEngine {
     await this._delay(300);
 
     this._resetMonsterFlags('opponent');
-    while(ai.hand.length > 8) ai.hand.shift();
+    while(ai.hand.length > GAME_RULES.handLimitEnd) ai.hand.shift();
 
     this.state.activePlayer = 'player';
     this.state.phase = 'main';

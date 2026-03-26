@@ -15,6 +15,7 @@ export function CardActionMenu({ modal }: Props) {
   const { t }                 = useTranslation();
 
   const game  = gameRef.current;
+  if (!game) return null;
   const phase = state.phase;
   const isMon = isMonsterType(card.type);
   const isSp  = card.type === CardType.Spell;

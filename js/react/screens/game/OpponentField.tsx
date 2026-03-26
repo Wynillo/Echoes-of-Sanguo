@@ -24,7 +24,7 @@ export function OpponentField() {
 
   const onDefenderSelect = useCallback((zone: number) => {
     const game = gameRef.current;
-    if (!game || selMode !== 'attack') return;
+    if (!game || selMode !== 'attack' || sel.attackerZone === null) return;
     game.attack('player', sel.attackerZone, zone);
     resetSel();
   }, [gameRef, selMode, sel.attackerZone, resetSel]);

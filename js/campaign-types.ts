@@ -40,3 +40,9 @@ export interface CampaignProgress {
   completedNodes: string[];
   currentChapter: string;
 }
+
+export interface PendingDuel {
+  nodeId: string;
+  rewards?: NodeRewards;
+  postDialogue?: unknown; // DialogueScene from tcg-format/types.ts
+}
