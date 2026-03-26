@@ -7,7 +7,8 @@
     "back_main": "← Hauptmenü",
     "back": "← Zurück",
     "coins": "Jade-Münzen",
-    "cards": "Karten"
+    "cards": "Karten",
+    "load_more": "{{count}} weitere anzeigen"
   },
   "title": {
     "subtitle": "Wolong's Awakening",

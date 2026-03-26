@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
@@ -27,10 +27,20 @@ export default function DeckbuilderScreen() {
   const [raceFilter, setRaceFilter]           = useState<'all' | Race>('all');
   const [rarityFilter, setRarityFilter]       = useState<'all' | Rarity>('all');
   const [nameSearch, setNameSearch]           = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [viewMode, setViewMode]               = useState<ViewMode>('small');
   const [panelExpanded, setPanelExpanded]     = useState(false);
   const [toast, setToast]                     = useState(false);
+  const [saveError, setSaveError]             = useState(false);
+  const [visibleCount, setVisibleCount]       = useState(100);
   const [seenCards, setSeenCards]             = useState<Set<string>>(() => Progression.getSeenCards());
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (debounceRef.current !== null) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(nameSearch), 200);
+    return () => { if (debounceRef.current !== null) clearTimeout(debounceRef.current); };
+  }, [nameSearch]);
 
   const TYPE_FILTERS: { key: typeof typeFilter; label: string }[] = [
     { key: 'all',     label: t('deckbuilder.type_all') },
@@ -60,18 +70,23 @@ export default function DeckbuilderScreen() {
     return map;
   }, [currentDeck]);
 
-  const allCards = useMemo(() => (Object.values(CARD_DB) as CardData[]).filter(c =>
-    c.type !== CardType.Fusion &&
-    (!ownedIds || ownedIds.has(c.id)) &&
-    (typeFilter === 'all'
-      || (typeFilter === 'monster' && c.type === CardType.Monster && !c.effect)
-      || (typeFilter === 'effect'  && c.type === CardType.Monster && !!c.effect)
-      || (typeFilter === 'spell'   && c.type === CardType.Spell)
-      || (typeFilter === 'trap'    && c.type === CardType.Trap)) &&
-    (raceFilter === 'all' || c.race === raceFilter) &&
-    (rarityFilter === 'all' || c.rarity === rarityFilter) &&
-    (!nameSearch || c.name.toLowerCase().includes(nameSearch.toLowerCase()))
-  ), [ownedIds, typeFilter, raceFilter, rarityFilter, nameSearch]);
+  const allCards = useMemo(() => {
+    setVisibleCount(100);
+    return (Object.values(CARD_DB) as CardData[]).filter(c =>
+      c.type !== CardType.Fusion &&
+      (!ownedIds || ownedIds.has(c.id)) &&
+      (typeFilter === 'all'
+        || (typeFilter === 'monster' && c.type === CardType.Monster && !c.effect)
+        || (typeFilter === 'effect'  && c.type === CardType.Monster && !!c.effect)
+        || (typeFilter === 'spell'   && c.type === CardType.Spell)
+        || (typeFilter === 'trap'    && c.type === CardType.Trap)) &&
+      (raceFilter === 'all' || c.race === raceFilter) &&
+      (rarityFilter === 'all' || c.rarity === rarityFilter) &&
+      (!debouncedSearch || c.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+    );
+  }, [ownedIds, typeFilter, raceFilter, rarityFilter, debouncedSearch]);
+
+  const visibleCards = allCards.slice(0, visibleCount);
 
   // Mark all visible cards as seen after mount
   useEffect(() => {
@@ -99,9 +114,14 @@ export default function DeckbuilderScreen() {
 
   function saveDeck() {
     if (currentDeck.length !== MAX_DECK) return;
-    Progression.saveDeck(currentDeck);
-    setToast(true);
-    setTimeout(() => setToast(false), 2000);
+    const ok = Progression.saveDeck(currentDeck);
+    if (ok) {
+      setToast(true);
+      setTimeout(() => setToast(false), 2000);
+    } else {
+      setSaveError(true);
+      setTimeout(() => setSaveError(false), 4000);
+    }
   }
 
   const deckFull = currentDeck.length === MAX_DECK;
@@ -246,7 +266,7 @@ export default function DeckbuilderScreen() {
           {/* Card grid — Large or Small */}
           {viewMode !== 'table' && (
             <div className={`${styles.collectionGrid}${viewMode === 'large' ? ` ${styles.gridLarge}` : ` ${styles.gridSmall}`}`}>
-              {allCards.map(card => {
+              {visibleCards.map(card => {
                 const copies = copyMap[card.id] || 0;
                 const atMax  = copies >= MAX_COPIES;
                 const full   = currentDeck.length >= MAX_DECK;
@@ -285,7 +305,7 @@ export default function DeckbuilderScreen() {
                   </tr>
                 </thead>
                 <tbody>
-                  {allCards.map(card => {
+                  {visibleCards.map(card => {
                     const copies     = copyMap[card.id] || 0;
                     const atMax      = copies >= MAX_COPIES;
                     const full       = currentDeck.length >= MAX_DECK;
@@ -328,7 +348,15 @@ export default function DeckbuilderScreen() {
         </div>
       </div>
 
+      {visibleCount < allCards.length && (
+        <div style={{ textAlign: 'center', padding: '0.5rem' }}>
+          <button className="btn-secondary" onClick={() => setVisibleCount(v => v + 100)}>
+            {t('common.load_more', { count: Math.min(100, allCards.length - visibleCount) })}
+          </button>
+        </div>
+      )}
       {toast && <div className={styles.saveToast}>{t('deckbuilder.saved_toast')}</div>}
+      {saveError && <div className={styles.saveToast} style={{ background: '#7a1a1a', borderColor: '#ff4444' }}>{t('deckbuilder.save_error_toast', 'Save failed — storage full!')}</div>}
     </div>
   );
 }
