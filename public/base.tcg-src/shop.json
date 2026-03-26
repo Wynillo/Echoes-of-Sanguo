@@ -30,7 +30,10 @@
           }
         }
       ],
-      "filter": "byRace"
+      "filter": "byRace",
+      "cardPool": {
+        "include": { "maxAtk": 1500 }
+      }
     },
     {
       "id": "race",

@@ -178,6 +178,30 @@ export function openPack(packType: string, race: Race | null = null): CardData[]
     : null;
 
   const rarities = _expandSlots(packDef);
+
+  if (packDef.cardPool) {
+    let pool = buildCardPool(packDef.cardPool);
+    if (targetRace != null) {
+      const raceFiltered = pool.filter(c => c.race === targetRace);
+      if (raceFiltered.length) pool = raceFiltered;
+    }
+    return rarities.map(rarity => {
+      let candidates = pool.filter(c => (c.rarity ?? Rarity.Common) === rarity);
+      const fallbacks: Partial<Record<Rarity, Rarity>> = {
+        [Rarity.UltraRare]: Rarity.SuperRare,
+        [Rarity.SuperRare]: Rarity.Rare,
+        [Rarity.Rare]:      Rarity.Uncommon,
+        [Rarity.Uncommon]:  Rarity.Common,
+      };
+      while (!candidates.length && fallbacks[rarity]) {
+        rarity = fallbacks[rarity]!;
+        candidates = pool.filter(c => (c.rarity ?? Rarity.Common) === rarity);
+      }
+      if (!candidates.length) candidates = pool.length ? pool : Object.values(CARD_DB) as CardData[];
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    });
+  }
+
   return rarities.map(r => _pickCard(r, targetRace));
 }
 

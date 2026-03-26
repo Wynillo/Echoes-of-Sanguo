@@ -63,6 +63,7 @@ export interface PackDef {
   color: string;
   slots: PackSlotDef[];
   filter?: string;                      // 'byRace' or undefined
+  cardPool?: CardPoolDef;               // optional card pool filter (same as packages)
 }
 
 export interface ShopData {
@@ -99,6 +100,7 @@ export const SHOP_DATA: ShopData = {
       color: '#4080a0',
       slots: STANDARD_SLOTS,
       filter: 'byRace',
+      cardPool: { include: { maxAtk: 1500 } },
     },
     {
       id: 'race',
