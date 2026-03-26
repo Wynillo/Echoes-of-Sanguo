@@ -135,6 +135,7 @@ const IMPL: Record<string, EffectImpl> = {
     const monsters = filterFieldMonsters(st[ctx.owner].field.monsters, desc.filter);
     for (const fm of monsters) {
       fm.permATKBonus = (fm.permATKBonus || 0) + desc.value;
+      fm.permDEFBonus = (fm.permDEFBonus || 0) + desc.value;
       const zone = st[ctx.owner].field.monsters.indexOf(fm);
       if (zone !== -1) ctx.engine.ui?.playVFX?.('buff', ctx.owner, zone);
     }
@@ -146,6 +147,7 @@ const IMPL: Record<string, EffectImpl> = {
     const monsters = filterFieldMonsters(st[ctx.owner].field.monsters, desc.filter);
     for (const fm of monsters) {
       fm.tempATKBonus = (fm.tempATKBonus || 0) + desc.value;
+      fm.tempDEFBonus = (fm.tempDEFBonus || 0) + desc.value;
       const zone = st[ctx.owner].field.monsters.indexOf(fm);
       if (zone !== -1) ctx.engine.ui?.playVFX?.('buff', ctx.owner, zone);
     }
@@ -238,6 +240,7 @@ const IMPL: Record<string, EffectImpl> = {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       fc.tempATKBonus = (fc.tempATKBonus || 0) + desc.value;
+      fc.tempDEFBonus = (fc.tempDEFBonus || 0) + desc.value;
       _triggerBuffVFX(fc, ctx);
     }
     return {};
@@ -248,6 +251,7 @@ const IMPL: Record<string, EffectImpl> = {
     if (!fc) return {};
     if (desc.filter && !matchesFilter(fc.card, desc.filter)) return {};
     fc.permATKBonus = (fc.permATKBonus || 0) + desc.value;
+    fc.permDEFBonus = (fc.permDEFBonus || 0) + desc.value;
     _triggerBuffVFX(fc, ctx);
     return {};
   },
