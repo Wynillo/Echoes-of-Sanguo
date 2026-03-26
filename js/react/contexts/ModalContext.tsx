@@ -7,7 +7,7 @@ export type ModalState =
   | { type: 'trap-prompt'; opts: PromptOptions; resolve: (v: boolean) => void }
   | { type: 'grave-select'; cards: CardData[]; resolve: (card: CardData) => void }
   | { type: 'card-list' }
-  | { type: 'result'; resultType: 'victory' | 'defeat'; coinsEarned: number }
+  | { type: 'result'; resultType: 'victory' | 'defeat'; coinsEarned: number; campaignDuel?: boolean }
   | { type: 'main-options' }
   | { type: 'battle-log' }
   | { type: 'coin-toss'; playerGoesFirst: boolean; resolve: () => void };

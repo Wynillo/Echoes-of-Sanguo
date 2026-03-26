@@ -6,6 +6,49 @@ import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, res
 import { executeEffectBlock } from './effect-registry.js';
 import { CardType } from './types.js';
 import type { Owner, Phase, Position, CardData, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior } from './types.js';
+
+// ── Serialized checkpoint types (for save/restore) ───────
+export interface SerializedFieldCardData {
+  cardId: string;
+  position: Position;
+  faceDown: boolean;
+  hasAttacked: boolean;
+  hasFlipped: boolean;
+  summonedThisTurn: boolean;
+  tempATKBonus: number;
+  tempDEFBonus: number;
+  permATKBonus: number;
+  permDEFBonus: number;
+  phoenixRevivalUsed: boolean;
+}
+
+export interface SerializedFieldSpellTrapData {
+  cardId: string;
+  faceDown: boolean;
+  used: boolean;
+}
+
+export interface SerializedPlayerState {
+  lp: number;
+  deckIds: string[];
+  handIds: string[];
+  graveyardIds: string[];
+  normalSummonUsed: boolean;
+  monsters: Array<SerializedFieldCardData | null>;
+  spellTraps: Array<SerializedFieldSpellTrapData | null>;
+}
+
+export interface SerializedCheckpoint {
+  phase: Phase;
+  turn: number;
+  activePlayer: Owner;
+  firstTurnNoAttack?: boolean;
+  log: string[];
+  player: SerializedPlayerState;
+  opponent: SerializedPlayerState;
+  opponentId: number | null;
+  opponentBehaviorId?: string;
+}
 import { resolveAIBehavior } from './ai-behaviors.js';
 import { GAME_RULES } from './rules.js';
 import { EchoesOfSanguo, ownerLabel } from './debug-logger.js';
@@ -83,6 +126,73 @@ export class GameEngine {
       this.state.phase = 'draw';
       this.ui.render(this.state);
       // Run AI turn
+      setTimeout(() => {
+        aiTurn(this).catch(err => {
+          EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
+          this.state.activePlayer = 'player';
+          this.state.phase = 'main';
+          this.state.turn++;
+          this.addLog(`[ERROR] Opponent AI crashed. Your turn (Round ${this.state.turn}).`);
+          this.refillHand('player');
+          this.ui.render(this.state);
+        });
+      }, 600);
+    }
+  }
+
+  /**
+   * Restore a saved game state (for duel checkpoint resume).
+   * Reconstructs CardData from CARD_DB and FieldCard/FieldSpellTrap instances.
+   */
+  restoreGame(checkpoint: SerializedCheckpoint): void {
+    EchoesOfSanguo.startSession();
+    this._currentOpponentId = checkpoint.opponentId;
+    this._aiBehavior = resolveAIBehavior(checkpoint.opponentBehaviorId);
+
+    const restorePlayerState = (s: SerializedPlayerState) => ({
+      lp: s.lp,
+      deck: s.deckIds.map(id => ({ ...CARD_DB[id] })),
+      hand: s.handIds.map(id => ({ ...CARD_DB[id] })),
+      graveyard: s.graveyardIds.map(id => ({ ...CARD_DB[id] })),
+      normalSummonUsed: s.normalSummonUsed,
+      field: {
+        monsters: s.monsters.map(m => {
+          if (!m) return null;
+          const fc = new FieldCard(CARD_DB[m.cardId], m.position, m.faceDown);
+          fc.hasAttacked       = m.hasAttacked;
+          fc.hasFlipped        = m.hasFlipped;
+          fc.summonedThisTurn  = m.summonedThisTurn;
+          fc.tempATKBonus      = m.tempATKBonus;
+          fc.tempDEFBonus      = m.tempDEFBonus;
+          fc.permATKBonus      = m.permATKBonus;
+          fc.permDEFBonus      = m.permDEFBonus;
+          fc.phoenixRevivalUsed = m.phoenixRevivalUsed;
+          return fc;
+        }),
+        spellTraps: s.spellTraps.map(st => {
+          if (!st) return null;
+          const fst = new FieldSpellTrap(CARD_DB[st.cardId], st.faceDown);
+          fst.used = st.used;
+          return fst;
+        }),
+      },
+    });
+
+    this.state = {
+      phase: checkpoint.phase,
+      turn: checkpoint.turn,
+      activePlayer: checkpoint.activePlayer,
+      firstTurnNoAttack: checkpoint.firstTurnNoAttack,
+      player: restorePlayerState(checkpoint.player),
+      opponent: restorePlayerState(checkpoint.opponent),
+      log: checkpoint.log,
+    } as GameState;
+
+    this.addLog('--- Duel resumed ---');
+    this.ui.render(this.state);
+
+    // If it was the opponent's turn, resume AI
+    if (this.state.activePlayer === 'opponent') {
       setTimeout(() => {
         aiTurn(this).catch(err => {
           EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
