@@ -2,5 +2,6 @@
   "Monster": "Monster",
   "Fusion":  "Fusionsmonster",
   "Spell":   "Zauber",
-  "Trap":    "Falle"
+  "Trap":      "Falle",
+  "Equipment": "Ausrüstung"
 }

@@ -12,6 +12,7 @@ function mockEngine(overrides = {}) {
     addLog: vi.fn(),
     specialSummonFromGrave: vi.fn(),
     specialSummon: vi.fn(),
+    _removeEquipmentForMonster: vi.fn(),
     getState: vi.fn(() => ({
       player: {
         lp: 4000,

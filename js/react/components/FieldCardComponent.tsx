@@ -76,9 +76,12 @@ export function FieldCardComponent({
     );
   }
 
+  const hasEquipment = fc.equippedCards && fc.equippedCards.length > 0;
+
   return (
     <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
       <Card card={card} fc={fc} small />
+      {hasEquipment && <span className="equip-badge" title={fc.equippedCards.map((e: any) => e.card.name).join(', ')}>⚔</span>}
     </div>
   );
 }

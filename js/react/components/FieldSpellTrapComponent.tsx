@@ -50,7 +50,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
            onClick={interactive ? onClick : undefined}
            onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
         <div className="facedown-overlay">
-          {card.type === CardType.Trap ? '⚠ Falle' : '✦ Zauber'}
+          {card.type === CardType.Trap ? '⚠ Falle' : card.type === CardType.Equipment ? '⚔ Equip' : '✦ Zauber'}
         </div>
       </div>
     );

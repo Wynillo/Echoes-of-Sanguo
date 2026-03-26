@@ -3,7 +3,7 @@
 // ============================================================
 
 import { extractPassiveFlags } from './effect-registry.js';
-import type { CardData, Position, VsAttrBonus } from './types.js';
+import type { CardData, Owner, Position, VsAttrBonus } from './types.js';
 
 // ── FieldCard ────────────────────────────────────────────────
 export class FieldCard {
@@ -26,6 +26,7 @@ export class FieldCard {
   indestructible: boolean;
   effectImmune: boolean;
   cantBeAttacked: boolean;
+  equippedCards: Array<{ zone: number; card: CardData }>;
 
   constructor(card: CardData, position: Position = 'atk', faceDown: boolean = false) {
     this.card       = { // deep-copy effect to prevent shared mutations across FieldCard instances
@@ -42,6 +43,7 @@ export class FieldCard {
     this.permATKBonus = 0;
     this.permDEFBonus = 0;
     this.phoenixRevivalUsed = false;
+    this.equippedCards = [];
     // passive flags from effect
     if(card.effect && card.effect.trigger==='passive'){
       const flags = extractPassiveFlags(card.effect);
@@ -77,6 +79,8 @@ export class FieldSpellTrap {
   card: CardData;
   faceDown: boolean;
   used: boolean;
+  equippedMonsterZone?: number;
+  equippedOwner?: Owner;
 
   constructor(card: CardData, faceDown=true){
     this.card    = card;

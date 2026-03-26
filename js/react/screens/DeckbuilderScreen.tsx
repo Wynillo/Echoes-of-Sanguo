@@ -26,7 +26,7 @@ export default function DeckbuilderScreen() {
   const { collection, currentDeck, setCurrentDeck } = useProgression();
   const { openModal } = useModal();
   const { t } = useTranslation();
-  const [typeFilter, setTypeFilter]           = useState<'all' | 'monster' | 'effect' | 'spell' | 'trap'>('all');
+  const [typeFilter, setTypeFilter]           = useState<'all' | 'monster' | 'effect' | 'spell' | 'trap' | 'equipment'>('all');
   const [raceFilter, setRaceFilter]           = useState<'all' | Race>('all');
   const [rarityFilter, setRarityFilter]       = useState<'all' | Rarity>('all');
   const [nameSearch, setNameSearch]           = useState('');
@@ -51,14 +51,16 @@ export default function DeckbuilderScreen() {
     { key: 'monster', label: t('deckbuilder.type_normal') },
     { key: 'effect',  label: t('deckbuilder.type_effect') },
     { key: 'spell',   label: t('deckbuilder.type_spell') },
-    { key: 'trap',    label: t('deckbuilder.type_trap') },
+    { key: 'trap',      label: t('deckbuilder.type_trap') },
+    { key: 'equipment', label: t('deckbuilder.type_equipment', 'Equipment') },
   ];
 
   const TYPE_LABEL: Record<number, string> = {
-    [CardType.Monster]: t('deckbuilder.type_label_normal'),
-    [CardType.Fusion]:  t('deckbuilder.type_label_fusion'),
-    [CardType.Spell]:   t('deckbuilder.type_label_spell'),
-    [CardType.Trap]:    t('deckbuilder.type_label_trap'),
+    [CardType.Monster]:   t('deckbuilder.type_label_normal'),
+    [CardType.Fusion]:    t('deckbuilder.type_label_fusion'),
+    [CardType.Spell]:     t('deckbuilder.type_label_spell'),
+    [CardType.Trap]:      t('deckbuilder.type_label_trap'),
+    [CardType.Equipment]: t('deckbuilder.type_label_equipment', 'Equipment'),
   };
 
   const { ownedIds, collectionCount } = useMemo(() => {
@@ -81,7 +83,8 @@ export default function DeckbuilderScreen() {
         || (typeFilter === 'monster' && c.type === CardType.Monster && !c.effect)
         || (typeFilter === 'effect'  && c.type === CardType.Monster && !!c.effect)
         || (typeFilter === 'spell'   && c.type === CardType.Spell)
-        || (typeFilter === 'trap'    && c.type === CardType.Trap)) &&
+        || (typeFilter === 'trap'    && c.type === CardType.Trap)
+        || (typeFilter === 'equipment' && c.type === CardType.Equipment)) &&
       (raceFilter === 'all' || c.race === raceFilter) &&
       (rarityFilter === 'all' || c.rarity === rarityFilter) &&
       (!debouncedSearch || c.name.toLowerCase().includes(debouncedSearch.toLowerCase()))

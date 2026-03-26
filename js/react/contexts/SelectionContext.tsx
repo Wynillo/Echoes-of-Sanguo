@@ -4,7 +4,7 @@ import type { FusionChainResult } from '../../cards.js';
 
 export type SelMode =
   | 'hand' | 'attack' | 'fusion1' | 'play-chain' | 'spell-target' | 'field-spell-target'
-  | 'grave-target' | 'trap-target' | null;
+  | 'grave-target' | 'trap-target' | 'equip-target' | null;
 
 export interface Selection {
   mode:           SelMode;
@@ -17,6 +17,8 @@ export interface Selection {
   spellFieldZone: number | null;
   spellCard:      CardData | null;
   trapFieldZone:  number | null;
+  equipHandIndex: number | null;
+  equipCard:      CardData | null;
   callback:       ((card: CardData) => void) | null;
   hint:           string;
 }
@@ -24,7 +26,8 @@ export interface Selection {
 const EMPTY: Selection = {
   mode: null, handIndex: null, attackerZone: null, fusion1: null,
   playChain: [], playChainPreview: null,
-  spellHandIndex: null, spellFieldZone: null, spellCard: null, trapFieldZone: null, callback: null, hint: '',
+  spellHandIndex: null, spellFieldZone: null, spellCard: null, trapFieldZone: null,
+  equipHandIndex: null, equipCard: null, callback: null, hint: '',
 };
 
 interface SelectionCtx {

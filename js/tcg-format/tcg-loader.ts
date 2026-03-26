@@ -278,6 +278,8 @@ function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition): CardData {
   if (tc.spellType)   card.spellType   = intToSpellType(tc.spellType);
   if (tc.trapTrigger) card.trapTrigger = intToTrapTrigger(tc.trapTrigger);
   if (tc.target)      card.target      = tc.target;
+  if (tc.atkBonus !== undefined) card.atkBonus = tc.atkBonus;
+  if (tc.defBonus !== undefined) card.defBonus = tc.defBonus;
 
   return card;
 }

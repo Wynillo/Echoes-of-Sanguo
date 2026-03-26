@@ -51,6 +51,11 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     return (selMode === 'spell-target' || selMode === 'field-spell-target') && !!player.field.monsters[zone];
   }
 
+  function isPlayerMonsterEquipTarget(zone: number) {
+    const fc = player.field.monsters[zone];
+    return selMode === 'equip-target' && !!fc && !fc.faceDown;
+  }
+
   const onOwnFieldCardClick = useCallback((fc: any, zone: number) => {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'main') return;
@@ -77,11 +82,13 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
       game.activateSpell('player', sel.spellHandIndex!, target);
     } else if (selMode === 'field-spell-target') {
       game.activateSpellFromField('player', sel.spellFieldZone!, target);
+    } else if (selMode === 'equip-target') {
+      game.equipCard('player', sel.equipHandIndex!, 'player', zone);
     } else {
       return;
     }
     resetSel();
-  }, [gameRef, selMode, player.field.monsters, sel.spellHandIndex, sel.spellFieldZone, resetSel]);
+  }, [gameRef, selMode, player.field.monsters, sel.spellHandIndex, sel.spellFieldZone, sel.equipHandIndex, resetSel]);
 
   const onFieldSpellTrapClick = useCallback((zone: number, fst: any) => {
     const game = gameRef.current;
@@ -99,7 +106,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
           const selected  = selMode === 'attack' && sel.attackerZone === i;
           const canAtk    = playerMonsterCanAttack(i);
           const interact  = isPlayerMonsterInteractive(i);
-          const targetable = isPlayerMonsterSpellTarget(i);
+          const targetable = isPlayerMonsterSpellTarget(i) || isPlayerMonsterEquipTarget(i);
           return (
             <div key={i} className="zone-slot" data-zone={i}>
               {!fc && <div className="zone-label">M</div>}

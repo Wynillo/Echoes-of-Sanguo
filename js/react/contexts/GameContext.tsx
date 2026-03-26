@@ -57,6 +57,8 @@ function serializePlayerState(ps: PlayerState): SerializedPlayerState {
         cardId: st.card.id,
         faceDown: st.faceDown,
         used: st.used,
+        equippedMonsterZone: st.equippedMonsterZone,
+        equippedOwner: st.equippedOwner,
       } as SerializedFieldSpellTrapData;
     }),
   };

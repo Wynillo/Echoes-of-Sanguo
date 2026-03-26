@@ -19,6 +19,10 @@ export function OpponentField() {
 
   function isOppMonsterTargetable(zone: number) {
     if (!opp.field.monsters[zone]) return false;
+    if (selMode === 'equip-target') {
+      const fc = opp.field.monsters[zone];
+      return !!fc && !fc.faceDown;
+    }
     return selMode === 'attack' || selMode === 'trap-target';
   }
 
@@ -44,6 +48,13 @@ export function OpponentField() {
       resetSel();
     }
   }, [gameRef, selMode, sel.spellHandIndex, resetSel]);
+
+  const onEquipTargetSelect = useCallback((zone: number) => {
+    const game = gameRef.current;
+    if (!game || selMode !== 'equip-target' || sel.equipHandIndex === null) return;
+    game.equipCard('player', sel.equipHandIndex, 'opponent', zone);
+    resetSel();
+  }, [gameRef, selMode, sel.equipHandIndex, resetSel]);
 
   const onOppMonsterView = useCallback((fc: any) => {
     openModal({ type: 'card-detail', card: fc.card, fc });
@@ -89,8 +100,9 @@ export function OpponentField() {
                   viewable={viewable}
                   onViewClick={() => onOppMonsterView(fc)}
                   onDefenderClick={() => {
-                    if (selMode === 'attack')      onDefenderSelect(i);
+                    if (selMode === 'attack')           onDefenderSelect(i);
                     else if (selMode === 'trap-target') onTrapTargetSelect(fc);
+                    else if (selMode === 'equip-target') onEquipTargetSelect(i);
                   }}
                   onDetail={() => openModal({ type: 'card-detail', card: fc.card, fc })}
                 />

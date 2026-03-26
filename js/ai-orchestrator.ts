@@ -28,6 +28,7 @@ export async function aiTurn(engine: GameEngine): Promise<void> {
   await aiDrawPhase(engine);
   await aiMainPhase(engine);
   await aiPlaceTraps(engine);
+  await aiEquipCards(engine);
 
   // First turn: skip battle phase entirely (FM-style rule)
   if (engine.state.firstTurnNoAttack) {
@@ -194,6 +195,55 @@ async function aiPlaceTraps(engine: GameEngine): Promise<void> {
     EchoesOfSanguo.log('TRAP', `Placing ${card.name} face-down in zone ${zone}`);
     await _delay(300);
     engine.setSpellTrap('opponent', i, zone);
+  }
+}
+
+// ── Equipment ─────────────────────────────────────────────
+
+async function aiEquipCards(engine: GameEngine): Promise<void> {
+  const ai  = engine.state.opponent;
+  const plr = engine.state.player;
+  EchoesOfSanguo.log('AI', 'Equipping cards...');
+  let equipped = true;
+  while (equipped) {
+    equipped = false;
+    for (let i = 0; i < ai.hand.length; i++) {
+      const card = ai.hand[i];
+      if (card.type !== CardType.Equipment) continue;
+
+      const atkB = card.atkBonus ?? 0;
+      const defB = card.defBonus ?? 0;
+      const isPositive = atkB > 0 || defB > 0;
+      const isNegative = atkB < 0 || defB < 0;
+
+      if (isPositive) {
+        // Equip to own strongest monster
+        let best: { zone: number; atk: number } | null = null;
+        ai.field.monsters.forEach((fc, z) => {
+          if (!fc || fc.faceDown) return;
+          if (!best || fc.effectiveATK() > best.atk) best = { zone: z, atk: fc.effectiveATK() };
+        });
+        if (best) {
+          EchoesOfSanguo.log('EQUIP', `Equipping ${card.name} to own monster zone ${best.zone}`);
+          await _delay(300);
+          await engine.equipCard('opponent', i, 'opponent', best.zone);
+          equipped = true; break;
+        }
+      } else if (isNegative) {
+        // Equip to opponent's strongest monster (debuff)
+        let best: { zone: number; atk: number } | null = null;
+        plr.field.monsters.forEach((fc, z) => {
+          if (!fc || fc.faceDown) return;
+          if (!best || fc.effectiveATK() > best.atk) best = { zone: z, atk: fc.effectiveATK() };
+        });
+        if (best) {
+          EchoesOfSanguo.log('EQUIP', `Equipping ${card.name} to player monster zone ${best.zone} (debuff)`);
+          await _delay(300);
+          await engine.equipCard('opponent', i, 'player', best.zone);
+          equipped = true; break;
+        }
+      }
+    }
   }
 }
 

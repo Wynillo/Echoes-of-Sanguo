@@ -103,7 +103,8 @@
     "type_effect": "Effect",
     "type_fusion": "Fusion",
     "type_spell": "Spell",
-    "type_trap": "Trap"
+    "type_trap": "Trap",
+    "type_equipment": "Equipment"
   },
   "collection": {
     "title": "📚 MY COLLECTION",
@@ -142,11 +143,13 @@
     "type_effect": "Effect",
     "type_spell": "Spell",
     "type_trap": "Trap",
+    "type_equipment": "Equipment",
     "type_label_normal": "Normal",
     "type_label_effect": "Effect",
     "type_label_fusion": "Fusion",
     "type_label_spell": "Spell",
     "type_label_trap": "Trap",
+    "type_label_equipment": "Equipment",
     "rarity_all": "All Rarities",
     "remove_hint": "Remove"
   },
@@ -204,7 +207,10 @@
     "change_to_def": "🔄 Switch to Defense",
     "change_to_atk": "🔄 Switch to Attack",
     "play": "⚔ Play",
-    "hint_play_chain": "Select cards to combine, then confirm. Tap last card to undo."
+    "hint_play_chain": "Select cards to combine, then confirm. Tap last card to undo.",
+    "equip": "⚔ Equip",
+    "set_equipment": "🔽 Set",
+    "hint_equip": "Select a monster to equip."
   },
   "fusion_chain": {
     "confirm": "✨ Fuse & Play",
@@ -227,6 +233,7 @@
     "type_fusion": "Fusion",
     "type_spell": "Spell Card",
     "type_trap": "Trap Card",
+    "type_equipment": "Equipment",
     "atk_bonus": " (+Bonus)"
   },
   "card_list": {
@@ -236,6 +243,7 @@
     "group_fusion": "Fusion Monsters",
     "group_spell": "Spell Cards",
     "group_trap": "Trap Cards",
+    "group_equipment": "Equipment Cards",
     "close": "✕ Close"
   },
   "grave": {

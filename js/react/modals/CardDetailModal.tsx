@@ -20,17 +20,23 @@ export function CardDetailModal({ modal }: Props) {
 
   const attrName = card.attribute ? (getAttrById(card.attribute)?.value ?? '') : '';
   const typeLabels: Record<number, string> = {
-    [CardType.Monster]: card.effect ? t('card_detail.type_effect') : t('card_detail.type_normal'),
-    [CardType.Fusion]:  t('card_detail.type_fusion'),
-    [CardType.Spell]:   t('card_detail.type_spell'),
-    [CardType.Trap]:    t('card_detail.type_trap'),
+    [CardType.Monster]:   card.effect ? t('card_detail.type_effect') : t('card_detail.type_normal'),
+    [CardType.Fusion]:    t('card_detail.type_fusion'),
+    [CardType.Spell]:     t('card_detail.type_spell'),
+    [CardType.Trap]:      t('card_detail.type_trap'),
+    [CardType.Equipment]: t('card_detail.type_equipment', 'Equipment'),
   };
   const typeLabel = typeLabels[card.type] || '';
   const isMonLevel = card.type === CardType.Monster || card.type === CardType.Fusion;
   const levelStr = isMonLevel && card.level ? ` · ${t('card_detail.level_prefix')} ${card.level}` : '';
 
   let statsText = '';
-  if (card.atk !== undefined) {
+  if (card.type === CardType.Equipment) {
+    const parts: string[] = [];
+    if (card.atkBonus) parts.push(`ATK ${card.atkBonus >= 0 ? '+' : ''}${card.atkBonus}`);
+    if (card.defBonus) parts.push(`DEF ${card.defBonus >= 0 ? '+' : ''}${card.defBonus}`);
+    statsText = parts.join('  ');
+  } else if (card.atk !== undefined) {
     statsText = `ATK: ${fc ? fc.effectiveATK() : card.atk}  DEF: ${fc ? fc.effectiveDEF() : card.def}`;
     if (fc && (fc.permATKBonus || fc.tempATKBonus)) statsText += t('card_detail.atk_bonus');
   }
@@ -92,6 +98,26 @@ export function CardDetailModal({ modal }: Props) {
         if (zone !== -1) game.setSpellTrap('player', index, zone);
         closeModal();
       }));
+    }
+
+    const isEq = card.type === CardType.Equipment;
+    if (isEq && phase === 'main' && source !== 'field-spell') {
+      // Check if any face-up monster exists on either side
+      const hasTarget = state.player.field.monsters.some((m: any) => m && !m.faceDown)
+                     || state.opponent.field.monsters.some((m: any) => m && !m.faceDown);
+      const freeSTZone = state.player.field.spellTraps.findIndex((z: any) => z === null);
+      if (hasTarget && freeSTZone !== -1) {
+        actions.push(actionBtn(t('card_action.equip', 'Equip'), () => {
+          setSel({ mode: 'equip-target', equipHandIndex: index, equipCard: card, hint: t('card_action.hint_equip', 'Select a monster to equip') });
+          closeModal();
+        }));
+      }
+      if (freeSTZone !== -1) {
+        actions.push(actionBtn(t('card_action.set_equipment', 'Set'), () => {
+          game.setSpellTrap('player', index, freeSTZone);
+          closeModal();
+        }));
+      }
     }
 
     if (isTr && (phase === 'main' || phase === 'battle')) {

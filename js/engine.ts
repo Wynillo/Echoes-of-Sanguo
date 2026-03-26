@@ -26,6 +26,8 @@ export interface SerializedFieldSpellTrapData {
   cardId: string;
   faceDown: boolean;
   used: boolean;
+  equippedMonsterZone?: number;
+  equippedOwner?: Owner;
 }
 
 export interface SerializedPlayerState {
@@ -173,6 +175,8 @@ export class GameEngine {
           if (!st) return null;
           const fst = new FieldSpellTrap(CARD_DB[st.cardId], st.faceDown);
           fst.used = st.used;
+          if (st.equippedMonsterZone !== undefined) fst.equippedMonsterZone = st.equippedMonsterZone;
+          if (st.equippedOwner !== undefined) fst.equippedOwner = st.equippedOwner;
           return fst;
         }),
       },
@@ -187,6 +191,18 @@ export class GameEngine {
       opponent: restorePlayerState(checkpoint.opponent),
       log: checkpoint.log,
     } as GameState;
+
+    // Rebuild equippedCards references on FieldCards from spell/trap zones
+    for (const side of ['player', 'opponent'] as Owner[]) {
+      for (const fst of this.state[side].field.spellTraps) {
+        if (!fst || fst.card.type !== CardType.Equipment || fst.equippedOwner === undefined || fst.equippedMonsterZone === undefined) continue;
+        const targetFC = this.state[fst.equippedOwner].field.monsters[fst.equippedMonsterZone];
+        if (targetFC) {
+          const stZone = this.state[side].field.spellTraps.indexOf(fst);
+          targetFC.equippedCards.push({ zone: stZone, card: fst.card });
+        }
+      }
+    }
 
     this.addLog('--- Duel resumed ---');
     this.ui.render(this.state);
@@ -447,6 +463,70 @@ export class GameEngine {
     st.field.spellTraps[zone] = null;
     this.ui.render(this.state);
     return result;
+  }
+
+  // ───────── Equipment ──────────────────────────────────────
+
+  async equipCard(owner: Owner, handIndex: number, targetOwner: Owner, targetMonsterZone: number): Promise<boolean> {
+    const st = this.state[owner];
+    const card = st.hand[handIndex];
+    if (!card || card.type !== CardType.Equipment) { this.addLog('Not an equipment card!'); return false; }
+
+    const targetSt = this.state[targetOwner];
+    const targetFC = targetSt.field.monsters[targetMonsterZone];
+    if (!targetFC || targetFC.faceDown) { this.addLog('No valid target monster!'); return false; }
+
+    // Find empty spell/trap zone on the equipment owner's side
+    const zone = st.field.spellTraps.findIndex(z => z === null);
+    if (zone === -1) { this.addLog('No free spell/trap zone!'); return false; }
+
+    st.hand.splice(handIndex, 1);
+    const fst = new FieldSpellTrap(card, false);
+    fst.equippedMonsterZone = targetMonsterZone;
+    fst.equippedOwner = targetOwner;
+    st.field.spellTraps[zone] = fst;
+
+    // Apply bonuses
+    const atkB = card.atkBonus ?? 0;
+    const defB = card.defBonus ?? 0;
+    targetFC.permATKBonus += atkB;
+    targetFC.permDEFBonus += defB;
+    targetFC.equippedCards.push({ zone, card });
+
+    const bonusParts: string[] = [];
+    if (atkB !== 0) bonusParts.push(`ATK ${atkB >= 0 ? '+' : ''}${atkB}`);
+    if (defB !== 0) bonusParts.push(`DEF ${defB >= 0 ? '+' : ''}${defB}`);
+    this.addLog(`${ownerLabel(owner)}: ${card.name} equipped to ${targetFC.card.name}! (${bonusParts.join(', ')})`);
+    this.ui.playSfx?.('sfx_spell');
+    if (this.ui.showActivation) await this.ui.showActivation(card, card.description);
+
+    // Execute effect block if present
+    if (card.effect) try {
+      const ctx: EffectContext = { engine: this, owner, targetFC };
+      executeEffectBlock(card.effect, ctx);
+    } catch (e) {
+      EchoesOfSanguo.log('EFFECT', `Error in equipment effect [${card.id}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
+    }
+
+    this.ui.render(this.state);
+    return true;
+  }
+
+  /** Remove all equipment attached to a monster at the given zone/owner, sending them to graveyard. */
+  _removeEquipmentForMonster(monsterOwner: Owner, monsterZone: number): void {
+    // Equipment can be owned by either player — scan both sides
+    for (const side of ['player', 'opponent'] as Owner[]) {
+      const st = this.state[side];
+      for (let z = 0; z < st.field.spellTraps.length; z++) {
+        const fst = st.field.spellTraps[z];
+        if (!fst || fst.card.type !== CardType.Equipment) continue;
+        if (fst.equippedOwner === monsterOwner && fst.equippedMonsterZone === monsterZone) {
+          this.addLog(`${fst.card.name} was destroyed (equipped monster left the field).`);
+          st.graveyard.push(fst.card);
+          st.field.spellTraps[z] = null;
+        }
+      }
+    }
   }
 
   // ───────── Fusion ────────────────────────────────────────
@@ -746,6 +826,7 @@ export class GameEngine {
 
     st.graveyard.push(fc.card);
     st.field.monsters[zone] = null;
+    this._removeEquipmentForMonster(owner, zone);
     this.ui.render(this.state);
   }
 

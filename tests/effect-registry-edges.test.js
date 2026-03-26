@@ -11,6 +11,7 @@ function mockEngine(overrides = {}) {
     drawCard: vi.fn(),
     addLog: vi.fn(),
     specialSummonFromGrave: vi.fn(),
+    _removeEquipmentForMonster: vi.fn(),
     getState: vi.fn(() => ({
       player: {
         lp: 4000,

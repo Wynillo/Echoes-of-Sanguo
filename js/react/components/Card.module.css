@@ -117,7 +117,9 @@
 :global(.effect-card) .cardNameSmall { color: #e0c870; }
 :global(.fusion-card) .typeSubtype { color: #cc88ff; }
 :global(.spell-card)  .typeSubtype { color: #44ddaa; }
-:global(.trap-card)   .typeSubtype { color: #ff6688; }
+:global(.trap-card)      .typeSubtype { color: #ff6688; }
+:global(.equipment-card) .typeSubtype { color: #e0a050; }
+:global(.equipment-card) .cardNameSmall { color: #e0a050; }
 
 /* ── Attribute tints on orb ──────────────────────────────────────── */
 :global(.attr-fire)  .attrOrb { box-shadow: none; border: 1px solid #c0300a; }
