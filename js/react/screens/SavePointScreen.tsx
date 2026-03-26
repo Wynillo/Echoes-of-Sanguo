@@ -34,6 +34,14 @@ export default function SavePointScreen() {
 
   return (
     <div className={styles.screen}>
+      <button
+        className="options-btn-floating"
+        title={t('title.options')}
+        onClick={() => openModal({ type: 'main-options' })}
+      >
+        <span className="btn-options-mobile">☰</span>
+        <span className="btn-options-desktop">OPTIONS</span>
+      </button>
       <div className="title-bg"></div>
       <div className={styles.content}>
         <div className="title-rune">★</div>
