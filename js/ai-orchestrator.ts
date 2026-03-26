@@ -169,6 +169,11 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
             await _delay(300); await engine.activateSpell('opponent', i, t); activated = true;
           }
         }
+      } else if(card.spellType === 'field'){
+        if(!ai.field.fieldSpell){
+          EchoesOfSanguo.log('SPELL', `Activating ${card.name} (field spell)`);
+          await _delay(300); await engine.activateFieldSpell('opponent', i); activated = true;
+        }
       } else if(card.spellType === 'fromGrave'){
         const gm = ai.graveyard.find(c => isMonsterType(c.type));
         if(gm && ai.field.monsters.some(z=>z===null)){

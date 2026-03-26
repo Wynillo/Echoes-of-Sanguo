@@ -3,7 +3,7 @@
 // ============================================================
 
 import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, resolveFusionChain } from './cards.js';
-import { executeEffectBlock } from './effect-registry.js';
+import { executeEffectBlock, matchesFilter } from './effect-registry.js';
 import { CardType } from './types.js';
 import type { Owner, Phase, Position, CardData, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior } from './types.js';
 
@@ -19,6 +19,8 @@ export interface SerializedFieldCardData {
   tempDEFBonus: number;
   permATKBonus: number;
   permDEFBonus: number;
+  fieldSpellATKBonus: number;
+  fieldSpellDEFBonus: number;
   phoenixRevivalUsed: boolean;
 }
 
@@ -38,6 +40,7 @@ export interface SerializedPlayerState {
   normalSummonUsed: boolean;
   monsters: Array<SerializedFieldCardData | null>;
   spellTraps: Array<SerializedFieldSpellTrapData | null>;
+  fieldSpell?: SerializedFieldSpellTrapData | null;
 }
 
 export interface SerializedCheckpoint {
@@ -97,7 +100,7 @@ export class GameEngine {
         lp: GAME_RULES.startingLP,
         deck: this._shuffle(makeDeck(playerDeckIds || PLAYER_DECK_IDS)),
         hand: [],
-        field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null) },
+        field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null), fieldSpell: null },
         graveyard: [],
         normalSummonUsed: false
       },
@@ -105,7 +108,7 @@ export class GameEngine {
         lp: GAME_RULES.startingLP,
         deck: this._shuffle(makeDeck(oppDeckIds)),
         hand: [],
-        field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null) },
+        field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null), fieldSpell: null },
         graveyard: [],
         normalSummonUsed: false
       },
@@ -168,6 +171,8 @@ export class GameEngine {
           fc.tempDEFBonus      = m.tempDEFBonus;
           fc.permATKBonus      = m.permATKBonus;
           fc.permDEFBonus      = m.permDEFBonus;
+          fc.fieldSpellATKBonus = m.fieldSpellATKBonus ?? 0;
+          fc.fieldSpellDEFBonus = m.fieldSpellDEFBonus ?? 0;
           fc.phoenixRevivalUsed = m.phoenixRevivalUsed;
           return fc;
         }),
@@ -179,6 +184,7 @@ export class GameEngine {
           if (st.equippedOwner !== undefined) fst.equippedOwner = st.equippedOwner;
           return fst;
         }),
+        fieldSpell: s.fieldSpell ? new FieldSpellTrap(CARD_DB[s.fieldSpell.cardId], s.fieldSpell.faceDown) : null,
       },
     });
 
@@ -335,6 +341,7 @@ export class GameEngine {
     const posStr = faceDown ? 'face-down DEF' : position.toUpperCase();
     this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
     this.ui.playSfx?.('sfx_card_play');
+    this._applyFieldSpellToMonster(owner, fc);
     // trigger onSummon effect for every summon method
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
@@ -368,6 +375,7 @@ export class GameEngine {
     st.field.monsters[zone] = fc;
     this.addLog(`${ownerLabel(owner)}: ${card.name} Special Summon!`);
     this.ui.playSfx?.('sfx_card_play');
+    this._applyFieldSpellToMonster(owner, fc);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
@@ -385,6 +393,7 @@ export class GameEngine {
     st.field.monsters[zone] = fc;
     this.addLog(`${ownerLabel(owner)}: ${c.name} summoned from graveyard!`);
     this.ui.playSfx?.('sfx_card_play');
+    this._applyFieldSpellToMonster(owner, fc);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     this.ui.render(this.state);
     return true;
@@ -529,6 +538,79 @@ export class GameEngine {
     }
   }
 
+  // ───────── Field Spell ──────────────────────────────────
+
+  async activateFieldSpell(owner: Owner, handIndex: number): Promise<boolean> {
+    const st = this.state[owner];
+    const card = st.hand[handIndex];
+    if (!card || card.type !== CardType.Spell || card.spellType !== 'field') {
+      this.addLog('Not a field spell card!'); return false;
+    }
+    st.hand.splice(handIndex, 1);
+
+    // Destroy existing field spell if any
+    if (st.field.fieldSpell) {
+      this._removeFieldSpell(owner);
+    }
+
+    st.field.fieldSpell = new FieldSpellTrap(card, false);
+    this.addLog(`${ownerLabel(owner)}: Field Spell ${card.name} activated!`);
+    this.ui.playSfx?.('sfx_spell');
+    if (this.ui.showActivation) await this.ui.showActivation(card, card.description);
+
+    // Apply continuous buffs to all matching monsters
+    this._applyFieldSpellBuffs(owner);
+    this.ui.render(this.state);
+    return true;
+  }
+
+  _removeFieldSpell(owner: Owner): void {
+    const st = this.state[owner];
+    const fs = st.field.fieldSpell;
+    if (!fs) return;
+
+    // Remove field spell bonuses from all monsters
+    for (const fc of st.field.monsters) {
+      if (!fc) continue;
+      fc.fieldSpellATKBonus = 0;
+      fc.fieldSpellDEFBonus = 0;
+    }
+
+    st.graveyard.push(fs.card);
+    st.field.fieldSpell = null;
+    this.addLog(`${fs.card.name} was destroyed.`);
+  }
+
+  _applyFieldSpellBuffs(owner: Owner): void {
+    const st = this.state[owner];
+    const fs = st.field.fieldSpell;
+    if (!fs || !fs.card.effect) return;
+
+    for (const fc of st.field.monsters) {
+      if (!fc) continue;
+      this._applyFieldSpellToMonster(owner, fc);
+    }
+  }
+
+  _applyFieldSpellToMonster(owner: Owner, fc: FieldCard): void {
+    const fs = this.state[owner].field.fieldSpell;
+    if (!fs || !fs.card.effect) return;
+
+    let atkBuff = 0;
+    let defBuff = 0;
+    for (const action of fs.card.effect.actions) {
+      if (action.type === 'buffField') {
+        const filter = (action as any).filter;
+        if (!filter || matchesFilter(fc.card, filter)) {
+          atkBuff += (action as any).value ?? 0;
+          defBuff += (action as any).value ?? 0;
+        }
+      }
+    }
+    fc.fieldSpellATKBonus = atkBuff;
+    fc.fieldSpellDEFBonus = defBuff;
+  }
+
   // ───────── Fusion ────────────────────────────────────────
   canFuse(owner: Owner){
     const hand = this.state[owner].hand;
@@ -665,6 +747,7 @@ export class GameEngine {
     fc.summonedThisTurn = false; // fusion result can attack immediately
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
+    this._applyFieldSpellToMonster(owner, fc);
 
     this.ui.render(this.state);
     await this._triggerEffect(fc, owner, 'onSummon', zone);

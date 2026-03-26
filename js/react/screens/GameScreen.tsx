@@ -125,7 +125,24 @@ export default function GameScreen() {
             <span className="btn-options-desktop">OPTIONS</span>
           </button>
           <div id="field-effect-slot">
-            <span className="field-effect-label">CURRENT<br />FIELD</span>
+            {gameState?.opponent.field.fieldSpell ? (
+              <div className="field-spell-active field-spell-opp" title={gameState.opponent.field.fieldSpell.card.name}
+                onClick={() => openModal({ type: 'card-detail', card: gameState.opponent.field.fieldSpell!.card })}>
+                <span className="field-spell-icon">&#x2726;</span>
+                <span className="field-spell-name">{gameState.opponent.field.fieldSpell.card.name}</span>
+              </div>
+            ) : (
+              <div className="field-spell-empty"><span className="field-effect-label">{t('game.opp_field', 'OPP')}</span></div>
+            )}
+            {gameState?.player.field.fieldSpell ? (
+              <div className="field-spell-active field-spell-own" title={gameState.player.field.fieldSpell.card.name}
+                onClick={() => openModal({ type: 'card-detail', card: gameState.player.field.fieldSpell!.card })}>
+                <span className="field-spell-icon">&#x2726;</span>
+                <span className="field-spell-name">{gameState.player.field.fieldSpell.card.name}</span>
+              </div>
+            ) : (
+              <div className="field-spell-empty"><span className="field-effect-label">{t('game.your_field', 'FIELD')}</span></div>
+            )}
           </div>
         </div>
 

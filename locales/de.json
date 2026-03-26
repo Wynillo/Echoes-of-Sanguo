@@ -185,7 +185,9 @@
     "surrender_cancel": "← Zurück",
     "trap_ctx_attacks_monster": "{{attacker}} (ATK {{atk}}) greift dein {{defender}} ({{stat}} {{val}}) an!",
     "trap_ctx_attacks": "{{attacker}} (ATK {{atk}}) greift an!",
-    "trap_ctx_summon": "Gegner beschwört {{name}} (ATK {{atk}})"
+    "trap_ctx_summon": "Gegner beschwört {{name}} (ATK {{atk}})",
+    "opp_field": "GEG",
+    "your_field": "FELD"
   },
   "card_action": {
     "already_played": "⛔ Monster bereits gespielt",
@@ -210,7 +212,8 @@
     "hint_play_chain": "Wähle Karten zum Kombinieren, dann bestätigen. Letzte Karte antippen zum Rückgängig machen.",
     "equip": "⚔ Ausrüsten",
     "set_equipment": "🔽 Verdeckt setzen",
-    "hint_equip": "Wähle ein Monster zum Ausrüsten."
+    "hint_equip": "Wähle ein Monster zum Ausrüsten.",
+    "activate_field_spell": "🌍 Feldzauber aktivieren"
   },
   "fusion_chain": {
     "confirm": "✨ Fusionieren & Spielen",

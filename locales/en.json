@@ -185,7 +185,9 @@
     "surrender_cancel": "← Back",
     "trap_ctx_attacks_monster": "{{attacker}} (ATK {{atk}}) attacks your {{defender}} ({{stat}} {{val}})",
     "trap_ctx_attacks": "{{attacker}} (ATK {{atk}}) is attacking!",
-    "trap_ctx_summon": "Opponent summoned {{name}} (ATK {{atk}})"
+    "trap_ctx_summon": "Opponent summoned {{name}} (ATK {{atk}})",
+    "opp_field": "OPP",
+    "your_field": "FIELD"
   },
   "card_action": {
     "already_played": "⛔ Monster already played",
@@ -210,7 +212,8 @@
     "hint_play_chain": "Select cards to combine, then confirm. Tap last card to undo.",
     "equip": "⚔ Equip",
     "set_equipment": "🔽 Set",
-    "hint_equip": "Select a monster to equip."
+    "hint_equip": "Select a monster to equip.",
+    "activate_field_spell": "🌍 Activate Field Spell"
   },
   "fusion_chain": {
     "confirm": "✨ Fuse & Play",

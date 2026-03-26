@@ -17,6 +17,8 @@ export class FieldCard {
   tempDEFBonus: number;
   permATKBonus: number;
   permDEFBonus: number;
+  fieldSpellATKBonus: number;
+  fieldSpellDEFBonus: number;
   phoenixRevivalUsed: boolean;
   piercing: boolean;
   cannotBeTargeted: boolean;
@@ -42,6 +44,8 @@ export class FieldCard {
     this.tempDEFBonus = 0;
     this.permATKBonus = 0;
     this.permDEFBonus = 0;
+    this.fieldSpellATKBonus = 0;
+    this.fieldSpellDEFBonus = 0;
     this.phoenixRevivalUsed = false;
     this.equippedCards = [];
     // passive flags from effect
@@ -67,10 +71,10 @@ export class FieldCard {
     }
   }
   effectiveATK(): number {
-    return Math.max(0, (this.card.atk ?? 0) + this.tempATKBonus + this.permATKBonus);
+    return Math.max(0, (this.card.atk ?? 0) + this.tempATKBonus + this.permATKBonus + this.fieldSpellATKBonus);
   }
   effectiveDEF(): number {
-    return Math.max(0, (this.card.def ?? 0) + this.tempDEFBonus + this.permDEFBonus);
+    return Math.max(0, (this.card.def ?? 0) + this.tempDEFBonus + this.permDEFBonus + this.fieldSpellDEFBonus);
   }
 }
 

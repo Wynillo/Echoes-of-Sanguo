@@ -84,6 +84,11 @@ export function CardDetailModal({ modal }: Props) {
           closeModal();
         }));
       }
+    } else if (isSp && card.spellType === 'field' && phase === 'main') {
+      actions.push(actionBtn(t('card_action.activate_field_spell', 'Activate Field Spell'), () => {
+        game.activateFieldSpell('player', index);
+        closeModal();
+      }));
     } else if (isSp && phase === 'main') {
       actions.push(actionBtn(t('card_action.activate'), () => {
         if (card.spellType === 'targeted' || card.spellType === 'fromGrave') {

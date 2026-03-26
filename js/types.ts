@@ -9,7 +9,7 @@ export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
 export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual';
 export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip';
-export type SpellType    = 'normal' | 'targeted' | 'fromGrave';
+export type SpellType    = 'normal' | 'targeted' | 'fromGrave' | 'field';
 
 // ── Int-based Enums (card data — stored in .tcg format) ────
 // Monster covers both normal and effect cards; distinction via effect field.
@@ -277,6 +277,7 @@ export interface PlayerState {
   field: {
     monsters:   Array<FieldCard | null>;
     spellTraps: Array<FieldSpellTrap | null>;
+    fieldSpell: FieldSpellTrap | null;
   };
   graveyard:        CardData[];
   normalSummonUsed: boolean;
@@ -359,6 +360,8 @@ export declare class FieldCard {
   tempDEFBonus:     number;
   permATKBonus:     number;
   permDEFBonus:     number;
+  fieldSpellATKBonus: number;
+  fieldSpellDEFBonus: number;
   phoenixRevivalUsed: boolean;
   piercing:         boolean;
   cannotBeTargeted: boolean;
@@ -400,6 +403,7 @@ export declare class GameEngine {
   specialSummonFromGrave(owner: Owner, card: CardData): Promise<boolean>;
   performFusionChain(owner: Owner, handIndices: number[]): Promise<boolean>;
   equipCard(owner: Owner, handIndex: number, targetOwner: Owner, targetMonsterZone: number): Promise<boolean>;
+  activateFieldSpell(owner: Owner, handIndex: number): Promise<boolean>;
   _removeEquipmentForMonster(monsterOwner: Owner, monsterZone: number): void;
   endTurn(): void;
   advancePhase(): void;

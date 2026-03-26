@@ -48,6 +48,8 @@ function serializePlayerState(ps: PlayerState): SerializedPlayerState {
         tempDEFBonus: fc.tempDEFBonus,
         permATKBonus: fc.permATKBonus,
         permDEFBonus: fc.permDEFBonus,
+        fieldSpellATKBonus: fc.fieldSpellATKBonus,
+        fieldSpellDEFBonus: fc.fieldSpellDEFBonus,
         phoenixRevivalUsed: fc.phoenixRevivalUsed,
       } as SerializedFieldCardData;
     }),
@@ -61,6 +63,11 @@ function serializePlayerState(ps: PlayerState): SerializedPlayerState {
         equippedOwner: st.equippedOwner,
       } as SerializedFieldSpellTrapData;
     }),
+    fieldSpell: ps.field.fieldSpell ? {
+      cardId: ps.field.fieldSpell.card.id,
+      faceDown: ps.field.fieldSpell.faceDown,
+      used: ps.field.fieldSpell.used,
+    } as SerializedFieldSpellTrapData : null,
   };
 }
 

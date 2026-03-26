@@ -168,14 +168,14 @@ export function isValidTrigger(s: string): s is (EffectTrigger | TrapTrigger) {
 
 // ── SpellType ────────────────────────────────────────────────
 
-const SPELL_TYPE_STRINGS: ReadonlySet<string> = new Set(['normal', 'targeted', 'fromGrave']);
+const SPELL_TYPE_STRINGS: ReadonlySet<string> = new Set(['normal', 'targeted', 'fromGrave', 'field']);
 
 export function isValidSpellType(s: string): s is SpellType {
   return SPELL_TYPE_STRINGS.has(s);
 }
 
-const SPELL_TYPE_TO_INT: Record<string, number> = { normal: 1, targeted: 2, fromGrave: 3 };
-const INT_TO_SPELL_TYPE: Record<number, SpellType> = { 1: 'normal', 2: 'targeted', 3: 'fromGrave' };
+const SPELL_TYPE_TO_INT: Record<string, number> = { normal: 1, targeted: 2, fromGrave: 3, field: 4 };
+const INT_TO_SPELL_TYPE: Record<number, SpellType> = { 1: 'normal', 2: 'targeted', 3: 'fromGrave', 4: 'field' };
 
 export function spellTypeToInt(s: SpellType): number {
   const n = SPELL_TYPE_TO_INT[s];
