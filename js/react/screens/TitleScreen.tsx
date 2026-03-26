@@ -26,7 +26,7 @@ export default function TitleScreen() {
   }
 
   return (
-    <div className={styles.screen}>
+    <div id="title-screen" className={styles.screen}>
       <div className="title-bg"></div>
       <div className={styles.header}>
         <h1 className={styles.gameTitle}>ECHOES OF SANGUO</h1>
