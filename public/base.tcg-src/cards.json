@@ -3089,20 +3089,20 @@
     "rarity": 2,
     "type": 3,
     "spellType": 4,
-    "effect": "passive:buffField(200,{r=5})"
+    "effect": "passive:buffField(200,{r=5});buffField(-150,{r=11});buffField(-100,{r=12})"
   },
   {
     "id": 309,
     "rarity": 2,
     "type": 3,
     "spellType": 4,
-    "effect": "passive:buffField(300,{r=1})"
+    "effect": "passive:buffField(300,{r=1});buffField(-150,{r=10});buffField(-100,{r=9})"
   },
   {
     "id": 310,
     "rarity": 2,
     "type": 3,
     "spellType": 4,
-    "effect": "passive:buffField(250,{r=2})"
+    "effect": "passive:buffField(250,{r=2});buffField(-150,{r=4});buffField(-100,{r=3})"
   }
 ]
