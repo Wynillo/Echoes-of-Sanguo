@@ -388,6 +388,17 @@ export function validateCampaignJson(data: unknown): string[] {
       if (n.type === 'duel' && n.opponentId !== undefined && typeof n.opponentId !== 'number') {
         warnings.push(`campaign.json: node "${n.id}": opponentId must be a number`);
       }
+
+      // Validate gauntlet field for duel nodes
+      if (n.gauntlet !== undefined && n.gauntlet !== null) {
+        if (!Array.isArray(n.gauntlet)) {
+          warnings.push(`campaign.json: node "${n.id}": gauntlet must be an array of opponent IDs`);
+        } else if (n.gauntlet.length < 2) {
+          warnings.push(`campaign.json: node "${n.id}": gauntlet must have at least 2 opponents`);
+        } else if (!n.gauntlet.every((id: unknown) => typeof id === 'number')) {
+          warnings.push(`campaign.json: node "${n.id}": gauntlet entries must be numbers`);
+        }
+      }
     }
   }
 

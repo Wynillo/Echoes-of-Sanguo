@@ -17,6 +17,7 @@ export interface CampaignNode {
   type: 'duel' | 'story' | 'reward' | 'shop' | 'branch';
   opponentId?: number;        // for duel nodes
   completeOnLoss?: boolean;   // node completes even on defeat (e.g. scripted loss)
+  gauntlet?: number[];        // ordered opponent IDs for back-to-back duels (no saving between)
   position: { x: number; y: number };  // for map rendering
   unlockCondition: UnlockCondition | null;  // null = always unlocked (start node)
   rewards?: NodeRewards;

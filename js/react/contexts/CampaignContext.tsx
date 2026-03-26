@@ -11,6 +11,10 @@ export interface PendingDuel {
   completeOnLoss?: boolean;
   rewards?: NodeRewards;
   postDialogue?: string[];
+  /** Ordered opponent IDs for gauntlet (back-to-back duels, no saving). */
+  gauntletOpponents?: number[];
+  /** Index of the current opponent within gauntletOpponents (0-based). */
+  gauntletIndex?: number;
 }
 
 interface CampaignCtx {

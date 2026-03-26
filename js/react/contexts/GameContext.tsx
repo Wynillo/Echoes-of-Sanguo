@@ -6,6 +6,7 @@ import { useProgression } from './ProgressionContext.js';
 import { useScreen } from './ScreenContext.js';
 import { useCampaign } from './CampaignContext.js';
 import { Audio } from '../../audio.js';
+import { OPPONENT_CONFIGS } from '../../cards.js';
 
 interface GameCtx {
   gameState:          GameState | null;
@@ -47,6 +48,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const setPendingDuelRef = useRef(setPendingDuel); setPendingDuelRef.current = setPendingDuel;
   const refreshCampaignRef = useRef(refreshCampaignProgress); refreshCampaignRef.current = refreshCampaignProgress;
   const lastOppRef        = useRef<OpponentConfig | null>(null);
+  const startGameRef      = useRef<(cfg?: OpponentConfig | null) => void>(() => {});
 
   const uiCallbacks = useMemo<UICallbacks>(() => ({
     render: (state) => setGameState({ ...state }),
@@ -89,6 +91,65 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       // Campaign duel
       const pending = pendingDuelRef.current;
       if (pending) {
+        // --- Gauntlet: back-to-back duels ---
+        const gauntlet = pending.gauntletOpponents;
+        const gIdx = pending.gauntletIndex ?? 0;
+
+        if (gauntlet && gauntlet.length > 0) {
+          import('../../progression.js').then(({ Progression }) => {
+            // Record individual duel result
+            if (opponentId) Progression.recordDuelResult(opponentId, result === 'victory');
+
+            if (result === 'victory' && gIdx + 1 < gauntlet.length) {
+              // More opponents remain — show transition, then start next duel
+              const nextOppId = gauntlet[gIdx + 1];
+              const nextCfg = (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === nextOppId);
+              const nextName = nextCfg?.name ?? `Opponent #${nextOppId}`;
+
+              // Update pending duel to advance gauntlet index
+              const nextPending = { ...pending, gauntletIndex: gIdx + 1 };
+              setPendingDuelRef.current(nextPending);
+
+              openModalRef.current({
+                type: 'gauntlet-transition',
+                duelIndex: gIdx + 1,
+                totalDuels: gauntlet.length,
+                nextOpponentName: nextName,
+                resolve: () => {
+                  openModalRef.current(null); // close modal
+                  startGameRef.current(nextCfg ?? null);
+                },
+              });
+            } else if (result === 'victory') {
+              // Final gauntlet duel won — complete node, give rewards
+              setPendingDuelRef.current(null);
+              Progression.markNodeComplete(pending.nodeId);
+              if (pending.rewards) {
+                if (pending.rewards.coins) Progression.addCoins(pending.rewards.coins);
+                if (pending.rewards.cards?.length) Progression.addCardsToCollection(pending.rewards.cards);
+              }
+              refreshRef.current();
+              refreshCampaignRef.current();
+              if (pending.postDialogue && pending.postDialogue.length > 0) {
+                navigateToRef.current('dialogue', {
+                  scene: pending.postDialogue as unknown as Record<string, unknown>,
+                  nextScreen: 'campaign',
+                });
+              } else {
+                navigateToRef.current('campaign');
+              }
+            } else {
+              // Defeat in gauntlet — entire gauntlet fails
+              setPendingDuelRef.current(null);
+              refreshRef.current();
+              refreshCampaignRef.current();
+              openModalRef.current({ type: 'result', resultType: result, coinsEarned: 0 });
+            }
+          });
+          return;
+        }
+
+        // --- Standard campaign duel (non-gauntlet) ---
         setPendingDuelRef.current(null);
         import('../../progression.js').then(({ Progression }) => {
           const isComplete = result === 'victory' || !!pending.completeOnLoss;
@@ -165,6 +226,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       });
     });
   }, [uiCallbacks, loadDeck]);
+  startGameRef.current = startGame;
 
   const clearPendingDraw = useCallback(() => setPendingDraw(0), []);
 
