@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useRef, useCallback, useMemo } from 'react';
-import type { GameState, UICallbacks, OpponentConfig, CardData } from '../../types.js';
-import type { GameEngine as GameEngineType } from '../../engine.js';
+import { createContext, useContext, useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import type { GameState, UICallbacks, OpponentConfig, CardData, PlayerState } from '../../types.js';
+import type { GameEngine as GameEngineType, SerializedCheckpoint, SerializedPlayerState, SerializedFieldCardData, SerializedFieldSpellTrapData } from '../../engine.js';
+import type { PendingDuel } from './CampaignContext.js';
 import { useModal } from './ModalContext.js';
 import { useSelection } from './SelectionContext.js';
 import { useProgression } from './ProgressionContext.js';
@@ -25,6 +26,48 @@ const GameContext = createContext<GameCtx>({
   startGame: () => {}, clearPendingDraw: () => {},
 });
 
+// ── Serialization helpers ──────────────────────────────────
+
+function serializePlayerState(ps: PlayerState): SerializedPlayerState {
+  return {
+    lp: ps.lp,
+    deckIds: ps.deck.map(c => c.id),
+    handIds: ps.hand.map(c => c.id),
+    graveyardIds: ps.graveyard.map(c => c.id),
+    normalSummonUsed: ps.normalSummonUsed,
+    monsters: ps.field.monsters.map(fc => {
+      if (!fc) return null;
+      return {
+        cardId: fc.card.id,
+        position: fc.position,
+        faceDown: fc.faceDown,
+        hasAttacked: fc.hasAttacked,
+        hasFlipped: fc.hasFlipped,
+        summonedThisTurn: fc.summonedThisTurn,
+        tempATKBonus: fc.tempATKBonus,
+        tempDEFBonus: fc.tempDEFBonus,
+        permATKBonus: fc.permATKBonus,
+        permDEFBonus: fc.permDEFBonus,
+        phoenixRevivalUsed: fc.phoenixRevivalUsed,
+      } as SerializedFieldCardData;
+    }),
+    spellTraps: ps.field.spellTraps.map(st => {
+      if (!st) return null;
+      return {
+        cardId: st.card.id,
+        faceDown: st.faceDown,
+        used: st.used,
+      } as SerializedFieldSpellTrapData;
+    }),
+  };
+}
+
+interface FullCheckpoint {
+  checkpoint: SerializedCheckpoint;
+  pendingDuel: PendingDuel | null;
+  lastOpponent: OpponentConfig | null;
+}
+
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [gameState,    setGameState]    = useState<GameState | null>(null);
   const [logEntries,   setLogEntries]   = useState<string[]>([]);
@@ -32,6 +75,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [lastOpponent, setLastOpponent] = useState<OpponentConfig | null>(null);
 
   const gameRef = useRef<GameEngineType | null>(null);
+  const restoredRef = useRef(false);
 
   const { openModal }     = useModal();
   const { resetSel }      = useSelection();
@@ -49,6 +93,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const setPendingDuelRef = useRef(setPendingDuel); setPendingDuelRef.current = setPendingDuel;
   const refreshCampaignRef = useRef(refreshCampaignProgress); refreshCampaignRef.current = refreshCampaignProgress;
   const lastOppRef        = useRef<OpponentConfig | null>(null);
+  const gameStateRef      = useRef<GameState | null>(null);
+  gameStateRef.current    = gameState;
   const startGameRef      = useRef<(cfg?: OpponentConfig | null) => void>(() => {});
 
   const uiCallbacks = useMemo<UICallbacks>(() => ({
@@ -87,6 +133,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       });
     },
     onDuelEnd: (result, opponentId) => {
+      // Clear duel checkpoint — the duel is over
+      import('../../progression.js').then(({ Progression }) => Progression.clearDuelCheckpoint());
+
       Audio.playMusic(result === 'victory' ? 'music_victory' : 'music_defeat');
 
       // Campaign duel
@@ -144,7 +193,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               setPendingDuelRef.current(null);
               refreshRef.current();
               refreshCampaignRef.current();
-              openModalRef.current({ type: 'result', resultType: result, coinsEarned: 0 });
+              navigateToRef.current('defeated');
             }
           });
           return;
@@ -182,8 +231,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           } else if (isComplete) {
             navigateToRef.current('campaign');
           } else {
-            // Defeat in campaign: show result modal so the player sees the defeat screen
-            openModalRef.current({ type: 'result', resultType: result, coinsEarned: 0 });
+            // Defeat in campaign: go straight to defeated screen
+            navigateToRef.current('defeated');
           }
         }).catch(e => console.error('[GameContext] Failed to apply campaign duel result:', e));
         return;
@@ -209,6 +258,70 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       }
     },
   }), []); // stable — uses refs internally
+
+  // ── Save duel checkpoint on page unload ──────────────────
+  useEffect(() => {
+    function handleBeforeUnload() {
+      const engine = gameRef.current;
+      if (!engine || !gameStateRef.current) return;
+      const state = engine.state as GameState;
+      if (!state) return;
+
+      const checkpoint: SerializedCheckpoint = {
+        phase: state.phase,
+        turn: state.turn,
+        activePlayer: state.activePlayer,
+        firstTurnNoAttack: state.firstTurnNoAttack,
+        log: state.log,
+        player: serializePlayerState(state.player),
+        opponent: serializePlayerState(state.opponent),
+        opponentId: engine._currentOpponentId,
+        opponentBehaviorId: lastOppRef.current?.behaviorId,
+      };
+      const full: FullCheckpoint = {
+        checkpoint,
+        pendingDuel: pendingDuelRef.current,
+        lastOpponent: lastOppRef.current,
+      };
+      // Synchronous save — must use localStorage directly in beforeunload
+      try {
+        localStorage.setItem('tcg_duel_checkpoint', JSON.stringify(full));
+      } catch (_) { /* quota exceeded — ignore */ }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // ── Restore duel checkpoint on mount ─────────────────────
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+
+    import('../../progression.js').then(({ Progression }) => {
+      const saved = Progression.loadDuelCheckpoint<FullCheckpoint>();
+      if (!saved || !saved.checkpoint) return;
+
+      Promise.all([
+        import('../../engine.js'),
+        import('../../cards.js'),
+      ]).then(([{ GameEngine }, _cardsModule]) => {
+        const g = new GameEngine(uiCallbacks);
+        gameRef.current = g;
+
+        if (saved.lastOpponent) {
+          setLastOpponent(saved.lastOpponent);
+          lastOppRef.current = saved.lastOpponent;
+        }
+        if (saved.pendingDuel) {
+          setPendingDuelRef.current(saved.pendingDuel);
+        }
+
+        g.restoreGame(saved.checkpoint);
+        setScreenRef.current('game');
+      });
+    });
+  }, [uiCallbacks]);
 
   const startGame = useCallback((opponentConfig?: OpponentConfig | null) => {
     const cfg = opponentConfig ?? null;

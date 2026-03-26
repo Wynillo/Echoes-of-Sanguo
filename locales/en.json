@@ -335,5 +335,10 @@
     "attr_wind": "Wind",
     "attr_light": "Light",
     "attr_dark": "Dark"
+  },
+  "defeated": {
+    "title": "DEFEAT",
+    "message": "Your forces have fallen. But every warrior can rise again...",
+    "continue": "PRESS ANY KEY"
   }
 }

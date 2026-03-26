@@ -374,7 +374,10 @@ export declare class GameEngine {
   constructor(uiCallbacks: UICallbacks);
   ui:      UICallbacks;
   state:   GameState;
+  _currentOpponentId: number | null;
+  _aiBehavior: Required<AIBehavior> & { _id?: string };
   initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null): Promise<void>;
+  restoreGame(checkpoint: unknown): void;
   getState(): GameState;
   addLog(msg: string): void;
   dealDamage(target: Owner, amount: number): void;

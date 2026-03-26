@@ -293,6 +293,22 @@ export const Progression = (() => {
     return progress.completedNodes.includes(nodeId);
   }
 
+  // ── Duel Checkpoint (anti-save-scum) ─────────────────────
+
+  const DUEL_CHECKPOINT_KEY = 'tcg_duel_checkpoint';
+
+  function saveDuelCheckpoint(data: unknown): void {
+    _save(DUEL_CHECKPOINT_KEY, data);
+  }
+
+  function loadDuelCheckpoint<T>(): T | null {
+    return _load(DUEL_CHECKPOINT_KEY, null);
+  }
+
+  function clearDuelCheckpoint(): void {
+    localStorage.removeItem(DUEL_CHECKPOINT_KEY);
+  }
+
   // ── Debug / Reset ────────────────────────────────────────
 
   /** Resets all progression data (debug only) */
@@ -373,6 +389,10 @@ export const Progression = (() => {
     hasBackup,
     restoreFromBackup,
     clearBackup,
+    // Duel Checkpoint
+    saveDuelCheckpoint,
+    loadDuelCheckpoint,
+    clearDuelCheckpoint,
   };
 
 })();

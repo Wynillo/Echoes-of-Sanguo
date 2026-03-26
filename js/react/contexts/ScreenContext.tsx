@@ -14,7 +14,8 @@ export type Screen =
   | 'deckbuilder'
   | 'save-point'
   | 'campaign'
-  | 'dialogue';
+  | 'dialogue'
+  | 'defeated';
 
 interface ScreenCtx {
   screen: Screen;
@@ -36,6 +37,7 @@ const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
   collection:     'music_title',
   deckbuilder:    'music_title',
   'save-point':   'music_title',
+  defeated:       'music_defeat',
 };
 
 export function ScreenProvider({ children }: { children: React.ReactNode }) {
