@@ -26,11 +26,10 @@ und der KI; (4) React-Anti-Pattern (module-level mutable state, zu große Kompon
   `tempDEFBonus`. Das Feld existiert in den Typen, wird aber weder befüllt noch gelesen.
   `tempDEFBonus` ist faktisch dead code — bis der Bug oben gefixt wird.
 
-**2. Hard-coded Karten-IDs in der KI**
-- `js/engine.ts`, Zeile ~890–921 (`_aiMainPhase`)
-- Die KI entscheidet per `card.id === 'S001'`, ob ein Zauber aktiviert wird.
-  Wenn Karten umbenannt oder verschoben werden, bricht die KI lautlos.
-  Klassischer AI-Code-Smell: Logik durch Bezeichner statt durch Eigenschaften der Karte gesteuert.
+**2. Hard-coded Karten-IDs in der KI** *(behoben)*
+- Die KI nutzt jetzt das `AI_BEHAVIOR_REGISTRY` mit `shouldActivateNormalSpell()` und
+  datengetriebenen `spellRules` statt hart-codierten Karten-IDs.
+  Der `'smart'`-Modus verwendet eine LP-basierte Heuristik.
 
 **3. `onDestroyByBattle`-Trigger fehlt für den Angreifer**
 - `js/engine.ts`, `_resolveBattle()`, Zeile ~590–600
@@ -208,10 +207,9 @@ und der KI; (4) React-Anti-Pattern (module-level mutable state, zu große Kompon
 - `engine.ts:732`: `_resetMonsterFlags()` um `fc.tempDEFBonus = 0` ergänzen
 - `engine.ts:_resolveBattle`: `onDestroyByBattle` auch für zerstörten Angreifer feuern
 
-### 2. 🔴 KI von Hard-coded IDs auf Karten-Eigenschaften umstellen
-*Verhindert silent-breaks bei Karten-Umbenennungen (~2–3h).*
-- Statt `card.id === 'S001'`: Effekte via `card.effect.actions.some(a => a.type === 'dealDamage')`
-  prüfen. Ein `aiHint`-Feld in `TcgCard` wäre noch sauberer.
+### 2. ✅ KI von Hard-coded IDs auf Karten-Eigenschaften umgestellt
+*Erledigt.* Die KI nutzt jetzt `AI_BEHAVIOR_REGISTRY` mit datengetriebenen `spellRules`
+und `defaultSpellActivation` statt hart-codierten Karten-IDs.
 
 ### 3. 🟡 `tsconfig.json` auf `strict: true` + Typen nachrüsten
 *Größter Impact auf langfristige Wartbarkeit (~4–6h, iterativ).*
@@ -279,22 +277,11 @@ this.dealDamage(atkOwner, dmg);
 this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
 ```
 
-### C) KI: ID-Unabhängige Spell-Aktivierung (`engine.ts:_aiMainPhase`)
+### C) KI: ID-Unabhängige Spell-Aktivierung *(erledigt)*
 
-```typescript
-// VORHER:
-const should = (card.id === 'S001' && plr.lp > 800) ||
-               (card.id === 'S002' && ai.lp < 5000) ||
-               card.id === 'S005';
-
-// NACHHER — eigene Hilfsfunktion außerhalb der Klasse:
-function aiShouldActivateNormalSpell(
-  card: CardData,
-  ai: PlayerState,
-  plr: PlayerState
-): boolean {
-  if (!card.effect?.actions) return true; // kein Effekt bekannt → aktivieren
-  const actions = card.effect.actions;
+Die KI nutzt jetzt `shouldActivateNormalSpell()` aus `ai-behaviors.ts` mit
+datengetriebenen `spellRules` pro Behavior-Profil. Der `'smart'`-Modus
+aktiviert Zauber nur wenn die KI weniger LP hat als der Spieler oder unter 5000 LP liegt.
   const dealsDamage = actions.some(a => a.type === 'dealDamage' && a.target === 'opponent');
   const heals       = actions.some(a => a.type === 'gainLP');
   const draws       = actions.some(a => a.type === 'draw');

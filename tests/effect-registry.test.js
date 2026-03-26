@@ -406,7 +406,7 @@ describe('tempDefBonus', () => {
 
 describe('reviveFromGrave', () => {
   it('calls specialSummonFromGrave with target card', () => {
-    const card = { id: 'M001', name: 'Test' };
+    const card = { id: '1', name: 'Test' };
     const e = mockEngine();
     executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'reviveFromGrave' }] },

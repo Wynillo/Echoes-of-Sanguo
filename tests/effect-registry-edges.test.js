@@ -711,7 +711,7 @@ describe('debuffField — owner is opponent', () => {
 
 describe('reviveFromGrave — opponent owner', () => {
   it('calls specialSummonFromGrave with opponent owner', () => {
-    const card = { id: 'M005', name: 'OppRevive' };
+    const card = { id: '5', name: 'OppRevive' };
     const e = mockEngine();
     executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'reviveFromGrave' }] },

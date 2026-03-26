@@ -28,7 +28,7 @@ function monster(overrides = {}) {
 /** Minimal spell card stub. */
 function spell(overrides = {}) {
   return {
-    id: 'S999',
+    id: 'test-spell',
     name: 'TestSpell',
     type: CardType.Spell,
     description: '',
@@ -120,7 +120,7 @@ describe('pickSummonCandidate', () => {
 
   describe('hand with no monsters', () => {
     it('returns -1 when hand has only spells', () => {
-      const hand = [spell(), spell({ id: 'S998' })];
+      const hand = [spell(), spell({ id: 'test-spell-2' })];
       expect(pickSummonCandidate(hand, 'highestATK')).toBe(-1);
     });
   });
@@ -320,41 +320,43 @@ describe('shouldActivateNormalSpell', () => {
     it('activates when rule condition "always" is met', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'S005': { when: 'always' } },
+        spellRules: { 'test-always': { when: 'always' } },
       };
-      expect(shouldActivateNormalSpell('S005', behavior, 8000, 8000)).toBe(true);
+      expect(shouldActivateNormalSpell('test-always', behavior, 8000, 8000)).toBe(true);
     });
 
-    it('activates S001 (oppLP>N) when player LP exceeds threshold', () => {
+    it('activates (oppLP>N) when player LP exceeds threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'S001': { when: 'oppLP>N', threshold: 800 } },
+        spellRules: { 'test-opp': { when: 'oppLP>N', threshold: 800 } },
       };
-      expect(shouldActivateNormalSpell('S001', behavior, 1000, 8000)).toBe(true);
+      expect(shouldActivateNormalSpell('test-opp', behavior, 1000, 8000)).toBe(true);
     });
 
-    it('does not activate S001 when player LP is at or below threshold', () => {
+    it('does not activate (oppLP>N) when player LP is at or below threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'S001': { when: 'oppLP>N', threshold: 800 } },
+        spellRules: { 'test-opp': { when: 'oppLP>N', threshold: 800 } },
       };
-      expect(shouldActivateNormalSpell('S001', behavior, 800, 8000)).toBe(false);
-      expect(shouldActivateNormalSpell('S001', behavior, 500, 8000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-opp', behavior, 800, 8000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-opp', behavior, 500, 8000)).toBe(false);
     });
 
-    it('activates S002 (selfLP<N) when AI LP is below threshold', () => {
-      const behavior = resolveAIBehavior('default');
-      // S002: { when: 'selfLP<N', threshold: 5000 }
-      expect(shouldActivateNormalSpell('S002', behavior, 8000, 4000)).toBe(true);
-    });
-
-    it('does not activate S002 when AI LP is at or above threshold', () => {
+    it('activates (selfLP<N) when AI LP is below threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'S002': { when: 'selfLP<N', threshold: 5000 } },
+        spellRules: { 'test-self': { when: 'selfLP<N', threshold: 5000 } },
       };
-      expect(shouldActivateNormalSpell('S002', behavior, 8000, 5000)).toBe(false);
-      expect(shouldActivateNormalSpell('S002', behavior, 8000, 6000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 4000)).toBe(true);
+    });
+
+    it('does not activate (selfLP<N) when AI LP is at or above threshold', () => {
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'test-self': { when: 'selfLP<N', threshold: 5000 } },
+      };
+      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 5000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 6000)).toBe(false);
     });
   });
 
@@ -362,20 +364,20 @@ describe('shouldActivateNormalSpell', () => {
     it('returns true when defaultSpellActivation is "always"', () => {
       const behavior = resolveAIBehavior('aggressive');
       // aggressive has defaultSpellActivation: 'always' and empty spellRules
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(true);
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 8000)).toBe(true);
     });
 
     it('returns true when defaultSpellActivation is "smart" and AI is losing', () => {
       const behavior = resolveAIBehavior('default');
       // default has defaultSpellActivation: 'smart'
       // 'smart' activates when AI LP < player LP or AI LP < 5000
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 4000)).toBe(true);
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 4000)).toBe(true);
     });
 
     it('returns false when defaultSpellActivation is "smart" and AI is healthy', () => {
       const behavior = resolveAIBehavior('default');
       // AI LP 8000 >= player LP 8000 and AI LP >= 5000
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 8000)).toBe(false);
     });
 
     it('returns false when defaultSpellActivation is "never"', () => {
@@ -385,7 +387,7 @@ describe('shouldActivateNormalSpell', () => {
         defaultSpellActivation: 'never',
         spellRules: {},
       };
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 8000)).toBe(false);
     });
   });
 
@@ -393,21 +395,21 @@ describe('shouldActivateNormalSpell', () => {
     it('uses rule even when defaultSpellActivation is "always"', () => {
       const behavior = {
         ...resolveAIBehavior('aggressive'),
-        spellRules: { 'S999': { when: 'selfLP<N', threshold: 3000 } },
+        spellRules: { 'test-spell': { when: 'selfLP<N', threshold: 3000 } },
       };
-      // defaultSpellActivation is 'always' but S999 has a specific rule
+      // defaultSpellActivation is 'always' but test-spell has a specific rule
       // AI LP 8000 >= 3000, so rule returns false
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 8000)).toBe(false);
     });
 
     it('uses rule even when defaultSpellActivation is "never"', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
         defaultSpellActivation: 'never',
-        spellRules: { 'S999': { when: 'always' } },
+        spellRules: { 'test-spell': { when: 'always' } },
       };
-      // defaultSpellActivation is 'never' but S999 has 'always' rule
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(true);
+      // defaultSpellActivation is 'never' but test-spell has 'always' rule
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 8000)).toBe(true);
     });
   });
 });

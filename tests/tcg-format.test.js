@@ -320,7 +320,7 @@ describe('Definition Validator', () => {
 describe('TCG Builder', () => {
   it('converts a monster CardData to TcgCard', () => {
     const card = {
-      id: 'M001', name: 'Feuersalamander', type: CardType.Monster,
+      id: '1', name: 'Feuersalamander', type: CardType.Monster,
       attribute: Attribute.Fire, race: Race.Beast, rarity: Rarity.Common, level: 3, atk: 1000, def: 800,
       description: 'A fire salamander',
     };
@@ -338,7 +338,7 @@ describe('TCG Builder', () => {
 
   it('converts a spell CardData to TcgCard (no atk/def/attribute/race)', () => {
     const card = {
-      id: 'S001', name: 'Feuerball', type: CardType.Spell,
+      id: '100', name: 'Feuerball', type: CardType.Spell,
       description: 'Deal damage',
       spellType: 'normal',
       effect: { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 800 }] }
@@ -353,7 +353,7 @@ describe('TCG Builder', () => {
   });
 
   it('extracts card definition', () => {
-    const card = { id: 'M001', name: 'Feuersalamander', description: 'A fire salamander', type: CardType.Monster };
+    const card = { id: '1', name: 'Feuersalamander', description: 'A fire salamander', type: CardType.Monster };
     const def = cardDataToTcgDef(card, 1);
     expect(def.id).toBe(1);
     expect(def.name).toBe('Feuersalamander');

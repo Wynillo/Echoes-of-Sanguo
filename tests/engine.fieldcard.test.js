@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { FieldCard } from '../js/engine.ts';
 
-const baseCard = { id:'M001', name:'Test', type:'normal', atk:1000, def:800 };
+const baseCard = { id:'1', name:'Test', type:'normal', atk:1000, def:800 };
 
 describe('FieldCard', () => {
   it('defaults to atk position', () => {
