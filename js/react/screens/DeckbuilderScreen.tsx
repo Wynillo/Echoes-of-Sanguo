@@ -216,17 +216,7 @@ export default function DeckbuilderScreen() {
       <div className={styles.header}>
         <div className={styles.title}>{t('deckbuilder.title')}</div>
         <div className={styles.count}>{t('deckbuilder.cards_count', { current: currentDeck.length, max: MAX_DECK })}</div>
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tabBtn}${activeTab === 'collection' ? ` ${styles.activeTab}` : ''}`}
-            onClick={() => setActiveTab('collection')}
-          >{t('deckbuilder.tab_collection')}</button>
-          <button
-            className={`${styles.tabBtn}${activeTab === 'deck' ? ` ${styles.activeTab}` : ''}`}
-            onClick={() => setActiveTab('deck')}
-          >{t('deckbuilder.tab_deck')}</button>
-        </div>
-        <div className="ml-auto flex gap-2">
+        <div className="flex gap-2">
           <button
             id="btn-db-save"
             className="btn-primary"
@@ -235,6 +225,16 @@ export default function DeckbuilderScreen() {
             onClick={saveDeck}
           >{t('deckbuilder.save_btn')}</button>
           <button id="btn-db-back" className="btn-secondary" onClick={() => navigateTo('save-point')}>{t('deckbuilder.back')}</button>
+        </div>
+        <div className={`${styles.tabs} ml-auto`}>
+          <button
+            className={`${styles.tabBtn}${activeTab === 'collection' ? ` ${styles.activeTab}` : ''}`}
+            onClick={() => setActiveTab('collection')}
+          >{t('deckbuilder.tab_collection')}</button>
+          <button
+            className={`${styles.tabBtn}${activeTab === 'deck' ? ` ${styles.activeTab}` : ''}`}
+            onClick={() => setActiveTab('deck')}
+          >{t('deckbuilder.tab_deck')}</button>
         </div>
       </div>
 

@@ -30,7 +30,7 @@
 /* ── Tabs ── */
 
 .tabs {
-  display: flex; gap: 0; margin-left: 8px;
+  display: flex; gap: 0;
 }
 
 .tabBtn {

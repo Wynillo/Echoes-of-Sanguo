@@ -92,7 +92,7 @@
   {
     "id": 19,
     "name": "Naturschamane",
-    "description": "[Effekt] Bei Beschwörung: Alle deine Erde-Monster erhalten +200 ATK."
+    "description": "[Effekt] Bei Beschwörung: Alle deine Erde-Monster erhalten +200 ATK/DEF."
   },
   {
     "id": 20,
@@ -192,22 +192,22 @@
   {
     "id": 39,
     "name": "Kriegsfürst",
-    "description": "Ein Krieger der Stufe 5. Bei Beschwörung: Ein Monster erhält +400 ATK bis zum Zugende."
+    "description": "Ein Krieger der Stufe 5. Bei Beschwörung: Ein Monster erhält +400 ATK/DEF bis zum Zugende."
   },
   {
     "id": 40,
     "name": "Klingenfürst",
-    "description": "Ein Krieger der Stufe 5. Bei Beschwörung: Ein Monster erhält dauerhaft +200 ATK."
+    "description": "Ein Krieger der Stufe 5. Bei Beschwörung: Ein Monster erhält dauerhaft +200 ATK/DEF."
   },
   {
     "id": 41,
     "name": "Schlachtgott",
-    "description": "Ein Krieger der Stufe 6. Bei Beschwörung: Alle Krieger auf deinem Feld erhalten +200 ATK."
+    "description": "Ein Krieger der Stufe 6. Bei Beschwörung: Alle Krieger auf deinem Feld erhalten +200 ATK/DEF."
   },
   {
     "id": 42,
     "name": "Fußsoldat II",
-    "description": "Ein Krieger der Stufe 6. Bei Beschwörung: Ein Monster erhält +500 ATK bis zum Zugende."
+    "description": "Ein Krieger der Stufe 6. Bei Beschwörung: Ein Monster erhält +500 ATK/DEF bis zum Zugende."
   },
   {
     "id": 43,
@@ -217,7 +217,7 @@
   {
     "id": 44,
     "name": "Klingenläufer II",
-    "description": "Ein Krieger der Stufe 6. Bei Beschwörung: Ein Monster erhält dauerhaft +300 ATK."
+    "description": "Ein Krieger der Stufe 6. Bei Beschwörung: Ein Monster erhält dauerhaft +300 ATK/DEF."
   },
   {
     "id": 45,
@@ -1367,22 +1367,22 @@
   {
     "id": 274,
     "name": "Schwertschärfe",
-    "description": "Wähle ein Monster auf deinem Spielfeld. Es erhält bis zum Ende des Zuges +300 ATK."
+    "description": "Wähle ein Monster auf deinem Spielfeld. Es erhält bis zum Ende des Zuges +300 ATK/DEF."
   },
   {
     "id": 275,
     "name": "Kraftstoß",
-    "description": "Wähle ein Monster auf deinem Spielfeld. Es erhält bis zum Ende des Zuges +400 ATK."
+    "description": "Wähle ein Monster auf deinem Spielfeld. Es erhält bis zum Ende des Zuges +400 ATK/DEF."
   },
   {
     "id": 276,
     "name": "Kraftschub",
-    "description": "Wähle ein Monster auf deinem Spielfeld. Es erhält bis zum Ende des Zuges +500 ATK."
+    "description": "Wähle ein Monster auf deinem Spielfeld. Es erhält bis zum Ende des Zuges +500 ATK/DEF."
   },
   {
     "id": 277,
     "name": "Schwächungsnebel",
-    "description": "Alle Monster des Gegners verlieren bis zum Ende des Zuges 300 ATK."
+    "description": "Alle Monster des Gegners verlieren bis zum Ende des Zuges 300 ATK/DEF."
   },
   {
     "id": 278,
@@ -1417,17 +1417,17 @@
   {
     "id": 284,
     "name": "Feuerpakt",
-    "description": "Alle Feuer-Monster auf deinem Feld erhalten dauerhaft +300 ATK."
+    "description": "Alle Feuer-Monster auf deinem Feld erhalten dauerhaft +300 ATK/DEF."
   },
   {
     "id": 285,
     "name": "Wasserpakt",
-    "description": "Alle Wasser-Monster auf deinem Feld erhalten dauerhaft +300 ATK."
+    "description": "Alle Wasser-Monster auf deinem Feld erhalten dauerhaft +300 ATK/DEF."
   },
   {
     "id": 286,
     "name": "Dunkles Ritual",
-    "description": "Wähle ein Monster auf deinem Spielfeld. Es erhält dauerhaft +500 ATK."
+    "description": "Wähle ein Monster auf deinem Spielfeld. Es erhält dauerhaft +500 ATK/DEF."
   },
   {
     "id": 287,
