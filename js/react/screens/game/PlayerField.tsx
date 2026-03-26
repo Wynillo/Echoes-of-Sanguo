@@ -74,7 +74,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     const target = player.field.monsters[zone];
     if (!target) return;
     if (selMode === 'spell-target') {
-      game.activateSpell('player', sel.spellHandIndex, target);
+      game.activateSpell('player', sel.spellHandIndex!, target);
     } else if (selMode === 'field-spell-target') {
       game.activateSpellFromField('player', sel.spellFieldZone!, target);
     } else {

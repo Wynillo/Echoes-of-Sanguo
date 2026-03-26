@@ -42,3 +42,14 @@ export interface CampaignProgress {
   completedNodes: string[];
   currentChapter: string;
 }
+
+export interface PendingDuel {
+  nodeId: string;
+  completeOnLoss?: boolean;
+  rewards?: NodeRewards;
+  postDialogue?: string[];
+  /** Ordered opponent IDs for gauntlet (back-to-back duels, no saving between). */
+  gauntletOpponents?: number[];
+  /** Index of the current opponent within gauntletOpponents (0-based). */
+  gauntletIndex?: number;
+}

@@ -67,11 +67,15 @@ export const PLAYER_DECK_IDS: string[] = [];
 export const OPPONENT_DECK_IDS: string[] = [];
 
 export function makeDeck(ids: string[]): CardData[] {
-  return ids.map(id => {
+  return ids.flatMap(id => {
     const card = CARD_DB[id];
-    if (!card.effect) return { ...card };
+    if (!card) {
+      console.warn(`[makeDeck] Unknown card ID "${id}" – skipping.`);
+      return [];
+    }
+    if (!card.effect) return [{ ...card }];
     // Deep-clone effect so deck copies don't share the same object references.
-    return { ...card, effect: { ...card.effect } };
+    return [{ ...card, effect: { ...card.effect, actions: [...card.effect.actions] } }];
   });
 }
 

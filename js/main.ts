@@ -18,11 +18,6 @@ try {
 }
 
 await import('./progression.js');
-// Apply persisted game-rule settings
-const { Progression } = await import('./progression.js');
-const { GAME_RULES }  = await import('./rules.js');
-GAME_RULES.refillHandEnabled = Progression.getSettings().refillHand ?? true;
-
 await import('./i18n.js');          // must come after progression.js (reads saved language)
 await import('./engine.js');
 await import('./react/index.js');

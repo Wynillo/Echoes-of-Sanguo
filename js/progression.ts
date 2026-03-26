@@ -47,12 +47,14 @@ export const Progression = (() => {
     }
   }
 
-  function _save(key: string, value: unknown) {
+  function _save(key: string, value: unknown): boolean {
     try {
       localStorage.setItem(key, JSON.stringify(value));
+      return true;
     } catch (e) {
       // QuotaExceededError (storage full) or SecurityError (private browsing blocked)
       console.error(`[Progression] Save failed for "${key}":`, e);
+      return false;
     }
   }
 
@@ -100,6 +102,12 @@ export const Progression = (() => {
         const hasOldIds = col.some(e => /^[A-Z]/.test(e.id));
         if (hasOldIds) {
           console.info('[Progression] Migrating save data to v2: clearing collection and deck (card ID format changed).');
+          // Back up old data before wiping so it can be inspected if migration fails
+          try {
+            localStorage.setItem('tcg_collection_v1_backup', JSON.stringify(col));
+            const oldDeck = localStorage.getItem(KEYS.deck);
+            if (oldDeck) localStorage.setItem('tcg_deck_v1_backup', oldDeck);
+          } catch { /* backup is best-effort */ }
           _save(KEYS.collection, []);
           localStorage.removeItem(KEYS.deck);
         }
@@ -189,10 +197,13 @@ export const Progression = (() => {
     return null;
   }
 
-  function saveDeck(deckIds: string[]): void {
-    _save(KEYS.deck, deckIds);
-    // Keep legacy key in sync for backward compatibility
-    localStorage.setItem('echoesOfSanguo_deck', JSON.stringify(deckIds));
+  function saveDeck(deckIds: string[]): boolean {
+    const ok = _save(KEYS.deck, deckIds);
+    if (ok) {
+      // Keep legacy key in sync for backward compatibility
+      try { localStorage.setItem('echoesOfSanguo_deck', JSON.stringify(deckIds)); } catch { /* ignore */ }
+    }
+    return ok;
   }
 
   // ── Opponents ────────────────────────────────────────────
@@ -265,6 +276,10 @@ export const Progression = (() => {
   }
 
   function markNodeComplete(nodeId: string): CampaignProgress {
+    if (!nodeId || typeof nodeId !== 'string') {
+      console.warn('[Progression] markNodeComplete called with invalid nodeId:', nodeId);
+      return getCampaignProgress();
+    }
     const progress = getCampaignProgress();
     if (!progress.completedNodes.includes(nodeId)) {
       progress.completedNodes.push(nodeId);

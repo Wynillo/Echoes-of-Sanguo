@@ -11,6 +11,8 @@ import { getAllRaces, getAllRarities, getRarityById, getRaceById } from '../../t
 import type { CardData } from '../../types.js';
 import styles from './CollectionScreen.module.css';
 
+const PAGE_SIZE = 100;
+
 export default function CollectionScreen() {
   const { navigateTo }  = useScreen();
   const { collection }  = useProgression();
@@ -18,6 +20,7 @@ export default function CollectionScreen() {
   const { t } = useTranslation();
   const [raceFilter,   setRaceFilter]   = useState<'all' | Race>('all');
   const [rarityFilter, setRarityFilter] = useState<'all' | Rarity>('all');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const countMap: Record<string, number> = {};
   collection.forEach(e => { countMap[e.id] = e.count; });
@@ -28,6 +31,9 @@ export default function CollectionScreen() {
   let allCards = Object.values(CARD_DB) as CardData[];
   if (raceFilter   !== 'all') allCards = allCards.filter(c => (c as any).race   === raceFilter);
   if (rarityFilter !== 'all') allCards = allCards.filter(c => (c as any).rarity === rarityFilter);
+
+  // Reset visible count when filters change
+  const visibleCards = allCards.slice(0, visibleCount);
 
   return (
     <div className={styles.screen}>
@@ -43,7 +49,7 @@ export default function CollectionScreen() {
         <button
           key="all"
           className={`${styles.filterBtn}${raceFilter === 'all' ? ` ${styles.active}` : ''}`}
-          onClick={() => setRaceFilter('all')}
+          onClick={() => { setRaceFilter('all'); setVisibleCount(PAGE_SIZE); }}
         >
           🌐
         </button>
@@ -51,7 +57,7 @@ export default function CollectionScreen() {
           <button
             key={rm.id}
             className={`${styles.filterBtn}${raceFilter === rm.id ? ` ${styles.active}` : ''}`}
-            onClick={() => setRaceFilter(rm.id as Race)}
+            onClick={() => { setRaceFilter(rm.id as Race); setVisibleCount(PAGE_SIZE); }}
           >
             {rm.icon}
           </button>
@@ -59,7 +65,7 @@ export default function CollectionScreen() {
         <select
           className={styles.raritySelect}
           value={rarityFilter}
-          onChange={e => setRarityFilter(e.target.value === 'all' ? 'all' : Number(e.target.value) as Rarity)}
+          onChange={e => { setRarityFilter(e.target.value === 'all' ? 'all' : Number(e.target.value) as Rarity); setVisibleCount(PAGE_SIZE); }}
         >
           <option value="all">{t('collection.rarity_all')}</option>
           {getAllRarities().map(rm => (
@@ -69,7 +75,7 @@ export default function CollectionScreen() {
       </div>
 
       <div className={styles.grid}>
-        {allCards.map(card => {
+        {visibleCards.map(card => {
           const owned = countMap[card.id] || 0;
           const rarColor = getRarityById((card as any).rarity)?.color ?? '#aaa';
           if (owned) {
@@ -101,6 +107,13 @@ export default function CollectionScreen() {
           );
         })}
       </div>
+      {visibleCount < allCards.length && (
+        <div style={{ textAlign: 'center', padding: '1rem' }}>
+          <button className="btn-secondary" onClick={() => setVisibleCount(v => v + PAGE_SIZE)}>
+            {t('common.load_more', { count: Math.min(PAGE_SIZE, allCards.length - visibleCount) })}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -744,7 +744,12 @@ export class GameEngine {
   _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): EffectContext {
     const ctx: EffectContext = { engine: this, owner };
     if(targetInfo instanceof FieldCard){
-      ctx.targetFC = targetInfo;
+      if(targetInfo.cannotBeTargeted){
+        EchoesOfSanguo.log('EFFECT', `${targetInfo.card.name} cannot be targeted by effects – target ignored.`, '#fa0');
+        this.addLog(`${targetInfo.card.name} cannot be targeted by effects!`);
+      } else {
+        ctx.targetFC = targetInfo;
+      }
     } else if(targetInfo && typeof targetInfo === 'object' && 'id' in targetInfo){
       ctx.targetCard = targetInfo as CardData;
     }

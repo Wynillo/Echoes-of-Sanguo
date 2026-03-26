@@ -1,5 +1,18 @@
 import { gsap } from 'gsap';
 
+type ActiveAnim = { tl: gsap.core.Timeline; clone: HTMLElement; atkCard: HTMLElement };
+const _activeAnims = new Set<ActiveAnim>();
+
+/** Kill all in-flight attack animations and clean up DOM nodes. Call on game screen unmount. */
+export function cleanupAttackAnimations(): void {
+  for (const anim of _activeAnims) {
+    anim.tl.kill();
+    anim.clone.remove();
+    anim.atkCard.style.opacity = '';
+  }
+  _activeAnims.clear();
+}
+
 /** Module-level imperative attack animation — called by GameContext's UICallbacks.playAttackAnimation */
 export function playAttackAnim(
   atkOwner: string, atkZone: number,
@@ -65,8 +78,12 @@ export function playAttackAnim(
       el.addEventListener('animationend', () => el.remove(), { once: true });
     }
 
+    const animRef: ActiveAnim = { tl: null as unknown as gsap.core.Timeline, clone, atkCard };
+    _activeAnims.add(animRef);
+
     const tl = gsap.timeline({
       onComplete() {
+        _activeAnims.delete(animRef);
         clone.remove();
         atkCard.style.opacity = '';
         if (defCard) defCard.classList.remove('atk-hit');
@@ -74,6 +91,7 @@ export function playAttackAnim(
         resolve();
       },
     });
+    animRef.tl = tl;
 
     tl.to(clone, { duration: 0.12, ease: 'steps(6)', x: -dx * 0.14, y: -dy * 0.14, scale: 1.18, outline: '2px solid rgba(255,200,60,0.9)', onStart() { clone.style.opacity = '0.5'; } });
     tl.to(clone, { duration: 0.16, ease: 'steps(6)',  x: dx, y: dy, scale: 1.06 });

@@ -1,21 +1,10 @@
 import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import type { CampaignData, CampaignProgress, NodeRewards } from '../../campaign-types.js';
+import type { CampaignData, CampaignProgress, CampaignNode, PendingDuel, NodeRewards } from '../../campaign-types.js';
 import { CAMPAIGN_DATA, isNodeUnlocked as storeIsNodeUnlocked, getNode, hasCampaignData } from '../../campaign-store.js';
 import { Progression } from '../../progression.js';
 import { useProgression } from './ProgressionContext.js';
 import { OPPONENT_CONFIGS } from '../../cards.js';
 import type { OpponentConfig } from '../../types.js';
-
-export interface PendingDuel {
-  nodeId: string;
-  completeOnLoss?: boolean;
-  rewards?: NodeRewards;
-  postDialogue?: string[];
-  /** Ordered opponent IDs for gauntlet (back-to-back duels, no saving). */
-  gauntletOpponents?: number[];
-  /** Index of the current opponent within gauntletOpponents (0-based). */
-  gauntletIndex?: number;
-}
 
 interface CampaignCtx {
   campaignData: CampaignData;
@@ -25,7 +14,7 @@ interface CampaignCtx {
   hasCampaign: boolean;
   getOpponentForNode: (nodeId: string) => OpponentConfig | undefined;
   pendingDuel: PendingDuel | null;
-  setPendingDuel: (duel: PendingDuel | null) => void;
+  setPendingDuel: (d: PendingDuel | null) => void;
   refreshCampaignProgress: () => void;
 }
 

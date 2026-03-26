@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
@@ -30,12 +30,21 @@ export default function DeckbuilderScreen() {
   const [raceFilter, setRaceFilter]           = useState<'all' | Race>('all');
   const [rarityFilter, setRarityFilter]       = useState<'all' | Rarity>('all');
   const [nameSearch, setNameSearch]           = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [visibleCount, setVisibleCount]       = useState(100);
+  const _debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [viewMode, setViewMode]               = useState<ViewMode>('small');
   const [activeTab, setActiveTab]             = useState<ActiveTab>('collection');
   const [sortColumn, setSortColumn]           = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection]     = useState<SortDir>('asc');
   const [toast, setToast]                     = useState(false);
   const [seenCards, setSeenCards]             = useState<Set<string>>(() => Progression.getSeenCards());
+
+  useEffect(() => {
+    if (_debounceRef.current !== null) clearTimeout(_debounceRef.current);
+    _debounceRef.current = setTimeout(() => setDebouncedSearch(nameSearch), 200);
+    return () => { if (_debounceRef.current !== null) clearTimeout(_debounceRef.current); };
+  }, [nameSearch]);
 
   const TYPE_FILTERS: { key: typeof typeFilter; label: string }[] = [
     { key: 'all',     label: t('deckbuilder.type_all') },
@@ -75,7 +84,7 @@ export default function DeckbuilderScreen() {
         || (typeFilter === 'trap'    && c.type === CardType.Trap)) &&
       (raceFilter === 'all' || c.race === raceFilter) &&
       (rarityFilter === 'all' || c.rarity === rarityFilter) &&
-      (!nameSearch || c.name.toLowerCase().includes(nameSearch.toLowerCase()))
+      (!debouncedSearch || c.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
     );
   }
 
@@ -85,7 +94,7 @@ export default function DeckbuilderScreen() {
     (!ownedIds || ownedIds.has(c.id)) &&
     matchesFilters(c)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [ownedIds, typeFilter, raceFilter, rarityFilter, nameSearch]);
+  ), [ownedIds, typeFilter, raceFilter, rarityFilter, debouncedSearch]);
 
   // Deck tab: unique cards in current deck, filtered
   const deckCards = useMemo(() => {
@@ -99,9 +108,12 @@ export default function DeckbuilderScreen() {
     });
     return cards;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDeck, typeFilter, raceFilter, rarityFilter, nameSearch]);
+  }, [currentDeck, typeFilter, raceFilter, rarityFilter, debouncedSearch]);
 
   const displayedCards = activeTab === 'collection' ? collectionCards : deckCards;
+
+  // Reset pagination when filters change
+  useEffect(() => setVisibleCount(100), [typeFilter, raceFilter, rarityFilter, debouncedSearch, activeTab]);
 
   // Sorting
   const sortedCards = useMemo(() => {
@@ -123,6 +135,8 @@ export default function DeckbuilderScreen() {
     });
     return sorted;
   }, [displayedCards, sortColumn, sortDirection, collectionCount, copyMap]);
+
+  const visibleCards = sortedCards.slice(0, visibleCount);
 
   // Mark all visible cards as seen after mount
   useEffect(() => {
@@ -306,7 +320,7 @@ export default function DeckbuilderScreen() {
           {/* Card grid — Large or Small */}
           {viewMode !== 'table' && (
             <div className={`${styles.collectionGrid}${viewMode === 'large' ? ` ${styles.gridLarge}` : ` ${styles.gridSmall}`}`}>
-              {sortedCards.map(card => {
+              {visibleCards.map(card => {
                 const copies = copyMap[card.id] || 0;
                 const atMax  = isAtMax(card.id);
                 const full   = currentDeck.length >= MAX_DECK;
@@ -367,7 +381,7 @@ export default function DeckbuilderScreen() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedCards.map(card => {
+                  {visibleCards.map(card => {
                     const copies     = copyMap[card.id] || 0;
                     const atMax      = isAtMax(card.id);
                     const full       = currentDeck.length >= MAX_DECK;
@@ -417,6 +431,13 @@ export default function DeckbuilderScreen() {
         </div>
       </div>
 
+      {visibleCount < sortedCards.length && (
+        <div style={{ textAlign: 'center', padding: '0.5rem' }}>
+          <button className="btn-secondary" onClick={() => setVisibleCount(v => v + 100)}>
+            {t('common.load_more', { count: Math.min(100, sortedCards.length - visibleCount) })}
+          </button>
+        </div>
+      )}
       {toast && <div className={styles.saveToast}>{t('deckbuilder.saved_toast')}</div>}
     </div>
   );

@@ -4,6 +4,7 @@ import { useGame }      from '../contexts/GameContext.js';
 import { useModal }     from '../contexts/ModalContext.js';
 import { useSelection } from '../contexts/SelectionContext.js';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
+import { cleanupAttackAnimations } from '../hooks/useAttackAnimation.js';
 
 import { OpponentField }   from './game/OpponentField.js';
 import { PlayerField }     from './game/PlayerField.js';
@@ -26,6 +27,9 @@ export default function GameScreen() {
   const hideDirectAndReset = useCallback(() => { resetSel(); setShowDirect(false); }, [resetSel]);
 
   useKeyboardShortcuts({ gameState, gameRef, resetSel, onHideDirect: hideDirect });
+
+  // Kill any in-flight attack animations when the game screen unmounts
+  useEffect(() => () => cleanupAttackAnimations(), []);
 
   useEffect(() => {
     if (pendingDraw > 0) {
