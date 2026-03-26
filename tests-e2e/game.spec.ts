@@ -45,6 +45,6 @@ test.describe('Title Screen', () => {
 
   test('options button is present', async ({ page }) => {
     await passPressStart(page);
-    await expect(page.locator('#title-screen button.btn-secondary')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Options' })).toBeVisible();
   });
 });
