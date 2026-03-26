@@ -6,6 +6,7 @@ import type { CardData, FieldCard } from '../../types.js';
 import {
   getRaceById, getAttrById, getRarityById, getCardTypeById,
 } from '../../type-metadata.js';
+import { highlightCardText, highlightCardTextHTML } from '../utils/highlightCardText.js';
 import styles from './Card.module.css';
 
 function getTypeLabel(card: CardData): string {
@@ -149,7 +150,7 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
       </div>
       <div className={styles.cardBody}>
         <div className={styles.typeSubtype}>{typeSubtypeStr}</div>
-        <div className={styles.descText}>{card.description || ''}</div>
+        <div className={styles.descText}>{big && card.description ? highlightCardText(card.description) : (card.description || '')}</div>
       </div>
       {statsBar}
       {eqReqLabel && <div className={styles.equipReq}>{eqReqLabel} only</div>}
@@ -235,7 +236,7 @@ export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: 
     </div>
     <div class="card-body">
       <div class="card-type-subtype">${typeSubtypeStr}</div>
-      <div class="card-desc-text">${card.description || ''}</div>
+      <div class="card-desc-text">${card.description ? highlightCardTextHTML(card.description) : ''}</div>
     </div>
     ${statsHTML}
   `;

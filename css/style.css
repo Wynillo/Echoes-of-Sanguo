@@ -784,6 +784,17 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .detail-desc  { font-size: 0.75rem; color: var(--text); line-height: 1.5; margin-bottom: 8px; }
 .detail-stats { font-size: 0.875rem; font-weight: bold; color: var(--gold); }
 
+/* ── Card description keyword highlights ──────────────────── */
+.kw-effect  { font-weight: bold; color: #ff9955; }
+.kw-passive { font-weight: bold; color: #55aaff; }
+.kw-fusion  { font-weight: bold; color: #cc88ff; }
+.kw-atk     { font-weight: bold; color: #ff9955; }
+.kw-def     { font-weight: bold; color: #55aaff; }
+.kw-number  { font-weight: bold; color: var(--gold-light); }
+.kw-term    { color: var(--gold); }
+.kw-race    { font-weight: bold; }
+.kw-attr    { font-weight: bold; }
+
 /* Trap Prompt */
 #trap-prompt-modal { max-width: 380px; text-align: center; }
 #trap-prompt-card { display: flex; justify-content: center; margin: 10px 0; }

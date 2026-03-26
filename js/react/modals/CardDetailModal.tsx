@@ -3,6 +3,7 @@ import { useModal }  from '../contexts/ModalContext.js';
 import { useGame }   from '../contexts/GameContext.js';
 import { useSelection } from '../contexts/SelectionContext.js';
 import { Card }       from '../components/Card.js';
+import { highlightCardText } from '../utils/highlightCardText.js';
 import { CardType, Attribute, isMonsterType, meetsEquipRequirement } from '../../types.js';
 import { getAttrById } from '../../type-metadata.js';
 import type { ModalState } from '../contexts/ModalContext.js';
@@ -163,7 +164,7 @@ export function CardDetailModal({ modal }: Props) {
         <div className="detail-info">
           <h2 id="detail-card-name">{card.name}</h2>
           <p className="detail-type">{[attrName, typeLabel].filter(Boolean).join(' · ')}{levelStr}</p>
-          <p className="detail-desc">{card.description || ''}</p>
+          <p className="detail-desc">{card.description ? highlightCardText(card.description) : ''}</p>
           <p className="detail-stats">{statsText}</p>
         </div>
       </div>

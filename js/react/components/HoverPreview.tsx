@@ -7,6 +7,7 @@ import { gsap } from 'gsap';
 import { getAttrById } from '../../type-metadata.js';
 import { CardType } from '../../types.js';
 import { Card } from './Card.js';
+import { highlightCardText } from '../utils/highlightCardText.js';
 import { setHoverDispatch } from './hoverApi.js';
 import type { HoverState } from './hoverApi.js';
 
@@ -75,7 +76,7 @@ export function HoverPreview() {
           <div className="hover-info">
             <div id="hover-card-name">{card.name}</div>
             <div id="hover-card-meta">{[attrNameStr, typeName].filter(Boolean).join(' · ')}{levelStr}</div>
-            <div id="hover-card-desc">{card.description || ''}</div>
+            <div id="hover-card-desc">{card.description ? highlightCardText(card.description) : ''}</div>
             <div id="hover-card-stats">
               {card.atk !== undefined
                 ? <>
