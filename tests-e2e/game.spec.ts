@@ -3,6 +3,7 @@ import { test, expect, Page } from '@playwright/test';
 // Dismiss the press-start screen by pressing a key, then wait for title screen.
 async function passPressStart(page: Page) {
   await page.goto('/');
+  await expect(page.getByText('PRESS ANY KEY')).toBeVisible({ timeout: 5_000 });
   await page.keyboard.press('Enter');
   await expect(page.locator('#title-screen')).toBeVisible({ timeout: 5_000 });
 }
@@ -22,6 +23,7 @@ test.describe('Press Start Screen', () => {
 
   test('navigates to title screen on click', async ({ page }) => {
     await page.goto('/');
+    await expect(page.getByText('PRESS ANY KEY')).toBeVisible({ timeout: 5_000 });
     await page.locator('body').click();
     await expect(page.locator('#title-screen')).toBeVisible({ timeout: 5_000 });
   });
