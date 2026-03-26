@@ -5,7 +5,7 @@ import { useModal }     from '../../contexts/ModalContext.js';
 import { useSelection } from '../../contexts/SelectionContext.js';
 import { FieldCardComponent }     from '../../components/FieldCardComponent.js';
 import { FieldSpellTrapComponent } from '../../components/FieldSpellTrapComponent.js';
-import { CardType }               from '../../../types.js';
+import { CardType, meetsEquipRequirement } from '../../../types.js';
 
 const FIELD_ZONES = [0, 1, 2, 3, 4] as const;
 
@@ -53,7 +53,8 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
 
   function isPlayerMonsterEquipTarget(zone: number) {
     const fc = player.field.monsters[zone];
-    return selMode === 'equip-target' && !!fc && !fc.faceDown;
+    return selMode === 'equip-target' && !!fc && !fc.faceDown
+      && meetsEquipRequirement(sel.equipCard!, fc.card);
   }
 
   const onOwnFieldCardClick = useCallback((fc: any, zone: number) => {

@@ -5,7 +5,10 @@
 import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, resolveFusionChain } from './cards.js';
 import { executeEffectBlock, matchesFilter } from './effect-registry.js';
 import { CardType } from './types.js';
+import { meetsEquipRequirement } from './types.js';
 import type { Owner, Phase, Position, CardData, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior } from './types.js';
+// Re-export for backwards compatibility
+export { meetsEquipRequirement } from './types.js';
 
 // ── Serialized checkpoint types (for save/restore) ───────
 export interface SerializedFieldCardData {
@@ -484,6 +487,11 @@ export class GameEngine {
     const targetSt = this.state[targetOwner];
     const targetFC = targetSt.field.monsters[targetMonsterZone];
     if (!targetFC || targetFC.faceDown) { this.addLog('No valid target monster!'); return false; }
+
+    if (!meetsEquipRequirement(card, targetFC.card)) {
+      this.addLog(`${card.name} cannot be equipped to ${targetFC.card.name}!`);
+      return false;
+    }
 
     // Find empty spell/trap zone on the equipment owner's side
     const zone = st.field.spellTraps.findIndex(z => z === null);

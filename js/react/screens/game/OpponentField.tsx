@@ -4,6 +4,7 @@ import { useModal }     from '../../contexts/ModalContext.js';
 import { useSelection } from '../../contexts/SelectionContext.js';
 import { FieldCardComponent }     from '../../components/FieldCardComponent.js';
 import { FieldSpellTrapComponent } from '../../components/FieldSpellTrapComponent.js';
+import { meetsEquipRequirement }  from '../../../types.js';
 
 const FIELD_ZONES = [0, 1, 2, 3, 4] as const;
 
@@ -21,7 +22,7 @@ export function OpponentField() {
     if (!opp.field.monsters[zone]) return false;
     if (selMode === 'equip-target') {
       const fc = opp.field.monsters[zone];
-      return !!fc && !fc.faceDown;
+      return !!fc && !fc.faceDown && meetsEquipRequirement(sel.equipCard!, fc.card);
     }
     return selMode === 'attack' || selMode === 'trap-target';
   }

@@ -3104,5 +3104,20 @@
     "type": 3,
     "spellType": 4,
     "effect": "passive:buffField(250,{r=2});buffField(-150,{r=4});buffField(-100,{r=3})"
+  },
+  {
+    "id": 311,
+    "rarity": 4,
+    "type": 5,
+    "atkBonus": 700,
+    "defBonus": 300,
+    "equipReqRace": 1
+  },
+  {
+    "id": 312,
+    "rarity": 4,
+    "type": 5,
+    "atkBonus": 600,
+    "equipReqAttr": 3
   }
 ]

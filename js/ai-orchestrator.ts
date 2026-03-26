@@ -309,10 +309,10 @@ async function aiEquipCards(engine: GameEngine): Promise<void> {
       const isNegative = atkB < 0 || defB < 0;
 
       if (isPositive) {
-        // Smart: equip to the monster that benefits most
+        // Smart: equip to the monster that benefits most (respects equipRequirement)
         const targetZone = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
-          ? pickEquipTarget(ai.field.monsters, plr.field.monsters, atkB, defB)
-          : _findStrongestMonsterZone(ai.field.monsters);
+          ? pickEquipTarget(ai.field.monsters, plr.field.monsters, atkB, defB, card)
+          : pickEquipTarget(ai.field.monsters, plr.field.monsters, atkB, defB, card);
 
         if (targetZone !== -1) {
           const fc = ai.field.monsters[targetZone]!;
@@ -322,10 +322,10 @@ async function aiEquipCards(engine: GameEngine): Promise<void> {
           equipped = true; break;
         }
       } else if (isNegative) {
-        // Smart: debuff the biggest threat
+        // Smart: debuff the biggest threat (respects equipRequirement)
         const targetZone = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
-          ? pickDebuffTarget(plr.field.monsters, atkB)
-          : _findStrongestMonsterZone(plr.field.monsters);
+          ? pickDebuffTarget(plr.field.monsters, atkB, card)
+          : pickDebuffTarget(plr.field.monsters, atkB, card);
 
         if (targetZone !== -1) {
           const fc = plr.field.monsters[targetZone]!;

@@ -211,6 +211,21 @@ export interface CardData {
   // Equipment extras
   atkBonus?:    number;
   defBonus?:    number;
+  equipRequirement?: EquipRequirement;
+}
+
+export interface EquipRequirement {
+  race?: Race;
+  attr?: Attribute;
+}
+
+/** Check whether an equipment card's requirements are met by a target monster. */
+export function meetsEquipRequirement(equipment: CardData, target: CardData): boolean {
+  const req = equipment.equipRequirement;
+  if (!req) return true;
+  if (req.race !== undefined && target.race !== req.race) return false;
+  if (req.attr !== undefined && target.attribute !== req.attr) return false;
+  return true;
 }
 
 // ── Deck recipe ─────────────────────────────────────────────

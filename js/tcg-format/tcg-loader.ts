@@ -5,7 +5,7 @@
 
 import JSZip from 'jszip';
 import type { CardData, CardEffectBlock, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from '../types.js';
-import { Race } from '../types.js';
+import { Race, Attribute } from '../types.js';
 import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson, TcgLocaleOverrides, TcgShopJson, TcgCampaignJson, TcgLoadResult } from './types.js';
 import { validateTcgArchive } from './tcg-validator.js';
 import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
@@ -280,6 +280,11 @@ function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition): CardData {
   if (tc.target)      card.target      = tc.target;
   if (tc.atkBonus !== undefined) card.atkBonus = tc.atkBonus;
   if (tc.defBonus !== undefined) card.defBonus = tc.defBonus;
+  if (tc.equipReqRace !== undefined || tc.equipReqAttr !== undefined) {
+    card.equipRequirement = {};
+    if (tc.equipReqRace !== undefined) card.equipRequirement.race = tc.equipReqRace as Race;
+    if (tc.equipReqAttr !== undefined) card.equipRequirement.attr = tc.equipReqAttr as Attribute;
+  }
 
   return card;
 }

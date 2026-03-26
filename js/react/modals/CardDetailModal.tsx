@@ -3,7 +3,7 @@ import { useModal }  from '../contexts/ModalContext.js';
 import { useGame }   from '../contexts/GameContext.js';
 import { useSelection } from '../contexts/SelectionContext.js';
 import { Card }       from '../components/Card.js';
-import { CardType, Attribute, isMonsterType } from '../../types.js';
+import { CardType, Attribute, isMonsterType, meetsEquipRequirement } from '../../types.js';
 import { getAttrById } from '../../type-metadata.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 
@@ -107,9 +107,9 @@ export function CardDetailModal({ modal }: Props) {
 
     const isEq = card.type === CardType.Equipment;
     if (isEq && phase === 'main' && source !== 'field-spell') {
-      // Check if any face-up monster exists on either side
-      const hasTarget = state.player.field.monsters.some((m: any) => m && !m.faceDown)
-                     || state.opponent.field.monsters.some((m: any) => m && !m.faceDown);
+      // Check if any face-up monster exists that meets equipment requirements
+      const hasTarget = state.player.field.monsters.some((m: any) => m && !m.faceDown && meetsEquipRequirement(card, m.card))
+                     || state.opponent.field.monsters.some((m: any) => m && !m.faceDown && meetsEquipRequirement(card, m.card));
       const freeSTZone = state.player.field.spellTraps.findIndex((z: any) => z === null);
       if (hasTarget && freeSTZone !== -1) {
         actions.push(actionBtn(t('card_action.equip', 'Equip'), () => {

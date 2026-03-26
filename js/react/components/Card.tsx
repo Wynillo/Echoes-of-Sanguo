@@ -83,6 +83,10 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
   // Stats bar
   const equipAtkB = card.atkBonus ?? 0;
   const equipDefB = card.defBonus ?? 0;
+  const eqReq = isEquipment ? card.equipRequirement : undefined;
+  const eqReqLabel = eqReq
+    ? [eqReq.race && getRaceById(eqReq.race)?.value, eqReq.attr && getAttrById(eqReq.attr)?.value].filter(Boolean).join(' / ')
+    : '';
   const statsBar = isMonster
     ? <div className={styles.cardStats}>
         <span className={`${styles.atkVal}${atkStatCls ? ` ${atkStatCls}` : ''}`}>ATK: {effATK}</span>
@@ -148,6 +152,7 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
         <div className={styles.descText}>{card.description || ''}</div>
       </div>
       {statsBar}
+      {eqReqLabel && <div className={styles.equipReq}>{eqReqLabel} only</div>}
     </div>
   );
 }

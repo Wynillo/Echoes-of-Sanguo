@@ -5,7 +5,7 @@
 // ============================================================
 
 import type { AIBehavior, AISpellRule, CardData, PlayerState } from './types.js';
-import { CardType } from './types.js';
+import { CardType, meetsEquipRequirement } from './types.js';
 import type { FieldCard } from './field.js';
 
 // ── Behavior Profiles ───────────────────────────────────────
@@ -510,6 +510,7 @@ export function pickEquipTarget(
   oppMonsters: Array<FieldCard | null>,
   atkBonus: number,
   defBonus: number,
+  equipCard?: CardData,
 ): number {
   const oppMaxVal = oppMonsters
     .filter((fc): fc is FieldCard => fc !== null)
@@ -521,6 +522,7 @@ export function pickEquipTarget(
   for (let z = 0; z < ownMonsters.length; z++) {
     const fc = ownMonsters[z];
     if (!fc || fc.faceDown) continue;
+    if (equipCard && !meetsEquipRequirement(equipCard, fc.card)) continue;
 
     const curATK = fc.effectiveATK();
     const boostedATK = curATK + atkBonus;
@@ -555,6 +557,7 @@ export function pickEquipTarget(
 export function pickDebuffTarget(
   oppMonsters: Array<FieldCard | null>,
   atkDebuff: number,
+  equipCard?: CardData,
 ): number {
   let bestZone = -1;
   let bestScore = -Infinity;
@@ -562,6 +565,7 @@ export function pickDebuffTarget(
   for (let z = 0; z < oppMonsters.length; z++) {
     const fc = oppMonsters[z];
     if (!fc || fc.faceDown) continue;
+    if (equipCard && !meetsEquipRequirement(equipCard, fc.card)) continue;
 
     let score = 0;
     const curATK = fc.effectiveATK();

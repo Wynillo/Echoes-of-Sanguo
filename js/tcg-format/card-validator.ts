@@ -78,6 +78,26 @@ function validateSingleCard(card: unknown, index: number): string[] {
     if (hasDefBonus && (typeof c.defBonus !== 'number' || !Number.isInteger(c.defBonus))) {
       errors.push(`${prefix}.defBonus: must be an integer, got ${c.defBonus}`);
     }
+    if (c.equipReqRace !== undefined && c.equipReqRace !== null) {
+      if (typeof c.equipReqRace !== 'number' || !VALID_RACES.has(c.equipReqRace as any)) {
+        errors.push(`${prefix}.equipReqRace: must be a valid race, got ${c.equipReqRace}`);
+      }
+    }
+    if (c.equipReqAttr !== undefined && c.equipReqAttr !== null) {
+      if (typeof c.equipReqAttr !== 'number' || !VALID_ATTRIBUTES.has(c.equipReqAttr as any)) {
+        errors.push(`${prefix}.equipReqAttr: must be a valid attribute, got ${c.equipReqAttr}`);
+      }
+    }
+  }
+
+  // equipReqRace / equipReqAttr only allowed on equipment cards
+  if (!isEquipment) {
+    if (c.equipReqRace !== undefined && c.equipReqRace !== null) {
+      errors.push(`${prefix}.equipReqRace: only allowed on equipment cards`);
+    }
+    if (c.equipReqAttr !== undefined && c.equipReqAttr !== null) {
+      errors.push(`${prefix}.equipReqAttr: only allowed on equipment cards`);
+    }
   }
 
   // rarity: required int in valid set

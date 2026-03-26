@@ -1,0 +1,1562 @@
+[
+  {
+    "id": 1,
+    "name": "Fire Salamander",
+    "description": "A salamander wreathed in living flames. Its scales burn on contact."
+  },
+  {
+    "id": 2,
+    "name": "Stone Golem",
+    "description": "A massive animated stone colossus. Nearly invulnerable to physical attacks."
+  },
+  {
+    "id": 3,
+    "name": "Sea Serpent",
+    "description": "A serpentine creature from the depths of the ocean."
+  },
+  {
+    "id": 4,
+    "name": "Wind Drake",
+    "description": "A swift dragon that rides the wind currents."
+  },
+  {
+    "id": 5,
+    "name": "Shadow Wolf",
+    "description": "A wolf that moves between the shadows."
+  },
+  {
+    "id": 6,
+    "name": "Crystal Knight",
+    "description": "A knight clad in magical crystal."
+  },
+  {
+    "id": 7,
+    "name": "Iron Warrior",
+    "description": "A seasoned warrior in heavy iron armor."
+  },
+  {
+    "id": 8,
+    "name": "Coral Fairy",
+    "description": "A delicate fairy that lives among colorful coral reefs."
+  },
+  {
+    "id": 9,
+    "name": "Storm Hawk",
+    "description": "A hawk that summons storms from its wings."
+  },
+  {
+    "id": 10,
+    "name": "Sun Priest",
+    "description": "A priest consecrated to the sun deity."
+  },
+  {
+    "id": 11,
+    "name": "Bone Archer",
+    "description": "A skeletal soldier with deadly precision."
+  },
+  {
+    "id": 12,
+    "name": "Moss Troll",
+    "description": "An ancient troll covered in moss and lichen."
+  },
+  {
+    "id": 13,
+    "name": "Ember Boar",
+    "description": "A massive boar made of blazing flames."
+  },
+  {
+    "id": 14,
+    "name": "Deep-Sea Angler",
+    "description": "A bizarre creature from the darkest ocean depths."
+  },
+  {
+    "id": 15,
+    "name": "Silver Paladin",
+    "description": "A noble paladin in silver armor."
+  },
+  {
+    "id": 16,
+    "name": "Magma Crab",
+    "description": "A crab made of hardened lava with glowing eyes."
+  },
+  {
+    "id": 17,
+    "name": "Frost Witch",
+    "description": "[Effect] On Summon: Opponent loses 300 LP."
+  },
+  {
+    "id": 18,
+    "name": "Dark Assassin",
+    "description": "[Effect] When this monster destroys a monster in battle: Draw 1 card(s)."
+  },
+  {
+    "id": 19,
+    "name": "Nature Shaman",
+    "description": "[Effect] On Summon: All your Earth monsters gain +200 ATK/DEF."
+  },
+  {
+    "id": 20,
+    "name": "Flame Phoenix",
+    "description": "[Effect] When destroyed by opponent: Can be Special Summoned once from the Graveyard with 500 less ATK."
+  },
+  {
+    "id": 21,
+    "name": "Lightning Mage",
+    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+  },
+  {
+    "id": 22,
+    "name": "Holy Warrior",
+    "description": "[Passive] During battle with a DUNKEL monster: +500 ATK."
+  },
+  {
+    "id": 23,
+    "name": "Shadow Reaper",
+    "description": "[Effect] When this monster destroys a monster: Gain 500 LP."
+  },
+  {
+    "id": 24,
+    "name": "Water Dragon",
+    "description": "[Effect] On Summon: Add 1 Water card from your Deck to your hand."
+  },
+  {
+    "id": 25,
+    "name": "Young Dragon",
+    "description": "A level 9 Dragon with a special effect."
+  },
+  {
+    "id": 26,
+    "name": "Recruit",
+    "description": "A level 1 Warrior."
+  },
+  {
+    "id": 27,
+    "name": "Foot Soldier",
+    "description": "A level 2 Warrior."
+  },
+  {
+    "id": 28,
+    "name": "Lancer",
+    "description": "A level 2 Warrior."
+  },
+  {
+    "id": 29,
+    "name": "Spear Fighter",
+    "description": "A level 3 Warrior."
+  },
+  {
+    "id": 30,
+    "name": "Lance Rider",
+    "description": "A level 3 Warrior."
+  },
+  {
+    "id": 31,
+    "name": "Sword Runner",
+    "description": "A level 3 Warrior."
+  },
+  {
+    "id": 32,
+    "name": "Blade Warden",
+    "description": "A level 3 Warrior."
+  },
+  {
+    "id": 33,
+    "name": "Shield Master",
+    "description": "A level 4 Warrior."
+  },
+  {
+    "id": 34,
+    "name": "Battle Commander",
+    "description": "A level 4 Warrior."
+  },
+  {
+    "id": 35,
+    "name": "Blade Lord",
+    "description": "A level 4 Warrior."
+  },
+  {
+    "id": 36,
+    "name": "Battle Titan",
+    "description": "A level 4 Warrior."
+  },
+  {
+    "id": 37,
+    "name": "Sword Lord",
+    "description": "A level 5 Warrior."
+  },
+  {
+    "id": 38,
+    "name": "Shield Lord",
+    "description": "A level 5 Warrior."
+  },
+  {
+    "id": 39,
+    "name": "Warlord",
+    "description": "A level 5 Warrior. On Summon: One monster gains +400 ATK/DEF until end of turn."
+  },
+  {
+    "id": 40,
+    "name": "Blade Prince",
+    "description": "A level 5 Warrior. On Summon: Ein Monster erhalt dauerhaft +200 ATK/DEF."
+  },
+  {
+    "id": 41,
+    "name": "Iron General",
+    "description": "A level 6 Warrior. On Summon: Alle Warrior auf deinem Feld erhalten +200 ATK/DEF."
+  },
+  {
+    "id": 42,
+    "name": "War Marshal",
+    "description": "A level 6 Warrior. On Summon: One monster gains +500 ATK/DEF until end of turn."
+  },
+  {
+    "id": 43,
+    "name": "Dragon Slayer",
+    "description": "A level 6 Warrior. Wenn durch Kampf zerstort: Draw 1 card(s)."
+  },
+  {
+    "id": 44,
+    "name": "Celestial Warrior",
+    "description": "A level 6 Warrior. On Summon: Ein Monster erhalt dauerhaft +300 ATK/DEF."
+  },
+  {
+    "id": 45,
+    "name": "Crimson Blade",
+    "description": "An imposing dragon of level 1."
+  },
+  {
+    "id": 46,
+    "name": "Jade Guardian",
+    "description": "An imposing dragon of level 1."
+  },
+  {
+    "id": 47,
+    "name": "Thunder Knight",
+    "description": "An imposing dragon of level 1."
+  },
+  {
+    "id": 48,
+    "name": "Phantom Swordsman",
+    "description": "An imposing dragon of level 1."
+  },
+  {
+    "id": 49,
+    "name": "Apprentice",
+    "description": "An imposing dragon of level 2."
+  },
+  {
+    "id": 50,
+    "name": "Acolyte",
+    "description": "An imposing dragon of level 2."
+  },
+  {
+    "id": 51,
+    "name": "Mystic",
+    "description": "An imposing dragon of level 2."
+  },
+  {
+    "id": 52,
+    "name": "Enchanter",
+    "description": "An imposing dragon of level 2."
+  },
+  {
+    "id": 53,
+    "name": "Conjurer",
+    "description": "An imposing dragon of level 3."
+  },
+  {
+    "id": 54,
+    "name": "Arcane Scholar",
+    "description": "An imposing dragon of level 3."
+  },
+  {
+    "id": 55,
+    "name": "Hex Weaver",
+    "description": "An imposing dragon of level 3."
+  },
+  {
+    "id": 56,
+    "name": "Spell Sage",
+    "description": "An imposing dragon of level 3."
+  },
+  {
+    "id": 57,
+    "name": "Rune Master",
+    "description": "An imposing dragon of level 3."
+  },
+  {
+    "id": 58,
+    "name": "Archmage",
+    "description": "An imposing dragon of level 3."
+  },
+  {
+    "id": 59,
+    "name": "Grand Sorcerer",
+    "description": "An imposing dragon of level 3."
+  },
+  {
+    "id": 60,
+    "name": "Void Mage",
+    "description": "An imposing dragon of level 3."
+  },
+  {
+    "id": 61,
+    "name": "Shadow Wyrm",
+    "description": "An imposing dragon of level 4."
+  },
+  {
+    "id": 62,
+    "name": "Frost Dragon",
+    "description": "An imposing dragon of level 4."
+  },
+  {
+    "id": 63,
+    "name": "Stone Dragon",
+    "description": "An imposing dragon of level 4."
+  },
+  {
+    "id": 64,
+    "name": "Dark Wyrm",
+    "description": "An imposing dragon of level 4."
+  },
+  {
+    "id": 65,
+    "name": "Storm Dragon",
+    "description": "An imposing dragon of level 4."
+  },
+  {
+    "id": 66,
+    "name": "Ancient Dragon",
+    "description": "An imposing dragon of level 4."
+  },
+  {
+    "id": 67,
+    "name": "Jade Dragon",
+    "description": "An imposing dragon of level 4."
+  },
+  {
+    "id": 68,
+    "name": "Crimson Dragon",
+    "description": "An imposing dragon of level 4."
+  },
+  {
+    "id": 69,
+    "name": "Thunder Dragon",
+    "description": "An imposing dragon of level 5."
+  },
+  {
+    "id": 70,
+    "name": "Celestial Dragon",
+    "description": "An imposing dragon of level 5."
+  },
+  {
+    "id": 71,
+    "name": "Emperor Dragon",
+    "description": "An imposing dragon of level 5."
+  },
+  {
+    "id": 72,
+    "name": "Chaos Dragon",
+    "description": "An imposing dragon of level 5."
+  },
+  {
+    "id": 73,
+    "name": "Forest Wolf",
+    "description": "An imposing dragon of level 5."
+  },
+  {
+    "id": 74,
+    "name": "Wild Boar",
+    "description": "An imposing dragon of level 5."
+  },
+  {
+    "id": 75,
+    "name": "Iron Bear",
+    "description": "An imposing dragon of level 6."
+  },
+  {
+    "id": 76,
+    "name": "Shadow Panther",
+    "description": "An imposing dragon of level 6."
+  },
+  {
+    "id": 77,
+    "name": "Storm Tiger",
+    "description": "An imposing dragon of level 6."
+  },
+  {
+    "id": 78,
+    "name": "Great Stag",
+    "description": "An imposing dragon of level 6."
+  },
+  {
+    "id": 79,
+    "name": "War Elephant",
+    "description": "A level 1 magical creature."
+  },
+  {
+    "id": 80,
+    "name": "Mountain Lion",
+    "description": "A level 1 magical creature."
+  },
+  {
+    "id": 81,
+    "name": "Dire Wolf",
+    "description": "A level 1 magical creature."
+  },
+  {
+    "id": 82,
+    "name": "Savage Beast",
+    "description": "A level 1 magical creature."
+  },
+  {
+    "id": 83,
+    "name": "Alpha Predator",
+    "description": "A level 2 magical creature."
+  },
+  {
+    "id": 84,
+    "name": "King of Beasts",
+    "description": "A level 2 magical creature."
+  },
+  {
+    "id": 85,
+    "name": "Seedling",
+    "description": "A level 2 magical creature."
+  },
+  {
+    "id": 86,
+    "name": "Thorn Sprout",
+    "description": "A level 2 magical creature."
+  },
+  {
+    "id": 87,
+    "name": "Vine Creeper",
+    "description": "A level 3 magical creature."
+  },
+  {
+    "id": 88,
+    "name": "Moss Guardian",
+    "description": "A level 3 magical creature."
+  },
+  {
+    "id": 89,
+    "name": "Petal Dancer",
+    "description": "A level 3 magical creature."
+  },
+  {
+    "id": 90,
+    "name": "Root Walker",
+    "description": "A level 3 magical creature."
+  },
+  {
+    "id": 91,
+    "name": "Flower Sentinel",
+    "description": "A level 3 magical creature."
+  },
+  {
+    "id": 92,
+    "name": "Ancient Treant",
+    "description": "A level 3 magical creature."
+  },
+  {
+    "id": 93,
+    "name": "Poison Bloom",
+    "description": "A level 3 magical creature."
+  },
+  {
+    "id": 94,
+    "name": "Jungle Lord",
+    "description": "A level 3 magical creature."
+  },
+  {
+    "id": 95,
+    "name": "Sacred Tree",
+    "description": "A level 4 magical creature."
+  },
+  {
+    "id": 96,
+    "name": "World Tree",
+    "description": "A level 4 magical creature."
+  },
+  {
+    "id": 97,
+    "name": "Pebble",
+    "description": "A level 4 magical creature."
+  },
+  {
+    "id": 98,
+    "name": "Stone Shard",
+    "description": "A level 4 magical creature."
+  },
+  {
+    "id": 99,
+    "name": "Boulder",
+    "description": "A level 4 magical creature."
+  },
+  {
+    "id": 100,
+    "name": "Rock Sentinel",
+    "description": "A level 4 magical creature."
+  },
+  {
+    "id": 101,
+    "name": "Iron Ore Golem",
+    "description": "A level 4 magical creature."
+  },
+  {
+    "id": 102,
+    "name": "Granite Guard",
+    "description": "A level 4 magical creature."
+  },
+  {
+    "id": 103,
+    "name": "Obsidian Knight",
+    "description": "A level 5 magical creature."
+  },
+  {
+    "id": 104,
+    "name": "Crystal Colossus",
+    "description": "A level 5 magical creature."
+  },
+  {
+    "id": 105,
+    "name": "Diamond Titan",
+    "description": "A level 5 magical creature."
+  },
+  {
+    "id": 106,
+    "name": "Mountain Lord",
+    "description": "A level 5 magical creature."
+  },
+  {
+    "id": 107,
+    "name": "Earthquake Giant",
+    "description": "A level 5 magical creature."
+  },
+  {
+    "id": 108,
+    "name": "Primordial Rock",
+    "description": "A level 5 magical creature."
+  },
+  {
+    "id": 109,
+    "name": "Spark",
+    "description": "A level 6 magical creature."
+  },
+  {
+    "id": 110,
+    "name": "Cinder Bird",
+    "description": "A level 6 magical creature."
+  },
+  {
+    "id": 111,
+    "name": "Fire Swallow",
+    "description": "A level 6 magical creature."
+  },
+  {
+    "id": 112,
+    "name": "Ember Crane",
+    "description": "A level 6 magical creature."
+  },
+  {
+    "id": 113,
+    "name": "Blaze Falcon",
+    "description": "A level 1 kampferprobter Warrior."
+  },
+  {
+    "id": 114,
+    "name": "Solar Hawk",
+    "description": "A level 1 kampferprobter Warrior."
+  },
+  {
+    "id": 115,
+    "name": "Inferno Raptor",
+    "description": "A level 1 kampferprobter Warrior."
+  },
+  {
+    "id": 116,
+    "name": "Golden Phoenix",
+    "description": "A level 1 kampferprobter Warrior."
+  },
+  {
+    "id": 117,
+    "name": "Celestial Phoenix",
+    "description": "A level 2 kampferprobter Warrior."
+  },
+  {
+    "id": 118,
+    "name": "Eternal Flame",
+    "description": "A level 2 kampferprobter Warrior."
+  },
+  {
+    "id": 119,
+    "name": "Phoenix Emperor",
+    "description": "A level 2 kampferprobter Warrior."
+  },
+  {
+    "id": 120,
+    "name": "Rebirth Phoenix",
+    "description": "A level 2 kampferprobter Warrior."
+  },
+  {
+    "id": 121,
+    "name": "Skeleton",
+    "description": "A level 3 kampferprobter Warrior."
+  },
+  {
+    "id": 122,
+    "name": "Ghoul",
+    "description": "A level 3 kampferprobter Warrior."
+  },
+  {
+    "id": 123,
+    "name": "Zombie Soldier",
+    "description": "A level 3 kampferprobter Warrior."
+  },
+  {
+    "id": 124,
+    "name": "Bone Knight",
+    "description": "A level 3 kampferprobter Warrior."
+  },
+  {
+    "id": 125,
+    "name": "Phantom",
+    "description": "A level 3 kampferprobter Warrior."
+  },
+  {
+    "id": 126,
+    "name": "Wraith",
+    "description": "A level 3 kampferprobter Warrior."
+  },
+  {
+    "id": 127,
+    "name": "Death Knight",
+    "description": "A level 3 kampferprobter Warrior."
+  },
+  {
+    "id": 128,
+    "name": "Lich",
+    "description": "A level 3 kampferprobter Warrior."
+  },
+  {
+    "id": 129,
+    "name": "Vampire Lord",
+    "description": "A level 4 kampferprobter Warrior."
+  },
+  {
+    "id": 130,
+    "name": "Soul Devourer",
+    "description": "A level 4 kampferprobter Warrior."
+  },
+  {
+    "id": 131,
+    "name": "Undead King",
+    "description": "A level 4 kampferprobter Warrior."
+  },
+  {
+    "id": 132,
+    "name": "Lord of the Dead",
+    "description": "A level 4 kampferprobter Warrior."
+  },
+  {
+    "id": 133,
+    "name": "Tadpole",
+    "description": "A level 4 kampferprobter Warrior."
+  },
+  {
+    "id": 134,
+    "name": "Jellyfish",
+    "description": "A level 4 kampferprobter Warrior."
+  },
+  {
+    "id": 135,
+    "name": "Reef Fish",
+    "description": "A level 4 kampferprobter Warrior."
+  },
+  {
+    "id": 136,
+    "name": "River Sprite",
+    "description": "A level 4 kampferprobter Warrior."
+  },
+  {
+    "id": 137,
+    "name": "Tide Walker",
+    "description": "A level 5 kampferprobter Warrior."
+  },
+  {
+    "id": 138,
+    "name": "Deep Diver",
+    "description": "A level 5 kampferprobter Warrior."
+  },
+  {
+    "id": 139,
+    "name": "Coral Guardian",
+    "description": "A level 5 kampferprobter Warrior."
+  },
+  {
+    "id": 140,
+    "name": "Sea Witch",
+    "description": "A level 5 kampferprobter Warrior."
+  },
+  {
+    "id": 141,
+    "name": "Leviathan",
+    "description": "A level 5 kampferprobter Warrior."
+  },
+  {
+    "id": 142,
+    "name": "Ocean Lord",
+    "description": "A level 5 kampferprobter Warrior."
+  },
+  {
+    "id": 143,
+    "name": "Tidal Wave",
+    "description": "A level 6 kampferprobter Warrior."
+  },
+  {
+    "id": 144,
+    "name": "Abyssal Sovereign",
+    "description": "A level 6 kampferprobter Warrior."
+  },
+  {
+    "id": 145,
+    "name": "Larva",
+    "description": "A level 6 kampferprobter Warrior."
+  },
+  {
+    "id": 146,
+    "name": "Firefly",
+    "description": "A level 6 kampferprobter Warrior."
+  },
+  {
+    "id": 147,
+    "name": "Mantis",
+    "description": "A level 1 fiery creature."
+  },
+  {
+    "id": 148,
+    "name": "Beetle Guard",
+    "description": "A level 1 fiery creature."
+  },
+  {
+    "id": 149,
+    "name": "Wasp Warrior",
+    "description": "A level 1 fiery creature."
+  },
+  {
+    "id": 150,
+    "name": "Spider Queen",
+    "description": "A level 1 fiery creature."
+  },
+  {
+    "id": 151,
+    "name": "Scorpion King",
+    "description": "A level 2 fiery creature."
+  },
+  {
+    "id": 152,
+    "name": "Centipede",
+    "description": "A level 2 fiery creature."
+  },
+  {
+    "id": 153,
+    "name": "Moth Dancer",
+    "description": "A level 2 fiery creature."
+  },
+  {
+    "id": 154,
+    "name": "Scarab Lord",
+    "description": "A level 2 fiery creature."
+  },
+  {
+    "id": 155,
+    "name": "Hive Queen",
+    "description": "A level 3 fiery creature."
+  },
+  {
+    "id": 156,
+    "name": "Insect Emperor",
+    "description": "A level 3 fiery creature."
+  },
+  {
+    "id": 157,
+    "name": "Cog",
+    "description": "A level 3 fiery creature."
+  },
+  {
+    "id": 158,
+    "name": "Gear Soldier",
+    "description": "A level 3 fiery creature."
+  },
+  {
+    "id": 159,
+    "name": "Steam Golem",
+    "description": "A level 3 fiery creature."
+  },
+  {
+    "id": 160,
+    "name": "Iron Sentinel",
+    "description": "A level 3 fiery creature."
+  },
+  {
+    "id": 161,
+    "name": "Clockwork Knight",
+    "description": "A level 3 fiery creature."
+  },
+  {
+    "id": 162,
+    "name": "Cannon Golem",
+    "description": "A level 3 fiery creature."
+  },
+  {
+    "id": 163,
+    "name": "Siege Engine",
+    "description": "A level 4 fiery creature."
+  },
+  {
+    "id": 164,
+    "name": "Steel Colossus",
+    "description": "A level 4 fiery creature."
+  },
+  {
+    "id": 165,
+    "name": "War Machine",
+    "description": "A level 4 fiery creature."
+  },
+  {
+    "id": 166,
+    "name": "Mecha Dragon",
+    "description": "A level 4 fiery creature."
+  },
+  {
+    "id": 167,
+    "name": "Iron Fortress",
+    "description": "A level 4 fiery creature."
+  },
+  {
+    "id": 168,
+    "name": "Omega Machine",
+    "description": "A level 4 fiery creature."
+  },
+  {
+    "id": 169,
+    "name": "Ember Sprite",
+    "description": "A level 4 fiery creature."
+  },
+  {
+    "id": 170,
+    "name": "Fire Imp",
+    "description": "A level 4 fiery creature."
+  },
+  {
+    "id": 171,
+    "name": "Lava Slug",
+    "description": "A level 5 fiery creature."
+  },
+  {
+    "id": 172,
+    "name": "Flame Djinn",
+    "description": "A level 5 fiery creature."
+  },
+  {
+    "id": 173,
+    "name": "Molten Golem",
+    "description": "A level 5 fiery creature."
+  },
+  {
+    "id": 174,
+    "name": "Inferno Hound",
+    "description": "A level 5 fiery creature."
+  },
+  {
+    "id": 175,
+    "name": "Blaze Elemental",
+    "description": "A level 5 fiery creature."
+  },
+  {
+    "id": 176,
+    "name": "Volcanic Giant",
+    "description": "A level 5 fiery creature."
+  },
+  {
+    "id": 177,
+    "name": "Fire Lord",
+    "description": "A level 6 fiery creature."
+  },
+  {
+    "id": 178,
+    "name": "Magma Dragon",
+    "description": "A level 6 fiery creature."
+  },
+  {
+    "id": 179,
+    "name": "Solar Titan",
+    "description": "A level 6 fiery creature."
+  },
+  {
+    "id": 180,
+    "name": "Hellfire King",
+    "description": "A level 6 fiery creature."
+  },
+  {
+    "id": 181,
+    "name": "Lunar Mage",
+    "description": "A level 1 plant creature."
+  },
+  {
+    "id": 182,
+    "name": "Starlight Sage",
+    "description": "A level 1 plant creature."
+  },
+  {
+    "id": 183,
+    "name": "Phantom Thief",
+    "description": "A level 1 plant creature."
+  },
+  {
+    "id": 184,
+    "name": "Shadow Dancer",
+    "description": "A level 1 plant creature."
+  },
+  {
+    "id": 185,
+    "name": "Thunder Lord",
+    "description": "A level 2 plant creature."
+  },
+  {
+    "id": 186,
+    "name": "Frost Giant",
+    "description": "A level 2 plant creature."
+  },
+  {
+    "id": 187,
+    "name": "Iron Maiden",
+    "description": "A level 2 plant creature."
+  },
+  {
+    "id": 188,
+    "name": "Golden General",
+    "description": "A level 2 plant creature."
+  },
+  {
+    "id": 189,
+    "name": "Jade Empress",
+    "description": "A level 3 plant creature."
+  },
+  {
+    "id": 190,
+    "name": "Dragon Knight",
+    "description": "A level 3 plant creature."
+  },
+  {
+    "id": 191,
+    "name": "Storm Sage",
+    "description": "A level 3 plant creature."
+  },
+  {
+    "id": 192,
+    "name": "Fire Sorcerer",
+    "description": "A level 3 plant creature."
+  },
+  {
+    "id": 193,
+    "name": "Water Mystic",
+    "description": "A level 3 plant creature."
+  },
+  {
+    "id": 194,
+    "name": "Earth Shaman",
+    "description": "A level 3 plant creature."
+  },
+  {
+    "id": 195,
+    "name": "Wind Dancer",
+    "description": "A level 3 plant creature."
+  },
+  {
+    "id": 196,
+    "name": "Light Paladin",
+    "description": "A level 3 plant creature."
+  },
+  {
+    "id": 197,
+    "name": "Dark Overlord",
+    "description": "A level 4 plant creature."
+  },
+  {
+    "id": 198,
+    "name": "Chaos Mage",
+    "description": "A level 4 plant creature."
+  },
+  {
+    "id": 199,
+    "name": "Crystal Sage",
+    "description": "A level 4 plant creature."
+  },
+  {
+    "id": 200,
+    "name": "Moss Colossus",
+    "description": "A level 4 plant creature."
+  },
+  {
+    "id": 201,
+    "name": "Thunder Bird",
+    "description": "A level 4 plant creature."
+  },
+  {
+    "id": 202,
+    "name": "Iron Scorpion",
+    "description": "A level 4 plant creature."
+  },
+  {
+    "id": 203,
+    "name": "Poison Viper",
+    "description": "A level 4 plant creature."
+  },
+  {
+    "id": 204,
+    "name": "Sand Worm",
+    "description": "A level 4 plant creature."
+  },
+  {
+    "id": 205,
+    "name": "Blood Wolf",
+    "description": "A level 5 plant creature."
+  },
+  {
+    "id": 206,
+    "name": "Ghost Knight",
+    "description": "A level 5 plant creature."
+  },
+  {
+    "id": 207,
+    "name": "Flame Titan",
+    "description": "A level 5 plant creature."
+  },
+  {
+    "id": 208,
+    "name": "Ice Phoenix",
+    "description": "A level 5 plant creature."
+  },
+  {
+    "id": 209,
+    "name": "Storm Wyrm",
+    "description": "A level 5 plant creature."
+  },
+  {
+    "id": 210,
+    "name": "Root Ancient",
+    "description": "A level 5 plant creature."
+  },
+  {
+    "id": 211,
+    "name": "Star Dragon",
+    "description": "A level 6 plant creature."
+  },
+  {
+    "id": 212,
+    "name": "Void Walker",
+    "description": "A level 6 plant creature."
+  },
+  {
+    "id": 213,
+    "name": "Sun General",
+    "description": "A level 6 plant creature."
+  },
+  {
+    "id": 214,
+    "name": "Moon Priestess",
+    "description": "A level 6 plant creature."
+  },
+  {
+    "id": 215,
+    "name": "Dawn Warrior",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 1."
+  },
+  {
+    "id": 216,
+    "name": "Dusk Assassin",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 1."
+  },
+  {
+    "id": 217,
+    "name": "Inferno Dragon",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 1."
+  },
+  {
+    "id": 218,
+    "name": "Blizzard Dragon",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 1."
+  },
+  {
+    "id": 219,
+    "name": "Thunder Dragon Lord",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 2."
+  },
+  {
+    "id": 220,
+    "name": "Gaia Knight",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 2."
+  },
+  {
+    "id": 221,
+    "name": "Sacred Beast",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 2."
+  },
+  {
+    "id": 222,
+    "name": "Ancient Guardian",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 2."
+  },
+  {
+    "id": 223,
+    "name": "Sky Fortress",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 3."
+  },
+  {
+    "id": 224,
+    "name": "Deep Terror",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 3."
+  },
+  {
+    "id": 225,
+    "name": "World Serpent",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 3."
+  },
+  {
+    "id": 226,
+    "name": "Heaven General",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 3."
+  },
+  {
+    "id": 227,
+    "name": "Demon Slayer",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 3."
+  },
+  {
+    "id": 228,
+    "name": "Holy Dragon",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 3."
+  },
+  {
+    "id": 229,
+    "name": "Shadow Dragon",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 3."
+  },
+  {
+    "id": 230,
+    "name": "Divine Phoenix",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 3."
+  },
+  {
+    "id": 231,
+    "name": "Spirit King",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 4."
+  },
+  {
+    "id": 232,
+    "name": "Cursed Knight",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 4."
+  },
+  {
+    "id": 233,
+    "name": "Brave Hero",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 4."
+  },
+  {
+    "id": 234,
+    "name": "Fallen Angel",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 4."
+  },
+  {
+    "id": 235,
+    "name": "Rising Dragon",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 4."
+  },
+  {
+    "id": 236,
+    "name": "Azure Dragon",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 4."
+  },
+  {
+    "id": 237,
+    "name": "Vermilion Bird",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 4."
+  },
+  {
+    "id": 238,
+    "name": "White Tiger",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 4."
+  },
+  {
+    "id": 239,
+    "name": "Black Tortoise",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 5."
+  },
+  {
+    "id": 240,
+    "name": "Celestial Emperor",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 5."
+  },
+  {
+    "id": 241,
+    "name": "Flame Dragon Knight",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 5."
+  },
+  {
+    "id": 242,
+    "name": "Storm Blade Master",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 5."
+  },
+  {
+    "id": 243,
+    "name": "Shadow Phoenix",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 5."
+  },
+  {
+    "id": 244,
+    "name": "Crystal Dragon",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 5."
+  },
+  {
+    "id": 245,
+    "name": "Iron Dragon",
+    "description": "Ein steinernes Wesen mit hoher Verteidigung, Stufe 6."
+  },
+  {
+    "id": 246,
+    "name": "Moss Dragon",
+    "description": "[Fusion] Wind Drake + Shadow Wolf"
+  },
+  {
+    "id": 247,
+    "name": "Thunder Phoenix",
+    "description": "[Fusion] Iron Warrior + Bone Archer"
+  },
+  {
+    "id": 248,
+    "name": "Frost Warrior",
+    "description": "[Fusion] Rune Master + Archmage"
+  },
+  {
+    "id": 249,
+    "name": "Magma Warrior",
+    "description": "[Fusion] Frost Dragon + Dark Wyrm"
+  },
+  {
+    "id": 250,
+    "name": "Aqua Dragon",
+    "description": "[Fusion] Sword Runner + Battle Commander"
+  },
+  {
+    "id": 251,
+    "name": "Wind Phoenix",
+    "description": "[Fusion] Battle Titan + Shield Lord"
+  },
+  {
+    "id": 252,
+    "name": "Earth Dragon",
+    "description": "[Fusion] Dire Wolf + Savage Beast"
+  },
+  {
+    "id": 253,
+    "name": "Solar Dragon Knight",
+    "description": "[Fusion] Seedling + Vine Creeper"
+  },
+  {
+    "id": 254,
+    "name": "Lunar Dragon Knight",
+    "description": "[Fusion] Iron Ore Golem + Granite Guard"
+  },
+  {
+    "id": 255,
+    "name": "Chaos Dragon Knight",
+    "description": "[Fusion] Mountain Lord + Primordial Rock"
+  },
+  {
+    "id": 256,
+    "name": "Supreme War General",
+    "description": "[Fusion] Phoenix Emperor + Rebirth Phoenix"
+  },
+  {
+    "id": 257,
+    "name": "Divine Dragon Emperor",
+    "description": "[Fusion] Bone Knight + Wraith"
+  },
+  {
+    "id": 258,
+    "name": "Phantom Dragon",
+    "description": "[Fusion] Coral Guardian + Sea Witch"
+  },
+  {
+    "id": 259,
+    "name": "Jade Dragon Knight",
+    "description": "[Fusion] Ocean Lord + Tidal Wave"
+  },
+  {
+    "id": 260,
+    "name": "Crimson Phoenix",
+    "description": "[Fusion] Scarab Lord + Hive Queen"
+  },
+  {
+    "id": 261,
+    "name": "Dark Phoenix",
+    "description": "[Fusion] Gear Soldier + Iron Sentinel"
+  },
+  {
+    "id": 262,
+    "name": "Holy Phoenix",
+    "description": "[Fusion] Flame Djinn + Molten Golem"
+  },
+  {
+    "id": 263,
+    "name": "Storm Dragon Knight",
+    "description": "[Fusion] Fire Lord + Solar Titan"
+  },
+  {
+    "id": 264,
+    "name": "Frost Dragon Knight",
+    "description": "[Fusion] Fire Sorcerer + Water Mystic"
+  },
+  {
+    "id": 265,
+    "name": "Inferno Phoenix",
+    "description": "[Fusion] Light Paladin + Chaos Mage"
+  },
+  {
+    "id": 266,
+    "name": "Sacred Dragon",
+    "description": "Fuge dem Gegner 300 Schadenspunkte zu."
+  },
+  {
+    "id": 267,
+    "name": "Ancient Dragon God",
+    "description": "Fuge dem Gegner 400 Schadenspunkte zu."
+  },
+  {
+    "id": 268,
+    "name": "Dragon Phoenix",
+    "description": "Fuge dem Gegner 500 Schadenspunkte zu."
+  },
+  {
+    "id": 269,
+    "name": "Supreme Phoenix",
+    "description": "Erhalte 300 Lebenspunkte."
+  },
+  {
+    "id": 270,
+    "name": "Celestial Dragon Knight",
+    "description": "Erhalte 500 Lebenspunkte."
+  },
+  {
+    "id": 271,
+    "name": "Dragon Emperor",
+    "description": "Erhalte 800 Lebenspunkte."
+  },
+  {
+    "id": 272,
+    "name": "Phoenix Emperor",
+    "description": "Fuge dem Gegner 600 Schadenspunkte zu."
+  },
+  {
+    "id": 273,
+    "name": "Storm Emperor",
+    "description": "Fuge dem Gegner 800 Schadenspunkte zu."
+  },
+  {
+    "id": 274,
+    "name": "Frost Emperor",
+    "description": "Wahle ein Monster auf deinem Spielfeld. Es erhalt bis zum Ende des Zuges +300 ATK/DEF."
+  },
+  {
+    "id": 275,
+    "name": "Supreme Emperor",
+    "description": "Wahle ein Monster auf deinem Spielfeld. Es erhalt bis zum Ende des Zuges +400 ATK/DEF."
+  },
+  {
+    "id": 276,
+    "name": "Dragon Phoenix Emperor",
+    "description": "Wahle ein Monster auf deinem Spielfeld. Es erhalt bis zum Ende des Zuges +500 ATK/DEF."
+  },
+  {
+    "id": 277,
+    "name": "Heavenly Dragon",
+    "description": "All opponent monsters lose bis zum Ende des Zuges 300 ATK/DEF."
+  },
+  {
+    "id": 278,
+    "name": "Supreme Beast",
+    "description": "Draw 1 card(s)."
+  },
+  {
+    "id": 279,
+    "name": "Ultimate Dragon",
+    "description": "Wahle ein Monster auf deinem Spielfeld. Es erhalt bis zum Ende des Zuges +400 DEF."
+  },
+  {
+    "id": 280,
+    "name": "Supreme Fusion",
+    "description": "Erhalte 600 Lebenspunkte."
+  },
+  {
+    "id": 281,
+    "name": "Fireball",
+    "description": "Fuge dem Gegner 1000 Schadenspunkte zu."
+  },
+  {
+    "id": 282,
+    "name": "Healing Light",
+    "description": "Fuge dem Gegner 1200 Schadenspunkte zu."
+  },
+  {
+    "id": 283,
+    "name": "Dark Hole",
+    "description": "Fuge dem Gegner 1500 Schadenspunkte zu."
+  },
+  {
+    "id": 284,
+    "name": "Thunder Strike",
+    "description": "Alle Fire-Monster auf deinem Feld erhalten dauerhaft +300 ATK/DEF."
+  },
+  {
+    "id": 285,
+    "name": "Mystical Wind",
+    "description": "Alle Water-Monster auf deinem Feld erhalten dauerhaft +300 ATK/DEF."
+  },
+  {
+    "id": 286,
+    "name": "Power Surge",
+    "description": "Wahle ein Monster auf deinem Spielfeld. Es erhalt dauerhaft +500 ATK/DEF."
+  },
+  {
+    "id": 287,
+    "name": "Trap Destruction",
+    "description": "Das starkste Monster des Gegners wird auf die Hand zuruckgeschickt."
+  },
+  {
+    "id": 288,
+    "name": "Monster Reincarnation",
+    "description": "Alle Monster des Gegners werden auf die Hand zuruckgeschickt."
+  },
+  {
+    "id": 289,
+    "name": "Draw of Fate",
+    "description": "Draw 2 card(s)."
+  },
+  {
+    "id": 290,
+    "name": "Shield of Light",
+    "description": "Fuge dem Gegner 2000 Schadenspunkte zu."
+  },
+  {
+    "id": 291,
+    "name": "Flame Burst",
+    "description": "Activate when an opponent's monster attacks: Negiere den Angriff."
+  },
+  {
+    "id": 292,
+    "name": "Ice Lance",
+    "description": "Activate when an opponent's monster attacks: Negiere den Angriff."
+  },
+  {
+    "id": 293,
+    "name": "Poison Mist",
+    "description": "Activate when an opponent's monster attacks: Negiere den Angriff."
+  },
+  {
+    "id": 294,
+    "name": "Earth Tremor",
+    "description": "Activate when an opponent's monster attacks: Negiere den Angriff."
+  },
+  {
+    "id": 295,
+    "name": "Sword of Light",
+    "description": "Activate when an opponent's monster attacks: Destroy the attacking monster."
+  },
+  {
+    "id": 296,
+    "name": "Curse of Darkness",
+    "description": "Aktiviere wenn eines deiner Monster angegriffen wird: Negiere den Angriff."
+  },
+  {
+    "id": 297,
+    "name": "Summon Storm",
+    "description": "Activate when an opponent's monster attacks: Destroy the attacking monster."
+  },
+  {
+    "id": 298,
+    "name": "Life Drain",
+    "description": "Aktiviere wenn der Gegner ein Monster mit 1500+ ATK beschwort: Zerstore es."
+  },
+  {
+    "id": 299,
+    "name": "Double Attack",
+    "description": "Aktiviere wenn der Gegner ein Monster mit 1500+ ATK beschwort: Zerstore es."
+  },
+  {
+    "id": 300,
+    "name": "Mirror Force",
+    "description": "Activate when an opponent's monster attacks: Destroy the attacking monster."
+  },
+  {
+    "id": 301,
+    "name": "Annihilation Trap",
+    "description": "Activate when an opponent's monster attacks: Destroy the attacking monster."
+  },
+  {
+    "id": 302,
+    "name": "Shadow Trap",
+    "description": "Activate when an opponent's monster attacks: Destroy the attacking monster."
+  },
+  {
+    "id": 303,
+    "name": "Battle Axe",
+    "description": "A sword forged in the fire of loyalty. Increases the equipped monster's attack power."
+  },
+  {
+    "id": 304,
+    "name": "Iron Shield",
+    "description": "Ein massiver Schild aus gehartetem Stahl. Verstarkt die Verteidigung des ausgerusteten Monsters."
+  },
+  {
+    "id": 305,
+    "name": "War Banner",
+    "description": "Ein Speer, gefertigt aus dem Zahn eines uralten Dragon. Starkt Angriff und Verteidigung."
+  },
+  {
+    "id": 306,
+    "name": "Guardian Armor",
+    "description": "Ein Umhang aus gewebter Dunkelheit. Bietet Schutz und verstarkt leicht den Angriff."
+  },
+  {
+    "id": 307,
+    "name": "Warlord's Halberd",
+    "description": "The legendary weapon of a fallen general. Grants immense attack power."
+  },
+  {
+    "id": 308,
+    "name": "Mountain Fortress",
+    "description": "All Earth monsters gain +200 ATK/DEF."
+  },
+  {
+    "id": 309,
+    "name": "Dragon Realm",
+    "description": "All Dragon monsters gain +300 ATK/DEF."
+  },
+  {
+    "id": 310,
+    "name": "Mage Sanctum",
+    "description": "All Mage monsters gain +250 ATK/DEF."
+  },
+  {
+    "id": 311,
+    "name": "Dragon Fang Blade",
+    "description": "Can only be equipped to Dragon monsters. ATK +700, DEF +300."
+  },
+  {
+    "id": 312,
+    "name": "Flame Armor",
+    "description": "Can only be equipped to Fire monsters. ATK +600."
+  }
+]

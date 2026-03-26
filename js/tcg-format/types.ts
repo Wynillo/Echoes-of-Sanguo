@@ -61,6 +61,8 @@ export interface TcgCard {
   target?:      string;    // targeting hint: 'ownMonster', 'oppMonster', etc.
   atkBonus?:    number;    // Equipment: ATK bonus applied to equipped monster
   defBonus?:    number;    // Equipment: DEF bonus applied to equipped monster
+  equipReqRace?: number;  // Equipment: required race (1-12) for target monster
+  equipReqAttr?: number;  // Equipment: required attribute (1-6) for target monster
 }
 
 // ── Card Definition (localized) ──────────────────────────────
