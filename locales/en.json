@@ -303,7 +303,17 @@
     "story_arrival_1": "The neon-lit streets of Neo-Shanghai welcome you...",
     "story_return_1": "The time leap takes you back to the past...",
     "story_betrayal_1": "Cao Pi has revealed his true intentions...",
-    "story_alliance_1": "Facing the threat of Lu Bu, you forge a fragile alliance..."
+    "story_alliance_1": "Facing the threat of Lu Bu, you forge a fragile alliance...",
+    "node_gauntlet_qualifiers": "Qualifiers",
+    "node_gauntlet_quarterfinals": "Quarterfinals",
+    "node_gauntlet_semifinals": "Semifinals"
+  },
+  "gauntlet": {
+    "victory": "Victory!",
+    "progress": "Duel {{current}} of {{total}} complete",
+    "next_opponent": "Next opponent: {{name}}",
+    "fight": "Fight!",
+    "duels": "duels"
   },
   "cards": {
     "race_Dragon": "Dragon",

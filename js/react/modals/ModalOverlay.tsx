@@ -7,6 +7,7 @@ import { ResultModal }      from './ResultModal.js';
 import { OptionsModal }     from './OptionsModal.js';
 import { BattleLogModal }  from './BattleLogModal.js';
 import { CoinTossModal }   from './CoinTossModal.js';
+import { GauntletTransitionModal } from './GauntletTransitionModal.js';
 
 export function ModalOverlay() {
   const { modal, closeModal } = useModal();
@@ -18,7 +19,8 @@ export function ModalOverlay() {
       if (e.target === e.currentTarget &&
           modal.type !== 'trap-prompt' &&
           modal.type !== 'grave-select' &&
-          modal.type !== 'coin-toss') {
+          modal.type !== 'coin-toss' &&
+          modal.type !== 'gauntlet-transition') {
         closeModal();
       }
     }}>
@@ -30,6 +32,7 @@ export function ModalOverlay() {
       {modal.type === 'main-options' && <OptionsModal />}
       {modal.type === 'battle-log'  && <BattleLogModal />}
       {modal.type === 'coin-toss'   && <CoinTossModal   modal={modal} />}
+      {modal.type === 'gauntlet-transition' && <GauntletTransitionModal modal={modal} />}
     </div>
   );
 }
