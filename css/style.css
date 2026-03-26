@@ -171,6 +171,29 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   .btn-options-desktop { display: none; }
   #btn-options { min-width: 44px; padding: 0; font-size: 20px; }
 }
+/* ── Floating options button (reusable across screens) ───── */
+.options-btn-floating {
+  position: fixed;
+  top: 8px; left: 8px;
+  background: #156040;
+  border: 2px solid; border-color: #2a7848 #0e1e14 #0e1e14 #2a7848;
+  border-radius: 0;
+  color: #a8d8b8;
+  font-size: 18px;
+  min-width: 44px; height: 44px;
+  padding: 0 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: none;
+  box-shadow: none;
+  font-family: inherit;
+  z-index: 200;
+  white-space: nowrap;
+}
+.options-btn-floating:hover { background: #1a6848; box-shadow: none; border-color: #288050 #0a2418 #0a2418 #288050; }
+@media (pointer: coarse), (max-width: 900px) {
+  .options-btn-floating { min-width: 44px; padding: 0; font-size: 20px; }
+}
 #field-effect-slot {
   position: absolute;
   top: 50%; left: 50%;
