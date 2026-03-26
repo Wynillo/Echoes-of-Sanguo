@@ -163,8 +163,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           } else if (isComplete) {
             navigateToRef.current('campaign');
           } else {
-            // Defeat in campaign: show result then return to save-point
-            openModalRef.current({ type: 'result', resultType: result, coinsEarned: 0, campaignDuel: true });
+            // Defeat in campaign: go straight to defeated screen
+            navigateToRef.current('defeated');
           }
         });
         return;

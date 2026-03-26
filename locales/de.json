@@ -324,5 +324,10 @@
     "attr_wind": "Wind",
     "attr_light": "Licht",
     "attr_dark": "Dunkel"
+  },
+  "defeated": {
+    "title": "NIEDERLAGE",
+    "message": "Deine Truppen sind gefallen. Doch jeder Krieger kann wieder aufstehen...",
+    "continue": "BELIEBIGE TASTE DRÜCKEN"
   }
 }
