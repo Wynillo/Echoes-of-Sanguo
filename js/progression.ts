@@ -116,6 +116,29 @@ export const Progression = (() => {
     }
   }
 
+  /** Check if a v1 backup exists and can be restored */
+  function hasV1Backup(): boolean {
+    return localStorage.getItem('tcg_collection_v1_backup') !== null;
+  }
+
+  /** Attempt to restore the backed-up v1 collection (best-effort) */
+  function restoreV1Backup(): boolean {
+    try {
+      const raw = localStorage.getItem('tcg_collection_v1_backup');
+      if (!raw) return false;
+      const col = JSON.parse(raw);
+      if (!Array.isArray(col)) return false;
+      _save(KEYS.collection, col);
+      const deckRaw = localStorage.getItem('tcg_deck_v1_backup');
+      if (deckRaw) localStorage.setItem(KEYS.deck, deckRaw);
+      console.info('[Progression] Restored v1 backup successfully.');
+      return true;
+    } catch {
+      console.warn('[Progression] Failed to restore v1 backup.');
+      return false;
+    }
+  }
+
   function isFirstLaunch() {
     return !localStorage.getItem(KEYS.starterChosen);
   }
@@ -382,6 +405,9 @@ export const Progression = (() => {
     saveCampaignProgress,
     markNodeComplete,
     isNodeComplete,
+    // v1 Migration Recovery
+    hasV1Backup,
+    restoreV1Backup,
     // Debug
     resetAll,
     // Soft-Reset

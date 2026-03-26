@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useRef } from 'react';
 import { gsap } from 'gsap';
 import { Audio } from '../../audio.js';
 
@@ -44,20 +44,20 @@ export function ScreenProvider({ children }: { children: React.ReactNode }) {
   const [screen, setScreen] = useState<Screen>('press-start');
   const [screenData, setScreenData] = useState<Record<string, unknown> | null>(null);
   // Track the active transition tween to kill it on rapid re-navigation
-  let _transitionTween: gsap.core.Tween | null = null;
+  const transitionRef = useRef<gsap.core.Tween | null>(null);
 
   function navigateTo(s: Screen, data?: Record<string, unknown>) {
     const overlay = document.getElementById('screen-transition-overlay');
     if (!overlay) { setScreenData(data ?? null); setScreen(s); playScreenMusic(s); return; }
     // Kill any in-flight transition to prevent stacking
-    if (_transitionTween) { _transitionTween.kill(); gsap.set(overlay, { opacity: 0 }); }
-    _transitionTween = gsap.to(overlay, {
+    if (transitionRef.current) { transitionRef.current.kill(); gsap.set(overlay, { opacity: 0 }); }
+    transitionRef.current = gsap.to(overlay, {
       opacity: 1, duration: 0.18, ease: 'none',
       onComplete() {
         setScreenData(data ?? null);
         setScreen(s);
         playScreenMusic(s);
-        _transitionTween = gsap.to(overlay, { opacity: 0, duration: 0.28, delay: 0.05, ease: 'none' });
+        transitionRef.current = gsap.to(overlay, { opacity: 0, duration: 0.28, delay: 0.05, ease: 'none' });
       },
     });
   }

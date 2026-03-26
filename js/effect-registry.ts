@@ -30,9 +30,9 @@ export function matchesFilter(card: CardData, filter: CardFilter): boolean {
 function filterFieldMonsters(monsters: Array<FieldCard | null>, filter?: CardFilter): FieldCard[] {
   let result = monsters.filter((fm): fm is FieldCard => fm !== null);
   if (filter) result = result.filter(fm => matchesFilter(fm.card, filter));
-  if (filter?.random !== undefined && filter.random < result.length) {
+  if (filter?.random !== undefined && filter.random > 0) {
     const shuffled = [...result].sort(() => Math.random() - 0.5);
-    result = shuffled.slice(0, filter.random);
+    result = shuffled.slice(0, Math.min(filter.random, result.length));
   }
   return result;
 }
@@ -467,7 +467,7 @@ const IMPL: Record<string, InternalImpl> = {
     const st = ctx.engine.getState();
     const hand = st[ctx.owner].hand;
     const count = Math.min(desc.count, hand.length);
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count && hand.length > 0; i++) {
       const idx = Math.floor(Math.random() * hand.length);
       const [c] = hand.splice(idx, 1);
       st[ctx.owner].graveyard.push(c);
@@ -481,7 +481,7 @@ const IMPL: Record<string, InternalImpl> = {
     const st = ctx.engine.getState();
     const hand = st[opp].hand;
     const count = Math.min(desc.count, hand.length);
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count && hand.length > 0; i++) {
       const idx = Math.floor(Math.random() * hand.length);
       const [c] = hand.splice(idx, 1);
       st[opp].graveyard.push(c);

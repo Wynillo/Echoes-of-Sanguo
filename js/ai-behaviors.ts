@@ -99,7 +99,7 @@ export function shouldActivateNormalSpell(
   switch (behavior.defaultSpellActivation) {
     case 'always': return true;
     case 'never':  return false;
-    case 'smart':  return true;
+    case 'smart':  return aiLP < playerLP || aiLP < 5000;
   }
 }
 

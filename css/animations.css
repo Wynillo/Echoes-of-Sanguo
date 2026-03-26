@@ -256,3 +256,12 @@
 .vfx-damage:nth-child(4)  { --vfx-fire-ox: -70px; --vfx-fire-oy:  60px; }
 .vfx-damage:nth-child(5)  { --vfx-fire-ox:  40px; --vfx-fire-oy: -80px; }
 .vfx-damage:nth-child(6)  { --vfx-fire-ox: -50px; --vfx-fire-oy:  30px; }
+
+/* ── Reduced Motion ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

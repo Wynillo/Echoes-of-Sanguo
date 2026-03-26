@@ -127,6 +127,10 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
   const lang = typeof navigator !== 'undefined'
     ? navigator.language.substring(0, 2)
     : '';
+  if (definitions.size === 0) {
+    result.warnings.push('No card definitions found in TCG archive');
+    return result;
+  }
   const defs = definitions.get(lang) ?? definitions.values().next().value!;
   const defMap = new Map<number, TcgCardDefinition>();
   for (const d of defs) defMap.set(d.id, d);

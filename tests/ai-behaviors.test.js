@@ -318,14 +318,18 @@ describe('decideSummonPosition', () => {
 describe('shouldActivateNormalSpell', () => {
   describe('with matching spell rule', () => {
     it('activates when rule condition "always" is met', () => {
-      const behavior = resolveAIBehavior('default');
-      // S005 has { when: 'always' } in legacy spell rules
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'S005': { when: 'always' } },
+      };
       expect(shouldActivateNormalSpell('S005', behavior, 8000, 8000)).toBe(true);
     });
 
     it('activates S001 (oppLP>N) when player LP exceeds threshold', () => {
-      const behavior = resolveAIBehavior('default');
-      // S001: { when: 'oppLP>N', threshold: 800 }
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'S001': { when: 'oppLP>N', threshold: 800 } },
+      };
       expect(shouldActivateNormalSpell('S001', behavior, 1000, 8000)).toBe(true);
     });
 
@@ -361,11 +365,17 @@ describe('shouldActivateNormalSpell', () => {
       expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(true);
     });
 
-    it('returns true when defaultSpellActivation is "smart"', () => {
+    it('returns true when defaultSpellActivation is "smart" and AI is losing', () => {
       const behavior = resolveAIBehavior('default');
       // default has defaultSpellActivation: 'smart'
-      // 'S999' is not in legacy rules, so falls through to default
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(true);
+      // 'smart' activates when AI LP < player LP or AI LP < 5000
+      expect(shouldActivateNormalSpell('S999', behavior, 8000, 4000)).toBe(true);
+    });
+
+    it('returns false when defaultSpellActivation is "smart" and AI is healthy', () => {
+      const behavior = resolveAIBehavior('default');
+      // AI LP 8000 >= player LP 8000 and AI LP >= 5000
+      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(false);
     });
 
     it('returns false when defaultSpellActivation is "never"', () => {

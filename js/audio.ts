@@ -78,7 +78,8 @@ async function _loadBuffer(id: string): Promise<AudioBuffer | null> {
     const audioBuf = await ctx.decodeAudioData(arrayBuf);
     _bufferCache.set(id, audioBuf);
     return audioBuf;
-  } catch {
+  } catch (e) {
+    console.warn(`[Audio] Failed to load "${id}":`, e);
     return null;
   }
 }

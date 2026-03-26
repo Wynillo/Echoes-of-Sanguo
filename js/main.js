@@ -23,6 +23,7 @@ const { Progression } = await import('./progression.js');
 const { GAME_RULES }  = await import('./rules.js');
 GAME_RULES.refillHandEnabled = Progression.getSettings().refillHand ?? true;
 
-await import('./i18n.js');          // must come after progression.js (reads saved language)
+const { i18nReady } = await import('./i18n.js'); // must come after progression.js (reads saved language)
+await i18nReady;
 await import('./engine.js');
 await import('./react/index.js');

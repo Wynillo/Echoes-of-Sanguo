@@ -234,7 +234,7 @@ export class GameEngine {
   }
 
   gainLP(target: Owner, amount: number){
-    this.state[target].lp += amount;
+    this.state[target].lp = Math.min(this.state[target].lp + amount, 99999);
     this.addLog(`${ownerLabel(target)} gains ${amount} LP. (LP: ${this.state[target].lp})`);
     this.ui.playVFX?.('heal', target);
     this.ui.render(this.state);
@@ -487,7 +487,10 @@ export class GameEngine {
     const zone = st.field.monsters.findIndex(z => z === null);
     if(zone === -1){ this.addLog('No free zone for fusion monster!'); return false; }
 
-    this.addLog(`${ownerLabel(owner)}: FUSION! ${card1.name} + ${card2.name} = ${CARD_DB[recipe.result].name}!`);
+    const fusionCardData = CARD_DB[recipe.result];
+    if (!fusionCardData) { this.addLog('Fusion result card not found!'); return false; }
+
+    this.addLog(`${ownerLabel(owner)}: FUSION! ${card1.name} + ${card2.name} = ${fusionCardData.name}!`);
     this.ui.playSfx?.('sfx_fusion');
 
     // Play merge animation before removing cards from hand
@@ -499,7 +502,7 @@ export class GameEngine {
     st.graveyard.push(card1);
     st.graveyard.push(card2);
 
-    const fusionCard = Object.assign({}, CARD_DB[recipe.result]);
+    const fusionCard = Object.assign({}, fusionCardData);
     const fc = new FieldCard(fusionCard, 'atk');
     fc.summonedThisTurn = false; // fusion monsters can attack immediately
     st.field.monsters[zone] = fc;
@@ -530,6 +533,11 @@ export class GameEngine {
 
     const zone = st.field.monsters.findIndex(z => z === null);
     if (zone === -1) { this.addLog('No free zone for fusion monster!'); return false; }
+
+    // Validate all indices are in bounds
+    if (!handIndices.every(i => i >= 0 && i < hand.length)) {
+      this.addLog('Invalid hand index for fusion!'); return false;
+    }
 
     // Resolve chain using FM rules
     const cardIds = handIndices.map(i => hand[i].id);
@@ -801,7 +809,7 @@ export class GameEngine {
   async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]){
     // check player's face-down traps
     const traps = this.state.player.field.spellTraps;
-    for(let i=0;i<5;i++){
+    for(let i=0;i<traps.length;i++){
       const fst = traps[i];
       if(fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used && fst.card.trapTrigger === triggerType){
         const promptFn = this.ui.prompt;

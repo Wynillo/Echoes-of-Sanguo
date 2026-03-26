@@ -2,18 +2,19 @@
 // Card — visual component that mirrors cardInnerHTML()
 // ============================================================
 import { CardType } from '../../types.js';
+import type { CardData, FieldCard } from '../../types.js';
 import {
   getRaceById, getAttrById, getRarityById, getCardTypeById,
 } from '../../type-metadata.js';
 import styles from './Card.module.css';
 
-function getTypeLabel(card: any): string {
+function getTypeLabel(card: CardData): string {
   if (card.type === CardType.Monster && card.effect) return 'Effekt';
   return getCardTypeById(card.type)?.value ?? '';
 }
 
 /** Map CardType enum to CSS class prefix — distinguishes normal vs effect monsters */
-function typeCss(card: any): string {
+function typeCss(card: CardData): string {
   if (card.type === CardType.Monster) return card.effect ? 'effect' : 'normal';
   return getCardTypeById(card.type)?.key.toLowerCase() ?? 'monster';
 }
@@ -25,8 +26,8 @@ function attrCssKey(attr: number | undefined): string {
 }
 
 interface Props {
-  card: any;
-  fc?: any | null;
+  card: CardData;
+  fc?: FieldCard | null;
   dimmed?: boolean;
   rotated?: boolean;
   big?: boolean;
@@ -136,11 +137,11 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
 }
 
 // Re-export CSS helpers for use by other components
-export function TYPE_CSS_FN(card: any): string { return typeCss(card); }
+export function TYPE_CSS_FN(card: CardData): string { return typeCss(card); }
 export function ATTR_CSS_FN(attr: number | undefined): string { return attrCssKey(attr); }
 
 /** Card-aware CSS class: distinguishes normal vs effect monsters */
-export function cardTypeCss(card: any): string { return typeCss(card); }
+export function cardTypeCss(card: CardData): string { return typeCss(card); }
 
 // Backward-compatible record-style exports — NOTE: cannot distinguish normal/effect.
 // Prefer cardTypeCss(card) for monster cards.

@@ -7,6 +7,22 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Global Focus Styles ────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+button:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+  box-shadow: 0 0 6px rgba(200, 168, 72, 0.4);
+}
+.hand-card:focus-visible {
+  transform: translateY(-14px) scale(1.08);
+  z-index: 100;
+  outline: 2px solid var(--gold-light);
+}
+
 :root {
   --bg:          #060e0a;
   --bg2:         #071210;
