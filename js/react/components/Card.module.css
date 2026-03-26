@@ -104,8 +104,9 @@
 .atkVal { font-size: 9px; font-weight: bold; color: #ff9955; }
 .defVal { font-size: 9px; font-weight: bold; color: #55aaff; }
 
-.cardStats.statBoosted .atkVal { color: #88ff88; }
-.cardStats.statBoosted .defVal { color: #88ff88; }
+/* Per-stat buff/nerf coloring */
+.statBuffed { color: #88ff88 !important; }
+.statNerfed { color: #ff6666 !important; }
 
 /* Empty spacer for spells/traps (no ATK/DEF) */
 .cardStats.noStats { min-height: 0; padding: 0; }

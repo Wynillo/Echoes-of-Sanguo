@@ -54,7 +54,12 @@ export function HoverPreview() {
   const typeName = card ? (card.type === CardType.Monster && card.effect ? 'Effekt' : typeNameMap[card.type] || '') : '';
   const isMonLevel = card && (card.type === CardType.Monster || card.type === CardType.Fusion);
   const levelStr = isMonLevel && card?.level ? ` · Lv ${card.level}` : '';
-  const atkBonus = fc && (fc.permATKBonus || fc.tempATKBonus);
+  const baseATK = card?.atk ?? 0;
+  const baseDEF = card?.def ?? 0;
+  const hoverEffATK = fc ? fc.effectiveATK() : baseATK;
+  const hoverEffDEF = fc ? fc.effectiveDEF() : baseDEF;
+  const atkColor = fc ? (hoverEffATK > baseATK ? '#88ff88' : hoverEffATK < baseATK ? '#ff6666' : undefined) : undefined;
+  const defColor = fc ? (hoverEffDEF > baseDEF ? '#88ff88' : hoverEffDEF < baseDEF ? '#ff6666' : undefined) : undefined;
 
   return (
     <div
@@ -73,7 +78,11 @@ export function HoverPreview() {
             <div id="hover-card-desc">{card.description || ''}</div>
             <div id="hover-card-stats">
               {card.atk !== undefined
-                ? `ATK ${fc ? fc.effectiveATK() : card.atk}${atkBonus ? ' ▲' : ''}  DEF ${fc ? fc.effectiveDEF() : card.def}`
+                ? <>
+                    <span style={atkColor ? { color: atkColor } : undefined}>ATK {hoverEffATK}</span>
+                    {'  '}
+                    <span style={defColor ? { color: defColor } : undefined}>DEF {hoverEffDEF}</span>
+                  </>
                 : ''}
             </div>
           </div>

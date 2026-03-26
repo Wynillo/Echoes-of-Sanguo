@@ -42,9 +42,12 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
   const typeLabel  = getTypeLabel(card);
-  const effATK     = fc ? fc.effectiveATK() : (card.atk ?? 0);
-  const effDEF     = fc ? fc.effectiveDEF() : (card.def ?? 0);
-  const boosted    = fc && (fc.permATKBonus || fc.tempATKBonus);
+  const baseATK    = card.atk ?? 0;
+  const baseDEF    = card.def ?? 0;
+  const effATK     = fc ? fc.effectiveATK() : baseATK;
+  const effDEF     = fc ? fc.effectiveDEF() : baseDEF;
+  const atkStatCls = fc ? (effATK > baseATK ? styles.statBuffed : effATK < baseATK ? styles.statNerfed : '') : '';
+  const defStatCls = fc ? (effDEF > baseDEF ? styles.statBuffed : effDEF < baseDEF ? styles.statNerfed : '') : '';
 
   const isMonster = card.atk !== undefined && !isEquipment;
 
@@ -81,9 +84,9 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
   const equipAtkB = card.atkBonus ?? 0;
   const equipDefB = card.defBonus ?? 0;
   const statsBar = isMonster
-    ? <div className={`${styles.cardStats}${boosted ? ` ${styles.statBoosted}` : ''}`}>
-        <span className={styles.atkVal}>ATK: {effATK}</span>
-        <span className={styles.defVal}>DEF: {effDEF}</span>
+    ? <div className={styles.cardStats}>
+        <span className={`${styles.atkVal}${atkStatCls ? ` ${atkStatCls}` : ''}`}>ATK: {effATK}</span>
+        <span className={`${styles.defVal}${defStatCls ? ` ${defStatCls}` : ''}`}>DEF: {effDEF}</span>
       </div>
     : isEquipment
     ? <div className={styles.cardStats}>
@@ -113,8 +116,8 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
         </div>
         {isMonster
           ? <div className={styles.cardStats}>
-              <span className={styles.atkVal}>{effATK}</span>
-              <span className={styles.defVal}>{effDEF}</span>
+              <span className={`${styles.atkVal}${atkStatCls ? ` ${atkStatCls}` : ''}`}>{effATK}</span>
+              <span className={`${styles.defVal}${defStatCls ? ` ${defStatCls}` : ''}`}>{effDEF}</span>
             </div>
           : isEquipment
           ? <div className={styles.cardStats}>
@@ -173,9 +176,12 @@ export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: 
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
   const typeLabel  = getTypeLabel(card);
-  const effATK     = fc ? fc.effectiveATK() : (card.atk ?? 0);
-  const effDEF     = fc ? fc.effectiveDEF() : (card.def ?? 0);
-  const boosted    = fc && (fc.permATKBonus || fc.tempATKBonus);
+  const baseATK    = card.atk ?? 0;
+  const baseDEF    = card.def ?? 0;
+  const effATK     = fc ? fc.effectiveATK() : baseATK;
+  const effDEF     = fc ? fc.effectiveDEF() : baseDEF;
+  const atkClsH    = fc ? (effATK > baseATK ? ' stat-buffed' : effATK < baseATK ? ' stat-nerfed' : '') : '';
+  const defClsH    = fc ? (effDEF > baseDEF ? ' stat-buffed' : effDEF < baseDEF ? ' stat-nerfed' : '') : '';
 
   const isMonster  = card.atk !== undefined && !isEquipmentH;
   const orbColor   = attrMeta?.color ?? '#444';
@@ -203,9 +209,9 @@ export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: 
   const eqAtkB = card.atkBonus ?? 0;
   const eqDefB = card.defBonus ?? 0;
   const statsHTML = isMonster
-    ? `<div class="card-stats${boosted ? ' stat-boosted' : ''}">
-        <span class="card-atk-val">ATK: ${effATK}</span>
-        <span class="card-def-val">DEF: ${effDEF}</span>
+    ? `<div class="card-stats">
+        <span class="card-atk-val${atkClsH}">ATK: ${effATK}</span>
+        <span class="card-def-val${defClsH}">DEF: ${effDEF}</span>
        </div>`
     : isEquipmentH
     ? `<div class="card-stats">
