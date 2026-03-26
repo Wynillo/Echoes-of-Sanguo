@@ -103,7 +103,8 @@
     "type_effect": "Effekt",
     "type_fusion": "Fusion",
     "type_spell": "Zauber",
-    "type_trap": "Falle"
+    "type_trap": "Falle",
+    "type_equipment": "Ausrüstung"
   },
   "collection": {
     "title": "📚 MEINE SAMMLUNG",
@@ -142,10 +143,12 @@
     "type_effect": "Effekt",
     "type_spell": "Zauber",
     "type_trap": "Falle",
+    "type_equipment": "Ausrüstung",
     "type_label_normal": "Normal",
     "type_label_effect": "Effekt",
     "type_label_fusion": "Fusion",
     "type_label_spell": "Zauber",
+    "type_label_equipment": "Ausrüstung",
     "type_label_trap": "Falle",
     "rarity_all": "Alle Seltenheiten",
     "remove_hint": "Entfernen"
@@ -204,7 +207,10 @@
     "change_to_def": "🔄 In Verteidigung wechseln",
     "change_to_atk": "🔄 In Angriff wechseln",
     "play": "⚔ Spielen",
-    "hint_play_chain": "Wähle Karten zum Kombinieren, dann bestätigen. Letzte Karte antippen zum Rückgängig machen."
+    "hint_play_chain": "Wähle Karten zum Kombinieren, dann bestätigen. Letzte Karte antippen zum Rückgängig machen.",
+    "equip": "⚔ Ausrüsten",
+    "set_equipment": "🔽 Verdeckt setzen",
+    "hint_equip": "Wähle ein Monster zum Ausrüsten."
   },
   "fusion_chain": {
     "confirm": "✨ Fusionieren & Spielen",
@@ -227,6 +233,7 @@
     "type_fusion": "Fusion",
     "type_spell": "Zauberkarte",
     "type_trap": "Fallenkarte",
+    "type_equipment": "Ausrüstung",
     "atk_bonus": " (+Bonus)"
   },
   "card_list": {
@@ -236,6 +243,7 @@
     "group_fusion": "Fusion-Monster",
     "group_spell": "Zauberkarten",
     "group_trap": "Fallenkarten",
+    "group_equipment": "Ausrüstungskarten",
     "close": "✕ Schließen"
   },
   "grave": {

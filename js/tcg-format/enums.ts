@@ -8,7 +8,7 @@
 import { CardType, Attribute, Race, Rarity } from '../types.js';
 import type { EffectTrigger, TrapTrigger, SpellType } from '../types.js';
 import {
-  TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP,
+  TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_EQUIPMENT,
   TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG_ATTR_WATER, TCG_ATTR_EARTH, TCG_ATTR_WIND,
   TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_BEAST, TCG_RACE_PLANT,
   TCG_RACE_ROCK, TCG_RACE_PHOENIX, TCG_RACE_UNDEAD, TCG_RACE_AQUA, TCG_RACE_INSECT,
@@ -20,17 +20,19 @@ import {
 // CardType.Monster (1) == TCG_TYPE_MONSTER (1), etc.
 
 const TYPE_TO_INT: Record<CardType, number> = {
-  [CardType.Monster]: TCG_TYPE_MONSTER,
-  [CardType.Fusion]:  TCG_TYPE_FUSION,
-  [CardType.Spell]:   TCG_TYPE_SPELL,
-  [CardType.Trap]:    TCG_TYPE_TRAP,
+  [CardType.Monster]:   TCG_TYPE_MONSTER,
+  [CardType.Fusion]:    TCG_TYPE_FUSION,
+  [CardType.Spell]:     TCG_TYPE_SPELL,
+  [CardType.Trap]:      TCG_TYPE_TRAP,
+  [CardType.Equipment]: TCG_TYPE_EQUIPMENT,
 };
 
 const INT_TO_TYPE: Record<number, CardType> = {
-  [TCG_TYPE_MONSTER]: CardType.Monster,
-  [TCG_TYPE_FUSION]:  CardType.Fusion,
-  [TCG_TYPE_SPELL]:   CardType.Spell,
-  [TCG_TYPE_TRAP]:    CardType.Trap,
+  [TCG_TYPE_MONSTER]:   CardType.Monster,
+  [TCG_TYPE_FUSION]:    CardType.Fusion,
+  [TCG_TYPE_SPELL]:     CardType.Spell,
+  [TCG_TYPE_TRAP]:      CardType.Trap,
+  [TCG_TYPE_EQUIPMENT]: CardType.Equipment,
 };
 
 export function cardTypeToInt(ct: CardType): number {

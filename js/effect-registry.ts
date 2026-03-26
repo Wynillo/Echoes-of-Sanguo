@@ -196,6 +196,7 @@ const IMPL: Record<string, InternalImpl> = {
       const fc = monsters[strongest]!;
       st[opp].hand.push(fc.card);
       monsters[strongest] = null;
+      ctx.engine._removeEquipmentForMonster(opp, strongest);
       ctx.engine.addLog(`${fc.card.name} was bounced back to hand!`);
     }
     return {};
@@ -208,7 +209,7 @@ const IMPL: Record<string, InternalImpl> = {
     st[opp].hand.push(ctx.attacker.card);
     const monsters = st[opp].field.monsters;
     const i = monsters.indexOf(ctx.attacker);
-    if (i !== -1) monsters[i] = null;
+    if (i !== -1) { monsters[i] = null; ctx.engine._removeEquipmentForMonster(opp, i); }
     return {};
   },
 
@@ -220,6 +221,7 @@ const IMPL: Record<string, InternalImpl> = {
       if (monsters[i]) {
         st[opp].hand.push(monsters[i]!.card);
         monsters[i] = null;
+        ctx.engine._removeEquipmentForMonster(opp, i);
       }
     }
     return {};
@@ -314,6 +316,7 @@ const IMPL: Record<string, InternalImpl> = {
       if (monsters[i]) {
         st[opp].graveyard.push(monsters[i]!.card);
         monsters[i] = null;
+        ctx.engine._removeEquipmentForMonster(opp, i);
       }
     }
     ctx.engine.addLog('All opponent monsters destroyed!');
@@ -328,6 +331,7 @@ const IMPL: Record<string, InternalImpl> = {
         if (monsters[i]) {
           st[side].graveyard.push(monsters[i]!.card);
           monsters[i] = null;
+          ctx.engine._removeEquipmentForMonster(side, i);
         }
       }
     }
@@ -348,6 +352,7 @@ const IMPL: Record<string, InternalImpl> = {
       const fc = monsters[weakestIdx]!;
       st[opp].graveyard.push(fc.card);
       monsters[weakestIdx] = null;
+      ctx.engine._removeEquipmentForMonster(opp, weakestIdx);
       ctx.engine.addLog(`${fc.card.name} (weakest) destroyed!`);
     }
     return {};
@@ -366,6 +371,7 @@ const IMPL: Record<string, InternalImpl> = {
       const fc = monsters[strongestIdx]!;
       st[opp].graveyard.push(fc.card);
       monsters[strongestIdx] = null;
+      ctx.engine._removeEquipmentForMonster(opp, strongestIdx);
       ctx.engine.addLog(`${fc.card.name} (strongest) destroyed!`);
     }
     return {};

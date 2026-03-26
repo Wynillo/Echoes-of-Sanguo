@@ -493,14 +493,16 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .effect-card  { border-color: rgba(200,120,40,0.8); }
 .fusion-card  { border-color: rgba(160,80,220,0.9); box-shadow: none; outline: 2px solid rgba(160,80,220,0.6); }
 .spell-card   { border-color: rgba(40,160,120,0.8); }
-.trap-card    { border-color: rgba(180,40,80,0.8); }
+.trap-card      { border-color: rgba(180,40,80,0.8); }
+.equipment-card { border-color: rgba(224,128,48,0.8); }
 
 /* Type background tints — subtle color wash layered over attr gradient */
 .normal-card::before { content:''; position:absolute; inset:0; background:rgba(220,220,220,0.04); z-index:0; pointer-events:none; border-radius:0; }
 .effect-card::before { content:''; position:absolute; inset:0; background:rgba(160,80,20,0.08);  z-index:0; pointer-events:none; border-radius:0; }
 .fusion-card::before { content:''; position:absolute; inset:0; background:rgba(120,40,200,0.09); z-index:0; pointer-events:none; border-radius:0; }
 .spell-card::before  { content:''; position:absolute; inset:0; background:rgba(20,140,80,0.08);  z-index:0; pointer-events:none; border-radius:0; }
-.trap-card::before   { content:''; position:absolute; inset:0; background:rgba(180,20,60,0.08);  z-index:0; pointer-events:none; border-radius:0; }
+.trap-card::before      { content:''; position:absolute; inset:0; background:rgba(180,20,60,0.08);  z-index:0; pointer-events:none; border-radius:0; }
+.equipment-card::before { content:''; position:absolute; inset:0; background:rgba(224,128,48,0.08); z-index:0; pointer-events:none; border-radius:0; }
 
 /* Attribute backgrounds */
 .attr-fire  { background: #380800; }
@@ -531,6 +533,15 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   background: rgba(0,0,0,0.3);
 }
 .own-facedown { filter: brightness(0.7); }
+
+/* Equipment badge on equipped monsters */
+.equip-badge {
+  position: absolute; top: 1px; right: 1px;
+  font-size: 10px; line-height: 1;
+  background: rgba(224,128,48,0.85); color: #fff;
+  border-radius: 2px; padding: 1px 2px;
+  z-index: 10; pointer-events: none;
+}
 
 /* Field card states */
 .field-card { cursor: default; animation: fieldCardIn 0.32s cubic-bezier(0.34,1.56,0.64,1) both; }
@@ -855,7 +866,8 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 /* Typ-spezifischer Glow */
 #card-activate-render .spell-card  { box-shadow: 0 0 40px rgba(40,200,150,0.75), 0 0 80px rgba(40,200,150,0.3); }
-#card-activate-render .trap-card   { box-shadow: 0 0 40px rgba(220,60,100,0.75), 0 0 80px rgba(220,60,100,0.3); }
+#card-activate-render .trap-card      { box-shadow: 0 0 40px rgba(220,60,100,0.75), 0 0 80px rgba(220,60,100,0.3); }
+#card-activate-render .equipment-card { box-shadow: 0 0 40px rgba(224,128,48,0.75), 0 0 80px rgba(224,128,48,0.3); }
 #card-activate-render .effect-card,
 #card-activate-render .normal-card { box-shadow: 0 0 40px rgba(255,180,50,0.7),  0 0 80px rgba(255,180,50,0.3); }
 #card-activate-render .fusion-card { box-shadow: 0 0 40px rgba(180,80,255,0.8),  0 0 80px rgba(180,80,255,0.4); }

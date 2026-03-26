@@ -4,12 +4,13 @@
 // ============================================================
 
 // ── Card Type ────────────────────────────────────────────────
-// 1=Monster (normal+effect), 2=Fusion, 3=Spell, 4=Trap
-export const TCG_TYPE_MONSTER = 1;
-export const TCG_TYPE_FUSION  = 2;
-export const TCG_TYPE_SPELL   = 3;
-export const TCG_TYPE_TRAP    = 4;
-export const TCG_TYPES = [TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP] as const;
+// 1=Monster (normal+effect), 2=Fusion, 3=Spell, 4=Trap, 5=Equipment
+export const TCG_TYPE_MONSTER   = 1;
+export const TCG_TYPE_FUSION    = 2;
+export const TCG_TYPE_SPELL     = 3;
+export const TCG_TYPE_TRAP      = 4;
+export const TCG_TYPE_EQUIPMENT = 5;
+export const TCG_TYPES = [TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_EQUIPMENT] as const;
 
 // ── Attribute ────────────────────────────────────────────────
 export const TCG_ATTR_LIGHT = 1;
@@ -58,6 +59,8 @@ export interface TcgCard {
   spellType?:   number;    // 1=normal, 2=targeted, 3=fromGrave
   trapTrigger?: number;    // 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual
   target?:      string;    // targeting hint: 'ownMonster', 'oppMonster', etc.
+  atkBonus?:    number;    // Equipment: ATK bonus applied to equipped monster
+  defBonus?:    number;    // Equipment: DEF bonus applied to equipped monster
 }
 
 // ── Card Definition (localized) ──────────────────────────────

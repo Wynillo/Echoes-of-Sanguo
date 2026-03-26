@@ -37,6 +37,7 @@ interface Props {
 
 export function Card({ card, fc = null, dimmed = false, rotated = false, big = false, small = false, extraClass = '' }: Props) {
   const isMonLevelC = card.type === CardType.Monster || card.type === CardType.Fusion;
+  const isEquipment = card.type === CardType.Equipment;
   const levelStars = isMonLevelC && card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
@@ -45,7 +46,7 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
   const effDEF     = fc ? fc.effectiveDEF() : (card.def ?? 0);
   const boosted    = fc && (fc.permATKBonus || fc.tempATKBonus);
 
-  const isMonster = card.atk !== undefined;
+  const isMonster = card.atk !== undefined && !isEquipment;
 
   // Attribute orb (top-right)
   const orbColor = attrMeta?.color ?? '#444';
@@ -77,10 +78,17 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
     : `[${typeLabel}]`;
 
   // Stats bar
+  const equipAtkB = card.atkBonus ?? 0;
+  const equipDefB = card.defBonus ?? 0;
   const statsBar = isMonster
     ? <div className={`${styles.cardStats}${boosted ? ` ${styles.statBoosted}` : ''}`}>
         <span className={styles.atkVal}>ATK: {effATK}</span>
         <span className={styles.defVal}>DEF: {effDEF}</span>
+      </div>
+    : isEquipment
+    ? <div className={styles.cardStats}>
+        {equipAtkB !== 0 && <span className={styles.atkVal}>ATK {equipAtkB >= 0 ? '+' : ''}{equipAtkB}</span>}
+        {equipDefB !== 0 && <span className={styles.defVal}>DEF {equipDefB >= 0 ? '+' : ''}{equipDefB}</span>}
       </div>
     : <div className={`${styles.cardStats} ${styles.noStats}`} />;
 
@@ -107,6 +115,11 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
           ? <div className={styles.cardStats}>
               <span className={styles.atkVal}>{effATK}</span>
               <span className={styles.defVal}>{effDEF}</span>
+            </div>
+          : isEquipment
+          ? <div className={styles.cardStats}>
+              {equipAtkB !== 0 && <span className={styles.atkVal}>{equipAtkB >= 0 ? '+' : ''}{equipAtkB}</span>}
+              {equipDefB !== 0 && <span className={styles.defVal}>{equipDefB >= 0 ? '+' : ''}{equipDefB}</span>}
             </div>
           : <div className={styles.cardStats}>
               <span className={styles.typeLabel}>{typeLabel}</span>
@@ -155,6 +168,7 @@ export const ATTR_CSS: Record<number, string> = new Proxy({} as Record<number, s
 /** Pure helper used by modules that need the inner HTML string for legacy canvas/clone operations */
 export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: any = null): string {
   const isMonsterLevelH = card.type === CardType.Monster || card.type === CardType.Fusion;
+  const isEquipmentH = card.type === CardType.Equipment;
   const levelStars = isMonsterLevelH && card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
@@ -163,7 +177,7 @@ export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: 
   const effDEF     = fc ? fc.effectiveDEF() : (card.def ?? 0);
   const boosted    = fc && (fc.permATKBonus || fc.tempATKBonus);
 
-  const isMonster  = card.atk !== undefined;
+  const isMonster  = card.atk !== undefined && !isEquipmentH;
   const orbColor   = attrMeta?.color ?? '#444';
   const orbHTML    = card.attribute
     ? `<span class="card-attr-orb" style="background:${orbColor}">${attrSym}</span>`
@@ -186,10 +200,17 @@ export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: 
     ? `[${typeLabel} / ${raceLabel}]`
     : `[${typeLabel}]`;
 
+  const eqAtkB = card.atkBonus ?? 0;
+  const eqDefB = card.defBonus ?? 0;
   const statsHTML = isMonster
     ? `<div class="card-stats${boosted ? ' stat-boosted' : ''}">
         <span class="card-atk-val">ATK: ${effATK}</span>
         <span class="card-def-val">DEF: ${effDEF}</span>
+       </div>`
+    : isEquipmentH
+    ? `<div class="card-stats">
+        ${eqAtkB !== 0 ? `<span class="card-atk-val">ATK ${eqAtkB >= 0 ? '+' : ''}${eqAtkB}</span>` : ''}
+        ${eqDefB !== 0 ? `<span class="card-def-val">DEF ${eqDefB >= 0 ? '+' : ''}${eqDefB}</span>` : ''}
        </div>`
     : `<div class="card-stats card-no-stats"></div>`;
 

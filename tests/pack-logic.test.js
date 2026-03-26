@@ -337,7 +337,7 @@ describe('rarity fallback behavior', () => {
   });
 
   it('all cards returned have valid card types', () => {
-    const validTypes = [CardType.Monster, CardType.Fusion, CardType.Spell, CardType.Trap];
+    const validTypes = [CardType.Monster, CardType.Fusion, CardType.Spell, CardType.Trap, CardType.Equipment];
     for (const packType of Object.keys(PACK_TYPES)) {
       const cards = openPack(packType);
       for (const card of cards) {

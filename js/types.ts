@@ -15,10 +15,11 @@ export type SpellType    = 'normal' | 'targeted' | 'fromGrave';
 // Monster covers both normal and effect cards; distinction via effect field.
 
 export enum CardType {
-  Monster = 1,
-  Fusion  = 2,
-  Spell   = 3,
-  Trap    = 4,
+  Monster   = 1,
+  Fusion    = 2,
+  Spell     = 3,
+  Trap      = 4,
+  Equipment = 5,
 }
 
 export enum Attribute {
@@ -64,6 +65,11 @@ export function isEffectMonster(card: CardData): boolean {
 /** Helper: is this a monster type (Monster or Fusion)? */
 export function isMonsterType(type: CardType): boolean {
   return type === CardType.Monster || type === CardType.Fusion;
+}
+
+/** Helper: is this an equipment card type? */
+export function isEquipmentType(type: CardType): boolean {
+  return type === CardType.Equipment;
 }
 
 // ── Effect ──────────────────────────────────────────────────
@@ -202,6 +208,9 @@ export interface CardData {
   spellType?:   SpellType;
   trapTrigger?: TrapTrigger;
   target?:      string;
+  // Equipment extras
+  atkBonus?:    number;
+  defBonus?:    number;
 }
 
 // ── Deck recipe ─────────────────────────────────────────────
@@ -359,6 +368,7 @@ export declare class FieldCard {
   indestructible:   boolean;
   effectImmune:     boolean;
   cantBeAttacked:   boolean;
+  equippedCards:    Array<{ zone: number; card: CardData }>;
   effectiveATK():   number;
   effectiveDEF():   number;
 }
@@ -368,6 +378,8 @@ export declare class FieldSpellTrap {
   card:     CardData;
   faceDown: boolean;
   used:     boolean;
+  equippedMonsterZone?: number;
+  equippedOwner?:       Owner;
 }
 
 export declare class GameEngine {
@@ -387,6 +399,8 @@ export declare class GameEngine {
   specialSummon(owner: Owner, card: CardData, zone?: number): Promise<boolean>;
   specialSummonFromGrave(owner: Owner, card: CardData): Promise<boolean>;
   performFusionChain(owner: Owner, handIndices: number[]): Promise<boolean>;
+  equipCard(owner: Owner, handIndex: number, targetOwner: Owner, targetMonsterZone: number): Promise<boolean>;
+  _removeEquipmentForMonster(monsterOwner: Owner, monsterZone: number): void;
   endTurn(): void;
   advancePhase(): void;
 }

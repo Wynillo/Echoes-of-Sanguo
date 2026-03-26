@@ -230,7 +230,7 @@ describe('Card Validator', () => {
   });
 
   it('rejects invalid type', () => {
-    const result = validateTcgCards([{ ...validMonster, type: 5 }]);
+    const result = validateTcgCards([{ ...validMonster, type: 99 }]);
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('type');
   });

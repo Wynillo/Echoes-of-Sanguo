@@ -126,7 +126,8 @@ export function initDefaults(): void {
     { id: CardType.Monster, key: 'Monster', value: 'Monster',        color: '#c8a850' },
     { id: CardType.Fusion,  key: 'Fusion',  value: 'Fusion Monster', color: '#a050c0' },
     { id: CardType.Spell,   key: 'Spell',   value: 'Spell',          color: '#1dc0a0' },
-    { id: CardType.Trap,    key: 'Trap',    value: 'Trap',            color: '#bc2060' },
+    { id: CardType.Trap,      key: 'Trap',      value: 'Trap',            color: '#bc2060' },
+    { id: CardType.Equipment, key: 'Equipment', value: 'Equipment',       color: '#e08030' },
   ];
 
   rebuildIndices();
