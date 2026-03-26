@@ -4,8 +4,8 @@
   "title": "Einfacher Bauer",
   "race": 4,
   "flavor": "Ein Dorfbewohner, der sich verteidigen muss.",
-  "coinsWin": 100,
-  "coinsLoss": 20,
+  "coinsWin": 150,
+  "coinsLoss": 0,
   "deckIds": [79, 79, 80, 80, 99, 99, 100, 170, 170, 171, 208, 266, 269, 291],
   "behavior": "default"
 }

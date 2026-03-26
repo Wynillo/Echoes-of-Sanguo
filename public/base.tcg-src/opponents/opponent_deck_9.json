@@ -5,7 +5,7 @@
   "race": 4,
   "flavor": "Sein Deck ist so wild wie ein Tiger auf der Jagd.",
   "coinsWin": 200,
-  "coinsLoss": 40,
+  "coinsLoss": 0,
   "deckIds": [79, 79, 80, 80, 81, 81, 82, 82, 83, 84, 84, 85, 86, 268, 274, 295],
   "behavior": "aggressive"
 }

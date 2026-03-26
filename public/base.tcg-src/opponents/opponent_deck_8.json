@@ -4,8 +4,8 @@
   "title": "Meister des Gelben Himmels",
   "race": 2,
   "flavor": "Der Anführer der Gelben Turbane. Sein Zauber ist überwältigend.",
-  "coinsWin": 300,
-  "coinsLoss": 60,
+  "coinsWin": 450,
+  "coinsLoss": 0,
   "deckIds": [71, 71, 72, 72, 73, 73, 74, 74, 75, 75, 76, 76, 77, 77, 78, 78, 249, 249, 289, 290],
   "behavior": "cheating"
 }

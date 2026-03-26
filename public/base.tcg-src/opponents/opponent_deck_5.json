@@ -4,8 +4,8 @@
   "title": "Wanderhändler",
   "race": 5,
   "flavor": "Ein reisender Händler mit ein paar Karten.",
-  "coinsWin": 100,
-  "coinsLoss": 20,
+  "coinsWin": 150,
+  "coinsLoss": 0,
   "deckIds": [99, 99, 100, 100, 137, 137, 138, 152, 152, 153, 228, 267, 270, 292],
   "behavior": "default"
 }

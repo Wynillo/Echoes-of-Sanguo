@@ -4,8 +4,8 @@
   "title": "Rivale des Helden",
   "race": 1,
   "flavor": "Der ehrgeizige Sohn des Wei-Clans.",
-  "coinsWin": 200,
-  "coinsLoss": 40,
+  "coinsWin": 300,
+  "coinsLoss": 0,
   "deckIds": [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 268, 271, 293],
   "behavior": "smart"
 }

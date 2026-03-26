@@ -5,7 +5,7 @@
   "race": 6,
   "flavor": "Kein Mensch, kein Geist — das Labyrinth selbst.",
   "coinsWin": 500,
-  "coinsLoss": 100,
+  "coinsLoss": 0,
   "deckIds": [48, 46, 73, 94, 113, 133, 149, 166, 186, 204, 224, 242, 167, 40, 66, 91, 110, 128, 145, 287, 288, 301],
   "behavior": "smart"
 }

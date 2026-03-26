@@ -44,10 +44,10 @@ describe('PACK_TYPES', () => {
     }
   });
 
-  it('pack prices are ordered: starter < race < aether < rarity', () => {
-    expect(PACK_TYPES.starter.price).toBeLessThan(PACK_TYPES.race.price);
-    expect(PACK_TYPES.race.price).toBeLessThan(PACK_TYPES.aether.price);
-    expect(PACK_TYPES.aether.price).toBeLessThan(PACK_TYPES.rarity.price);
+  it('pack prices are ordered: starter < aether < race < rarity', () => {
+    expect(PACK_TYPES.starter.price).toBeLessThan(PACK_TYPES.aether.price);
+    expect(PACK_TYPES.aether.price).toBeLessThan(PACK_TYPES.race.price);
+    expect(PACK_TYPES.race.price).toBeLessThan(PACK_TYPES.rarity.price);
   });
 });
 

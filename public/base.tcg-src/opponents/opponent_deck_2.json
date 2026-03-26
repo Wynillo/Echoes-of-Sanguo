@@ -4,8 +4,8 @@
   "title": "Kriegerprinzessin",
   "race": 3,
   "flavor": "Die kämpferische Prinzessin von Wu.",
-  "coinsWin": 80,
-  "coinsLoss": 15,
+  "coinsWin": 150,
+  "coinsLoss": 0,
   "deckIds": [26, 26, 27, 27, 28, 28, 29, 29, 30, 30, 31, 266, 269, 291],
   "behavior": "default"
 }

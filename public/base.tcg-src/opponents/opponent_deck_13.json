@@ -5,7 +5,7 @@
   "race": 2,
   "flavor": "Die acht Zeichen enthüllen ihm die Zukunft.",
   "coinsWin": 300,
-  "coinsLoss": 60,
+  "coinsLoss": 0,
   "deckIds": [57, 58, 59, 60, 60, 61, 61, 62, 62, 63, 63, 64, 65, 66, 67, 278, 280, 296],
   "behavior": "smart"
 }

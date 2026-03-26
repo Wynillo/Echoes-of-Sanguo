@@ -4,8 +4,8 @@
   "title": "Dorfältester",
   "race": 6,
   "flavor": "Der erfahrenste Duellant im Dorf.",
-  "coinsWin": 120,
-  "coinsLoss": 25,
+  "coinsWin": 180,
+  "coinsLoss": 0,
   "deckIds": [117, 117, 118, 118, 119, 190, 190, 191, 191, 192, 209, 229, 267, 271, 292],
   "behavior": "default"
 }

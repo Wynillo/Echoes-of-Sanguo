@@ -5,7 +5,7 @@
   "race": 3,
   "flavor": "Ein Meister der Klinge aus einer vergessenen Ära.",
   "coinsWin": 350,
-  "coinsLoss": 70,
+  "coinsLoss": 0,
   "deckIds": [29, 30, 31, 32, 33, 33, 34, 34, 35, 35, 36, 36, 37, 37, 38, 39, 40, 281, 276, 297],
   "behavior": "smart"
 }

@@ -4,8 +4,8 @@
   "title": "Der tapfere General",
   "race": 3,
   "flavor": "Ein loyaler General mit unbeugsamer Ehre.",
-  "coinsWin": 80,
-  "coinsLoss": 15,
+  "coinsWin": 150,
+  "coinsLoss": 0,
   "deckIds": [26, 27, 27, 28, 29, 29, 30, 30, 31, 31, 32, 267, 270, 291],
   "behavior": "default"
 }

@@ -5,7 +5,7 @@
   "race": 1,
   "flavor": "Sein Drachenfeuer verschlingt alles.",
   "coinsWin": 400,
-  "coinsLoss": 80,
+  "coinsLoss": 0,
   "deckIds": [4, 5, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 12, 13, 14, 15, 16, 246, 282, 298],
   "behavior": "smart"
 }

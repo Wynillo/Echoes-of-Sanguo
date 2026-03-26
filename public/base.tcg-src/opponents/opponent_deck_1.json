@@ -4,8 +4,8 @@
   "title": "Der Mentor",
   "race": 2,
   "flavor": "Ein weiser Ratgeber am kaiserlichen Hof.",
-  "coinsWin": 50,
-  "coinsLoss": 10,
+  "coinsWin": 100,
+  "coinsLoss": 0,
   "deckIds": [54, 54, 55, 55, 56, 57, 57, 58, 58, 59, 59, 266, 269, 291],
   "behavior": "default"
 }

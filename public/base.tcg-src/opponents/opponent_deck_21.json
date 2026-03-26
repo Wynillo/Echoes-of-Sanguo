@@ -5,7 +5,7 @@
   "race": 9,
   "flavor": "Sein feuchter Strom ist erst der Anfang.",
   "coinsWin": 300,
-  "coinsLoss": 60,
+  "coinsLoss": 0,
   "deckIds": [170, 170, 171, 171, 172, 172, 173, 173, 174, 174, 175, 175, 176, 176, 177, 271, 279, 296],
   "behavior": "defensive"
 }
