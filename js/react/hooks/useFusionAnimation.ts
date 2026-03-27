@@ -1,4 +1,5 @@
 import { gsap } from 'gsap';
+import { onSkip, pushAnim, popAnim } from '../components/animSkipSignal.js';
 
 // ── Shared helpers ──
 
@@ -100,13 +101,20 @@ export function playFusionChainAnim(
     // Clone all materials
     const clones = materials.map(el => cloneCardEl(el, mergeX, mergeY));
 
+    pushAnim();
+    let unsub: (() => void) | null = null;
+
     const tl = gsap.timeline({
       onComplete() {
+        popAnim();
+        unsub?.();
         clones.forEach(c => c.remove());
         materials.forEach(el => { el.style.opacity = ''; });
         resolve();
       },
     });
+
+    unsub = onSkip(() => { tl.timeScale(8); });
 
     // Animate all cards flying to center together
     clones.forEach((clone, i) => {

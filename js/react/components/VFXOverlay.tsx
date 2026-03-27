@@ -5,6 +5,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { setVFXDispatch } from './vfxApi.js';
 import type { VFXRequest, VFXType } from './vfxApi.js';
+import { onSkip, pushAnim, popAnim } from './animSkipSignal.js';
 
 /** Duration per effect type (ms) */
 const DURATIONS: Record<VFXType, number> = {
@@ -34,10 +35,26 @@ export function VFXOverlay() {
     const count = COUNTS[req.type];
     const duration = DURATIONS[req.type];
     let finished = 0;
+    let resolved = false;
+    const particles: HTMLDivElement[] = [];
+
+    pushAnim();
+
+    const done = () => {
+      if (resolved) return;
+      resolved = true;
+      unsub();
+      popAnim();
+      particles.forEach(p => { if (p.parentNode) p.remove(); });
+      req.resolve();
+    };
+
+    const unsub = onSkip(done);
 
     for (let i = 0; i < count; i++) {
       const particle = document.createElement('div');
       particle.className = `vfx-particle vfx-${req.type}`;
+      particles.push(particle);
 
       // Randomize position & timing per particle
       const angle = (i / count) * 360;
@@ -55,16 +72,17 @@ export function VFXOverlay() {
       const onEnd = () => {
         particle.remove();
         finished++;
-        if (finished >= count) req.resolve();
+        if (finished >= count) done();
       };
       particle.addEventListener('animationend', onEnd, { once: true });
 
       // Safety timeout in case animationend doesn't fire
       setTimeout(() => {
+        if (resolved) return;
         if (particle.parentNode) {
           particle.remove();
           finished++;
-          if (finished >= count) req.resolve();
+          if (finished >= count) done();
         }
       }, duration + delay + 200);
     }

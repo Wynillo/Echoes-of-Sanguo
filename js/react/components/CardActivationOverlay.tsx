@@ -8,6 +8,7 @@ import { Card } from './Card.js';
 import { CardType } from '../../types.js';
 import { setActivationDispatch } from './cardActivationApi.js';
 import type { ActivationState } from './cardActivationApi.js';
+import { onSkip, pushAnim, popAnim, fireSkip } from './animSkipSignal.js';
 
 const LABELS: Record<number, string> = {
   [CardType.Spell]: 'ZAUBER AKTIVIERT', [CardType.Trap]: 'FALLE AKTIVIERT',
@@ -32,8 +33,11 @@ export function CardActivationOverlay() {
     gsap.set(bg,  { backgroundColor: 'rgba(0,0,0,0)' });
     gsap.set(con, { y: 50, scale: 0.75, opacity: 0 });
 
+    pushAnim();
+    const unsub = onSkip(() => { tl.timeScale(8); });
+
     const tl = gsap.timeline({
-      onComplete() { setAct(null); act.resolve(); },
+      onComplete() { popAnim(); unsub(); setAct(null); act.resolve(); },
     });
     tl.to(bg,  { duration: 0.3,  ease: 'none', backgroundColor: 'rgba(0,0,10,0.72)' }, 0);
     tl.to(con, { duration: 0.38, ease: 'back.out(1.7)', y: 0, scale: 1, opacity: 1 }, 0);
@@ -41,13 +45,13 @@ export function CardActivationOverlay() {
     tl.to(con, { duration: 0.55, ease: 'power2.in', y: -30, scale: 1.18, opacity: 0 });
     tl.to(bg,  { duration: 0.5,  ease: 'power2.in', backgroundColor: 'rgba(0,0,0,0)' }, '<');
 
-    return () => { tl.kill(); };
+    return () => { tl.kill(); popAnim(); unsub(); };
   }, [act]);
 
   if (!act) return null;
 
   return (
-    <div id="card-activate-overlay">
+    <div id="card-activate-overlay" onClick={fireSkip} style={{ cursor: 'pointer' }}>
       <div id="card-activate-bg" ref={bgRef} />
       <div id="card-activate-content" ref={contentRef}>
         <div id="card-activate-render">
