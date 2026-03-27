@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }       from '../contexts/ModalContext.js';
+import { useCampaign }    from '../contexts/CampaignContext.js';
 import { Progression }    from '../../progression.js';
 import styles from './TitleScreen.module.css';
 
@@ -9,6 +10,7 @@ export default function TitleScreen() {
   const { navigateTo } = useScreen();
   const { refresh }   = useProgression();
   const { openModal } = useModal();
+  const { refreshCampaignProgress } = useCampaign();
   const { t } = useTranslation();
   const hasSave = !Progression.isFirstLaunch();
 
@@ -17,6 +19,7 @@ export default function TitleScreen() {
     Progression.resetAll();
     Progression.init();
     refresh();
+    refreshCampaignProgress();
     navigateTo('starter');
   }
 

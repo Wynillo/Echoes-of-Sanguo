@@ -142,6 +142,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       });
     },
     onDuelEnd: (result, opponentId) => {
+      // Clear engine refs synchronously so beforeunload won't re-save a stale checkpoint
+      gameRef.current = null;
+      gameStateRef.current = null;
+      setGameState(null);
+
       // Clear duel checkpoint — the duel is over
       import('../../progression.js').then(({ Progression }) => Progression.clearDuelCheckpoint());
 
@@ -328,6 +333,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
         g.restoreGame(saved.checkpoint);
         setScreenRef.current('game');
+        Audio.playMusic('music_battle');
       });
     });
   }, [uiCallbacks]);
@@ -357,6 +363,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         gameRef.current = g;
         g.initGame(deck, cfg).then(() => {
           setScreenRef.current('game');
+          Audio.playMusic('music_battle');
         });
       });
     });

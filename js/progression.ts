@@ -335,6 +335,7 @@ export const Progression = (() => {
   /** Resets all progression data (debug only) */
   function resetAll() {
     Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem(DUEL_CHECKPOINT_KEY);
     console.warn('[Progression] All data reset.');
   }
 
