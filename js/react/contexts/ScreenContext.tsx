@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useRef } from 'react';
+import { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { Audio } from '../../audio.js';
 
@@ -27,6 +27,7 @@ interface ScreenCtx {
 const ScreenContext = createContext<ScreenCtx>({ screen: 'press-start', screenData: null, setScreen: () => {}, navigateTo: () => {} });
 
 const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
+  'press-start':  'music_title',
   title:          'music_title',
   starter:        'music_title',
   opponent:       'music_title',
@@ -34,9 +35,9 @@ const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
   game:           'music_battle',
   shop:           'music_shop',
   'pack-opening': 'music_shop',
-  collection:     'music_title',
-  deckbuilder:    'music_title',
-  'save-point':   'music_title',
+  collection:     'music_shop',
+  deckbuilder:    'music_shop',
+  'save-point':   'music_shop',
   defeated:       'music_defeat',
 };
 
@@ -66,6 +67,11 @@ export function ScreenProvider({ children }: { children: React.ReactNode }) {
     const track = SCREEN_MUSIC[s];
     if (track) Audio.playMusic(track);
   }
+
+  // Start music for the initial screen once audio context is ready
+  useEffect(() => {
+    playScreenMusic(screen);
+  }, []);
 
   return <ScreenContext.Provider value={{ screen, screenData, setScreen, navigateTo }}>{children}</ScreenContext.Provider>;
 }
