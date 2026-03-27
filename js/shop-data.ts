@@ -26,6 +26,7 @@ export interface PackDef {
 export interface ShopData {
   packs: PackDef[];
   currency: { nameKey: string; icon: string };
+  backgrounds: Record<string, string>;  // chapter key -> resolved URL
 }
 
 // ── Slot templates ──────────────────────────────────────────
@@ -45,6 +46,7 @@ const RARITY_SLOTS: PackSlotDef[] = [
 // ── Default shop data (matches original hardcoded values) ───
 
 export const SHOP_DATA: ShopData = {
+  backgrounds: {},
   packs: [
     {
       id: 'starter',
@@ -98,5 +100,8 @@ export function applyShopData(data: Partial<ShopData>): void {
   }
   if (data.currency) {
     Object.assign(SHOP_DATA.currency, data.currency);
+  }
+  if (data.backgrounds) {
+    Object.assign(SHOP_DATA.backgrounds, data.backgrounds);
   }
 }

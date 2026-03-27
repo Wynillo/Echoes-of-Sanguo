@@ -122,5 +122,9 @@
   "currency": {
     "nameKey": "common.coins",
     "icon": "◈"
+  },
+  "backgrounds": {
+    "ch1": "ui/shop-bg-ancient.png",
+    "ch2": "ui/shop-bg-tournament.png"
   }
 }

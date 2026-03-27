@@ -10,6 +10,16 @@
   overflow-y: auto;
 }
 
+.shopBg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  opacity: 0.28;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -19,6 +29,8 @@
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .shopTitle {
@@ -45,6 +57,8 @@
   gap: 14px;
   max-width: 900px;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 @media (min-width: 700px) {

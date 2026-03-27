@@ -1,17 +1,21 @@
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
+import { useCampaign }    from '../contexts/CampaignContext.js';
 import { Progression }    from '../../progression.js';
 import { getAllRaces, getRaceByKey } from '../../type-metadata.js';
 import { PACK_TYPES, openPack } from '../utils/pack-logic.js';
 import { Audio }               from '../../audio.js';
 import { Race } from '../../types.js';
 import type { CardData } from '../../types.js';
+import { SHOP_DATA } from '../../shop-data.js';
 import styles from './ShopScreen.module.css';
 
 export default function ShopScreen() {
   const { navigateTo } = useScreen();
   const { coins, refresh } = useProgression();
+  const { progress } = useCampaign();
+  const bgUrl = SHOP_DATA.backgrounds[progress.currentChapter] ?? SHOP_DATA.backgrounds['ch1'] ?? '';
 
   function buy(packType: string, race: string | null) {
     const pt = PACK_TYPES[packType];
@@ -29,6 +33,7 @@ export default function ShopScreen() {
 
   return (
     <div className={styles.screen}>
+      <div className={styles.shopBg} style={{ backgroundImage: `url(${bgUrl})` }} />
       <div className={styles.header}>
         <h2 className={styles.shopTitle}>{t('shop.title')}</h2>
         <div className={styles.coinsBar}>

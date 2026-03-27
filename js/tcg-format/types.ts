@@ -185,6 +185,7 @@ export interface TcgPackDef {
 export interface TcgShopJson {
   packs: TcgPackDef[];
   currency?: { nameKey: string; icon: string };
+  backgrounds?: Record<string, string>;  // chapter key -> path within TCG archive
 }
 
 // ── Campaign JSON (alias) ────────────────────────────────
