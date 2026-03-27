@@ -621,11 +621,17 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   background: rgba(0, 0, 0, 0.85);
   border: 2px solid #ffd700;
   border-radius: 8px;
-  margin-bottom: 6px;
   font-family: 'Silkscreen', 'Press Start 2P', monospace;
   font-size: 10px;
   color: #eee;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
   z-index: 100;
+  white-space: nowrap;
+  pointer-events: auto;
 }
 .fusion-preview-text {
   color: #ffd700;
