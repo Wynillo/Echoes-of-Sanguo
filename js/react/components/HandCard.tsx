@@ -25,10 +25,9 @@ export function HandCard({ card, index, playable, fusionable, targetable, chainS
   const isSelected = chainSelected || fusionSelected;
   const badgeNumber = chainIndex ?? fusionIndex;
 
-  const canClick = playable || targetable || fusionSelected;
   const longPressHandlers = useLongPress({
     onLongPress: onLongPress ?? (() => {}),
-    onClick: canClick ? onClick : undefined,
+    onClick,
   });
 
   const cls = [

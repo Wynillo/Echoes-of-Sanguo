@@ -72,7 +72,14 @@ export function HandArea() {
     if (player.normalSummonUsed) return;
     const freeZone = player.field.monsters.findIndex((z: any) => z === null);
     if (freeZone === -1) return;
-    if (fusionGroup.includes(index)) return;
+    // Toggle: remove if already in group
+    if (fusionGroup.includes(index)) {
+      const newGroup = fusionGroup.filter(i => i !== index);
+      const cardIds = newGroup.map(i => player.hand[i].id);
+      const preview = cardIds.length >= 2 ? resolveFusionChain(cardIds) : null;
+      setSel({ fusionGroup: newGroup, fusionGroupPreview: preview });
+      return;
+    }
 
     const newGroup = [...fusionGroup, index];
     const cardIds = newGroup.map(i => player.hand[i].id);
