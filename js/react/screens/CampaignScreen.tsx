@@ -166,7 +166,7 @@ export default function CampaignScreen() {
       <div className={styles.screen}>
         <div className={styles.header}>
           <h2 className={styles.title}>{t('campaign.title')}</h2>
-          <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('title')}>{t('common.back')}</button>
+          <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('common.back')}</button>
         </div>
         <p style={{ color: '#6080a0', marginTop: 40 }}>{t('campaign.no_data')}</p>
       </div>
@@ -177,7 +177,7 @@ export default function CampaignScreen() {
     <div className={styles.screen}>
       <div className={styles.header}>
         <h2 className={styles.title}>{t('campaign.title')}</h2>
-        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('title')}>{t('common.back')}</button>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('common.back')}</button>
       </div>
 
       {chapters.length > 1 && (
