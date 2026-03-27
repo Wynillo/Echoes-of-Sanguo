@@ -21,11 +21,16 @@ function makeCallbacks(overrides = {}) {
 function makeEngine(cbOverrides = {}) {
   const cb = makeCallbacks(cbOverrides);
   const engine = new GameEngine(cb);
+  // initGame is async but we don't need to await it in tests
+  // since the coin toss callback is not provided
   engine.initGame(
     [...PLAYER_DECK_IDS],
     { id: 1, name: 'Test', title: '', race: 'krieger', flavor: '',
       coinsWin: 0, coinsLoss: 0, deckIds: [...OPPONENT_DECK_IDS] }
   );
+  // Force player goes first for deterministic tests
+  engine.state.activePlayer = 'player';
+  engine.state.phase = 'main';
   return { engine, cb };
 }
 
@@ -49,81 +54,81 @@ const CARD = {
 // ── summonMonster ──────────────────────────────────────────
 
 describe('summonMonster', () => {
-  it('removes card from hand and places it on field', () => {
+  it('removes card from hand and places it on field', async () => {
     const { engine } = makeEngine();
     // Pick a card with no onSummon effect so the hand count stays predictable
     const idx = engine.state.player.hand.findIndex(c => !c.effect || c.effect.trigger !== 'onSummon');
     const handIdx = idx >= 0 ? idx : 0;
     const handBefore = engine.state.player.hand.length;
     const card = engine.state.player.hand[handIdx];
-    engine.summonMonster('player', handIdx, 0);
+    await engine.summonMonster('player', handIdx, 0);
     expect(engine.state.player.hand.length).toBe(handBefore - 1);
     expect(engine.state.player.field.monsters[0]).not.toBeNull();
     expect(engine.state.player.field.monsters[0].card.id).toBe(card.id);
   });
 
-  it('sets normalSummonUsed', () => {
+  it('sets normalSummonUsed', async () => {
     const { engine } = makeEngine();
     expect(engine.state.player.normalSummonUsed).toBe(false);
-    engine.summonMonster('player', 0, 0);
+    await engine.summonMonster('player', 0, 0);
     expect(engine.state.player.normalSummonUsed).toBe(true);
   });
 
-  it('gives the summoned monster summoning sickness', () => {
+  it('summoned monster has no summoning sickness (FM-style)', async () => {
     const { engine } = makeEngine();
-    engine.summonMonster('player', 0, 0);
-    expect(engine.state.player.field.monsters[0].summonedThisTurn).toBe(true);
+    await engine.summonMonster('player', 0, 0);
+    expect(engine.state.player.field.monsters[0].summonedThisTurn).toBe(false);
   });
 
-  it('rejects an occupied zone', () => {
+  it('rejects an occupied zone', async () => {
     const { engine } = makeEngine();
-    engine.summonMonster('player', 0, 0);
-    const result = engine.summonMonster('player', 0, 0);
+    await engine.summonMonster('player', 0, 0);
+    const result = await engine.summonMonster('player', 0, 0);
     expect(result).toBe(false);
   });
 
-  it('triggers onSummon effect', () => {
+  it('triggers onSummon effect', async () => {
     const { engine } = makeEngine();
     engine.state.player.hand.unshift({
       id: 'TST_BURN', name: 'BurnTest', type: 'effect', atk: 800, def: 600,
       effect: { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 500 }] },
     });
     const oppLP = engine.state.opponent.lp;
-    engine.summonMonster('player', 0, 0);
+    await engine.summonMonster('player', 0, 0);
     expect(engine.state.opponent.lp).toBe(oppLP - 500);
   });
 
-  it('does NOT trigger onSummon for face-down summon', () => {
+  it('triggers onSummon even for face-down summon', async () => {
     const { engine } = makeEngine();
     engine.state.player.hand.unshift({
       id: 'TST_FD', name: 'FDTest', type: 'effect', atk: 800, def: 600,
       effect: { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 500 }] },
     });
     const oppLP = engine.state.opponent.lp;
-    engine.summonMonster('player', 0, 0, 'def', true);
-    expect(engine.state.opponent.lp).toBe(oppLP);
+    await engine.summonMonster('player', 0, 0, 'def', true);
+    expect(engine.state.opponent.lp).toBe(oppLP - 500);
   });
 });
 
 // ── specialSummon ──────────────────────────────────────────
 
 describe('specialSummon', () => {
-  it('places monster without summoning sickness', () => {
+  it('places monster without summoning sickness', async () => {
     const { engine } = makeEngine();
-    engine.specialSummon('player', CARD.atk1000def800);
+    await engine.specialSummon('player', CARD.atk1000def800);
     expect(engine.state.player.field.monsters[0].summonedThisTurn).toBe(false);
   });
 
-  it('auto-picks first free zone', () => {
+  it('auto-picks first free zone', async () => {
     const { engine } = makeEngine();
-    engine.specialSummon('player', CARD.atk1000def800);
+    await engine.specialSummon('player', CARD.atk1000def800);
     expect(engine.state.player.field.monsters[0]).not.toBeNull();
   });
 
-  it('rejects when no zone is free', () => {
+  it('rejects when no zone is free', async () => {
     const { engine } = makeEngine();
     for (let z = 0; z < 5; z++) placeMonster(engine, 'player', CARD.atk1000def800, z);
-    const result = engine.specialSummon('player', CARD.atk1500def600);
+    const result = await engine.specialSummon('player', CARD.atk1500def600);
     expect(result).toBe(false);
   });
 });
@@ -311,62 +316,62 @@ describe('attackDirect', () => {
 // ── performFusion ──────────────────────────────────────────
 
 describe('performFusion', () => {
-  // 1 + 2 = 25 per FUSION_RECIPES
+  // 4 + 5 = 246 per FUSION_RECIPES
   function setupFusion(engine) {
     engine.state.player.hand = [
-      { ...CARD_DB['1'] },
-      { ...CARD_DB['2'] },
+      { ...CARD_DB['4'] },
+      { ...CARD_DB['5'] },
     ];
   }
 
-  it('places fusion monster on field', () => {
+  it('places fusion monster on field', async () => {
     const { engine } = makeEngine();
     setupFusion(engine);
-    engine.performFusion('player', 0, 1);
+    await engine.performFusion('player', 0, 1);
     const placed = engine.state.player.field.monsters.find(fc => fc !== null);
     expect(placed).not.toBeNull();
-    expect(placed.card.id).toBe('25');
+    expect(placed.card.id).toBe('246');
   });
 
-  it('sends both materials to graveyard', () => {
+  it('sends both materials to graveyard', async () => {
     const { engine } = makeEngine();
     setupFusion(engine);
-    engine.performFusion('player', 0, 1);
+    await engine.performFusion('player', 0, 1);
     const ids = engine.state.player.graveyard.map(c => c.id);
-    expect(ids).toContain('1');
-    expect(ids).toContain('2');
+    expect(ids).toContain('4');
+    expect(ids).toContain('5');
   });
 
-  it('removes materials from hand', () => {
+  it('removes materials from hand', async () => {
     const { engine } = makeEngine();
     setupFusion(engine);
-    engine.performFusion('player', 0, 1);
+    await engine.performFusion('player', 0, 1);
     expect(engine.state.player.hand).toHaveLength(0);
   });
 
-  it('fusion monster has no summoning sickness', () => {
+  it('fusion monster has no summoning sickness', async () => {
     const { engine } = makeEngine();
     setupFusion(engine);
-    engine.performFusion('player', 0, 1);
+    await engine.performFusion('player', 0, 1);
     const fc = engine.state.player.field.monsters.find(m => m !== null);
     expect(fc.summonedThisTurn).toBe(false);
   });
 
-  it('returns false for non-matching materials', () => {
+  it('returns false for non-matching materials', async () => {
     const { engine } = makeEngine();
     engine.state.player.hand = [
       { ...CARD_DB['1'] },
       { ...CARD_DB['3'] },   // not a fusion pair with 1
     ];
-    const result = engine.performFusion('player', 0, 1);
+    const result = await engine.performFusion('player', 0, 1);
     expect(result).toBe(false);
   });
 
-  it('returns false when no free zone', () => {
+  it('returns false when no free zone', async () => {
     const { engine } = makeEngine();
     setupFusion(engine);
     for (let z = 0; z < 5; z++) placeMonster(engine, 'player', CARD.atk1000def800, z);
-    const result = engine.performFusion('player', 0, 1);
+    const result = await engine.performFusion('player', 0, 1);
     expect(result).toBe(false);
     expect(engine.state.player.graveyard).toHaveLength(0);  // materials not consumed
   });
@@ -407,6 +412,7 @@ describe('advancePhase', () => {
   it('main → battle', () => {
     const { engine } = makeEngine();
     engine.state.phase = 'main';
+    engine.state.firstTurnNoAttack = false;
     engine.advancePhase();
     expect(engine.state.phase).toBe('battle');
   });
@@ -502,7 +508,7 @@ describe('endTurn', () => {
 // ── _triggerEffect ─────────────────────────────────────────
 
 describe('_triggerEffect (onSummon burn)', () => {
-  it('deals damage to the opposite side when monster is summoned', () => {
+  it('deals damage to the opposite side when monster is summoned', async () => {
     const { engine } = makeEngine();
     const burnCard = {
       id: 'TST_BURN2', name: 'Burner', type: 'effect', atk: 800, def: 500,
@@ -510,18 +516,18 @@ describe('_triggerEffect (onSummon burn)', () => {
     };
     engine.state.player.hand.unshift(burnCard);
     const oppLP = engine.state.opponent.lp;
-    engine.summonMonster('player', 0, 0);
+    await engine.summonMonster('player', 0, 0);
     expect(engine.state.opponent.lp).toBe(oppLP - 300);
   });
 
-  it('does not fire for a trigger type that does not match', () => {
+  it('does not fire for a trigger type that does not match', async () => {
     const { engine } = makeEngine();
     const fc = placeMonster(engine, 'player', {
       id: 'TST_MISMATCH', name: 'MM', type: 'effect', atk: 800, def: 500,
       effect: { trigger: 'onDestroyByBattle', actions: [{ type: 'dealDamage', target: 'opponent', value: 100 }] },
     }, 0);
     const oppLP = engine.state.opponent.lp;
-    engine._triggerEffect(fc, 'player', 'onSummon', 0);
+    await engine._triggerEffect(fc, 'player', 'onSummon', 0);
     expect(engine.state.opponent.lp).toBe(oppLP);
   });
 });

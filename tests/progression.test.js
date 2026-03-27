@@ -36,18 +36,18 @@ describe('collection', () => {
   it('starts empty', () => { expect(Progression.getCollection()).toEqual([]); });
 
   it('addCardsToCollection tracks counts', () => {
-    Progression.addCardsToCollection(['M001', 'M001', 'M002']);
-    expect(Progression.cardCount('M001')).toBe(2);
-    expect(Progression.cardCount('M002')).toBe(1);
+    Progression.addCardsToCollection(['1', '1', '2']);
+    expect(Progression.cardCount('1')).toBe(2);
+    expect(Progression.cardCount('2')).toBe(1);
   });
 
   it('ownsCard returns false for unowned card', () => {
-    expect(Progression.ownsCard('M001')).toBe(false);
+    expect(Progression.ownsCard('1')).toBe(false);
   });
 
   it('ownsCard returns true after adding', () => {
-    Progression.addCardsToCollection(['M001']);
-    expect(Progression.ownsCard('M001')).toBe(true);
+    Progression.addCardsToCollection(['1']);
+    expect(Progression.ownsCard('1')).toBe(true);
   });
 });
 
@@ -57,8 +57,8 @@ describe('deck', () => {
   });
 
   it('saveDeck persists and getDeck retrieves', () => {
-    Progression.saveDeck(['M001', 'M002', 'S001']);
-    expect(Progression.getDeck()).toEqual(['M001', 'M002', 'S001']);
+    Progression.saveDeck(['1', '2', '3']);
+    expect(Progression.getDeck()).toEqual(['1', '2', '3']);
   });
 });
 

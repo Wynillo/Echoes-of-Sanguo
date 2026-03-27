@@ -1,25 +1,33 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import type { CardData } from '../../types.js';
+import type { FusionChainResult } from '../../cards.js';
 
 export type SelMode =
-  | 'hand' | 'attack' | 'fusion1' | 'spell-target'
-  | 'grave-target' | 'trap-target' | null;
+  | 'hand' | 'attack' | 'fusion1' | 'spell-target' | 'field-spell-target'
+  | 'grave-target' | 'trap-target' | 'equip-target' | null;
 
 export interface Selection {
   mode:           SelMode;
   handIndex:      number | null;
   attackerZone:   number | null;
   fusion1:        { handIndex: number } | null;
+  fusionGroup:    number[];
+  fusionGroupPreview: FusionChainResult | null;
   spellHandIndex: number | null;
+  spellFieldZone: number | null;
   spellCard:      CardData | null;
   trapFieldZone:  number | null;
+  equipHandIndex: number | null;
+  equipCard:      CardData | null;
   callback:       ((card: CardData) => void) | null;
   hint:           string;
 }
 
 const EMPTY: Selection = {
   mode: null, handIndex: null, attackerZone: null, fusion1: null,
-  spellHandIndex: null, spellCard: null, trapFieldZone: null, callback: null, hint: '',
+  fusionGroup: [], fusionGroupPreview: null,
+  spellHandIndex: null, spellFieldZone: null, spellCard: null, trapFieldZone: null,
+  equipHandIndex: null, equipCard: null, callback: null, hint: '',
 };
 
 interface SelectionCtx {

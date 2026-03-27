@@ -3,14 +3,17 @@
 // Imperative API lives in hoverApi.ts
 // ============================================================
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { getAttrById } from '../../type-metadata.js';
 import { CardType } from '../../types.js';
 import { Card } from './Card.js';
+import { highlightCardText } from '../utils/highlightCardText.js';
 import { setHoverDispatch } from './hoverApi.js';
 import type { HoverState } from './hoverApi.js';
 
 export function HoverPreview() {
+  const { t } = useTranslation();
   const [hover, setHover] = useState<HoverState | null>(null);
   const ref    = useRef<HTMLDivElement>(null);
   const tween  = useRef<gsap.core.Tween | null>(null);
@@ -50,10 +53,16 @@ export function HoverPreview() {
   const { card, fc } = hover ?? {};
   const attrMeta = card?.attribute ? getAttrById(card.attribute) : undefined;
   const attrNameStr = attrMeta?.value ?? '';
-  const typeNameMap: Record<number, string> = { [CardType.Monster]:'Normal', [CardType.Fusion]:'Fusion', [CardType.Spell]:'Zauberkarte', [CardType.Trap]:'Fallenkarte' };
-  const typeName = card ? (card.type === CardType.Monster && card.effect ? 'Effekt' : typeNameMap[card.type] || '') : '';
-  const levelStr = card?.level ? ` · Lv ${card.level}` : '';
-  const atkBonus = fc && (fc.permATKBonus || fc.tempATKBonus);
+  const typeNameMap: Record<number, string> = { [CardType.Monster]:t('card_detail.type_normal'), [CardType.Fusion]:t('card_detail.type_fusion'), [CardType.Spell]:t('card_detail.type_spell'), [CardType.Trap]:t('card_detail.type_trap') };
+  const typeName = card ? (card.type === CardType.Monster && card.effect ? t('card_detail.type_effect') : typeNameMap[card.type] || '') : '';
+  const isMonLevel = card && (card.type === CardType.Monster || card.type === CardType.Fusion);
+  const levelStr = isMonLevel && card?.level ? ` · ${t('card_detail.level_prefix')} ${card.level}` : '';
+  const baseATK = card?.atk ?? 0;
+  const baseDEF = card?.def ?? 0;
+  const hoverEffATK = fc ? fc.effectiveATK() : baseATK;
+  const hoverEffDEF = fc ? fc.effectiveDEF() : baseDEF;
+  const atkColor = fc ? (hoverEffATK > baseATK ? '#88ff88' : hoverEffATK < baseATK ? '#ff6666' : undefined) : undefined;
+  const defColor = fc ? (hoverEffDEF > baseDEF ? '#88ff88' : hoverEffDEF < baseDEF ? '#ff6666' : undefined) : undefined;
 
   return (
     <div
@@ -69,10 +78,14 @@ export function HoverPreview() {
           <div className="hover-info">
             <div id="hover-card-name">{card.name}</div>
             <div id="hover-card-meta">{[attrNameStr, typeName].filter(Boolean).join(' · ')}{levelStr}</div>
-            <div id="hover-card-desc">{card.description || ''}</div>
+            <div id="hover-card-desc">{card.description ? highlightCardText(card.description) : ''}</div>
             <div id="hover-card-stats">
               {card.atk !== undefined
-                ? `ATK ${fc ? fc.effectiveATK() : card.atk}${atkBonus ? ' ▲' : ''}  DEF ${fc ? fc.effectiveDEF() : card.def}`
+                ? <>
+                    <span style={atkColor ? { color: atkColor } : undefined}>ATK {hoverEffATK}</span>
+                    {'  '}
+                    <span style={defColor ? { color: defColor } : undefined}>DEF {hoverEffDEF}</span>
+                  </>
                 : ''}
             </div>
           </div>

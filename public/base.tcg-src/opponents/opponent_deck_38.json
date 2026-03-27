@@ -1,0 +1,11 @@
+{
+  "id": 38,
+  "name": "Lu Bu & Chituma",
+  "title": "Reiter und Ross",
+  "race": 3,
+  "flavor": "Die wahre Form — physische Unsterblichkeit.",
+  "coinsWin": 900,
+  "coinsLoss": 0,
+  "deckIds": [42, 43, 44, 45, 46, 47, 47, 48, 48, 49, 49, 50, 50, 51, 51, 52, 52, 93, 94, 95, 96, 250, 251, 290, 302],
+  "behavior": "cheating"
+}

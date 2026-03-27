@@ -4,13 +4,13 @@
 // ============================================================
 
 import JSZip from 'jszip';
-import type { CardData, CardEffectBlock, FusionRecipe, OpponentConfig } from '../types.js';
-import { Race } from '../types.js';
-import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson, TcgLocaleOverrides, TcgShopJson, TcgCampaignJson, TcgLoadResult } from './types.js';
+import type { CardData, CardEffectBlock, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from '../types.js';
+import { Race, Attribute } from '../types.js';
+import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson, TcgLocaleOverrides, TcgShopJson, TcgCampaignJson, TcgLoadResult } from './types.js';
 import { validateTcgArchive } from './tcg-validator.js';
 import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
 import { deserializeEffect } from './effect-serializer.js';
-import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../cards.js';
+import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../cards.js';
 import { applyRules } from '../rules.js';
 import type { GameRules } from '../rules.js';
 import { applyTypeMeta } from '../type-metadata.js';
@@ -69,11 +69,14 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     }
   }
   if (meta !== undefined) {
-    const metaVersion = (meta as any)?.version ?? 0;
+    const metaVersion = (meta as any)?.version;
+    // Only reject if the archive explicitly declares an incompatible version number.
+    // A missing version field is treated as compatible (pre-versioning archives).
     if (typeof metaVersion === 'number' && metaVersion !== SUPPORTED_TCG_VERSION) {
-      console.warn(
-        `[TCG] Format version mismatch: archive has v${metaVersion}, ` +
-        `loader expects v${SUPPORTED_TCG_VERSION}. Some cards may fail to load.`
+      throw new Error(
+        `TCG format version mismatch: archive is v${metaVersion}, ` +
+        `loader expects v${SUPPORTED_TCG_VERSION}. ` +
+        `Please regenerate base.tcg with \`npm run generate:tcg\`.`
       );
     }
   }
@@ -136,6 +139,10 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
   const lang = typeof navigator !== 'undefined'
     ? navigator.language.substring(0, 2)
     : '';
+  if (definitions.size === 0) {
+    result.warnings.push('No card definitions found in TCG archive');
+    return result;
+  }
   const defs = definitions.get(lang) ?? definitions.values().next().value!;
   const defMap = new Map<number, TcgCardDefinition>();
   for (const d of defs) defMap.set(d.id, d);
@@ -220,6 +227,18 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     }
   }
 
+  // Load fusion_formulas.json if present
+  const formulasFile = zip.file('fusion_formulas.json');
+  if (formulasFile) {
+    try {
+      const formulasJson = await formulasFile.async('string');
+      const formulasData: { formulas: TcgFusionFormula[] } = JSON.parse(formulasJson);
+      applyFusionFormulas(formulasData.formulas);
+    } catch {
+      result.warnings.push('fusion_formulas.json: failed to parse, skipping');
+    }
+  }
+
   // Pick the best opponent description file (same logic as card descriptions)
   const oppDescs = opponentDescriptions.get(lang) ?? (opponentDescriptions.size > 0 ? opponentDescriptions.values().next().value! : undefined);
 
@@ -244,7 +263,11 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
 function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition): CardData {
   let effect: CardEffectBlock | undefined;
   if (tc.effect) {
-    effect = deserializeEffect(tc.effect);
+    try {
+      effect = deserializeEffect(tc.effect);
+    } catch (e) {
+      console.warn(`[TCG] Card #${tc.id} (${def?.name ?? 'unknown'}): failed to deserialize effect — effect disabled. ${e instanceof Error ? e.message : e}`);
+    }
   }
 
   const hasEffect = !!tc.effect;
@@ -255,7 +278,7 @@ function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition): CardData {
     name:        def?.name ?? `Card #${tc.id}`,
     type,
     description: def?.description ?? '',
-    level:       tc.level,
+    level:       tc.level ?? undefined,
     rarity:      intToRarity(tc.rarity),
   };
 
@@ -267,6 +290,13 @@ function tcgCardToCardData(tc: TcgCard, def?: TcgCardDefinition): CardData {
   if (tc.spellType)   card.spellType   = intToSpellType(tc.spellType);
   if (tc.trapTrigger) card.trapTrigger = intToTrapTrigger(tc.trapTrigger);
   if (tc.target)      card.target      = tc.target;
+  if (tc.atkBonus !== undefined) card.atkBonus = tc.atkBonus;
+  if (tc.defBonus !== undefined) card.defBonus = tc.defBonus;
+  if (tc.equipReqRace !== undefined || tc.equipReqAttr !== undefined) {
+    card.equipRequirement = {};
+    if (tc.equipReqRace !== undefined) card.equipRequirement.race = tc.equipReqRace as Race;
+    if (tc.equipReqAttr !== undefined) card.equipRequirement.attr = tc.equipReqAttr as Attribute;
+  }
 
   return card;
 }
@@ -329,6 +359,24 @@ function applyTcgMeta(
       OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
     }
   }
+}
+
+/**
+ * Convert raw TcgFusionFormula entries to FusionFormula and populate the store.
+ * Sorted by descending priority for deterministic lookup order.
+ */
+function applyFusionFormulas(raw: TcgFusionFormula[]): void {
+  const rid = (numId: number): string => String(numId);
+  const converted: FusionFormula[] = raw.map(f => ({
+    id:         f.id,
+    comboType:  f.comboType as FusionComboType,
+    operand1:   f.operand1,
+    operand2:   f.operand2,
+    priority:   f.priority,
+    resultPool: f.resultPool.map(rid),
+  }));
+  converted.sort((a, b) => b.priority - a.priority);
+  FUSION_FORMULAS.push(...converted);
 }
 
 /**

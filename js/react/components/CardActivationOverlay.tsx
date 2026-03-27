@@ -40,6 +40,8 @@ export function CardActivationOverlay() {
     tl.to({},  { duration: 1.6 });
     tl.to(con, { duration: 0.55, ease: 'power2.in', y: -30, scale: 1.18, opacity: 0 });
     tl.to(bg,  { duration: 0.5,  ease: 'power2.in', backgroundColor: 'rgba(0,0,0,0)' }, '<');
+
+    return () => { tl.kill(); };
   }, [act]);
 
   if (!act) return null;

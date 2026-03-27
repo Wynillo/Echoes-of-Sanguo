@@ -11,3 +11,4 @@ android/local.properties
 coverage/
 test-results/
 playwright-report/
+list.zip

@@ -1,0 +1,11 @@
+{
+  "id": 29,
+  "name": "Xiao Yan",
+  "title": "Lehrling des Feuerschreins",
+  "race": 12,
+  "flavor": "Die kleine Flamme verbrennt alles.",
+  "coinsWin": 300,
+  "coinsLoss": 0,
+  "deckIds": [228, 228, 229, 229, 230, 230, 231, 231, 232, 232, 233, 233, 234, 234, 235, 273, 274, 295],
+  "behavior": "aggressive"
+}

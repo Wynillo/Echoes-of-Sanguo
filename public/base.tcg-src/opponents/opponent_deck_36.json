@@ -1,0 +1,11 @@
+{
+  "id": 36,
+  "name": "Cao Pi",
+  "title": "Erzwungenes Bündnis",
+  "race": 1,
+  "flavor": "Ein fragiles Bündnis gegen eine größere Bedrohung.",
+  "coinsWin": 700,
+  "coinsLoss": 0,
+  "deckIds": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 246, 247, 289, 290, 301],
+  "behavior": "smart"
+}

@@ -1,1 +1,11 @@
-{"id":4,"name":"Tiefseefischer Rok","title":"Herr der Tiefsee","race":10,"flavor":"Die Tiefsee birgt ungeahnte Gefahren.","coinsWin":200,"coinsLoss":40,"deckIds":[3,3,14,14,8,8,17,17,24,35,36,39,40,41,43,44]}
+{
+  "id": 4,
+  "name": "Dorfbewohner",
+  "title": "Einfacher Bauer",
+  "race": 4,
+  "flavor": "Ein Dorfbewohner, der sich verteidigen muss.",
+  "coinsWin": 150,
+  "coinsLoss": 0,
+  "deckIds": [79, 79, 80, 80, 99, 99, 100, 170, 170, 171, 208, 266, 269, 291],
+  "behavior": "default"
+}

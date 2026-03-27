@@ -2,5 +2,6 @@
   { "id": 1, "key": "Monster", "value": "Monster",        "color": "#c8a850" },
   { "id": 2, "key": "Fusion",  "value": "Fusion Monster", "color": "#a050c0" },
   { "id": 3, "key": "Spell",   "value": "Spell",          "color": "#1dc0a0" },
-  { "id": 4, "key": "Trap",    "value": "Trap",            "color": "#bc2060" }
+  { "id": 4, "key": "Trap",      "value": "Trap",            "color": "#bc2060" },
+  { "id": 5, "key": "Equipment", "value": "Equipment",       "color": "#e08030" }
 ]

@@ -1,1 +1,11 @@
-{"id":10,"name":"Drachenfürst Varek","title":"Herr der Drachen","race":1,"flavor":"Der stärkste Duellant im Reich. Wagst du es?","coinsWin":500,"coinsLoss":100,"deckIds":[4,4,24,24,21,21,22,23,15,20,35,35,38,39,40,41,41,42,43,44],"behavior":"smart"}
+{
+  "id": 10,
+  "name": "Hua Min",
+  "title": "Meisterin der Metamorphose",
+  "race": 10,
+  "flavor": "Ihre Kreaturen verwandeln sich vor deinen Augen.",
+  "coinsWin": 200,
+  "coinsLoss": 0,
+  "deckIds": [190, 190, 191, 191, 192, 192, 193, 193, 194, 195, 195, 196, 267, 274, 277, 296],
+  "behavior": "default"
+}

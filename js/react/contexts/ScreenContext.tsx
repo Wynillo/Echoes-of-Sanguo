@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { Audio } from '../../audio.js';
 
@@ -13,7 +13,9 @@ export type Screen =
   | 'collection'
   | 'deckbuilder'
   | 'save-point'
-  | 'campaign';
+  | 'campaign'
+  | 'dialogue'
+  | 'defeated';
 
 interface ScreenCtx {
   screen: Screen;
@@ -25,6 +27,7 @@ interface ScreenCtx {
 const ScreenContext = createContext<ScreenCtx>({ screen: 'press-start', screenData: null, setScreen: () => {}, navigateTo: () => {} });
 
 const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
+  'press-start':  'music_title',
   title:          'music_title',
   starter:        'music_title',
   opponent:       'music_title',
@@ -32,25 +35,30 @@ const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
   game:           'music_battle',
   shop:           'music_shop',
   'pack-opening': 'music_shop',
-  collection:     'music_title',
-  deckbuilder:    'music_title',
-  'save-point':   'music_title',
+  collection:     'music_shop',
+  deckbuilder:    'music_shop',
+  'save-point':   'music_shop',
+  defeated:       'music_defeat',
 };
 
 export function ScreenProvider({ children }: { children: React.ReactNode }) {
   const [screen, setScreen] = useState<Screen>('press-start');
   const [screenData, setScreenData] = useState<Record<string, unknown> | null>(null);
+  // Track the active transition tween to kill it on rapid re-navigation
+  const transitionRef = useRef<gsap.core.Tween | null>(null);
 
   function navigateTo(s: Screen, data?: Record<string, unknown>) {
     const overlay = document.getElementById('screen-transition-overlay');
     if (!overlay) { setScreenData(data ?? null); setScreen(s); playScreenMusic(s); return; }
-    gsap.to(overlay, {
+    // Kill any in-flight transition to prevent stacking
+    if (transitionRef.current) { transitionRef.current.kill(); gsap.set(overlay, { opacity: 0 }); }
+    transitionRef.current = gsap.to(overlay, {
       opacity: 1, duration: 0.18, ease: 'none',
       onComplete() {
         setScreenData(data ?? null);
         setScreen(s);
         playScreenMusic(s);
-        gsap.to(overlay, { opacity: 0, duration: 0.28, delay: 0.05, ease: 'none' });
+        transitionRef.current = gsap.to(overlay, { opacity: 0, duration: 0.28, delay: 0.05, ease: 'none' });
       },
     });
   }
@@ -59,6 +67,11 @@ export function ScreenProvider({ children }: { children: React.ReactNode }) {
     const track = SCREEN_MUSIC[s];
     if (track) Audio.playMusic(track);
   }
+
+  // Start music for the initial screen once audio context is ready
+  useEffect(() => {
+    playScreenMusic(screen);
+  }, []);
 
   return <ScreenContext.Provider value={{ screen, screenData, setScreen, navigateTo }}>{children}</ScreenContext.Provider>;
 }

@@ -5,7 +5,7 @@ import { useModal }     from '../../contexts/ModalContext.js';
 import { useSelection } from '../../contexts/SelectionContext.js';
 import { FieldCardComponent }     from '../../components/FieldCardComponent.js';
 import { FieldSpellTrapComponent } from '../../components/FieldSpellTrapComponent.js';
-import { CardType }               from '../../../types.js';
+import { CardType, meetsEquipRequirement } from '../../../types.js';
 
 const FIELD_ZONES = [0, 1, 2, 3, 4] as const;
 
@@ -38,7 +38,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     const fc = player.field.monsters[zone];
     if (!fc) return false;
     if (!isMyTurn || phase !== 'battle') return false;
-    return !fc.hasAttacked && fc.position === 'atk' && !fc.summonedThisTurn;
+    return !fc.hasAttacked && (fc.position === 'atk' || fc.faceDown);
   }
 
   function isPlayerSpellTrapInteractive(zone: number) {
@@ -48,20 +48,26 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
   }
 
   function isPlayerMonsterSpellTarget(zone: number) {
-    return selMode === 'spell-target' && !!player.field.monsters[zone];
+    return (selMode === 'spell-target' || selMode === 'field-spell-target') && !!player.field.monsters[zone];
+  }
+
+  function isPlayerMonsterEquipTarget(zone: number) {
+    const fc = player.field.monsters[zone];
+    return selMode === 'equip-target' && !!fc && !fc.faceDown
+      && meetsEquipRequirement(sel.equipCard!, fc.card);
   }
 
   const onOwnFieldCardClick = useCallback((fc: any, zone: number) => {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'main') return;
-    openModal({ type: 'card-action', card: fc.card, index: zone, state: gameState });
+    openModal({ type: 'card-detail', card: fc.card, fc, index: zone, state: gameState, source: 'field' });
   }, [gameRef, isMyTurn, phase, openModal, gameState]);
 
   const onAttackerSelect = useCallback((zone: number) => {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'battle') return;
     const fc = player.field.monsters[zone];
-    if (!fc || fc.hasAttacked || fc.position !== 'atk' || fc.summonedThisTurn) return;
+    if (!fc || fc.hasAttacked || fc.position !== 'atk') return;
     resetSel();
     const oppHasMonsters = opp.field.monsters.some((m: any) => m !== null);
     setSel({ mode: 'attack', attackerZone: zone, hint: t('game.hint_selected', { name: fc.card.name }) });
@@ -70,22 +76,28 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
 
   const onSpellTargetSelect = useCallback((zone: number) => {
     const game = gameRef.current;
-    if (!game || selMode !== 'spell-target') return;
+    if (!game) return;
     const target = player.field.monsters[zone];
     if (!target) return;
-    game.activateSpell('player', sel.spellHandIndex, target);
+    if (selMode === 'spell-target') {
+      game.activateSpell('player', sel.spellHandIndex!, target);
+    } else if (selMode === 'field-spell-target') {
+      game.activateSpellFromField('player', sel.spellFieldZone!, target);
+    } else if (selMode === 'equip-target') {
+      game.equipCard('player', sel.equipHandIndex!, 'player', zone);
+    } else {
+      return;
+    }
     resetSel();
-  }, [gameRef, selMode, player.field.monsters, sel.spellHandIndex, resetSel]);
+  }, [gameRef, selMode, player.field.monsters, sel.spellHandIndex, sel.spellFieldZone, sel.equipHandIndex, resetSel]);
 
   const onFieldSpellTrapClick = useCallback((zone: number, fst: any) => {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'main' || !fst.faceDown) return;
     if (fst.card.type === CardType.Spell) {
-      if (fst.card.spellType !== 'targeted' && fst.card.spellType !== 'fromGrave') {
-        game.activateSpellFromField('player', zone);
-      }
+      openModal({ type: 'card-detail', card: fst.card, index: zone, state: gameState, source: 'field-spell' });
     }
-  }, [gameRef, isMyTurn, phase]);
+  }, [gameRef, isMyTurn, phase, openModal, gameState]);
 
   return (
     <div className="field-side player-side">
@@ -95,7 +107,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
           const selected  = selMode === 'attack' && sel.attackerZone === i;
           const canAtk    = playerMonsterCanAttack(i);
           const interact  = isPlayerMonsterInteractive(i);
-          const targetable = isPlayerMonsterSpellTarget(i);
+          const targetable = isPlayerMonsterSpellTarget(i) || isPlayerMonsterEquipTarget(i);
           return (
             <div key={i} className="zone-slot" data-zone={i}>
               {!fc && <div className="zone-label">M</div>}

@@ -1,0 +1,11 @@
+{
+  "id": 22,
+  "name": "Xuan Shui",
+  "title": "Meister des Wasserschreins",
+  "race": 9,
+  "flavor": "Das dunkle Wasser verschlingt alles.",
+  "coinsWin": 400,
+  "coinsLoss": 0,
+  "deckIds": [174, 175, 176, 177, 178, 178, 179, 179, 180, 180, 181, 181, 182, 183, 184, 185, 262, 287, 285, 299],
+  "behavior": "smart"
+}

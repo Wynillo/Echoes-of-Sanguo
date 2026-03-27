@@ -1,0 +1,11 @@
+{
+  "id": 30,
+  "name": "Chi Yan",
+  "title": "Meister des Feuerschreins",
+  "race": 12,
+  "flavor": "Die rote Flamme kennt keine Gnade.",
+  "coinsWin": 400,
+  "coinsLoss": 0,
+  "deckIds": [232, 233, 234, 235, 235, 236, 236, 237, 237, 238, 238, 239, 240, 241, 242, 243, 244, 283, 284, 300],
+  "behavior": "smart"
+}

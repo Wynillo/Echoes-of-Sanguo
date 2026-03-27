@@ -94,13 +94,15 @@ export function initDefaults(): void {
     { id: Race.Dragon,      key: 'Dragon',      value: 'Dragon',      color: '#8040c0', icon: '🐲' },
     { id: Race.Spellcaster, key: 'Spellcaster', value: 'Spellcaster', color: '#6060c0', icon: '🔮' },
     { id: Race.Warrior,     key: 'Warrior',     value: 'Warrior',     color: '#c09030', icon: '⚔️' },
-    { id: Race.Fire,        key: 'Fire',        value: 'Fire',        color: '#e05030', icon: '🔥' },
+    { id: Race.Beast,       key: 'Beast',       value: 'Beast',       color: '#e07030', icon: '🐅' },
     { id: Race.Plant,       key: 'Plant',       value: 'Plant',       color: '#40a050', icon: '🌿' },
-    { id: Race.Stone,       key: 'Stone',       value: 'Stone',       color: '#808060', icon: '🪨' },
-    { id: Race.Flyer,       key: 'Flyer',       value: 'Flyer',       color: '#4090c0', icon: '🦅' },
-    { id: Race.Elf,         key: 'Elf',         value: 'Elf',         color: '#90c060', icon: '✨' },
-    { id: Race.Demon,       key: 'Demon',       value: 'Demon',       color: '#804090', icon: '💀' },
-    { id: Race.Water,       key: 'Water',       value: 'Water',       color: '#3080b0', icon: '🌊' },
+    { id: Race.Rock,        key: 'Rock',        value: 'Rock',        color: '#808060', icon: '🪨' },
+    { id: Race.Phoenix,     key: 'Phoenix',     value: 'Phoenix',     color: '#e06020', icon: '🔥' },
+    { id: Race.Undead,      key: 'Undead',      value: 'Undead',      color: '#804090', icon: '💀' },
+    { id: Race.Aqua,        key: 'Aqua',        value: 'Aqua',        color: '#3080b0', icon: '🌊' },
+    { id: Race.Insect,      key: 'Insect',      value: 'Insect',      color: '#90a040', icon: '🦋' },
+    { id: Race.Machine,     key: 'Machine',     value: 'Machine',     color: '#708090', icon: '⚙️' },
+    { id: Race.Pyro,        key: 'Pyro',        value: 'Pyro',        color: '#c03010', icon: '♨' },
   ];
 
   TYPE_META.attributes = [
@@ -124,7 +126,8 @@ export function initDefaults(): void {
     { id: CardType.Monster, key: 'Monster', value: 'Monster',        color: '#c8a850' },
     { id: CardType.Fusion,  key: 'Fusion',  value: 'Fusion Monster', color: '#a050c0' },
     { id: CardType.Spell,   key: 'Spell',   value: 'Spell',          color: '#1dc0a0' },
-    { id: CardType.Trap,    key: 'Trap',    value: 'Trap',            color: '#bc2060' },
+    { id: CardType.Trap,      key: 'Trap',      value: 'Trap',            color: '#bc2060' },
+    { id: CardType.Equipment, key: 'Equipment', value: 'Equipment',       color: '#e08030' },
   ];
 
   rebuildIndices();

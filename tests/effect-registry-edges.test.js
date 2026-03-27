@@ -11,6 +11,7 @@ function mockEngine(overrides = {}) {
     drawCard: vi.fn(),
     addLog: vi.fn(),
     specialSummonFromGrave: vi.fn(),
+    _removeEquipmentForMonster: vi.fn(),
     getState: vi.fn(() => ({
       player: {
         lp: 4000,
@@ -176,7 +177,7 @@ describe('executeEffectBlock edge cases', () => {
   });
 });
 
-describe('tempBuffAtkRace', () => {
+describe('tempBuffField', () => {
   it('applies temp ATK buff to monsters of matching race only', () => {
     const fm1 = { card: { race: 'krieger' }, tempATKBonus: 0 };
     const fm2 = { card: { race: 'drache' }, tempATKBonus: 0 };
@@ -187,7 +188,7 @@ describe('tempBuffAtkRace', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'tempBuffAtkRace', race: 'krieger', value: 300 }] },
+      { trigger: 'onSummon', actions: [{ type: 'tempBuffField', value: 300, filter: { race: 'krieger' } }] },
       ctx(e),
     );
     expect(fm1.tempATKBonus).toBe(300);
@@ -203,14 +204,14 @@ describe('tempBuffAtkRace', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'tempBuffAtkRace', race: 'krieger', value: 200 }] },
+      { trigger: 'onSummon', actions: [{ type: 'tempBuffField', value: 200, filter: { race: 'krieger' } }] },
       ctx(e),
     );
     expect(fm.tempATKBonus).toBe(300);
   });
 });
 
-describe('tempDebuffAllOpp', () => {
+describe('tempDebuffField', () => {
   it('applies temp ATK debuff to all opponent monsters', () => {
     const fm1 = { card: {}, tempATKBonus: 0, permDEFBonus: 0 };
     const fm2 = { card: {}, tempATKBonus: 0, permDEFBonus: 0 };
@@ -221,7 +222,7 @@ describe('tempDebuffAllOpp', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'tempDebuffAllOpp', atkD: 400 }] },
+      { trigger: 'onSummon', actions: [{ type: 'tempDebuffField', atkD: 400 }] },
       ctx(e),
     );
     expect(fm1.tempATKBonus).toBe(-400);
@@ -237,7 +238,7 @@ describe('tempDebuffAllOpp', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'tempDebuffAllOpp', atkD: 200, defD: 100 }] },
+      { trigger: 'onSummon', actions: [{ type: 'tempDebuffField', atkD: 200, defD: 100 }] },
       ctx(e),
     );
     expect(fm.tempATKBonus).toBe(-200);
@@ -252,7 +253,7 @@ describe('tempDebuffAllOpp', () => {
       }),
     });
     const signal = executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'tempDebuffAllOpp', atkD: 100 }] },
+      { trigger: 'onSummon', actions: [{ type: 'tempDebuffField', atkD: 100 }] },
       ctx(e),
     );
     expect(signal).toEqual({});
@@ -319,7 +320,7 @@ describe('searchDeckToHand edge cases', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', attr: 'water' }] },
+      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', filter: { attr: 'water' } }] },
       ctx(e),
     );
     expect(hand).toHaveLength(0);
@@ -336,7 +337,7 @@ describe('searchDeckToHand edge cases', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', attr: 'water' }] },
+      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', filter: { attr: 'water' } }] },
       ctx(e),
     );
     expect(hand).toHaveLength(0);
@@ -386,7 +387,7 @@ describe('destroySummonedIf edge cases', () => {
 });
 
 describe('permAtkBonus edge cases', () => {
-  it('applies bonus without attrFilter', () => {
+  it('applies bonus without filter', () => {
     const target = { card: { attribute: 'fire' }, permATKBonus: 0 };
     const e = mockEngine();
     executeEffectBlock(
@@ -400,14 +401,14 @@ describe('permAtkBonus edge cases', () => {
     const target = { card: { attribute: 'dark' }, permATKBonus: 200 };
     const e = mockEngine();
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 300, attrFilter: 'dark' }] },
+      { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 300, filter: { attr: 'dark' } }] },
       ctx(e, 'player', { targetFC: target }),
     );
     expect(target.permATKBonus).toBe(500);
   });
 });
 
-describe('buffAtkRace edge cases', () => {
+describe('buffField edge cases', () => {
   it('skips null monster slots', () => {
     const e = mockEngine({
       getState: () => ({
@@ -416,7 +417,7 @@ describe('buffAtkRace edge cases', () => {
       }),
     });
     const signal = executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'buffAtkRace', race: 'krieger', value: 200 }] },
+      { trigger: 'onSummon', actions: [{ type: 'buffField', value: 200, filter: { race: 'krieger' } }] },
       ctx(e),
     );
     expect(signal).toEqual({});
@@ -431,14 +432,14 @@ describe('buffAtkRace edge cases', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'buffAtkRace', race: 'krieger', value: 200 }] },
+      { trigger: 'onSummon', actions: [{ type: 'buffField', value: 200, filter: { race: 'krieger' } }] },
       ctx(e),
     );
     expect(fm.permATKBonus).toBe(300);
   });
 });
 
-describe('debuffAllOpp edge cases', () => {
+describe('debuffField edge cases', () => {
   it('applies only ATK debuff when defD is 0', () => {
     const fm = { card: {}, permATKBonus: 0, permDEFBonus: 0 };
     const e = mockEngine({
@@ -448,7 +449,7 @@ describe('debuffAllOpp edge cases', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'debuffAllOpp', atkD: 500, defD: 0 }] },
+      { trigger: 'onSummon', actions: [{ type: 'debuffField', atkD: 500, defD: 0 }] },
       ctx(e),
     );
     expect(fm.permATKBonus).toBe(-500);
@@ -617,7 +618,7 @@ describe('bounceStrongestOpp — owner is opponent', () => {
 });
 
 describe('searchDeckToHand — opponent owner', () => {
-  it('logs with "Gegner" prefix when owner is opponent', () => {
+  it('logs with "Opponent" prefix when owner is opponent', () => {
     const waterCard = { name: 'Wasserkarte', attribute: 'water' };
     const deck = [waterCard];
     const hand = [];
@@ -628,11 +629,11 @@ describe('searchDeckToHand — opponent owner', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', attr: 'water' }] },
+      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', filter: { attr: 'water' } }] },
       ctx(e, 'opponent'),
     );
     expect(hand).toContain(waterCard);
-    expect(e.addLog).toHaveBeenCalledWith(expect.stringContaining('Gegner'));
+    expect(e.addLog).toHaveBeenCalledWith(expect.stringContaining('Opponent'));
   });
 
   it('takes only the first matching card', () => {
@@ -647,7 +648,7 @@ describe('searchDeckToHand — opponent owner', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', attr: 'water' }] },
+      { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', filter: { attr: 'water' } }] },
       ctx(e),
     );
     expect(hand).toHaveLength(1);
@@ -656,7 +657,7 @@ describe('searchDeckToHand — opponent owner', () => {
   });
 });
 
-describe('tempDebuffAllOpp — atkD of 0 (falsy branch)', () => {
+describe('tempDebuffField — atkD of 0 (falsy branch)', () => {
   it('does not modify tempATKBonus when atkD is 0', () => {
     const fm = { card: {}, tempATKBonus: 50, permDEFBonus: 0 };
     const e = mockEngine({
@@ -666,7 +667,7 @@ describe('tempDebuffAllOpp — atkD of 0 (falsy branch)', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'tempDebuffAllOpp', atkD: 0 }] },
+      { trigger: 'onSummon', actions: [{ type: 'tempDebuffField', atkD: 0 }] },
       ctx(e),
     );
     // atkD is 0 (falsy) so if(desc.atkD) is false, tempATKBonus unchanged
@@ -674,7 +675,7 @@ describe('tempDebuffAllOpp — atkD of 0 (falsy branch)', () => {
   });
 });
 
-describe('debuffAllOpp — owner is opponent', () => {
+describe('debuffField — owner is opponent', () => {
   it('targets player monsters when owner is opponent', () => {
     const fm = { card: {}, permATKBonus: 0, permDEFBonus: 0 };
     const e = mockEngine({
@@ -684,7 +685,7 @@ describe('debuffAllOpp — owner is opponent', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'debuffAllOpp', atkD: 100, defD: 50 }] },
+      { trigger: 'onSummon', actions: [{ type: 'debuffField', atkD: 100, defD: 50 }] },
       ctx(e, 'opponent'),
     );
     expect(fm.permATKBonus).toBe(-100);
@@ -700,7 +701,7 @@ describe('debuffAllOpp — owner is opponent', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'debuffAllOpp', atkD: 0, defD: 0 }] },
+      { trigger: 'onSummon', actions: [{ type: 'debuffField', atkD: 0, defD: 0 }] },
       ctx(e),
     );
     // Both are falsy so both if-branches are skipped
@@ -711,7 +712,7 @@ describe('debuffAllOpp — owner is opponent', () => {
 
 describe('reviveFromGrave — opponent owner', () => {
   it('calls specialSummonFromGrave with opponent owner', () => {
-    const card = { id: 'M005', name: 'OppRevive' };
+    const card = { id: '5', name: 'OppRevive' };
     const e = mockEngine();
     executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'reviveFromGrave' }] },
@@ -788,12 +789,12 @@ describe('bounceAllOppMonsters edge cases', () => {
   });
 });
 
-describe('permAtkBonus — card without attribute and attrFilter set', () => {
+describe('permAtkBonus — card without attribute and filter set', () => {
   it('skips bonus when card has no attribute property', () => {
     const target = { card: {}, permATKBonus: 0 }; // no attribute
     const e = mockEngine();
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 400, attrFilter: 'fire' }] },
+      { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 400, filter: { attr: 'fire' } }] },
       ctx(e, 'player', { targetFC: target }),
     );
     expect(target.permATKBonus).toBe(0);
@@ -917,7 +918,7 @@ describe('destroySummonedIf — atk is 0 with minAtk 0', () => {
   });
 });
 
-describe('buffAtkAttr — owner is opponent', () => {
+describe('buffField (attr filter) — owner is opponent', () => {
   it('buffs opponent field monsters when owner is opponent', () => {
     const fm = { card: { attribute: 'fire' }, permATKBonus: 0 };
     const e = mockEngine({
@@ -927,14 +928,14 @@ describe('buffAtkAttr — owner is opponent', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'buffAtkAttr', attr: 'fire', value: 250 }] },
+      { trigger: 'onSummon', actions: [{ type: 'buffField', value: 250, filter: { attr: 'fire' } }] },
       ctx(e, 'opponent'),
     );
     expect(fm.permATKBonus).toBe(250);
   });
 });
 
-describe('tempDebuffAllOpp — owner is opponent (targets player)', () => {
+describe('tempDebuffField — owner is opponent (targets player)', () => {
   it('debuffs player monsters when owner is opponent', () => {
     const fm = { card: {}, tempATKBonus: 0, tempDEFBonus: 0 };
     const e = mockEngine({
@@ -944,7 +945,7 @@ describe('tempDebuffAllOpp — owner is opponent (targets player)', () => {
       }),
     });
     executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'tempDebuffAllOpp', atkD: 300, defD: 100 }] },
+      { trigger: 'onSummon', actions: [{ type: 'tempDebuffField', atkD: 300, defD: 100 }] },
       ctx(e, 'opponent'),
     );
     expect(fm.tempATKBonus).toBe(-300);

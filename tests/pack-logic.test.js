@@ -44,10 +44,10 @@ describe('PACK_TYPES', () => {
     }
   });
 
-  it('pack prices are ordered: starter < race < aether < rarity', () => {
-    expect(PACK_TYPES.starter.price).toBeLessThan(PACK_TYPES.race.price);
-    expect(PACK_TYPES.race.price).toBeLessThan(PACK_TYPES.aether.price);
-    expect(PACK_TYPES.aether.price).toBeLessThan(PACK_TYPES.rarity.price);
+  it('pack prices are ordered: starter < aether < race < rarity', () => {
+    expect(PACK_TYPES.starter.price).toBeLessThan(PACK_TYPES.aether.price);
+    expect(PACK_TYPES.aether.price).toBeLessThan(PACK_TYPES.race.price);
+    expect(PACK_TYPES.race.price).toBeLessThan(PACK_TYPES.rarity.price);
   });
 });
 
@@ -108,7 +108,7 @@ describe('openPack race filtering', () => {
   });
 
   it('race pack works for multiple different races', () => {
-    const races = [Race.Warrior, Race.Spellcaster, Race.Fire];
+    const races = [Race.Warrior, Race.Spellcaster, Race.Beast];
     for (const race of races) {
       const cards = openPack('race', race);
       for (const card of cards) {
@@ -337,7 +337,7 @@ describe('rarity fallback behavior', () => {
   });
 
   it('all cards returned have valid card types', () => {
-    const validTypes = [CardType.Monster, CardType.Fusion, CardType.Spell, CardType.Trap];
+    const validTypes = [CardType.Monster, CardType.Fusion, CardType.Spell, CardType.Trap, CardType.Equipment];
     for (const packType of Object.keys(PACK_TYPES)) {
       const cards = openPack(packType);
       for (const card of cards) {

@@ -1,0 +1,23 @@
+// Entry point — loads card data from base.tcg then mounts the app
+import './cards.js';           // empty data stores + helpers
+import './mod-api.js';         // exposes window.EchoesOfSanguoMod (live references to stores)
+import { loadTcgFile } from './tcg-format/tcg-loader.js';
+
+try {
+  await loadTcgFile(import.meta.env.BASE_URL + 'base.tcg'); // populates CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS
+  // Note: blob URLs are intentionally kept alive for the session lifetime.
+  // Call revokeTcgImages() before reloading the TCG file if needed.
+} catch (e) {
+  console.error('[main] Failed to load base.tcg:', e);
+  document.body.innerHTML =
+    '<div style="font-family:monospace;color:#ff6060;padding:2rem;background:#0a0a1a;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem">' +
+    '<p style="font-size:1.2rem">Failed to load card data.</p>' +
+    '<p style="color:#888;font-size:0.9rem">Please refresh the page or check your connection.</p>' +
+    '</div>';
+  throw e;
+}
+
+await import('./progression.js');
+await import('./i18n.js');          // must come after progression.js (reads saved language)
+await import('./engine.js');
+await import('./react/index.js');

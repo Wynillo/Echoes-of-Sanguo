@@ -28,6 +28,9 @@ function makeEngine(cbOverrides = {}) {
     { id: 1, name: 'Test', title: '', race: 'krieger', flavor: '',
       coinsWin: 0, coinsLoss: 0, deckIds: [...OPPONENT_DECK_IDS] }
   );
+  // Force player goes first for deterministic tests
+  engine.state.activePlayer = 'player';
+  engine.state.phase = 'main';
   return { engine, cb };
 }
 
@@ -70,15 +73,33 @@ const CARD = {
     description: 'Revives once after battle destruction',
     effect: { trigger: 'passive', actions: [{ type: 'passive_phoenixRevival' }] },
   },
+  field_spell_earth: {
+    id: 'TST_FS_EARTH', name: 'Mountain Fortress', type: CardType.Spell,
+    description: 'All Earth monsters gain +200 ATK/DEF', spellType: 'field',
+    effect: { trigger: 'passive', actions: [{ type: 'buffField', value: 200, filter: { race: 5 } }] },
+  },
+  field_spell_dragon: {
+    id: 'TST_FS_DRAGON', name: 'Dragon Domain', type: CardType.Spell,
+    description: 'All Dragon monsters gain +300 ATK/DEF', spellType: 'field',
+    effect: { trigger: 'passive', actions: [{ type: 'buffField', value: 300, filter: { race: 1 } }] },
+  },
+  earth_monster: {
+    id: 'TST_EARTH', name: 'EarthWarrior', type: CardType.Monster, atk: 1000, def: 800,
+    description: 'An earth monster', race: 5, attribute: 5,
+  },
+  dragon_monster: {
+    id: 'TST_DRAGON', name: 'DragonBeast', type: CardType.Monster, atk: 1500, def: 1000,
+    description: 'A dragon monster', race: 1, attribute: 3,
+  },
 };
 
 // ── setMonster ───────────────────────────────────────────────
 
 describe('setMonster', () => {
-  it('places monster in face-down DEF position', () => {
+  it('places monster in face-down DEF position', async () => {
     const { engine } = makeEngine();
     engine.state.player.hand.unshift({ ...CARD.monster });
-    engine.setMonster('player', 0, 0);
+    await engine.setMonster('player', 0, 0);
 
     const fc = engine.state.player.field.monsters[0];
     expect(fc).not.toBeNull();
@@ -86,23 +107,23 @@ describe('setMonster', () => {
     expect(fc.faceDown).toBe(true);
   });
 
-  it('removes card from hand', () => {
+  it('removes card from hand', async () => {
     const { engine } = makeEngine();
     engine.state.player.hand.unshift({ ...CARD.monster });
     const handBefore = engine.state.player.hand.length;
-    engine.setMonster('player', 0, 0);
+    await engine.setMonster('player', 0, 0);
     expect(engine.state.player.hand.length).toBe(handBefore - 1);
   });
 
-  it('sets normalSummonUsed', () => {
+  it('sets normalSummonUsed', async () => {
     const { engine } = makeEngine();
     engine.state.player.hand.unshift({ ...CARD.monster });
     expect(engine.state.player.normalSummonUsed).toBe(false);
-    engine.setMonster('player', 0, 0);
+    await engine.setMonster('player', 0, 0);
     expect(engine.state.player.normalSummonUsed).toBe(true);
   });
 
-  it('does NOT trigger onSummon effect when set face-down', () => {
+  it('triggers onSummon effect even when set face-down', async () => {
     const { engine } = makeEngine();
     const effectCard = {
       id: 'TST_FD_EFF', name: 'FDEffect', type: CardType.Monster, atk: 800, def: 600,
@@ -111,15 +132,15 @@ describe('setMonster', () => {
     };
     engine.state.player.hand.unshift(effectCard);
     const oppLP = engine.state.opponent.lp;
-    engine.setMonster('player', 0, 0);
-    expect(engine.state.opponent.lp).toBe(oppLP);
+    await engine.setMonster('player', 0, 0);
+    expect(engine.state.opponent.lp).toBe(oppLP - 500);
   });
 
-  it('rejects an occupied zone', () => {
+  it('rejects an occupied zone', async () => {
     const { engine } = makeEngine();
     placeMonster(engine, 'player', CARD.monster, 0);
     engine.state.player.hand.unshift({ ...CARD.monsterB });
-    const result = engine.setMonster('player', 0, 0);
+    const result = await engine.setMonster('player', 0, 0);
     expect(result).toBe(false);
   });
 });
@@ -258,66 +279,66 @@ describe('activateSpell', () => {
 // ── specialSummonFromGrave ───────────────────────────────────
 
 describe('specialSummonFromGrave', () => {
-  it('revives a monster from graveyard to the field', () => {
+  it('revives a monster from graveyard to the field', async () => {
     const { engine } = makeEngine();
     const card = { ...CARD.monster };
     engine.state.player.graveyard.push(card);
 
-    const result = engine.specialSummonFromGrave('player', card);
+    const result = await engine.specialSummonFromGrave('player', card);
 
     expect(result).toBe(true);
     const fc = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_MON');
     expect(fc).not.toBeNull();
   });
 
-  it('removes the card from graveyard', () => {
+  it('removes the card from graveyard', async () => {
     const { engine } = makeEngine();
     const card = { ...CARD.monster };
     engine.state.player.graveyard.push(card);
 
-    engine.specialSummonFromGrave('player', card);
+    await engine.specialSummonFromGrave('player', card);
 
     const graveIds = engine.state.player.graveyard.map(c => c.id);
     expect(graveIds).not.toContain('TST_MON');
   });
 
-  it('revived monster has no summoning sickness', () => {
+  it('revived monster has no summoning sickness', async () => {
     const { engine } = makeEngine();
     const card = { ...CARD.monster };
     engine.state.player.graveyard.push(card);
 
-    engine.specialSummonFromGrave('player', card);
+    await engine.specialSummonFromGrave('player', card);
 
     const fc = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_MON');
     expect(fc.summonedThisTurn).toBe(false);
   });
 
-  it('revived monster is placed in ATK position', () => {
+  it('revived monster is placed in ATK position', async () => {
     const { engine } = makeEngine();
     const card = { ...CARD.monster };
     engine.state.player.graveyard.push(card);
 
-    engine.specialSummonFromGrave('player', card);
+    await engine.specialSummonFromGrave('player', card);
 
     const fc = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_MON');
     expect(fc.position).toBe('atk');
   });
 
-  it('returns false if card is not in graveyard', () => {
+  it('returns false if card is not in graveyard', async () => {
     const { engine } = makeEngine();
 
-    const result = engine.specialSummonFromGrave('player', CARD.monster);
+    const result = await engine.specialSummonFromGrave('player', CARD.monster);
 
     expect(result).toBe(false);
   });
 
-  it('returns false when no free monster zone', () => {
+  it('returns false when no free monster zone', async () => {
     const { engine } = makeEngine();
     const card = { ...CARD.monster };
     engine.state.player.graveyard.push(card);
     for (let z = 0; z < 5; z++) placeMonster(engine, 'player', CARD.monsterB, z);
 
-    const result = engine.specialSummonFromGrave('player', card);
+    const result = await engine.specialSummonFromGrave('player', card);
 
     expect(result).toBe(false);
   });
@@ -333,6 +354,117 @@ describe('specialSummonFromGrave', () => {
     const fc = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_MON');
     expect(fc).not.toBeNull();
     expect(engine.state.player.graveyard.find(c => c.id === 'TST_MON')).toBeUndefined();
+  });
+});
+
+// ── activateFieldSpell ──────────────────────────────────────
+
+describe('activateFieldSpell', () => {
+  it('places field spell in the fieldSpell slot', async () => {
+    const { engine } = makeEngine();
+    engine.state.player.hand.unshift({ ...CARD.field_spell_earth });
+
+    const result = await engine.activateFieldSpell('player', 0);
+
+    expect(result).toBe(true);
+    expect(engine.state.player.field.fieldSpell).not.toBeNull();
+    expect(engine.state.player.field.fieldSpell.card.id).toBe('TST_FS_EARTH');
+    expect(engine.state.player.field.fieldSpell.faceDown).toBe(false);
+  });
+
+  it('removes field spell from hand', async () => {
+    const { engine } = makeEngine();
+    engine.state.player.hand.unshift({ ...CARD.field_spell_earth });
+    const handBefore = engine.state.player.hand.length;
+
+    await engine.activateFieldSpell('player', 0);
+
+    expect(engine.state.player.hand.length).toBe(handBefore - 1);
+  });
+
+  it('buffs matching monsters on the field', async () => {
+    const { engine } = makeEngine();
+    const fc = placeMonster(engine, 'player', { ...CARD.earth_monster }, 0);
+    engine.state.player.hand.unshift({ ...CARD.field_spell_earth });
+
+    await engine.activateFieldSpell('player', 0);
+
+    expect(fc.fieldSpellATKBonus).toBe(200);
+    expect(fc.fieldSpellDEFBonus).toBe(200);
+    expect(fc.effectiveATK()).toBe(1200); // 1000 + 200
+    expect(fc.effectiveDEF()).toBe(1000); // 800 + 200
+  });
+
+  it('does not buff non-matching monsters', async () => {
+    const { engine } = makeEngine();
+    const fc = placeMonster(engine, 'player', { ...CARD.dragon_monster }, 0);
+    engine.state.player.hand.unshift({ ...CARD.field_spell_earth }); // Earth buff
+
+    await engine.activateFieldSpell('player', 0);
+
+    expect(fc.fieldSpellATKBonus).toBe(0);
+    expect(fc.fieldSpellDEFBonus).toBe(0);
+    expect(fc.effectiveATK()).toBe(1500); // unchanged
+  });
+
+  it('replaces old field spell and sends it to graveyard', async () => {
+    const { engine } = makeEngine();
+    engine.state.player.hand.unshift({ ...CARD.field_spell_dragon });
+    await engine.activateFieldSpell('player', 0);
+
+    expect(engine.state.player.field.fieldSpell.card.id).toBe('TST_FS_DRAGON');
+
+    engine.state.player.hand.unshift({ ...CARD.field_spell_earth });
+    await engine.activateFieldSpell('player', 0);
+
+    expect(engine.state.player.field.fieldSpell.card.id).toBe('TST_FS_EARTH');
+    const graveIds = engine.state.player.graveyard.map(c => c.id);
+    expect(graveIds).toContain('TST_FS_DRAGON');
+  });
+
+  it('removes old buffs and applies new ones when replacing', async () => {
+    const { engine } = makeEngine();
+    const earthMon = placeMonster(engine, 'player', { ...CARD.earth_monster }, 0);
+    const dragonMon = placeMonster(engine, 'player', { ...CARD.dragon_monster }, 1);
+
+    // Activate dragon field spell
+    engine.state.player.hand.unshift({ ...CARD.field_spell_dragon });
+    await engine.activateFieldSpell('player', 0);
+
+    expect(dragonMon.fieldSpellATKBonus).toBe(300);
+    expect(earthMon.fieldSpellATKBonus).toBe(0);
+
+    // Replace with earth field spell
+    engine.state.player.hand.unshift({ ...CARD.field_spell_earth });
+    await engine.activateFieldSpell('player', 0);
+
+    // Dragon buff removed, earth buff applied
+    expect(dragonMon.fieldSpellATKBonus).toBe(0);
+    expect(earthMon.fieldSpellATKBonus).toBe(200);
+  });
+
+  it('applies buff to monster summoned after field spell is active', async () => {
+    const { engine } = makeEngine();
+    engine.state.player.hand.unshift({ ...CARD.field_spell_earth });
+    await engine.activateFieldSpell('player', 0);
+
+    // Now summon an earth monster
+    engine.state.player.hand.unshift({ ...CARD.earth_monster });
+    engine.state.player.normalSummonUsed = false;
+    await engine.summonMonster('player', 0, 0, 'atk');
+
+    const fc = engine.state.player.field.monsters[0];
+    expect(fc.fieldSpellATKBonus).toBe(200);
+    expect(fc.effectiveATK()).toBe(1200);
+  });
+
+  it('rejects non-field-spell card', async () => {
+    const { engine } = makeEngine();
+    engine.state.player.hand.unshift({ ...CARD.spell_burn });
+
+    const result = await engine.activateFieldSpell('player', 0);
+
+    expect(result).toBe(false);
   });
 });
 

@@ -20,9 +20,11 @@ import PackOpeningScreen from './screens/PackOpeningScreen.js';
 import GameScreen       from './screens/GameScreen.js';
 import DeckbuilderScreen  from './screens/DeckbuilderScreen.js';
 import SavePointScreen   from './screens/SavePointScreen.js';
+import DefeatedScreen    from './screens/DefeatedScreen.js';
 
 import { HoverPreview }        from './components/HoverPreview.js';
 import { CardActivationOverlay } from './components/CardActivationOverlay.js';
+import { VFXOverlay }           from './components/VFXOverlay.js';
 import { ModalOverlay }         from './modals/ModalOverlay.js';
 
 function Router() {
@@ -45,8 +47,10 @@ function Router() {
       )}
       {screen === 'deckbuilder'  && <DeckbuilderScreen />}
       {screen === 'save-point'   && <SavePointScreen />}
+      {screen === 'defeated'     && <DefeatedScreen />}
       <HoverPreview />
       <CardActivationOverlay />
+      <VFXOverlay />
       <ModalOverlay />
       <div id="screen-transition-overlay" style={{ position: 'fixed', inset: 0, background: '#000', opacity: 0, pointerEvents: 'none', zIndex: 9999 }} />
     </>

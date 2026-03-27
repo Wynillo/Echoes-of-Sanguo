@@ -1,1 +1,11 @@
-{"id":7,"name":"Schattenhändler Vex","title":"Händler der Dunkelheit","race":9,"flavor":"Er handelt mit Seelen und Geheimnissen.","coinsWin":300,"coinsLoss":60,"deckIds":[5,5,11,11,18,18,23,23,4,35,35,38,38,39,41,43,43,44,44]}
+{
+  "id": 7,
+  "name": "Cao Pi",
+  "title": "Rivale des Helden",
+  "race": 1,
+  "flavor": "Der ehrgeizige Sohn des Wei-Clans.",
+  "coinsWin": 300,
+  "coinsLoss": 0,
+  "deckIds": [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 268, 271, 293],
+  "behavior": "smart"
+}

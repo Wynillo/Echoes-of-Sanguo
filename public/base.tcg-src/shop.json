@@ -30,45 +30,16 @@
           }
         }
       ],
-      "filter": "byRace"
-    },
-    {
-      "id": "race",
-      "name": "Race Pack",
-      "desc": "9 cards · Chosen race · Standard",
-      "price": 350,
-      "icon": "⚔",
-      "color": "#a06020",
-      "slots": [
-        {
-          "count": 5,
-          "rarity": 1
-        },
-        {
-          "count": 2,
-          "rarity": 2
-        },
-        {
-          "count": 1,
-          "rarity": 4
-        },
-        {
-          "count": 1,
-          "pool": "guaranteed_rare_plus",
-          "distribution": {
-            "4": 0.75,
-            "6": 0.2,
-            "8": 0.05
-          }
-        }
-      ],
-      "filter": "byRace"
+      "filter": "byRace",
+      "cardPool": {
+        "include": { "maxAtk": 1500 }
+      }
     },
     {
       "id": "aether",
       "name": "Jade Pack",
       "desc": "9 cards · All races · Standard",
-      "price": 500,
+      "price": 450,
       "icon": "◈",
       "color": "#2a7848",
       "slots": [
@@ -96,6 +67,41 @@
       ]
     },
     {
+      "id": "race",
+      "name": "Race Pack",
+      "desc": "9 cards · Chosen race · Max. Rare · Max. 2500 ATK",
+      "price": 500,
+      "icon": "⚔",
+      "color": "#a06020",
+      "slots": [
+        {
+          "count": 5,
+          "rarity": 1
+        },
+        {
+          "count": 2,
+          "rarity": 2
+        },
+        {
+          "count": 1,
+          "rarity": 4
+        },
+        {
+          "count": 1,
+          "pool": "guaranteed_rare_plus",
+          "distribution": {
+            "4": 0.75,
+            "6": 0.2,
+            "8": 0.05
+          }
+        }
+      ],
+      "filter": "byRace",
+      "cardPool": {
+        "include": { "maxRarity": 4, "maxAtk": 2500 }
+      }
+    },
+    {
       "id": "rarity",
       "name": "Rarity Pack",
       "desc": "9 cards · Min. Rare · Increased SR/UR chance",
@@ -116,6 +122,112 @@
             "8": 0.15
           }
         }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "id": "tier_1_recruit",
+      "name": "Recruit's Supply",
+      "desc": "9 cards · Beginner · Max. 1500 ATK",
+      "price": 250,
+      "icon": "📦",
+      "color": "#708090",
+      "cardPool": {
+        "include": { "maxAtk": 1500 }
+      },
+      "slots": [
+        { "count": 5, "rarity": 1 },
+        { "count": 2, "rarity": 2 },
+        { "count": 1, "rarity": 4 },
+        { "count": 1, "pool": "guaranteed_rare_plus", "distribution": { "4": 0.75, "6": 0.20, "8": 0.05 } }
+      ]
+    },
+    {
+      "id": "tier_2_soldier",
+      "name": "Soldier's Cache",
+      "desc": "9 cards · Intermediate · Max. 1800 ATK",
+      "price": 350,
+      "icon": "🗡",
+      "color": "#5a7a3a",
+      "unlockCondition": { "type": "nodeComplete", "nodeId": "duel_3" },
+      "cardPool": {
+        "include": { "maxAtk": 1800 }
+      },
+      "slots": [
+        { "count": 5, "rarity": 1 },
+        { "count": 2, "rarity": 2 },
+        { "count": 1, "rarity": 4 },
+        { "count": 1, "pool": "guaranteed_rare_plus", "distribution": { "4": 0.75, "6": 0.20, "8": 0.05 } }
+      ]
+    },
+    {
+      "id": "tier_3_officer",
+      "name": "Officer's Bounty",
+      "desc": "9 cards · Advanced · Max. 2100 ATK",
+      "price": 450,
+      "icon": "🏅",
+      "color": "#8a6a2a",
+      "unlockCondition": { "type": "nodeComplete", "nodeId": "duel_8" },
+      "cardPool": {
+        "include": { "maxAtk": 2100 }
+      },
+      "slots": [
+        { "count": 5, "rarity": 1 },
+        { "count": 2, "rarity": 2 },
+        { "count": 1, "rarity": 4 },
+        { "count": 1, "pool": "guaranteed_rare_plus", "distribution": { "4": 0.75, "6": 0.20, "8": 0.05 } }
+      ]
+    },
+    {
+      "id": "tier_4_commander",
+      "name": "Commander's Vault",
+      "desc": "9 cards · Expert · Max. 2500 ATK",
+      "price": 550,
+      "icon": "⚔",
+      "color": "#4a6a9a",
+      "unlockCondition": { "type": "nodeComplete", "nodeId": "gauntlet_qualifiers" },
+      "cardPool": {
+        "include": { "maxAtk": 2500 }
+      },
+      "slots": [
+        { "count": 5, "rarity": 1 },
+        { "count": 2, "rarity": 2 },
+        { "count": 1, "rarity": 4 },
+        { "count": 1, "pool": "guaranteed_rare_plus", "distribution": { "4": 0.75, "6": 0.20, "8": 0.05 } }
+      ]
+    },
+    {
+      "id": "tier_5_temple",
+      "name": "Temple Relics",
+      "desc": "9 cards · Elite · Max. 3000 ATK · No Ultra Rare",
+      "price": 650,
+      "icon": "🏛",
+      "color": "#6a4a8a",
+      "unlockCondition": { "type": "nodeComplete", "nodeId": "duel_21" },
+      "cardPool": {
+        "include": { "maxAtk": 3000, "maxRarity": 6 }
+      },
+      "slots": [
+        { "count": 5, "rarity": 1 },
+        { "count": 2, "rarity": 2 },
+        { "count": 1, "rarity": 4 },
+        { "count": 1, "pool": "guaranteed_rare_plus", "distribution": { "4": 0.75, "6": 0.20, "8": 0.05 } }
+      ]
+    },
+    {
+      "id": "tier_6_warlord",
+      "name": "Warlord's Arsenal",
+      "desc": "9 cards · Legendary · All cards available",
+      "price": 800,
+      "icon": "👑",
+      "color": "#c0a020",
+      "unlockCondition": { "type": "nodeComplete", "nodeId": "duel_31" },
+      "slots": [
+        { "count": 5, "rarity": 1 },
+        { "count": 2, "rarity": 2 },
+        { "count": 1, "rarity": 4 },
+        { "count": 1, "pool": "guaranteed_rare_plus", "distribution": { "4": 0.75, "6": 0.20, "8": 0.05 } }
       ]
     }
   ],

@@ -47,12 +47,14 @@ export const Progression = (() => {
     }
   }
 
-  function _save(key: string, value: unknown) {
+  function _save(key: string, value: unknown): boolean {
     try {
       localStorage.setItem(key, JSON.stringify(value));
+      return true;
     } catch (e) {
       // QuotaExceededError (storage full) or SecurityError (private browsing blocked)
       console.error(`[Progression] Save failed for "${key}":`, e);
+      return false;
     }
   }
 
@@ -91,20 +93,47 @@ export const Progression = (() => {
       // Set version stamp if missing (saves from before v1)
       if (!localStorage.getItem(KEYS.version)) _save(KEYS.version, 1);
 
-      // v1 → v2: card IDs changed from string format ("M001") to numeric strings ("1").
-      // Old IDs are unresolvable without the removed id_migration.json, so reset
-      // collection and deck if old-format IDs are detected.
+      // v1 → v2: reset collection and deck if old-format IDs are detected.
       const savedVersion = _load(KEYS.version, 0, v => typeof v === 'number');
       if (savedVersion < 2) {
         const col = _load(KEYS.collection, [], v => Array.isArray(v)) as Array<{ id: string }>;
         const hasOldIds = col.some(e => /^[A-Z]/.test(e.id));
         if (hasOldIds) {
           console.info('[Progression] Migrating save data to v2: clearing collection and deck (card ID format changed).');
+          // Back up old data before wiping so it can be inspected if migration fails
+          try {
+            localStorage.setItem('tcg_collection_v1_backup', JSON.stringify(col));
+            const oldDeck = localStorage.getItem(KEYS.deck);
+            if (oldDeck) localStorage.setItem('tcg_deck_v1_backup', oldDeck);
+          } catch { /* backup is best-effort */ }
           _save(KEYS.collection, []);
           localStorage.removeItem(KEYS.deck);
         }
         _save(KEYS.version, SAVE_VERSION);
       }
+    }
+  }
+
+  /** Check if a v1 backup exists and can be restored */
+  function hasV1Backup(): boolean {
+    return localStorage.getItem('tcg_collection_v1_backup') !== null;
+  }
+
+  /** Attempt to restore the backed-up v1 collection (best-effort) */
+  function restoreV1Backup(): boolean {
+    try {
+      const raw = localStorage.getItem('tcg_collection_v1_backup');
+      if (!raw) return false;
+      const col = JSON.parse(raw);
+      if (!Array.isArray(col)) return false;
+      _save(KEYS.collection, col);
+      const deckRaw = localStorage.getItem('tcg_deck_v1_backup');
+      if (deckRaw) localStorage.setItem(KEYS.deck, deckRaw);
+      console.info('[Progression] Restored v1 backup successfully.');
+      return true;
+    } catch {
+      console.warn('[Progression] Failed to restore v1 backup.');
+      return false;
     }
   }
 
@@ -189,10 +218,13 @@ export const Progression = (() => {
     return null;
   }
 
-  function saveDeck(deckIds: string[]): void {
-    _save(KEYS.deck, deckIds);
-    // Keep legacy key in sync for backward compatibility
-    localStorage.setItem('echoesOfSanguo_deck', JSON.stringify(deckIds));
+  function saveDeck(deckIds: string[]): boolean {
+    const ok = _save(KEYS.deck, deckIds);
+    if (ok) {
+      // Keep legacy key in sync for backward compatibility
+      try { localStorage.setItem('echoesOfSanguo_deck', JSON.stringify(deckIds)); } catch { /* ignore */ }
+    }
+    return ok;
   }
 
   // ── Opponents ────────────────────────────────────────────
@@ -227,10 +259,12 @@ export const Progression = (() => {
 
   // ── Settings ─────────────────────────────────────────────
 
-  interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; }
+  interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; refillHand: boolean; }
+
+  const SETTINGS_DEFAULTS: Settings = { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, refillHand: true };
 
   function getSettings(): Settings {
-    return _load(KEYS.settings, { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 });
+    return { ...SETTINGS_DEFAULTS, ..._load(KEYS.settings, SETTINGS_DEFAULTS) };
   }
 
   function saveSettings(s: Settings): void {
@@ -255,7 +289,7 @@ export const Progression = (() => {
 
   function getCampaignProgress(): CampaignProgress {
     return _load(KEYS.campaignProgress, { completedNodes: [], currentChapter: 'ch1' },
-      v => v !== null && typeof v === 'object' && Array.isArray(v.completedNodes));
+      v => v !== null && typeof v === 'object' && Array.isArray((v as Record<string, unknown>).completedNodes));
   }
 
   function saveCampaignProgress(progress: CampaignProgress): void {
@@ -263,6 +297,10 @@ export const Progression = (() => {
   }
 
   function markNodeComplete(nodeId: string): CampaignProgress {
+    if (!nodeId || typeof nodeId !== 'string') {
+      console.warn('[Progression] markNodeComplete called with invalid nodeId:', nodeId);
+      return getCampaignProgress();
+    }
     const progress = getCampaignProgress();
     if (!progress.completedNodes.includes(nodeId)) {
       progress.completedNodes.push(nodeId);
@@ -276,11 +314,28 @@ export const Progression = (() => {
     return progress.completedNodes.includes(nodeId);
   }
 
+  // ── Duel Checkpoint (anti-save-scum) ─────────────────────
+
+  const DUEL_CHECKPOINT_KEY = 'tcg_duel_checkpoint';
+
+  function saveDuelCheckpoint(data: unknown): void {
+    _save(DUEL_CHECKPOINT_KEY, data);
+  }
+
+  function loadDuelCheckpoint<T>(): T | null {
+    return _load(DUEL_CHECKPOINT_KEY, null);
+  }
+
+  function clearDuelCheckpoint(): void {
+    localStorage.removeItem(DUEL_CHECKPOINT_KEY);
+  }
+
   // ── Debug / Reset ────────────────────────────────────────
 
   /** Resets all progression data (debug only) */
   function resetAll() {
     Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem(DUEL_CHECKPOINT_KEY);
     console.warn('[Progression] All data reset.');
   }
 
@@ -349,6 +404,9 @@ export const Progression = (() => {
     saveCampaignProgress,
     markNodeComplete,
     isNodeComplete,
+    // v1 Migration Recovery
+    hasV1Backup,
+    restoreV1Backup,
     // Debug
     resetAll,
     // Soft-Reset
@@ -356,6 +414,10 @@ export const Progression = (() => {
     hasBackup,
     restoreFromBackup,
     clearBackup,
+    // Duel Checkpoint
+    saveDuelCheckpoint,
+    loadDuelCheckpoint,
+    clearDuelCheckpoint,
   };
 
 })();
