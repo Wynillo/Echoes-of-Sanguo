@@ -1,6 +1,6 @@
 # Echoes of Sanguo
 
-A browser-based trading card game inspired by **Yu-Gi-Oh! Forbidden Memories** — built with React 19, TypeScript 5.9, Vite 8, and a custom ZIP-based card format (.tcg).
+A browser-based trading card game inspired by **Yu-Gi-Oh! Forbidden Memories** — built with React 19, TypeScript 6.0, Vite 8, and a custom ZIP-based card format (.tcg).
 
 ---
 
@@ -36,15 +36,15 @@ Each race has a distinct playstyle and stat bias:
 | Demon | 💀 | High damage, high-risk effects |
 | Water | 🌊 | Bounce, control, trap synergy |
 
-### 722+ Cards
+### 312 Cards
 | Type | Count |
 |---|---|
-| Normal Monster | ~390 |
-| Effect Monster | 208 |
-| Fusion Monster | 30 |
-| Spell | 76 |
-| Trap | 44 |
-| **Total** | **~722** |
+| Monster | 245 |
+| Fusion Monster | 20 |
+| Spell | 28 |
+| Trap | 12 |
+| Equipment | 7 |
+| **Total** | **312** |
 
 **5 Rarity Levels:** Common · Uncommon · Rare · Super Rare · Ultra Rare
 
@@ -53,12 +53,13 @@ Data-driven effect system with the following triggers:
 - `onSummon` — effect on summon
 - `onDestroyByBattle` — effect when destroyed in battle
 - `onDestroyByOpponent` — effect when destroyed by the opponent
+- `onFlip` — effect when flipped face-up
 - `passive` — continuous effect (`piercing`, `cannotBeTargeted`)
 
 Effects include: direct damage, LP healing, card draw, ATK/DEF buffs and debuffs, bounce, and piercing damage.
 
 ### Fusion System
-Two monsters in hand can be fused directly. 30+ recipes produce powerful fusion monsters (Level 5–9, up to Ultra Rare).
+Two monsters in hand can be fused directly. Fusion formulas produce powerful fusion monsters (Level 5–9, up to Ultra Rare).
 
 ### Internationalization
 Fully translated into **German** and **English** via i18next.
@@ -72,48 +73,58 @@ Android support via **Capacitor 8** — the web game runs natively on Android de
 
 ### Progression Loop
 ```
-First launch → Choose starter deck (10 races available)
-  → Challenge opponents → Win duels → Earn Ether Coins
-  → Shop → Buy booster packs → Receive new cards
-  → Build collection → Unlock stronger opponents
+First launch → Choose starter deck (6 races available)
+  → Campaign mode → Progress through 7 chapters → Win duels → Earn Jade Coins
+  → Shop → Buy booster packs & packages → Receive new cards
+  → Build collection → Unlock stronger opponents & new shop tiers
 ```
 
-### 10 Opponents (unlocked sequentially)
-| # | Name | Race | Difficulty | Coins (Win / Loss) |
-|---|---|---|---|---|
-| 1 | Apprentice Finn | Warrior | Tutorial | 100 / 20 |
-| 2 | Gardener Mira | Plant | Easy | 150 / 30 |
-| 3 | Whisperer Syl | Elf | Medium | 200 / 40 |
-| 4 | Deep Sea Fisher | Water | Medium | 200 / 40 |
-| 5 | Volcano Smith | Fire | Medium-Hard | 250 / 50 |
-| 6 | Stone Guardian Grom | Stone | Hard | 300 / 60 |
-| 7 | Shadow Dealer | Demon | Hard | 300 / 60 |
-| 8 | Wind Weaver | Flying | Very Hard | 400 / 80 |
-| 9 | Archmage Theron | Magician | Very Hard | 400 / 80 |
-| 10 | Dragon Lord Varek | Dragon | Extreme | 500 / 100 |
+### Campaign
+The campaign spans **7 chapters** with **39 duels**, story nodes, and gauntlet encounters:
 
-### Booster Packs
+| Chapter | Theme | Nodes |
+|---|---|---|
+| Han Court | Tutorial / early duels | 9 (8 duels + 1 story) |
+| Tournament | Competitive arc | 5 (4 duels + 1 story) |
+| Return | Mid-game | 4 (3 duels + 1 story) |
+| Wu Xing | Elemental trials | 11 (11 duels) |
+| Betrayal | Story pivot | 2 (1 duel + 1 story) |
+| Endgame | Final challenges | 7 (6 duels + 1 story) |
+| Postgame | Bonus content | 1 (1 duel) |
+
+### Shop
+
+**Booster Packs:**
 | Pack | Price | Contents |
 |---|---|---|
-| Starter Pack | 200 ◈ | 9 cards, one race, Common/Uncommon-heavy |
-| Race Pack | 350 ◈ | 9 cards, chosen race |
-| Ether Pack | 500 ◈ | 9 cards, all races |
-| Rarity Pack | 600 ◈ | 9 cards, minimum Rare, increased SR/UR chance |
+| Starter Pack | 200 ◈ | 9 cards, one race, C/U-heavy |
+| Jade Pack | 450 ◈ | 9 cards, all races, standard |
+| Race Pack | 500 ◈ | 9 cards, chosen race, max Rare, max 2500 ATK |
+| Rarity Pack | 600 ◈ | 9 cards, min Rare, increased SR/UR chance |
 
-**Pack Slot Rules:** Slots 1–5 Common · Slots 6–7 Uncommon · Slot 8 Rare · Slot 9 Rare (75%) / Super Rare (20%) / Ultra Rare (5%)
+**Progression Packages** (unlocked via campaign):
+| Package | Price | Unlock | Max ATK |
+|---|---|---|---|
+| Recruit's Supply | 250 ◈ | — | 1500 |
+| Soldier's Cache | 350 ◈ | Duel 3 | 1800 |
+| Officer's Bounty | 450 ◈ | Duel 8 | 2100 |
+| Commander's Vault | 550 ◈ | Gauntlet Qualifiers | 2500 |
+| Temple Relics | 650 ◈ | Duel 21 | 3000 |
+| Warlord's Arsenal | 800 ◈ | Duel 31 | All |
 
 ---
 
 ## Screens / Navigation
 
 ```
-[Title Screen]
-  → First time: [Starter Deck Selection]  (once, 10 races to choose from)
-  → "Start Duel":   [Opponent Selection]  → [Game Board]  → [Duel Result]
-  → "Shop":         [Shop]  → [Pack Opening]
-  → "Collection":   [Collection Binder]  (722+ cards, silhouette for missing)
-  → "Deckbuilder":  [Deck Builder]  (own cards only, 40-card deck)
-  → "Save Point":   [Save / Load]
+[Press Start Screen]
+  → [Title Screen]
+    → First time: [Starter Deck Selection]  (once, 6 races to choose from)
+    → "Campaign":    [Campaign Map]  → [Dialogue]  → [Opponent Selection]  → [Game Board]  → [Duel Result / Defeated]
+    → "Shop":        [Shop]  → [Pack Opening]
+    → "Collection":  [Collection Binder]  (312 cards, silhouette for missing)
+    → "Deckbuilder": [Deck Builder]  (own cards only, 40-card deck)
+    → "Save Point":  [Save / Load]
 ```
 
 ---
@@ -123,7 +134,7 @@ First launch → Choose starter deck (10 races available)
 | Technology | Usage |
 |---|---|
 | **React 19.2.4** | UI framework with Context-based state management |
-| **TypeScript 5.9** | Type safety for game engine & UI |
+| **TypeScript 6.0** | Type safety for game engine & UI |
 | **Vite 8** | Build tool and dev server |
 | **Tailwind CSS 4** | Styling (pixel font theme, dark fantasy design) |
 | **GSAP 3.14** | Animations (attacks, card effects) |
@@ -145,58 +156,80 @@ ECHOES-OF-SANGUO/
 ├── vite.config.js              – Vite build configuration
 ├── tailwind.config.ts          – Tailwind theme (pixel fonts, dark fantasy)
 ├── capacitor.config.ts         – Capacitor Android configuration
+├── tsconfig.json               – TypeScript configuration
 ├── css/
 │   ├── style.css               – Main stylesheet
 │   ├── animations.css          – Card & battle animations
 │   └── progression.css         – Shop/collection screen styles
 ├── js/
-│   ├── main.js                 – Entry point (loads base.tcg, mounts React)
+│   ├── main.ts                 – Entry point (loads base.tcg-src, mounts React)
 │   ├── types.ts                – Core type definitions (enums, interfaces)
+│   ├── type-metadata.ts        – Type metadata helpers
 │   ├── cards.ts                – Card database store & lookup functions
-│   ├── cards-data.ts           – Extended card definitions
 │   ├── engine.ts               – Game engine (phases, battle, fusion, AI turns)
+│   ├── field.ts                – Field management
+│   ├── rules.ts                – Game rules
 │   ├── effect-registry.ts      – Data-driven effect executor (EFFECT_REGISTRY)
 │   ├── ai-behaviors.ts         – AI behavior profiles (AI_BEHAVIOR_REGISTRY)
+│   ├── ai-orchestrator.ts      – AI decision-making orchestrator
+│   ├── campaign.ts             – Campaign logic
+│   ├── campaign-types.ts       – Campaign type definitions
+│   ├── campaign-store.ts       – Campaign state management
 │   ├── progression.ts          – localStorage manager (coins, collection, deck)
+│   ├── shop-data.ts            – Shop configuration
 │   ├── audio.ts                – SFX/music manager (Web Audio API)
 │   ├── i18n.ts                 – i18next setup
 │   ├── mod-api.ts              – Modding API (window.EchoesOfSanguoMod)
+│   ├── debug-logger.ts         – Debug utility
 │   ├── tcg-format/             – Custom card format (.tcg = ZIP archive with JSON)
+│   │   ├── index.ts            – Export barrel
+│   │   ├── types.ts            – TCG format types
+│   │   ├── enums.ts            – TCG format enums
 │   │   ├── tcg-builder.ts      – Packs base.tcg-src/ → base.tcg (ZIP)
 │   │   ├── tcg-loader.ts       – Loads .tcg ZIP → CARD_DB, FUSION_RECIPES, etc.
 │   │   ├── tcg-validator.ts    – Validation logic for TCG archives
+│   │   ├── card-validator.ts   – Card-level validation
+│   │   ├── def-validator.ts    – Definition validator
+│   │   ├── opp-desc-validator.ts – Opponent description validator
 │   │   ├── effect-serializer.ts – Effect string codec
 │   │   └── generate-base-tcg.ts – CLI: validate & pack base.tcg-src/
 │   └── react/
 │       ├── App.tsx             – Root component (provider tree + screen router)
-│       ├── contexts/           – React contexts (Game, Screen, Progression, Modal, Selection)
-│       ├── screens/            – Screen components (Title, Starter, Opponent, Game, Shop, PackOpening, Collection, Deckbuilder, SavePoint)
-│       ├── components/         – Reusable UI components (Card, HandCard, FieldCard, HoverPreview)
-│       ├── modals/             – Modal dialogs (CardAction, CardDetail, CardList, GraveSelect, TrapPrompt, Options, Result)
-│       ├── hooks/              – Custom hooks (useAnimatedNumber, useAttackAnimation, useAudio, useKeyboardShortcuts)
-│       └── utils/
-│           └── pack-logic.ts   – Booster pack generation
+│       ├── index.tsx           – React entry point
+│       ├── contexts/           – React contexts (Game, Screen, Progression, Modal, Selection, Campaign)
+│       ├── screens/            – Screen components (PressStart, Title, Starter, Campaign, Dialogue,
+│       │                         Opponent, Game, Defeated, Shop, PackOpening, Collection, Deckbuilder, SavePoint)
+│       │   └── game/           – GameScreen sub-components (HandArea, LPPanel, OpponentField, PlayerField, PhaseControls)
+│       ├── components/         – Reusable UI (Card, HandCard, FieldCard, FieldSpellTrap, HoverPreview,
+│       │                         CardActivationOverlay, VFXOverlay, ErrorBoundary)
+│       ├── modals/             – Modals (BattleLog, CardDetail, CardList, CoinToss, GauntletTransition,
+│       │                         GraveSelect, Options, Result, TrapPrompt)
+│       ├── hooks/              – Custom hooks (useAnimatedNumber, useAttackAnimation, useAudio,
+│       │                         useFusionAnimation, useKeyboardShortcuts, useLongPress)
+│       └── utils/              – pack-logic.ts, highlightCardText.tsx
 ├── public/
 │   ├── base.tcg                – Compiled card archive (ZIP format)
 │   ├── base.tcg-src/           – Source data for base.tcg (served directly by Vite)
-│   │   ├── cards.json          – Card stats (numeric IDs)
-│   │   ├── meta.json           – Fusion recipes & starter decks
+│   │   ├── cards.json          – 312 cards (numeric IDs)
+│   │   ├── meta.json           – Starter decks
+│   │   ├── fusion_formulas.json – Fusion recipe formulas
 │   │   ├── races.json          – Race metadata { id, key, value, color, icon }
 │   │   ├── attributes.json     – Attribute metadata { id, key, value, color, symbol }
-│   │   ├── card_types.json     – Card type metadata { id, key, value, color }
+│   │   ├── card_types.json     – Card type metadata (Monster, Fusion, Spell, Trap, Equipment)
 │   │   ├── rarities.json       – Rarity metadata { id, key, value, color }
 │   │   ├── manifest.json       – Format version
-│   │   ├── shop.json           – Booster pack definitions
-│   │   ├── campaign.json       – Campaign map data
+│   │   ├── shop.json           – Booster pack & package definitions
+│   │   ├── campaign.json       – Campaign map (7 chapters, 39 duels)
 │   │   ├── id_migration.json   – String-ID → Numeric-ID mapping
-│   │   ├── opponents/          – Per-opponent deck JSON files
-│   │   └── locales/            – Translation overrides (de_cards_description.json, etc.)
-│   └── audio/                  – Sound effects
+│   │   ├── opponents/          – 39 per-opponent deck JSON files
+│   │   └── locales/            – cards_description.json, opponents_description.json
+│   └── audio/                  – Music (5 tracks) and SFX (12 effects)
 ├── locales/
 │   ├── de.json                 – German translations
 │   └── en.json                 – English translations
-├── tests/                      – Unit/integration tests (Vitest)
+├── tests/                      – Unit/integration tests (Vitest, 18 test files)
 ├── tests-e2e/                  – End-to-end tests (Playwright)
+├── docs/                       – Documentation (tcg-format.md)
 └── android/                    – Capacitor Android project
 ```
 
@@ -209,6 +242,9 @@ ECHOES-OF-SANGUO/
 - **tcg-builder.ts** — packs `public/base.tcg-src/` → `public/base.tcg` (ZIP)
 - **tcg-loader.ts** — unpacks the ZIP and populates CARD_DB, FUSION_RECIPES, etc.
 - **tcg-validator.ts** — checks completeness and consistency of the archive
+- **card-validator.ts** — validates individual card definitions
+- **def-validator.ts** — validates metadata definitions
+- **opp-desc-validator.ts** — validates opponent descriptions
 - **effect-serializer.ts** — parses and serializes effect strings
 
 Generate via `npm run generate:tcg` — validates `public/base.tcg-src/` and repacks it.
