@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModal }     from '../contexts/ModalContext.js';
 import { useGame }      from '../contexts/GameContext.js';
@@ -19,6 +19,17 @@ export function OptionsModal() {
   const [volSfx,      setVolSfx]      = useState(saved.volSfx);
   const [refillHand,  setRefillHand]  = useState(saved.refillHand);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // Re-sync from persisted settings on mount to guard against stale
+  // initial values (e.g. React StrictMode state preservation).
+  useLayoutEffect(() => {
+    const s = Progression.getSettings();
+    setLang(s.lang);
+    setVolMaster(s.volMaster);
+    setVolMusic(s.volMusic);
+    setVolSfx(s.volSfx);
+    setRefillHand(s.refillHand);
+  }, []);
 
   function apply() {
     i18n.changeLanguage(lang);
