@@ -17,6 +17,13 @@ const RACE_TO_NUM: Record<string, number> = {
   krieger: Race.Warrior,
 };
 
+/** Map starter keys (used for i18n style/flavor lookups) to PascalCase race keys */
+const RACE_KEY_MAP: Record<string, string> = {
+  drache:  'Dragon',
+  magier:  'Spellcaster',
+  krieger: 'Warrior',
+};
+
 export default function StarterScreen() {
   const { navigateTo }             = useScreen();
   const { refresh, setCurrentDeck } = useProgression();
@@ -35,7 +42,7 @@ export default function StarterScreen() {
     navigateTo('save-point');
   }
 
-  const selectedMeta = selected ? getRaceByKey(selected) : null;
+  const selectedMeta = selected ? getRaceByKey(RACE_KEY_MAP[selected]) : null;
 
   return (
     <div className={styles.screen}>
@@ -47,7 +54,7 @@ export default function StarterScreen() {
 
       <div className={styles.raceGrid}>
         {STARTER_RACES.map(race => {
-          const meta = getRaceByKey(race);
+          const meta = getRaceByKey(RACE_KEY_MAP[race]);
           return (
             <div
               key={race}
@@ -56,7 +63,7 @@ export default function StarterScreen() {
               onClick={() => setSelected(race)}
             >
               <div className={styles.raceIcon}>{meta?.icon ?? '?'}</div>
-              <div className={styles.raceName}>{t(`cards.race_${race}`)}</div>
+              <div className={styles.raceName}>{t(`cards.race_${RACE_KEY_MAP[race]}`)}</div>
               <div className={styles.raceStyle}>{t(`starter.${race}_style`)}</div>
             </div>
           );
@@ -65,7 +72,7 @@ export default function StarterScreen() {
 
       <div className={styles.preview}>
         <p id="starter-preview-name">
-          {selectedMeta ? `${selectedMeta.icon} ${t(`cards.race_${selected!}`)}${t('starter.deck_suffix')}` : ''}
+          {selectedMeta ? `${selectedMeta.icon} ${t(`cards.race_${RACE_KEY_MAP[selected!]}`)}${t('starter.deck_suffix')}` : ''}
         </p>
         <p id="starter-preview-desc">{selected ? t(`starter.${selected}_flavor`) : ''}</p>
         {selected && (
