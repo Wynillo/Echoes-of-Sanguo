@@ -24,6 +24,7 @@ import DefeatedScreen    from './screens/DefeatedScreen.js';
 
 import { HoverPreview }        from './components/HoverPreview.js';
 import { CardActivationOverlay } from './components/CardActivationOverlay.js';
+import { AnimSkipOverlay }      from './components/AnimSkipOverlay.js';
 import { VFXOverlay }           from './components/VFXOverlay.js';
 import { ModalOverlay }         from './modals/ModalOverlay.js';
 
@@ -50,6 +51,7 @@ function Router() {
       {screen === 'defeated'     && <DefeatedScreen />}
       <HoverPreview />
       <CardActivationOverlay />
+      <AnimSkipOverlay />
       <VFXOverlay />
       <ModalOverlay />
       <div id="screen-transition-overlay" style={{ position: 'fixed', inset: 0, background: '#000', opacity: 0, pointerEvents: 'none', zIndex: 9999 }} />
