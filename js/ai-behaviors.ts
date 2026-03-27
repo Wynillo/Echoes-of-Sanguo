@@ -211,7 +211,7 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
 
     // Can this monster beat any player monster? Big bonus
     for (const pfc of playerMonsters) {
-      const pVal = pfc.position === 'atk' ? pfc.effectiveATK() : pfc.effectiveDEF();
+      const pVal = pfc.combatValue();
       if (atk > pVal) score += 300; // can destroy a target
     }
 
@@ -269,7 +269,7 @@ export function findLethal(
     if (!fc) continue;
     defenders.push({
       zone: z,
-      val: fc.position === 'atk' ? fc.effectiveATK() : fc.effectiveDEF(),
+      val: fc.combatValue(),
       inAtk: fc.position === 'atk',
       cantBeAttacked: fc.cantBeAttacked,
     });
@@ -422,7 +422,7 @@ export function planAttacks(
   for (const a of attackers) {
     if (usedAttackers.has(a.zone)) continue;
     for (const d of defenders) {
-      const dVal = d.fc.position === 'atk' ? d.fc.effectiveATK() : d.fc.effectiveDEF();
+      const dVal = d.fc.combatValue();
       const aAtk = a.fc.effectiveATK();
       let score = 0;
 
@@ -485,7 +485,7 @@ export function planAttacks(
       let weakest: { zone: number; val: number } | null = null;
       for (const d of defenders) {
         if (usedDefenders.has(d.zone)) continue;
-        const dVal = d.fc.position === 'atk' ? d.fc.effectiveATK() : d.fc.effectiveDEF();
+        const dVal = d.fc.combatValue();
         if (!weakest || dVal < weakest.val) weakest = { zone: d.zone, val: dVal };
       }
       if (weakest) {
@@ -514,7 +514,7 @@ export function pickEquipTarget(
 ): number {
   const oppMaxVal = oppMonsters
     .filter((fc): fc is FieldCard => fc !== null)
-    .reduce((max, fc) => Math.max(max, fc.position === 'atk' ? fc.effectiveATK() : fc.effectiveDEF()), 0);
+    .reduce((max, fc) => Math.max(max, fc.combatValue()), 0);
 
   let bestZone = -1;
   let bestScore = -Infinity;

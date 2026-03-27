@@ -6,6 +6,8 @@ import { useSelection } from '../../contexts/SelectionContext.js';
 import { HandCard }     from '../../components/HandCard.js';
 import { checkFusion, resolveFusionChain, CARD_DB } from '../../../cards.js';
 import { isMonsterType } from '../../../types.js';
+import type { CardData } from '../../../types.js';
+import type { FieldCard } from '../../../field.js';
 
 export function HandArea() {
   const { gameState, gameRef, pendingDraw } = useGame();
@@ -36,7 +38,7 @@ export function HandArea() {
     }
   }, [player.hand.length, fusionGroup, setSel, player.hand]);
 
-  const onHandCardClick = useCallback((card: any, index: number) => {
+  const onHandCardClick = useCallback((card: CardData, index: number) => {
     const game = gameRef.current;
     if (!game) return;
 
@@ -47,7 +49,7 @@ export function HandArea() {
       if (!firstCard) { resetSel(); return; }
       const recipe = checkFusion(card.id, firstCard.id);
       if (recipe) {
-        const zone = player.field.monsters.findIndex((z: any) => z === null);
+        const zone = player.field.monsters.findIndex((z): z is null => z === null);
         if (zone !== -1) game.performFusion('player', sel.fusion1!.handIndex, index);
       }
       resetSel();
@@ -66,11 +68,11 @@ export function HandArea() {
     openModal({ type: 'card-detail', card, index, state: gameState });
   }, [gameRef, selMode, sel.fusion1, fusionGroup, player.hand, player.field.monsters, resetSel, setSel, openModal, gameState]);
 
-  const onHandCardLongPress = useCallback((card: any, index: number) => {
+  const onHandCardLongPress = useCallback((card: CardData, index: number) => {
     if (!isMyTurn || phase !== 'main') return;
     if (!isMonsterType(card.type)) return;
     if (player.normalSummonUsed) return;
-    const freeZone = player.field.monsters.findIndex((z: any) => z === null);
+    const freeZone = player.field.monsters.findIndex((z): z is null => z === null);
     if (freeZone === -1) return;
     // Toggle: remove if already in group
     if (fusionGroup.includes(index)) {
@@ -121,7 +123,7 @@ export function HandArea() {
         </div>
       )}
       <div id="player-hand">
-        {player.hand.map((card: any, i: number) => {
+        {player.hand.map((card, i) => {
           const isNewlyDrawn = i >= newDrawBase;
           const playable     = isMyTurn && phase === 'main';
           const inFusion     = fusionGroup.includes(i);

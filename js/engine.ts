@@ -844,7 +844,7 @@ export class GameEngine {
       await this._triggerFlipEffect(defFC, defOwner, defZone);
     }
 
-    const defVal = defFC.position === 'atk' ? defFC.effectiveATK() : defFC.effectiveDEF();
+    const defVal = defFC.combatValue();
     const modeStr= defFC.position === 'atk' ? 'ATK' : 'DEF';
 
     // passive: vsAttrBonus (e.g. Heiliger Krieger +500 ATK vs DARK)

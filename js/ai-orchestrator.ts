@@ -8,6 +8,7 @@
 //
 
 import { EchoesOfSanguo } from './debug-logger.js';
+import { GAME_RULES } from './rules.js';
 import { CardType, Attribute, isMonsterType } from './types.js';
 import type { AIBehavior, CardData } from './types.js';
 import type { FieldCard } from './field.js';
@@ -207,14 +208,16 @@ async function _activateSpells(engine: GameEngine): Promise<void> {
 
       if(card.spellType === 'normal'){
         const actions = card.effect?.actions ?? [];
-        const dealsDamage = actions.some((a: any) => a.type === 'dealDamage');
-        const heals = actions.some((a: any) => a.type === 'gainLP');
-        const buffs = actions.some((a: any) =>
-          a.type === 'buffAtkAll' || a.type === 'buffAtkRace' ||
-          a.type === 'buffAtk' || a.type === 'buffField');
-        const destroys = actions.some((a: any) =>
-          a.type === 'destroyMonster' || a.type === 'destroyAll' ||
-          a.type === 'destroySpellTrap');
+        const dealsDamage = actions.some(a => a.type === 'dealDamage');
+        const heals = actions.some(a => a.type === 'gainLP');
+        const buffs = actions.some(a => {
+          const t = a.type as string;
+          return t === 'buffAtkAll' || t === 'buffAtkRace' || t === 'buffAtk' || t === 'buffField';
+        });
+        const destroys = actions.some(a => {
+          const t = a.type as string;
+          return t === 'destroyMonster' || t === 'destroyAll' || t === 'destroySpellTrap';
+        });
 
         let should = false;
         if (dealsDamage) {
@@ -310,9 +313,7 @@ async function aiEquipCards(engine: GameEngine): Promise<void> {
 
       if (isPositive) {
         // Smart: equip to the monster that benefits most (respects equipRequirement)
-        const targetZone = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
-          ? pickEquipTarget(ai.field.monsters, plr.field.monsters, atkB, defB, card)
-          : pickEquipTarget(ai.field.monsters, plr.field.monsters, atkB, defB, card);
+        const targetZone = pickEquipTarget(ai.field.monsters, plr.field.monsters, atkB, defB, card);
 
         if (targetZone !== -1) {
           const fc = ai.field.monsters[targetZone]!;
@@ -323,9 +324,7 @@ async function aiEquipCards(engine: GameEngine): Promise<void> {
         }
       } else if (isNegative) {
         // Smart: debuff the biggest threat (respects equipRequirement)
-        const targetZone = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
-          ? pickDebuffTarget(plr.field.monsters, atkB, card)
-          : pickDebuffTarget(plr.field.monsters, atkB, card);
+        const targetZone = pickDebuffTarget(plr.field.monsters, atkB, card);
 
         if (targetZone !== -1) {
           const fc = plr.field.monsters[targetZone]!;
@@ -388,7 +387,7 @@ async function aiBattlePhase(engine: GameEngine): Promise<boolean> {
       // Targeted attack
       const def = plr.field.monsters[plan.targetZone];
       if (def) {
-        const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
+        const defVal = def.combatValue();
         EchoesOfSanguo.log('BATTLE', `${atk.card.name}(${atk.effectiveATK()}) → ${def.card.name}(${def.position==='atk'?'ATK':'DEF'}:${defVal})`);
         await engine.attack('opponent', plan.attackerZone, plan.targetZone);
         if (engine.checkWin()) return true;
@@ -429,10 +428,10 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
   if (strategy === 'aggressive') {
     // Attack anything — prefer highest-value target we can destroy, then any target at all
     let bestTarget = -1, bestScore = -Infinity;
-    for (let dz = 0; dz < 5; dz++) {
+    for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
       const def = plrMonsters[dz];
       if (!def || def.cantBeAttacked) continue;
-      const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
+      const defVal = def.combatValue();
       if (atk.effectiveATK() > defVal) {
         // Prefer destroying effect monsters and high-ATK threats
         let score = defVal;
@@ -443,10 +442,10 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     if (bestTarget !== -1) return bestTarget;
     // Aggressive: attack even unfavorably — pick weakest target to minimize damage
     let weakest = -1, weakVal = Infinity;
-    for (let dz = 0; dz < 5; dz++) {
+    for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
       const def = plrMonsters[dz];
       if (!def || def.cantBeAttacked) continue;
-      const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
+      const defVal = def.combatValue();
       if (defVal < weakVal) { weakVal = defVal; weakest = dz; }
     }
     return weakest;
@@ -454,10 +453,10 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
 
   // 'smart' and 'conservative': destroy strongest possible, considering threat level
   let bestTarget = -1, bestScore = -Infinity;
-  for (let dz = 0; dz < 5; dz++) {
+  for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
     const def = plrMonsters[dz];
     if (!def || def.cantBeAttacked) continue;
-    const defVal = def.position === 'atk' ? def.effectiveATK() : def.effectiveDEF();
+    const defVal = def.combatValue();
     if (atk.effectiveATK() > defVal) {
       let score = defVal;
       // Prioritize effect monsters — they're dangerous
@@ -475,7 +474,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
 
   // 'smart': also attack DEF-position targets safely, prefer face-down (reveal them)
   let safeTarget = -1, safeScore = -Infinity;
-  for (let dz = 0; dz < 5; dz++) {
+  for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
     const def = plrMonsters[dz];
     if (!def || def.cantBeAttacked || def.position !== 'def') continue;
     const defVal = def.effectiveDEF();

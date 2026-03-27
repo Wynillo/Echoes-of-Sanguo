@@ -29,8 +29,8 @@ export default function CollectionScreen() {
   const ownedCount = Object.keys(countMap).length;
 
   let allCards = Object.values(CARD_DB) as CardData[];
-  if (raceFilter   !== 'all') allCards = allCards.filter(c => (c as any).race   === raceFilter);
-  if (rarityFilter !== 'all') allCards = allCards.filter(c => (c as any).rarity === rarityFilter);
+  if (raceFilter   !== 'all') allCards = allCards.filter(c => c.race   === raceFilter);
+  if (rarityFilter !== 'all') allCards = allCards.filter(c => c.rarity === rarityFilter);
 
   // Reset visible count when filters change
   const visibleCards = allCards.slice(0, visibleCount);

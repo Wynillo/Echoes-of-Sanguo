@@ -5,6 +5,8 @@ import { useSelection } from '../../contexts/SelectionContext.js';
 import { FieldCardComponent }     from '../../components/FieldCardComponent.js';
 import { FieldSpellTrapComponent } from '../../components/FieldSpellTrapComponent.js';
 import { meetsEquipRequirement }  from '../../../types.js';
+import type { FieldCard } from '../../../field.js';
+import type { FieldSpellTrap } from '../../../field.js';
 
 const FIELD_ZONES = [0, 1, 2, 3, 4] as const;
 
@@ -41,7 +43,7 @@ export function OpponentField() {
     resetSel();
   }, [gameRef, selMode, sel.attackerZone, resetSel]);
 
-  const onTrapTargetSelect = useCallback((fc: any) => {
+  const onTrapTargetSelect = useCallback((fc: FieldCard) => {
     const game = gameRef.current;
     if (!game || selMode !== 'trap-target') return;
     if (sel.spellHandIndex !== null) {
@@ -57,12 +59,12 @@ export function OpponentField() {
     resetSel();
   }, [gameRef, selMode, sel.equipHandIndex, resetSel]);
 
-  const onOppMonsterView = useCallback((fc: any) => {
+  const onOppMonsterView = useCallback((fc: FieldCard) => {
     openModal({ type: 'card-detail', card: fc.card, fc });
   }, [openModal]);
 
   /** Face-up opponent spell/traps are viewable */
-  const onOppSpellTrapView = useCallback((fst: any) => {
+  const onOppSpellTrapView = useCallback((fst: FieldSpellTrap) => {
     openModal({ type: 'card-detail', card: fst.card });
   }, [openModal]);
 

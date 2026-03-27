@@ -76,6 +76,10 @@ export class FieldCard {
   effectiveDEF(): number {
     return Math.max(0, (this.card.def ?? 0) + this.tempDEFBonus + this.permDEFBonus + this.fieldSpellDEFBonus);
   }
+  /** Returns the effective combat value based on current position. */
+  combatValue(): number {
+    return this.position === 'atk' ? this.effectiveATK() : this.effectiveDEF();
+  }
 }
 
 // ── FieldSpellTrap ─────────────────────────────────────────

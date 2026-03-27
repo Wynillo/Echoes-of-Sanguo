@@ -507,6 +507,7 @@ function mockFieldCard(overrides = {}) {
     piercing: false,
     effectiveATK() { return this.card.atk + (this._atkBonus ?? 0); },
     effectiveDEF() { return this.card.def + (this._defBonus ?? 0); },
+    combatValue() { return this.position === 'atk' ? this.effectiveATK() : this.effectiveDEF(); },
     _atkBonus: 0,
     _defBonus: 0,
     ...overrides,
