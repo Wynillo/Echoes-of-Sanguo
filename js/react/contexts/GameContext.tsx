@@ -195,12 +195,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               refreshRef.current();
               refreshCampaignRef.current();
               if (pending.postDialogue && pending.postDialogue.length > 0) {
-                navigateToRef.current('dialogue', {
-                  scene: pending.postDialogue as unknown as Record<string, unknown>,
-                  nextScreen: 'campaign',
+                navigateToRef.current('victory', {
+                  nextScreen: 'dialogue',
+                  dialogueData: {
+                    scene: pending.postDialogue as unknown as Record<string, unknown>,
+                    nextScreen: 'campaign',
+                  },
                 });
               } else {
-                navigateToRef.current('campaign');
+                navigateToRef.current('victory', { nextScreen: 'campaign' });
               }
             } else {
               // Defeat in gauntlet — entire gauntlet fails
@@ -237,7 +240,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           }
           refreshRef.current();
           refreshCampaignRef.current();
-          if (isComplete && pending.postDialogue && pending.postDialogue.length > 0) {
+          if (result === 'victory' && pending.postDialogue && pending.postDialogue.length > 0) {
+            navigateToRef.current('victory', {
+              nextScreen: 'dialogue',
+              dialogueData: {
+                scene: pending.postDialogue as unknown as Record<string, unknown>,
+                nextScreen: 'campaign',
+              },
+            });
+          } else if (result === 'victory') {
+            navigateToRef.current('victory', { nextScreen: 'campaign' });
+          } else if (isComplete && pending.postDialogue && pending.postDialogue.length > 0) {
+            // completeOnLoss with post-dialogue — show dialogue, skip victory screen
             navigateToRef.current('dialogue', {
               scene: pending.postDialogue as unknown as Record<string, unknown>,
               nextScreen: 'campaign',

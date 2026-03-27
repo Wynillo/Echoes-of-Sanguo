@@ -350,5 +350,10 @@
     "title": "NIEDERLAGE",
     "message": "Deine Truppen sind gefallen. Doch jeder Krieger kann wieder aufstehen...",
     "continue": "BELIEBIGE TASTE DRÜCKEN"
+  },
+  "victory": {
+    "title": "SIEG",
+    "message": "Deine Truppen haben triumphiert! Ruhm hallt durch das ganze Land...",
+    "continue": "BELIEBIGE TASTE DRÜCKEN"
   }
 }
