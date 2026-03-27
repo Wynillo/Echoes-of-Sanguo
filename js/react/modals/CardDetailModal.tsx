@@ -65,9 +65,8 @@ export function CardDetailModal({ modal }: Props) {
       if (state.player.normalSummonUsed) {
         actions.push(actionBtn(t('card_action.already_played'), null, true));
       } else if (freeZone !== -1) {
-        // FM-style "Play" — starts a fusion chain selection (single card = summon, 2+ = fusion)
         actions.push(actionBtn(t('card_action.play'), () => {
-          setSel({ mode: 'play-chain', playChain: [index], playChainPreview: null, hint: t('card_action.hint_play_chain') });
+          game.performFusionChain('player', [index]);
           closeModal();
         }));
         actions.push(actionBtn(t('card_action.set_def'), () => { game.setMonster('player', index, freeZone); closeModal(); }));

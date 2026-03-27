@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
 import { attachHover } from './hoverApi.js';
+import { useLongPress } from '../hooks/useLongPress.js';
 
 interface Props {
   card: any;
@@ -10,23 +11,35 @@ interface Props {
   targetable: boolean;
   chainSelected?: boolean;
   chainIndex?: number;
+  fusionSelected?: boolean;
+  fusionIndex?: number;
   newlyDrawn: boolean;
   drawDelay: number;
   onClick: () => void;
+  onLongPress?: () => void;
 }
 
-export function HandCard({ card, index, playable, fusionable, targetable, chainSelected, chainIndex, newlyDrawn, drawDelay, onClick }: Props) {
+export function HandCard({ card, index, playable, fusionable, targetable, chainSelected, chainIndex, fusionSelected, fusionIndex, newlyDrawn, drawDelay, onClick, onLongPress }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+
+  const isSelected = chainSelected || fusionSelected;
+  const badgeNumber = chainIndex ?? fusionIndex;
+
+  const canClick = playable || targetable || fusionSelected;
+  const longPressHandlers = useLongPress({
+    onLongPress: onLongPress ?? (() => {}),
+    onClick: canClick ? onClick : undefined,
+  });
 
   const cls = [
     'card hand-card',
     `${cardTypeCss(card)}-card`,
     `attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`,
-    playable      ? 'playable'       : '',
-    fusionable    ? 'fusionable'     : '',
-    targetable    ? 'targetable'     : '',
-    chainSelected ? 'chain-selected' : '',
-    newlyDrawn    ? 'newly-drawn'    : '',
+    playable       ? 'playable'       : '',
+    fusionable     ? 'fusionable'     : '',
+    targetable     ? 'targetable'     : '',
+    isSelected     ? 'chain-selected' : '',
+    newlyDrawn     ? 'newly-drawn'    : '',
   ].filter(Boolean).join(' ');
 
   return (
@@ -38,11 +51,11 @@ export function HandCard({ card, index, playable, fusionable, targetable, chainS
       className={cls}
       data-hand-index={index}
       style={newlyDrawn ? { animationDelay: `${drawDelay}ms` } : undefined}
-      onClick={playable || targetable ? onClick : undefined}
+      {...longPressHandlers}
     >
       <Card card={card} small />
-      {chainIndex !== undefined && (
-        <span className="chain-badge">{chainIndex + 1}</span>
+      {badgeNumber !== undefined && (
+        <span className="chain-badge">{badgeNumber + 1}</span>
       )}
     </div>
   );

@@ -611,57 +611,62 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   font-family: 'Press Start 2P', monospace;
 }
 
-/* Fusion chain bar */
-.fusion-chain-bar {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 6px 10px;
-  background: rgba(0, 0, 0, 0.75);
-  border: 1px solid #ffd700;
-  border-radius: 6px;
+/* Floating fusion bar (long-press fusion group) */
+.floating-fusion-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #ffd700;
+  border-radius: 8px;
   margin-bottom: 6px;
   font-family: 'Silkscreen', 'Press Start 2P', monospace;
   font-size: 10px;
   color: #eee;
+  z-index: 100;
 }
-.fusion-chain-cards {
-  display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: center;
-}
-.chain-card-name { color: #ccc; }
-.chain-arrow { color: #ffd700; margin: 0 2px; font-weight: bold; }
-.chain-result-name { color: #ffd700; font-weight: bold; }
-.chain-result-stats { color: #aaa; margin-left: 4px; }
-.fusion-chain-steps {
-  display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
-  font-size: 9px;
-}
-.chain-step-fused { color: #4caf50; }
-.chain-step-fallback { color: #ff9800; }
-.fusion-chain-actions {
-  display: flex; gap: 8px; margin-top: 4px;
-}
-.chain-confirm-btn {
-  background: #ffd700 !important; color: #000 !important;
+.fusion-preview-text {
+  color: #ffd700;
   font-weight: bold;
 }
+.fusion-execute-btn {
+  background: #ffd700;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+.fusion-execute-btn:active { opacity: 0.8; }
+.fusion-clear-btn {
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+.fusion-clear-btn:active { opacity: 0.7; }
 
-/* ── Fusion chain bar: mobile touch-friendly ── */
+/* ── Floating fusion bar: mobile touch-friendly ── */
 @media (pointer: coarse), (max-width: 600px) {
-  .fusion-chain-bar {
+  .floating-fusion-bar {
     padding: 10px 12px;
-    gap: 6px;
-    font-size: 11px;
-    position: relative;
-    z-index: 100;
-  }
-  .fusion-chain-actions {
     gap: 10px;
-    margin-top: 6px;
-    width: 100%;
-    justify-content: center;
+    font-size: 11px;
+    flex-wrap: wrap;
   }
-  .fusion-chain-actions button {
+  .fusion-execute-btn,
+  .fusion-clear-btn {
     min-height: 44px;
-    min-width: 100px;
+    min-width: 80px;
     padding: 10px 16px;
     font-size: 12px;
     touch-action: manipulation;

@@ -1,15 +1,17 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useGame }      from '../../contexts/GameContext.js';
 import { useModal }     from '../../contexts/ModalContext.js';
 import { useSelection } from '../../contexts/SelectionContext.js';
 import { HandCard }     from '../../components/HandCard.js';
-import { FusionChainBar } from '../../components/FusionChainBar.js';
-import { checkFusion, resolveFusionChain } from '../../../cards.js';
+import { checkFusion, resolveFusionChain, CARD_DB } from '../../../cards.js';
+import { isMonsterType } from '../../../types.js';
 
 export function HandArea() {
   const { gameState, gameRef, pendingDraw } = useGame();
   const { openModal }                       = useModal();
   const { sel, setSel, resetSel }           = useSelection();
+  const { t } = useTranslation();
 
   if (!gameState) return null;
 
@@ -20,6 +22,19 @@ export function HandArea() {
 
   const handLen     = player.hand.length;
   const newDrawBase = handLen - pendingDraw;
+
+  const fusionGroup = sel.fusionGroup;
+
+  // Validate fusion group indices when hand changes
+  useEffect(() => {
+    if (fusionGroup.length === 0) return;
+    const valid = fusionGroup.filter(i => i < player.hand.length);
+    if (valid.length !== fusionGroup.length) {
+      const cardIds = valid.map(i => player.hand[i].id);
+      const preview = cardIds.length >= 2 ? resolveFusionChain(cardIds) : null;
+      setSel({ fusionGroup: valid, fusionGroupPreview: preview });
+    }
+  }, [player.hand.length, fusionGroup, setSel, player.hand]);
 
   const onHandCardClick = useCallback((card: any, index: number) => {
     const game = gameRef.current;
@@ -39,64 +54,73 @@ export function HandArea() {
       return;
     }
 
-    // FM-style play chain mode
-    if (selMode === 'play-chain') {
-      const chain = sel.playChain;
-
-      // Clicking the last card in chain = undo
-      if (chain.length > 0 && chain[chain.length - 1] === index) {
-        const newChain = chain.slice(0, -1);
-        if (newChain.length === 0) {
-          resetSel();
-          return;
-        }
-        const cardIds = newChain.map(i => player.hand[i].id);
-        const preview = cardIds.length >= 2 ? resolveFusionChain(cardIds) : null;
-        setSel({ playChain: newChain, playChainPreview: preview });
-        return;
-      }
-
-      // Card already in chain (not last) — ignore
-      if (chain.includes(index)) return;
-
-      // Add to chain
-      const newChain = [...chain, index];
-      const cardIds = newChain.map(i => player.hand[i].id);
+    // If card is in fusion group, remove it
+    if (fusionGroup.includes(index)) {
+      const newGroup = fusionGroup.filter(i => i !== index);
+      const cardIds = newGroup.map(i => player.hand[i].id);
       const preview = cardIds.length >= 2 ? resolveFusionChain(cardIds) : null;
-      setSel({ playChain: newChain, playChainPreview: preview });
+      setSel({ fusionGroup: newGroup, fusionGroupPreview: preview });
       return;
     }
 
     openModal({ type: 'card-detail', card, index, state: gameState });
-  }, [gameRef, selMode, sel.fusion1, sel.playChain, player.hand, player.field.monsters, resetSel, setSel, openModal, gameState]);
+  }, [gameRef, selMode, sel.fusion1, fusionGroup, player.hand, player.field.monsters, resetSel, setSel, openModal, gameState]);
 
-  const onConfirmChain = useCallback(() => {
+  const onHandCardLongPress = useCallback((card: any, index: number) => {
+    if (!isMyTurn || phase !== 'main') return;
+    if (!isMonsterType(card.type)) return;
+    if (player.normalSummonUsed) return;
+    const freeZone = player.field.monsters.findIndex((z: any) => z === null);
+    if (freeZone === -1) return;
+    if (fusionGroup.includes(index)) return;
+
+    const newGroup = [...fusionGroup, index];
+    const cardIds = newGroup.map(i => player.hand[i].id);
+    const preview = cardIds.length >= 2 ? resolveFusionChain(cardIds) : null;
+    setSel({ fusionGroup: newGroup, fusionGroupPreview: preview });
+  }, [isMyTurn, phase, player.normalSummonUsed, player.field.monsters, player.hand, fusionGroup, setSel]);
+
+  const onFusionExecute = useCallback(() => {
     const game = gameRef.current;
-    if (!game || sel.playChain.length === 0) return;
-    game.performFusionChain('player', sel.playChain);
-    resetSel();
-  }, [gameRef, sel.playChain, resetSel]);
+    if (!game || fusionGroup.length < 2) return;
+    game.performFusionChain('player', fusionGroup);
+    setSel({ fusionGroup: [], fusionGroupPreview: null });
+  }, [gameRef, fusionGroup, setSel]);
+
+  const onFusionClear = useCallback(() => {
+    setSel({ fusionGroup: [], fusionGroupPreview: null });
+  }, [setSel]);
+
+  // Fusion preview data
+  const preview = sel.fusionGroupPreview;
+  const previewCard = preview ? CARD_DB[preview.finalCardId] : null;
 
   return (
     <div id="hand-area">
-      {selMode === 'play-chain' && (
-        <FusionChainBar
-          hand={player.hand}
-          chain={sel.playChain}
-          preview={sel.playChainPreview}
-          onConfirm={onConfirmChain}
-          onCancel={resetSel}
-        />
+      {fusionGroup.length >= 2 && (
+        <div className="floating-fusion-bar">
+          {previewCard && (
+            <span className="fusion-preview-text">
+              {previewCard.name}
+              {previewCard.atk !== undefined && ` (ATK ${previewCard.atk})`}
+            </span>
+          )}
+          <button className="fusion-execute-btn" onClick={onFusionExecute}>
+            {t('fusion_chain.confirm')}
+          </button>
+          <button className="fusion-clear-btn" onClick={onFusionClear}>
+            {t('fusion_chain.cancel')}
+          </button>
+        </div>
       )}
       <div id="player-hand">
         {player.hand.map((card: any, i: number) => {
           const isNewlyDrawn = i >= newDrawBase;
           const playable     = isMyTurn && phase === 'main';
-          const inChain      = selMode === 'play-chain' && sel.playChain.includes(i);
-          const chainIdx     = inChain ? sel.playChain.indexOf(i) : undefined;
+          const inFusion     = fusionGroup.includes(i);
+          const fusionIdx    = inFusion ? fusionGroup.indexOf(i) : undefined;
           const fusionable   = selMode === 'fusion1' && i !== sel.fusion1?.handIndex;
-          const targetable   = (selMode === 'fusion1' && i !== sel.fusion1?.handIndex) ||
-                               selMode === 'play-chain';
+          const targetable   = selMode === 'fusion1' && i !== sel.fusion1?.handIndex;
           return (
             <HandCard
               key={`${card.id}-${i}`}
@@ -104,11 +128,12 @@ export function HandArea() {
               playable={playable}
               fusionable={fusionable}
               targetable={targetable}
-              chainSelected={inChain}
-              chainIndex={chainIdx}
+              fusionSelected={inFusion}
+              fusionIndex={fusionIdx}
               newlyDrawn={isNewlyDrawn}
               drawDelay={isNewlyDrawn ? (i - newDrawBase) * 80 : 0}
               onClick={() => onHandCardClick(card, i)}
+              onLongPress={() => onHandCardLongPress(card, i)}
             />
           );
         })}
