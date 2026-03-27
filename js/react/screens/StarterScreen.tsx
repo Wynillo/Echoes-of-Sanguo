@@ -8,33 +8,24 @@ import { getRaceByKey }   from '../../type-metadata.js';
 import { Race } from '../../types.js';
 import styles from './StarterScreen.module.css';
 
-// Starter deck race options (subset of all races)
-const STARTER_RACES = ['drache', 'magier', 'krieger'] as const;
-
-const RACE_TO_NUM: Record<string, number> = {
-  drache:  Race.Dragon,
-  magier:  Race.Spellcaster,
-  krieger: Race.Warrior,
-};
-
-/** Map starter keys (used for i18n style/flavor lookups) to PascalCase race keys */
-const RACE_KEY_MAP: Record<string, string> = {
-  drache:  'Dragon',
-  magier:  'Spellcaster',
-  krieger: 'Warrior',
-};
+// Starter deck race options using PascalCase race keys
+const STARTER_RACES: { key: string; race: Race }[] = [
+  { key: 'Dragon',      race: Race.Dragon },
+  { key: 'Spellcaster', race: Race.Spellcaster },
+  { key: 'Warrior',     race: Race.Warrior },
+];
 
 export default function StarterScreen() {
   const { navigateTo }             = useScreen();
   const { refresh, setCurrentDeck } = useProgression();
-  const [selected, setSelected]    = useState<string | null>(null);
+  const [selected, setSelected]    = useState<typeof STARTER_RACES[number] | null>(null);
   const { t } = useTranslation();
 
   function confirm() {
     if (!selected) return;
-    const deckIds = STARTER_DECKS[RACE_TO_NUM[selected]];
+    const deckIds = STARTER_DECKS[selected.race];
     if (!deckIds) return;
-    Progression.markStarterChosen(selected);
+    Progression.markStarterChosen(String(selected.race));
     Progression.addCardsToCollection(deckIds);
     Progression.saveDeck(deckIds);
     setCurrentDeck(deckIds);
@@ -42,7 +33,7 @@ export default function StarterScreen() {
     navigateTo('save-point');
   }
 
-  const selectedMeta = selected ? getRaceByKey(RACE_KEY_MAP[selected]) : null;
+  const selectedMeta = selected ? getRaceByKey(selected.key) : null;
 
   return (
     <div className={styles.screen}>
@@ -53,18 +44,18 @@ export default function StarterScreen() {
       </div>
 
       <div className={styles.raceGrid}>
-        {STARTER_RACES.map(race => {
-          const meta = getRaceByKey(RACE_KEY_MAP[race]);
+        {STARTER_RACES.map(entry => {
+          const meta = getRaceByKey(entry.key);
           return (
             <div
-              key={race}
-              className={`${styles.raceCard}${selected === race ? ` ${styles.selected}` : ''}`}
+              key={entry.key}
+              className={`${styles.raceCard}${selected === entry ? ` ${styles.selected}` : ''}`}
               style={{ '--race-color': meta?.color ?? '#888' } as React.CSSProperties}
-              onClick={() => setSelected(race)}
+              onClick={() => setSelected(entry)}
             >
               <div className={styles.raceIcon}>{meta?.icon ?? '?'}</div>
-              <div className={styles.raceName}>{t(`cards.race_${RACE_KEY_MAP[race]}`)}</div>
-              <div className={styles.raceStyle}>{t(`starter.${race}_style`)}</div>
+              <div className={styles.raceName}>{t(`cards.race_${entry.key}`)}</div>
+              <div className={styles.raceStyle}>{t(`starter.${entry.key}_style`)}</div>
             </div>
           );
         })}
@@ -72,9 +63,9 @@ export default function StarterScreen() {
 
       <div className={styles.preview}>
         <p id="starter-preview-name">
-          {selectedMeta ? `${selectedMeta.icon} ${t(`cards.race_${RACE_KEY_MAP[selected!]}`)}${t('starter.deck_suffix')}` : ''}
+          {selectedMeta ? `${selectedMeta.icon} ${t(`cards.race_${selected!.key}`)}${t('starter.deck_suffix')}` : ''}
         </p>
-        <p id="starter-preview-desc">{selected ? t(`starter.${selected}_flavor`) : ''}</p>
+        <p id="starter-preview-desc">{selected ? t(`starter.${selected.key}_flavor`) : ''}</p>
         {selected && (
           <button id="btn-starter-confirm" onClick={confirm}>{t('starter.confirm_btn')}</button>
         )}
