@@ -46,20 +46,24 @@ export function useLongPress({
 
   const onPointerUp = useCallback(() => {
     clear();
-    if (!firedRef.current && onClick) {
-      onClick();
-    }
     startPos.current = null;
-  }, [clear, onClick]);
+  }, [clear]);
 
   const onPointerCancel = useCallback(() => {
     clear();
     startPos.current = null;
   }, [clear]);
 
+  // Native click handler — more reliable than synthesizing clicks from onPointerUp
+  const handleClick = useCallback(() => {
+    if (!firedRef.current && onClick) {
+      onClick();
+    }
+  }, [onClick]);
+
   const onContextMenu = useCallback((e: React.MouseEvent) => {
     if (firedRef.current) e.preventDefault();
   }, []);
 
-  return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onContextMenu };
+  return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onClick: handleClick, onContextMenu };
 }

@@ -47,6 +47,12 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     return isMyTurn && phase === 'main' && fst.faceDown && fst.card.type === CardType.Spell;
   }
 
+  function isPlayerMonsterViewable(zone: number) {
+    const fc = player.field.monsters[zone];
+    if (!fc) return false;
+    return selMode === null && !isPlayerMonsterInteractive(zone) && !playerMonsterCanAttack(zone);
+  }
+
   function isPlayerMonsterSpellTarget(zone: number) {
     return (selMode === 'spell-target' || selMode === 'field-spell-target') && !!player.field.monsters[zone];
   }
@@ -108,6 +114,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
           const canAtk    = playerMonsterCanAttack(i);
           const interact  = isPlayerMonsterInteractive(i);
           const targetable = isPlayerMonsterSpellTarget(i) || isPlayerMonsterEquipTarget(i);
+          const viewable   = isPlayerMonsterViewable(i);
           return (
             <div key={i} className="zone-slot" data-zone={i}>
               {!fc && <div className="zone-label">M</div>}
@@ -116,9 +123,11 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
                   fc={fc} owner="player" zone={i}
                   selected={selected} targetable={targetable}
                   interactive={interact} canAttack={canAtk}
+                  viewable={viewable}
                   onOwnClick={() => onOwnFieldCardClick(fc, i)}
                   onAttackerSelect={() => onAttackerSelect(i)}
                   onDefenderClick={() => onSpellTargetSelect(i)}
+                  onViewClick={() => openModal({ type: 'card-detail', card: fc.card, fc })}
                   onDetail={() => openModal({ type: 'card-detail', card: fc.card, fc })}
                 />
               )}
