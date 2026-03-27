@@ -141,7 +141,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     : '';
   if (definitions.size === 0) {
     result.warnings.push('No card definitions found in TCG archive');
-    return result;
+    return { cards, definitions, images, meta, manifest, warnings: result.warnings };
   }
   const defs = definitions.get(lang) ?? definitions.values().next().value!;
   const defMap = new Map<number, TcgCardDefinition>();
