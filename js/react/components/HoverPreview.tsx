@@ -3,6 +3,7 @@
 // Imperative API lives in hoverApi.ts
 // ============================================================
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { getAttrById } from '../../type-metadata.js';
 import { CardType } from '../../types.js';
@@ -12,6 +13,7 @@ import { setHoverDispatch } from './hoverApi.js';
 import type { HoverState } from './hoverApi.js';
 
 export function HoverPreview() {
+  const { t } = useTranslation();
   const [hover, setHover] = useState<HoverState | null>(null);
   const ref    = useRef<HTMLDivElement>(null);
   const tween  = useRef<gsap.core.Tween | null>(null);
@@ -51,10 +53,10 @@ export function HoverPreview() {
   const { card, fc } = hover ?? {};
   const attrMeta = card?.attribute ? getAttrById(card.attribute) : undefined;
   const attrNameStr = attrMeta?.value ?? '';
-  const typeNameMap: Record<number, string> = { [CardType.Monster]:'Normal', [CardType.Fusion]:'Fusion', [CardType.Spell]:'Zauberkarte', [CardType.Trap]:'Fallenkarte' };
-  const typeName = card ? (card.type === CardType.Monster && card.effect ? 'Effekt' : typeNameMap[card.type] || '') : '';
+  const typeNameMap: Record<number, string> = { [CardType.Monster]:t('card_detail.type_normal'), [CardType.Fusion]:t('card_detail.type_fusion'), [CardType.Spell]:t('card_detail.type_spell'), [CardType.Trap]:t('card_detail.type_trap') };
+  const typeName = card ? (card.type === CardType.Monster && card.effect ? t('card_detail.type_effect') : typeNameMap[card.type] || '') : '';
   const isMonLevel = card && (card.type === CardType.Monster || card.type === CardType.Fusion);
-  const levelStr = isMonLevel && card?.level ? ` · Lv ${card.level}` : '';
+  const levelStr = isMonLevel && card?.level ? ` · ${t('card_detail.level_prefix')} ${card.level}` : '';
   const baseATK = card?.atk ?? 0;
   const baseDEF = card?.def ?? 0;
   const hoverEffATK = fc ? fc.effectiveATK() : baseATK;

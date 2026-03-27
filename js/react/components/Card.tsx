@@ -1,6 +1,7 @@
 // ============================================================
 // Card — visual component that mirrors cardInnerHTML()
 // ============================================================
+import i18next from 'i18next';
 import { CardType } from '../../types.js';
 import type { CardData, FieldCard } from '../../types.js';
 import {
@@ -10,7 +11,7 @@ import { highlightCardText, highlightCardTextHTML } from '../utils/highlightCard
 import styles from './Card.module.css';
 
 function getTypeLabel(card: CardData): string {
-  if (card.type === CardType.Monster && card.effect) return 'Effekt';
+  if (card.type === CardType.Monster && card.effect) return i18next.t('card_detail.type_effect');
   return getCardTypeById(card.type)?.value ?? '';
 }
 
