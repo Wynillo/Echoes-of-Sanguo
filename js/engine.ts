@@ -290,8 +290,6 @@ export class GameEngine {
   }
 
   _endDuel(result: 'victory' | 'defeat'){
-    const logSuffix = result === 'victory' ? 'victory' : 'defeat';
-    EchoesOfSanguo.downloadLog(logSuffix);
     // onDuelEnd allows progression evaluation in the UI layer
     if(typeof this.ui.onDuelEnd === 'function'){
       this.ui.onDuelEnd(result, this._currentOpponentId);
