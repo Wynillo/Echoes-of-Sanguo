@@ -1,0 +1,4 @@
+[
+  { "id": 1, "key": "dragon", "value": "Dragon", "color": "#ff4444" },
+  { "id": 3, "key": "warrior", "value": "Warrior", "color": "#4444ff" }
+]
