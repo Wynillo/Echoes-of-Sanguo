@@ -53,6 +53,7 @@ All enum fields in the format use integers, not strings.
 | 2 | Fusion | Fusion Monster |
 | 3 | Spell | Spell |
 | 4 | Trap | Trap |
+| 5 | Equipment | Equipment |
 
 ### Attribute (`attribute`)
 | ID | Key |
@@ -70,13 +71,15 @@ All enum fields in the format use integers, not strings.
 | 1 | Dragon |
 | 2 | Spellcaster |
 | 3 | Warrior |
-| 4 | Fire |
+| 4 | Beast |
 | 5 | Plant |
-| 6 | Stone |
-| 7 | Flyer |
-| 8 | Elf |
-| 9 | Demon |
-| 10 | Water |
+| 6 | Rock |
+| 7 | Phoenix |
+| 8 | Undead |
+| 9 | Aqua |
+| 10 | Insect |
+| 11 | Machine |
+| 12 | Pyro |
 
 ### Rarity (`rarity`)
 | ID | Key |
@@ -93,6 +96,7 @@ All enum fields in the format use integers, not strings.
 | 1 | normal |
 | 2 | targeted |
 | 3 | fromGrave |
+| 4 | field |
 
 ### Trap Trigger (`trapTrigger`)
 | ID | Key |
@@ -137,17 +141,21 @@ Array of card stat objects. All integer IDs must be positive and unique.
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | `id` | integer | yes | unique numeric ID |
-| `type` | integer | yes | 1–4, see Card Type table |
+| `type` | integer | yes | 1–5, see Card Type table |
 | `level` | integer | yes | 1–12 |
 | `rarity` | integer | yes | 1, 2, 4, 6, or 8 |
 | `atk` | integer | monsters only | attack points |
 | `def` | integer | monsters only | defense points |
 | `attribute` | integer | monsters only | 1–6 |
-| `race` | integer | monsters only | 1–10 |
+| `race` | integer | monsters only | 1–12 |
 | `effect` | string | no | effect string, see Effects section |
-| `spellType` | integer | spells only | 1–3 |
+| `spellType` | integer | spells only | 1–4 |
 | `trapTrigger` | integer | traps only | 1–4 |
 | `target` | string | targeted spells/traps | `ownMonster` \| `oppMonster` \| `attacker` \| `defender` \| `summonedFC` |
+| `atkBonus` | integer | equipment only | ATK bonus applied to equipped monster |
+| `defBonus` | integer | equipment only | DEF bonus applied to equipped monster |
+| `equipReqRace` | integer | equipment only | required race (1–12) for target monster |
+| `equipReqAttr` | integer | equipment only | required attribute (1–6) for target monster |
 
 ---
 
@@ -303,7 +311,8 @@ Locale override files (in `locales/`) may only contain `{ "<id>": "<translated v
   { "id": 1, "key": "Monster", "value": "Monster",        "color": "#c8a850" },
   { "id": 2, "key": "Fusion",  "value": "Fusion Monster", "color": "#a050c0" },
   { "id": 3, "key": "Spell",   "value": "Spell",          "color": "#1dc0a0" },
-  { "id": 4, "key": "Trap",    "value": "Trap",            "color": "#bc2060" }
+  { "id": 4, "key": "Trap",    "value": "Trap",            "color": "#bc2060" },
+  { "id": 5, "key": "Equipment", "value": "Equipment",     "color": "#d4a017" }
 ]
 ```
 
@@ -471,7 +480,7 @@ One JSON file per opponent. File names are arbitrary — the engine reads all `*
 | `id` | integer | yes | unique, used by campaign nodes |
 | `name` | string | yes | default display name |
 | `title` | string | yes | subtitle shown in opponent select |
-| `race` | integer | yes | race ID (1–10) — used for opponent tile icon |
+| `race` | integer | yes | race ID (1–12) — used for opponent tile icon |
 | `flavor` | string | yes | short flavor text |
 | `coinsWin` | integer | yes | coins awarded on player win |
 | `coinsLoss` | integer | yes | coins awarded on player loss |
@@ -576,20 +585,30 @@ trigger:action(args);action(args)
 | `dealDamage(target,value)` | target: `opponent`\|`self` | |
 | `gainLP(target,value)` | target: `opponent`\|`self` | |
 | `draw(target,count)` | target: `self`\|`opponent` | |
-| `buffAtkRace(raceId,value)` | permanent ATK buff to all friendly monsters of race | |
-| `buffAtkAttr(attrId,value)` | permanent ATK buff to all friendly monsters of attribute | |
-| `debuffAllOpp(atkD,defD)` | permanent debuff to all opponent monsters | |
-| `tempBuffAtkRace(raceId,value)` | temporary (until end of turn) | |
-| `tempDebuffAllOpp(atkD[,defD])` | temporary | |
+| `buffField(value[,filter])` | permanent ATK buff to friendly monsters matching filter | |
+| `debuffField(atkD,defD[,filter])` | permanent debuff to opponent monsters | |
+| `tempBuffField(value[,filter])` | temporary (until end of turn) ATK buff | |
+| `tempDebuffField(atkD,defD[,filter])` | temporary debuff | |
 | `bounceStrongestOpp()` | return strongest opponent monster to hand | |
 | `bounceAttacker()` | return attacking monster to hand | |
 | `bounceAllOppMonsters()` | return all opponent monsters to hand | |
-| `searchDeckToHand(attrId)` | add a card of the given attribute from deck to hand | |
+| `searchDeckToHand(filter)` | add a card matching filter from deck to hand | |
 | `tempAtkBonus(target,value)` | temporary ATK modification | target: stat target |
-| `permAtkBonus(target,value[,attrFilter])` | permanent ATK modification | |
+| `permAtkBonus(target,value[,filter])` | permanent ATK modification | |
 | `tempDefBonus(target,value)` | temporary DEF modification | |
 | `permDefBonus(target,value)` | permanent DEF modification | |
 | `reviveFromGrave()` | special summon a monster from the graveyard | |
+| `destroyAllOpp()` | destroy all opponent monsters | |
+| `destroyAll()` | destroy all monsters on both sides | |
+| `destroyWeakestOpp()` | destroy weakest opponent monster | |
+| `destroyStrongestOpp()` | destroy strongest opponent monster | |
+| `sendTopCardsToGrave(count)` | send top N cards from own deck to graveyard | |
+| `salvageFromGrave()` | add a monster from graveyard to hand | |
+| `recycleFromGraveToDeck(count)` | return N cards from graveyard to deck | |
+| `shuffleGraveIntoDeck()` | shuffle entire graveyard into deck | |
+| `specialSummonFromHand()` | special summon a monster from hand | |
+| `discardFromHand(count)` | discard N cards from hand | |
+| `discardOppHand(count)` | force opponent to discard N cards | |
 | `cancelAttack()` | cancel the current attack (trap) | |
 | `destroyAttacker()` | destroy the attacking monster (trap) | |
 | `destroySummonedIf(minAtk)` | destroy the summoned monster if ATK >= minAtk (trap) | |
@@ -598,6 +617,9 @@ trigger:action(args);action(args)
 | `passive_directAttack()` | can attack directly | |
 | `passive_vsAttrBonus(attrId,atk)` | bonus ATK when battling monsters of this attribute | |
 | `passive_phoenixRevival()` | revives once when destroyed | |
+| `passive_indestructible()` | cannot be destroyed by battle | |
+| `passive_effectImmune()` | immune to card effects | |
+| `passive_cantBeAttacked()` | cannot be selected as an attack target | |
 
 #### Stat targets
 
@@ -613,6 +635,25 @@ attacker.effectiveATK*0.5f → 50% of attacker ATK, rounded down (f = floor)
 attacker.effectiveATK*0.5c → 50% of attacker ATK, rounded up   (c = ceil)
 ```
 
+#### Card Filters
+
+Filters restrict which cards an action affects. Written as `{key=value,...}`:
+
+```
+{r=3}                → race 3 (Warrior)
+{a=2}                → attribute 2 (Dark)
+{r=3,a=1}            → race 3 AND attribute 1
+{maxAtk=1500}        → ATK ≤ 1500
+{t=1}                → card type 1 (Monster)
+```
+
+| Key | Meaning |
+|-----|---------|
+| `r` | race ID (1–12) |
+| `a` | attribute ID (1–6) |
+| `t` | card type ID (1–5) |
+| `maxAtk` | maximum ATK value |
+
 #### Examples
 
 ```
@@ -623,6 +664,36 @@ onAttack:dealDamage(opponent,attacker.effectiveATK*0.5f);cancelAttack()
 manual:tempAtkBonus(oppMonster,-500)
 onOpponentSummon:destroySummonedIf(1800)
 ```
+
+---
+
+### `fusion_formulas.json`
+
+Race/attribute-based fusion formulas (Forbidden Memories style). Produces fusion results based on the combination of two cards' races or attributes.
+
+```json
+{
+  "formulas": [
+    {
+      "id": "dragon_warrior",
+      "comboType": "race+race",
+      "operand1": 1,
+      "operand2": 3,
+      "priority": 10,
+      "resultPool": [50, 51]
+    }
+  ]
+}
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `id` | string | yes | unique formula identifier |
+| `comboType` | string | yes | `race+race` \| `race+attr` \| `attr+attr` |
+| `operand1` | integer | yes | first operand (race or attribute ID) |
+| `operand2` | integer | yes | second operand (race or attribute ID) |
+| `priority` | integer | yes | higher priority formulas are checked first |
+| `resultPool` | integer[] | yes | possible fusion result card IDs (one chosen randomly) |
 
 ---
 
