@@ -37,6 +37,22 @@ export default function CampaignScreen() {
     });
   }, [chapters, progress.completedNodes]);
 
+  function getNodeState(node: CampaignNode): 'completed' | 'available' | 'locked' {
+    if (progress.completedNodes.includes(node.id)) return 'completed';
+    if (isNodeUnlocked(node.id)) return 'available';
+    return 'locked';
+  }
+
+  // Only show nodes that are available/completed, or locked but marked alwaysVisible
+  const visibleNodes = useMemo(() => {
+    if (!activeChapter) return [];
+    return activeChapter.nodes.filter(node => {
+      const state = getNodeState(node);
+      if (state !== 'locked') return true;
+      return node.alwaysVisible === true;
+    });
+  }, [activeChapter, progress.completedNodes]);
+
   // Normalize node positions to percentages so they always fit the container width
   const PADDING_X = 12; // % horizontal padding on each side
   const PADDING_TOP = 40; // px top padding
@@ -70,22 +86,6 @@ export default function CampaignScreen() {
     const maxTop = Math.max(...Array.from(positions.values()).map(p => p.topPx));
     return { nodePositions: positions, mapHeight: maxTop + PADDING_BOTTOM };
   }, [visibleNodes]);
-
-  function getNodeState(node: CampaignNode): 'completed' | 'available' | 'locked' {
-    if (progress.completedNodes.includes(node.id)) return 'completed';
-    if (isNodeUnlocked(node.id)) return 'available';
-    return 'locked';
-  }
-
-  // Only show nodes that are available/completed, or locked but marked alwaysVisible
-  const visibleNodes = useMemo(() => {
-    if (!activeChapter) return [];
-    return activeChapter.nodes.filter(node => {
-      const state = getNodeState(node);
-      if (state !== 'locked') return true;
-      return node.alwaysVisible === true;
-    });
-  }, [activeChapter, progress.completedNodes]);
 
   function handleNodeClick(node: CampaignNode) {
     const state = getNodeState(node);
