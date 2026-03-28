@@ -1,21 +1,22 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
+// Enum converters (engine-specific)
 import {
-  // Enum converters
   cardTypeToInt, intToCardType,
   attributeToInt, intToAttribute,
   raceToInt, intToRace,
   rarityToInt, intToRarity,
-  // Effect serializer
-  serializeEffect, deserializeEffect, isValidEffectString,
-  // Validators
+} from '../js/enums.js';
+// Effect serializer (engine-specific)
+import { serializeEffect, deserializeEffect, isValidEffectString } from '../js/effect-serializer.js';
+// Builder (engine-specific)
+import { cardDataToTcgCard, cardDataToTcgDef } from '../js/tcg-builder.js';
+// Validators & constants (from package)
+import {
   validateTcgCards, validateTcgDefinitions,
-  // Builder
-  cardDataToTcgCard, cardDataToTcgDef,
-  // Constants
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP,
   TCG_RARITY_COMMON, TCG_RARITY_ULTRA_RARE,
-} from '../js/tcg-format/index.js';
+} from '@wynillo/tcg-format';
 import { CardType, Attribute, Race, Rarity } from '../js/types.js';
 
 // ── Enum Converter Tests ────────────────────────────────────
