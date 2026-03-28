@@ -87,6 +87,8 @@ Convert the closed `EffectDescriptor` union in `js/types.ts` to an open `EffectD
 
 ### Step 2 — Create the new repository
 
+> **Timing note**: This step can be deferred until after Steps 3–9 (engine prep) are complete on a feature branch. Creating the repo early is useful for team visibility but is not a prerequisite for the code changes. The files don't move to the new repo until Step 12.
+
 Create a new GitHub repo under `wynillo/echoes-of-sanguo-tcg-format`.
 
 New repo structure:
@@ -211,13 +213,13 @@ interface TcgLoadResult {
   cards: TcgCard[];                         // raw int-based cards from cards.json
   decodedCards: TcgDecodedCard[];           // int→string converted, effect as opaque string
   definitions: Map<string, TcgCardDefinition[]>;  // locale → definitions
-  images: Map<number, string>;              // card id → blob URL
+  rawImages: Map<number, ArrayBuffer>;      // card id → raw PNG bytes (NOT blob URLs — loader is environment-agnostic)
   meta?: TcgMeta;
   manifest?: TcgManifest;
   opponents?: TcgOpponentDeck[];
   opponentDescriptions?: Map<string, TcgOpponentDescription[]>;  // locale → descriptions
   rules?: Record<string, unknown>;          // raw rules.json (engine interprets)
-  shopData?: TcgShopJson;                  // with blob URLs resolved
+  shopData?: TcgShopJson;                  // backgrounds as raw ArrayBuffers, NOT blob URLs
   campaignData?: TcgCampaignJson;
   fusionFormulas?: TcgFusionFormula[];
   typeMeta?: {                             // grouped metadata bundle
@@ -229,6 +231,8 @@ interface TcgLoadResult {
   warnings: string[];
 }
 ```
+
+**Key change from current design**: The loader returns raw `ArrayBuffer` for images instead of blob URLs. `URL.createObjectURL` is a browser-only API — the loader would break in Node.js CLI contexts (e.g. `inspect` command). The bridge is responsible for converting `rawImages` to blob URLs in browser contexts. The existing `revokeTcgImages()` function moves to the bridge too.
 
 The loader does the int→string conversion for `decodedCards` using its own enum converters (no game types needed — uses `CardTypeKey`, `RaceKey`, etc.). The `tcgCardToCardData()` function is removed — the bridge in the engine handles `TcgDecodedCard → CardData` conversion (mainly deserializing the effect string).
 
@@ -300,7 +304,23 @@ function decodedToCardData(decoded: TcgDecodedCard, warnings: string[]): CardDat
     }
     effect = deserializeEffect(decoded.effectString);
   }
-  return { ...decoded, effect } as CardData;
+  // Note: TcgDecodedCard.id and CardData.id are both `string` — no numeric conversion needed.
+  // CARD_DB is indexed by string (e.g. "42"). Verified: js/types.ts CardData.id is `string`.
+  return { ...decoded, effect };
+}
+
+// Bridge creates blob URLs from raw ArrayBuffers (loader is environment-agnostic)
+const blobUrls: Map<number, string> = new Map();
+function applyImages(rawImages: Map<number, ArrayBuffer>): Map<number, string> {
+  for (const [id, buf] of rawImages) {
+    const url = URL.createObjectURL(new Blob([buf], { type: 'image/png' }));
+    blobUrls.set(id, url);
+  }
+  return blobUrls;
+}
+export function revokeTcgImages(): void {
+  for (const url of blobUrls.values()) URL.revokeObjectURL(url);
+  blobUrls.clear();
 }
 
 export async function loadAndApplyTcg(
@@ -321,6 +341,9 @@ export async function loadAndApplyTcg(
     CARD_DB[decoded.id] = decodedToCardData(decoded, result.warnings);
     mod.cardIds.push(decoded.id);
   }
+
+  // Convert raw image ArrayBuffers → blob URLs (browser-only; done here, not in the package)
+  const images = applyImages(result.rawImages);
 
   // Apply game-specific side effects
   if (result.typeMeta?.races)      applyTypeMeta({ races: result.typeMeta.races });
@@ -456,29 +479,37 @@ registerEffect<K extends keyof EffectDescriptorMap>(
 
 **`eos-engine.d.ts`** — shipped as a standalone `.d.ts` file with each game release on GitHub. Contains `EffectDescriptorMap` and all modding-relevant types. Modders download it and add it to their project.
 
-Modders extend it via declaration merging against the declared module:
+Modders extend it via `declare global` — no `tsconfig.json` paths config needed, no phantom module to resolve:
 ```typescript
 // eos-engine.d.ts (shipped with game releases)
-declare module 'eos-engine' {
+// Add this file to your project to get type safety for EOS modding.
+declare global {
   interface EffectDescriptorMap {
     dealDamage:   { target: 'opponent' | 'player'; value: ValueExpr };
     buffAtkRace:  { race: string; value: number };
     // ... all built-in effect types
   }
-  // ... CardEffectBlock, mod API shape, etc.
+  interface Window {
+    EchoesOfSanguoMod: EchoesOfSanguoModApi;
+  }
+  // ... CardEffectBlock, ValueExpr, etc.
 }
+export {};  // makes this a module, enabling augmentation
 ```
 
 ```typescript
-// modder's my-mod-types.d.ts
-declare module 'eos-engine' {
+// modder's my-mod-types.d.ts — just add new entries, no path config needed
+declare global {
   interface EffectDescriptorMap {
     teleportMonster: { from: 'hand' | 'field'; to: 'hand' | 'field' };
   }
 }
+export {};
 ```
 
-The `eos-engine.d.ts` file is auto-generated by CI from `js/types.ts` using `tsc --emitDeclarationOnly` with a wrapper that re-exports into the `'eos-engine'` module declaration.
+Using `declare global` instead of `declare module 'eos-engine'` avoids requiring modders to add `"paths"` to their `tsconfig.json`. It works simply by including `eos-engine.d.ts` in the project (via `"include"` or a `/// <reference path="..." />` directive).
+
+The `eos-engine.d.ts` file is auto-generated by CI from `js/types.ts` using `tsc --emitDeclarationOnly` with a wrapper that lifts the relevant interfaces into the global scope.
 
 Same pattern applies to `EffectTrigger` if we convert it from a string union to a similar extensible interface.
 
@@ -506,16 +537,17 @@ The game repo's CI generates a standalone `eos-engine.d.ts` file and attaches it
 - `CardData` interface shape
 - `EchoesOfSanguoMod` API shape (what's on `window.EchoesOfSanguoMod`)
 
-Generated via `tsc --emitDeclarationOnly` on a subset of `js/types.ts` + `js/mod-api.ts`, wrapped in a `declare module 'eos-engine' { ... }` block.
+Generated via `tsc --emitDeclarationOnly` on a subset of `js/types.ts` + `js/mod-api.ts`, wrapped in `declare global { ... }`.
 
-Modders download it and add it to their project. They extend `EffectDescriptorMap` via declaration merging:
+Modders download `eos-engine.d.ts`, drop it into their project, and extend `EffectDescriptorMap` via `declare global` — no `tsconfig.json` `"paths"` config required:
 ```typescript
 // modder's custom-effects.d.ts
-declare module 'eos-engine' {
+declare global {
   interface EffectDescriptorMap {
     teleportMonster: { from: 'hand' | 'field'; to: 'hand' | 'field' };
   }
 }
+export {};
 ```
 
 ---
@@ -544,6 +576,13 @@ export const TriggerBus = {
 ```
 
 **Engine integration**: Replace hardcoded `executeEffects(card, 'onSummon', ...)` calls in `engine.ts` with `TriggerBus.emit('onSummon', ctx)`. The effect dispatcher subscribes to all built-in triggers at init.
+
+**Test isolation**: The `handlers` map is module-level state and persists between test files in Vitest. Add `TriggerBus.clear()` to `tests/setup.js` in an `afterEach` (or `beforeEach`) hook so each test starts with a clean bus:
+```javascript
+// tests/setup.js
+import { TriggerBus } from '../js/trigger-bus.js';
+afterEach(() => { TriggerBus.clear(); });
+```
 
 **Mod API exposure**:
 ```typescript
@@ -620,6 +659,37 @@ window.EchoesOfSanguoMod.unloadModTcg('https://mod-author.com/my-expansion.tcg')
 | Add new engine lifecycle trigger points | ❌ | Needs engine update (to add `TriggerBus.emit()` call) |
 
 **Format version forward-compatibility**: The `SUPPORTED_FORMAT_VERSION` guard stays in the package loader. When a mod ships a v3 `.tcg` and the game only supports v2, it throws `TcgFormatError` with a clear message. The game repo updates the package version to gain v3 support — same flow as today with an inline version bump.
+
+---
+
+## Known Limitations / Follow-up Issues
+
+These are intentional v1 gaps that should be tracked as GitHub issues at implementation time so they don't get forgotten.
+
+### 1. `unloadMod` is a partial unload
+
+`unloadMod(source)` removes cards and opponents added by the mod, but does **not** revert:
+- Fusion recipes / formulas added by the mod
+- Shop data changes
+- Campaign data changes
+- Rule overrides
+- Type metadata changes (races, attributes, card types, rarities)
+
+A full unload would require snapshotting all stores before each `loadAndApplyTcg` call and restoring them on unload. This is a significant complexity increase and is deferred to v2. The current docstring on `unloadMod` honestly documents this limitation.
+
+**Track as**: `feat(bridge): full mod unload via store snapshots` — capture pre-load state in `loadAndApplyTcg`, restore it in `unloadMod`.
+
+### 2. No card ID namespacing
+
+When a mod ships a card with the same numeric ID as an existing card, the bridge logs a warning but silently overwrites. A namespacing convention (e.g. `modname:42`) would prevent conflicts entirely but requires changes to `CardData.id` typing and all lookup sites. Deferred to v2.
+
+**Track as**: `feat(bridge): card ID namespace support for mod cards`.
+
+### 3. CLI does not validate effect strings semantically
+
+`npx @wynillo/tcg-format validate <dir>` checks JSON structure and int ranges but does not validate effect string content (unknown action types, wrong arg counts). This is intentional — the package treats effects as opaque — but modders would benefit from a `--engine-validate` flag that accepts a path to `eos-engine.d.ts` and checks effect strings against known types.
+
+**Track as**: `feat(cli): --engine-validate flag for semantic effect string checking`.
 
 ---
 
