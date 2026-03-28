@@ -13,13 +13,16 @@ The goal is to create a standalone `@wynillo/tcg-format` npm package in its own 
 **Move to `@wynillo/tcg-format` package:**
 - `js/tcg-format/index.ts` — public export barrel
 - `js/tcg-format/types.ts` — TcgCard, TcgManifest, TcgMeta, etc.
-- `js/tcg-format/enums.ts` — bidirectional int↔string converters (refactored to remove game imports)
-- `js/tcg-format/tcg-loader.ts` — refactored to return pure data (no global store mutations)
-- `js/tcg-format/tcg-validator.ts`, `card-validator.ts`, `def-validator.ts`, `opp-desc-validator.ts` — pure validation
+- `js/tcg-format/tcg-loader.ts` — refactored to return pure data (no global store mutations, no browser globals)
+- `js/tcg-format/tcg-validator.ts` — pure validation (no effect imports)
+- `js/tcg-format/card-validator.ts` — **remove the `isValidEffectString` import and call** (line 8 + line 85); effect strings are opaque in the package; engine validates after loading
+- `js/tcg-format/def-validator.ts`, `opp-desc-validator.ts` — pure validation, no changes needed
 
 **Stay in game repo (move from `js/tcg-format/` to `js/`):**
+- `js/tcg-format/enums.ts` → `js/enums.ts` — keeps game enum imports; converters are identity mappings; package does NOT export converters
 - `js/tcg-format/effect-serializer.ts` → `js/effect-serializer.ts` — uses game effect types; package treats effects as opaque strings
 - `js/tcg-format/tcg-builder.ts` → `js/tcg-builder.ts` — uses `CardData`, `TYPE_META`; needed for `generate:tcg`
+- `js/tcg-format/generate-base-tcg.ts` → `js/generate-base-tcg.ts` — CLI packing script; replaced by thin wrapper calling package's `packTcgArchive()`
 
 **Created/updated in game repo:**
 - `js/tcg-bridge.ts` — **NEW** — converts TcgLoadResult → game types, populates stores, mod tracking
@@ -68,14 +71,15 @@ tcg-format/tcg-builder.ts  ← CardData, CardType                      (../types
 
 **Consequence**: `effect-serializer.ts` stays in the game repo (it needs the effect types). It will NOT move to the package. Instead, the remaining `js/tcg-format/` slim down in the engine to just `effect-serializer.ts` + `tcg-builder.ts`, or these two files move to `js/` root.
 
-**How `enums.ts` loses its game dependency**: Change converter signatures from TypeScript enum types to string literal types matching enum values:
-```typescript
-// Before: import { CardType } from '../types.js';
-// After: own string literal type
-export type CardTypeKey = 'Monster' | 'Fusion' | 'Spell' | 'Trap' | 'Equipment';
-export function cardTypeToInt(type: CardTypeKey): number { ... }
-```
-Since `CardType.Monster === 'Monster'` (TypeScript string enum), all call sites in the engine compile without changes.
+**How `enums.ts` loses its game dependency**: The game enums are **numeric** (`CardType.Monster = 1`, `Race.Dragon = 1`, etc.) — they are NOT string enums. The current converters in `enums.ts` are identity mappings: `cardTypeToInt(CardType.Monster)` returns `1 === TCG_TYPE_MONSTER`. There is no string intermediate.
+
+The correct strategy is **Option C — converters stay in the engine, the package doesn't export them**:
+- `js/tcg-format/enums.ts` moves to `js/enums.ts` (engine file), keeping its game imports untouched
+- The package's `src/` has **no converter functions** — it deals purely in raw ints (the wire format already uses ints)
+- `TcgDecodedCard` uses `number` fields for type/attribute/race/rarity (same numeric values as the engine enums, but typed as `number` in the package's namespace)
+- The bridge's `decodedToCardData` is a trivial spread — TypeScript numeric enum values are assignable to `number`, so `{ ...decoded, effect }` is type-safe without casting
+
+This means no call sites in the engine change at all.
 
 ---
 
@@ -158,52 +162,48 @@ This means:
 - The package is simpler (no grammar code to maintain)
 - Modders writing `.tcg` files compose effect strings as plain text in `cards.json` — they don't need a parser
 
-### Step 4 — Refactor `enums.ts` (remove game imports)
+### Step 4 — Move `enums.ts` to the engine (keep game imports)
 
-Replace all `CardType` references with inline string literals:
-```typescript
-// Before
-import { CardType } from '../types.js';
-export function cardTypeToInt(type: CardType): number { ... }
+The game enums are **numeric** (`CardType.Monster = 1`, not `'Monster'`). The converters are identity mappings. Attempting to replace them with string literal types would break every call site in the engine.
 
-// After
-export type CardTypeKey = 'Monster' | 'Fusion' | 'Spell' | 'Trap' | 'Equipment';
-export function cardTypeToInt(type: CardTypeKey): number { ... }
-```
-Same pattern for `AttributeKey`, `RaceKey`, `RarityKey`. Since the main repo's `CardType.Monster === 'Monster'`, all existing call sites pass without changes.
+**Correct approach**: Move `js/tcg-format/enums.ts` → `js/enums.ts` (engine file). Game imports remain. No signature changes. The package exports **no converter functions** — it deals purely in raw ints.
+
+Update all engine-internal import paths from `'./tcg-format/enums.js'` to `'./enums.js'`. The package's `src/` directory has no `enums.ts` file; the string validator functions (`isValidTrigger`, `isValidSpellType`) move inline to the validator files that need them.
 
 ### Step 5 — Add `TcgDecodedCard` to `js/tcg-format/types.ts`
 
-The package's loader needs to return fully-decoded card objects (with enum string values, parsed effects) without using the game's `CardData` type. Add a new type to `src/types.ts`:
+The package's loader returns decoded card objects without using game types. Since the game enums are numeric, `TcgDecodedCard` uses `number` for all int fields (same values as the engine enums — no conversion needed in the bridge):
 
 ```typescript
 // src/types.ts — package-native decoded card (no game imports)
 export interface TcgDecodedCard {
-  id:           string;          // stringified numeric id (e.g. "42")
+  id:           string;    // stringified numeric id (e.g. "42")
   name:         string;
-  type:         CardTypeKey;     // 'Monster' | 'Fusion' | ...
-  attribute?:   AttributeKey;
-  race?:        RaceKey;
-  rarity?:      RarityKey;
+  type:         number;    // TCG_TYPE_MONSTER etc — same value as CardType enum
+  attribute?:   number;    // TCG_ATTR_* — same value as Attribute enum
+  race?:        number;    // TCG_RACE_* — same value as Race enum
+  rarity?:      number;    // TCG_RARITY_* — same value as Rarity enum
   level?:       number;
   atk?:         number;
   def?:         number;
   description:  string;
-  effectString?: string;         // raw serialized effect string (package doesn't interpret)
-  spellType?:   string;
-  trapTrigger?: string;
-  target?:      string;
+  effectString?: string;   // raw serialized effect string (package treats as opaque)
+  spellType?:   number;    // 1=normal, 2=targeted, 3=fromGrave, 4=field
+  trapTrigger?: number;    // 1=onAttack, 2=onOwnMonsterAttacked, etc.
+  target?:      string;    // targeting hint: 'ownMonster', 'oppMonster', etc.
   atkBonus?:    number;
   defBonus?:    number;
-  equipRequirement?: { race?: RaceKey; attr?: AttributeKey };
+  equipRequirement?: { race?: number; attr?: number };
 }
 ```
 
-Note: `effectString` is kept as a raw string — the package doesn't decode it to `CardEffectBlock` (that's the engine's job). The engine bridge calls its own `deserializeEffect(card.effectString)` to produce a typed `CardEffectBlock`.
+The bridge's `decodedToCardData` is a trivial spread — TypeScript numeric enum values are structurally compatible with `number`, so `{ ...decoded, effect }` satisfies `CardData` without a cast. No int↔enum conversion step needed.
 
-The game's `CardData` in `js/types.ts` remains the source of truth for the game, with its own `effect?: CardEffectBlock`. The bridge converts `TcgDecodedCard → CardData` by deserializing the effect string.
+The game's `CardData` in `js/types.ts` remains the source of truth, with its own `effect?: CardEffectBlock`. The bridge converts `TcgDecodedCard → CardData` only by deserializing the `effectString`.
 
 ### Step 6 — Refactor `tcg-loader.ts` (eliminate side effects)
+
+> **Scope note**: The current `loadTcgFile()` is ~330 lines and applies data as side effects (mutating 6 global stores, calling `applyTypeMeta`, `applyRules`, `applyShopData`, `applyCampaignData`, creating blob URLs, detecting locale via `navigator.language`). This step touches nearly every section of the loader. It should be done in a dedicated commit or PR and treated as the most complex single step of the migration.
 
 Remove all game store imports. Change `loadTcgFile()` to return all data instead of applying it:
 
@@ -211,7 +211,7 @@ Remove all game store imports. Change `loadTcgFile()` to return all data instead
 ```typescript
 interface TcgLoadResult {
   cards: TcgCard[];                         // raw int-based cards from cards.json
-  decodedCards: TcgDecodedCard[];           // int→string converted, effect as opaque string
+  decodedCards: TcgDecodedCard[];           // decoded, effect as opaque string, all fields numeric
   definitions: Map<string, TcgCardDefinition[]>;  // locale → definitions
   rawImages: Map<number, ArrayBuffer>;      // card id → raw PNG bytes (NOT blob URLs — loader is environment-agnostic)
   meta?: TcgMeta;
@@ -232,9 +232,29 @@ interface TcgLoadResult {
 }
 ```
 
-**Key change from current design**: The loader returns raw `ArrayBuffer` for images instead of blob URLs. `URL.createObjectURL` is a browser-only API — the loader would break in Node.js CLI contexts (e.g. `inspect` command). The bridge is responsible for converting `rawImages` to blob URLs in browser contexts. The existing `revokeTcgImages()` function moves to the bridge too.
+**`loadTcgFile` signature change**:
+```typescript
+// Before
+export async function loadTcgFile(
+  source: string | ArrayBuffer,
+  options?: { onProgress?: (percent: number) => void }
+): Promise<TcgLoadResult>
 
-The loader does the int→string conversion for `decodedCards` using its own enum converters (no game types needed — uses `CardTypeKey`, `RaceKey`, etc.). The `tcgCardToCardData()` function is removed — the bridge in the engine handles `TcgDecodedCard → CardData` conversion (mainly deserializing the effect string).
+// After — lang is a parameter, not detected from browser globals
+export async function loadTcgFile(
+  source: string | ArrayBuffer,
+  options?: {
+    lang?: string;                         // e.g. 'en', 'de' — defaults to '' (first locale wins)
+    onProgress?: (percent: number) => void;
+  }
+): Promise<TcgLoadResult>
+```
+
+Remove `getBrowserLang()` / `navigator.language` from the loader. The bridge passes `navigator.language.substring(0, 2)` from the browser context. The CLI passes `options.lang` from a `--lang` flag.
+
+**Two other key changes**:
+1. `URL.createObjectURL` is browser-only — the loader returns raw `ArrayBuffer` per image. The bridge creates blob URLs. `revokeTcgImages()` moves to the bridge.
+2. `tcgCardToCardData()` is removed from the loader — the bridge handles `TcgDecodedCard → CardData` conversion (only the `effectString` deserialization differs between the two types).
 
 ### Step 7 — Refactor `js/tcg-format/tcg-builder.ts`
 
@@ -262,12 +282,20 @@ In the game repo:
 
 ### Step 9 — Move engine files out of `js/tcg-format/`
 
-Before the package extraction, move the two files that stay in the engine:
+Before the package extraction, move the three files that stay in the engine:
+- `js/tcg-format/enums.ts` → `js/enums.ts`
+  - No import changes needed (game enum imports were already there)
 - `js/tcg-format/effect-serializer.ts` → `js/effect-serializer.ts`
   - Update `'../types.js'` → `'./types.js'`
-  - Update `'./enums.js'` → `'@wynillo/tcg-format'` (the enum converters it uses — `intToRace`, `attributeToInt`, etc. — live in the package now; this is a valid dependency direction: engine → package)
-- `js/tcg-format/tcg-builder.ts` → `js/tcg-builder.ts` (update imports similarly)
+  - Update `'./enums.js'` → `'./enums.js'` (same file, now at `js/enums.ts`)
+- `js/tcg-format/tcg-builder.ts` → `js/tcg-builder.ts`
+  - Update `'../types.js'` → `'./types.js'`
+  - Update `'./enums.js'` → `'./enums.js'` (engine's own enums file)
+  - Update `'./effect-serializer.js'` → `'./effect-serializer.js'`
+  - Update `'../type-metadata.js'` → `'./type-metadata.js'`
 - Update all imports across the codebase that reference these files at their old paths.
+
+**Dependency note**: After this step, `js/tcg-builder.ts` imports from both `@wynillo/tcg-format` (for `TcgCard`, `TcgManifest` format types) AND `./effect-serializer.js` (for `serializeEffect`). Engine → Package is the correct direction; there is no bidirectional dependency since the package never imports from the engine.
 
 Tests green. Now `js/tcg-format/` contains ONLY files destined for the package.
 
@@ -327,7 +355,8 @@ export async function loadAndApplyTcg(
   source: string | ArrayBuffer,
   onProgress?: (percent: number) => void,
 ): Promise<TcgLoadResult> {
-  const result = await loadTcgFile(source, { onProgress });
+  const lang = typeof navigator !== 'undefined' ? navigator.language.substring(0, 2) : '';
+  const result = await loadTcgFile(source, { lang, onProgress });
   const mod: LoadedMod = {
     source: typeof source === 'string' ? source : '<ArrayBuffer>',
     cardIds: [], opponentIds: [], timestamp: Date.now(),
@@ -361,12 +390,12 @@ export async function loadAndApplyTcg(
 }
 
 /**
- * Unload a previously loaded mod by removing its cards and opponents from the game stores.
- * NOTE: This is a partial unload — removes cards and opponents only.
+ * Partial unload — removes cards and opponents added by this mod only.
  * Does NOT revert: fusion recipes/formulas, shop data, campaign data, rules, or type metadata.
- * A full unload would require snapshotting all stores before load, which is a v2 feature.
+ * Renamed from `unloadMod` to set correct expectations. Full unload is a v2 feature.
  */
-export function unloadMod(source: string): boolean {
+export function unloadModCards(source: string): boolean {
+  console.warn('[EOS] unloadModCards: partial unload — fusion recipes, shop data, campaign data, rules, and type metadata from this mod are NOT reverted.');
   const idx = loadedMods.findIndex(m => m.source === source);
   if (idx === -1) return false;
   const mod = loadedMods[idx];
@@ -422,7 +451,9 @@ await packTcgArchive(src, out);
 
 Or modders use the CLI: `npx @wynillo/tcg-format pack ./my-mod/ -o my-mod.tcg`
 
-### Step 15 — Add TriggerBus
+### Step 15 — Add TriggerBus *(optional — consider splitting to follow-up PR)*
+
+> **Scope note**: Steps 15–16 are independent of the TCG package extraction. They add modder value but increase the risk and size of an already large migration. If the PR is already large, consider shipping Steps 1–14 + 17 as the package extraction PR, and deferring Steps 15–16 to a follow-up.
 
 Create `js/trigger-bus.ts` (see TriggerBus section). Replace hardcoded trigger dispatch in `engine.ts` with `TriggerBus.emit()`. Expose `emitTrigger` + `addTriggerHook` in mod API. Tests green.
 
@@ -432,16 +463,24 @@ Add CI step to produce the standalone `.d.ts` file from `js/types.ts` + `js/mod-
 
 ### Step 17 — Update tests
 
+**`tests/tcg-format.test.js` must be split before moving**:
+- Currently tests both enum converters (movable) and effect serializer round-trips (must stay in engine). Split into:
+  - `tests/tcg-format.test.js` → keep only validator tests; move to package repo
+  - `tests/effect-serializer.test.js` → effect string round-trip tests; stay in main repo
+
+**`tests/setup.js` must be updated**:
+- Currently calls `loadTcgFile(buf)` which populates global stores as a side effect. After Step 6, the loader is pure — tests that need populated stores must go through the bridge. Update setup to call `loadAndApplyTcg(buf)` via the bridge.
+
 **Move to package repo:**
-- `tests/tcg-format.test.js` — enum converters, validators
-- `tests/tcg-loader.test.js` — adapted for new pure API (assert on `TcgLoadResult`, no global store assertions)
+- `tests/tcg-format.test.js` (validators only, after split above)
+- `tests/tcg-loader.test.js` — adapted for new pure API: assert on `TcgLoadResult` fields (`decodedCards`, `rawImages`, `typeMeta`, etc.); no global store assertions; pass explicit `lang: 'en'` option
 - `tests/tcg-validator.test.js` — archive validation tests
 - `tests/tcg-packer.test.js` — new: test `packTcgArchive()` round-trips correctly
 
 **Stay in main repo:**
 - `tests/card-data-integrity.test.js` — imports `isValidEffectString` from `js/effect-serializer.ts` (unchanged)
+- `tests/effect-serializer.test.js` — new home for effect string round-trip tests (moved from tcg-format.test.js)
 - `tests/tcg-bridge.test.js` — new: test `loadAndApplyTcg` populates `CARD_DB`, collision detection, `unloadMod`
-- All effect-serializer tests remain (the serializer stays in the engine)
 
 ---
 
@@ -619,13 +658,13 @@ Community mod authors need to load external `.tcg` files at runtime without a ga
 **Expose via mod API** (`js/mod-api.ts`): Add mod lifecycle methods to `window.EchoesOfSanguoMod`:
 ```typescript
 // New entries in mod-api.ts
-import { loadAndApplyTcg, unloadMod, getLoadedMods } from './tcg-bridge.js';
+import { loadAndApplyTcg, unloadModCards, getLoadedMods } from './tcg-bridge.js';
 const modApi = {
   ...existing,
   /** Load a community .tcg archive and merge its cards into the game. */
   loadModTcg: loadAndApplyTcg,
-  /** Unload a previously loaded mod by its source URL. Returns false if not found. */
-  unloadModTcg: unloadMod,
+  /** Partial unload: removes cards and opponents only. See unloadModCards docstring for limitations. */
+  unloadModCards,
   /** List all currently loaded mods with their card IDs and load order. */
   getLoadedMods,
 };
@@ -639,8 +678,8 @@ await window.EchoesOfSanguoMod.loadModTcg('https://mod-author.com/my-expansion.t
 // Check what's loaded
 console.log(window.EchoesOfSanguoMod.getLoadedMods());
 
-// Unload
-window.EchoesOfSanguoMod.unloadModTcg('https://mod-author.com/my-expansion.tcg');
+// Partial unload (cards + opponents only — see unloadModCards docs for limitations)
+window.EchoesOfSanguoMod.unloadModCards('https://mod-author.com/my-expansion.tcg');
 ```
 
 **Collision detection**: When a mod card overwrites an existing card ID, the bridge logs a warning in `result.warnings`. This surfaces in the console so modders can debug conflicts. A future improvement could add card ID namespacing (`modname:42` convention) but this is not required for v1.
@@ -666,7 +705,7 @@ window.EchoesOfSanguoMod.unloadModTcg('https://mod-author.com/my-expansion.tcg')
 
 These are intentional v1 gaps that should be tracked as GitHub issues at implementation time so they don't get forgotten.
 
-### 1. `unloadMod` is a partial unload
+### 1. `unloadMod` is a partial unload — rename to `unloadModCards`
 
 `unloadMod(source)` removes cards and opponents added by the mod, but does **not** revert:
 - Fusion recipes / formulas added by the mod
@@ -675,9 +714,14 @@ These are intentional v1 gaps that should be tracked as GitHub issues at impleme
 - Rule overrides
 - Type metadata changes (races, attributes, card types, rarities)
 
-A full unload would require snapshotting all stores before each `loadAndApplyTcg` call and restoring them on unload. This is a significant complexity increase and is deferred to v2. The current docstring on `unloadMod` honestly documents this limitation.
+A modder calling `unloadMod` would reasonably expect a full rollback. To set correct expectations:
+- **Rename the function to `unloadModCards`** in the bridge and mod API
+- **Log a console warning** at call time: `console.warn('[EOS] unloadModCards: partial unload — fusion recipes, shop data, campaign data, rules, and type metadata from this mod are NOT reverted.')`)
+- Update the mod API surface: `unloadModTcg` → `unloadModCards` on `window.EchoesOfSanguoMod`
 
-**Track as**: `feat(bridge): full mod unload via store snapshots` — capture pre-load state in `loadAndApplyTcg`, restore it in `unloadMod`.
+A full unload would require snapshotting all stores before load and restoring them — deferred to v2.
+
+**Track as**: `feat(bridge): full mod unload via store snapshots` — capture pre-load state in `loadAndApplyTcg`, restore it in `unloadModCards`.
 
 ### 2. No card ID namespacing
 
