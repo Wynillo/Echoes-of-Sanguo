@@ -20,8 +20,7 @@ import PackOpeningScreen from './screens/PackOpeningScreen.js';
 import GameScreen       from './screens/GameScreen.js';
 import DeckbuilderScreen  from './screens/DeckbuilderScreen.js';
 import SavePointScreen   from './screens/SavePointScreen.js';
-import DefeatedScreen    from './screens/DefeatedScreen.js';
-import VictoryScreen     from './screens/VictoryScreen.js';
+import DuelResultScreen  from './screens/DuelResultScreen.js';
 
 import { HoverPreview }        from './components/HoverPreview.js';
 import { CardActivationOverlay } from './components/CardActivationOverlay.js';
@@ -49,8 +48,7 @@ function Router() {
       )}
       {screen === 'deckbuilder'  && <DeckbuilderScreen />}
       {screen === 'save-point'   && <SavePointScreen />}
-      {screen === 'defeated'     && <DefeatedScreen />}
-      {screen === 'victory'      && <VictoryScreen />}
+      {screen === 'duel-result'   && <DuelResultScreen />}
       <HoverPreview />
       <CardActivationOverlay />
       <AnimSkipOverlay />

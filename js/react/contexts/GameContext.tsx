@@ -141,7 +141,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         openModalRef.current({ type: 'coin-toss', playerGoesFirst, resolve });
       });
     },
-    onDuelEnd: (result, opponentId) => {
+    onDuelEnd: (result, opponentId, stats) => {
       // Clear engine refs synchronously so beforeunload won't re-save a stale checkpoint
       gameRef.current = null;
       gameStateRef.current = null;
@@ -151,6 +151,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       import('../../progression.js').then(({ Progression }) => Progression.clearDuelCheckpoint());
 
       Audio.playMusic(result === 'victory' ? 'music_victory' : 'music_defeat');
+
+      /** Helper to build duel-result screen data */
+      const resultData = (
+        r: 'victory' | 'defeat',
+        extra?: Record<string, unknown>,
+      ): Record<string, unknown> => ({ result: r, stats, ...extra });
 
       // Campaign duel
       const pending = pendingDuelRef.current;
@@ -195,22 +201,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               refreshRef.current();
               refreshCampaignRef.current();
               if (pending.postDialogue && pending.postDialogue.length > 0) {
-                navigateToRef.current('victory', {
+                navigateToRef.current('duel-result', resultData('victory', {
+                  rewards: pending.rewards,
                   nextScreen: 'dialogue',
                   dialogueData: {
                     scene: pending.postDialogue as unknown as Record<string, unknown>,
                     nextScreen: 'campaign',
                   },
-                });
+                }));
               } else {
-                navigateToRef.current('victory', { nextScreen: 'campaign' });
+                navigateToRef.current('duel-result', resultData('victory', {
+                  rewards: pending.rewards,
+                  nextScreen: 'campaign',
+                }));
               }
             } else {
               // Defeat in gauntlet — entire gauntlet fails
               setPendingDuelRef.current(null);
               refreshRef.current();
               refreshCampaignRef.current();
-              navigateToRef.current('defeated');
+              navigateToRef.current('duel-result', resultData('defeat'));
             }
           });
           return;
@@ -241,17 +251,21 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           refreshRef.current();
           refreshCampaignRef.current();
           if (result === 'victory' && pending.postDialogue && pending.postDialogue.length > 0) {
-            navigateToRef.current('victory', {
+            navigateToRef.current('duel-result', resultData('victory', {
+              rewards: pending.rewards,
               nextScreen: 'dialogue',
               dialogueData: {
                 scene: pending.postDialogue as unknown as Record<string, unknown>,
                 nextScreen: 'campaign',
               },
-            });
+            }));
           } else if (result === 'victory') {
-            navigateToRef.current('victory', { nextScreen: 'campaign' });
+            navigateToRef.current('duel-result', resultData('victory', {
+              rewards: pending.rewards,
+              nextScreen: 'campaign',
+            }));
           } else if (isComplete && pending.postDialogue && pending.postDialogue.length > 0) {
-            // completeOnLoss with post-dialogue — show dialogue, skip victory screen
+            // completeOnLoss with post-dialogue — show dialogue, skip duel-result screen
             navigateToRef.current('dialogue', {
               scene: pending.postDialogue as unknown as Record<string, unknown>,
               nextScreen: 'campaign',
@@ -259,8 +273,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           } else if (isComplete) {
             navigateToRef.current('campaign');
           } else {
-            // Defeat in campaign: go straight to defeated screen
-            navigateToRef.current('defeated');
+            // Defeat in campaign: go to duel-result screen
+            navigateToRef.current('duel-result', resultData('defeat'));
           }
         }).catch(e => console.error('[GameContext] Failed to apply campaign duel result:', e));
         return;

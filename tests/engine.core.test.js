@@ -384,20 +384,20 @@ describe('checkWin', () => {
     const { engine, cb } = makeEngine();
     engine.state.player.lp = 0;
     engine.checkWin();
-    expect(cb.onDuelEnd).toHaveBeenCalledWith('defeat', expect.anything());
+    expect(cb.onDuelEnd).toHaveBeenCalledWith('defeat', expect.anything(), expect.anything());
   });
 
   it('opponent LP = 0 → onDuelEnd called with victory', () => {
     const { engine, cb } = makeEngine();
     engine.state.opponent.lp = 0;
     engine.checkWin();
-    expect(cb.onDuelEnd).toHaveBeenCalledWith('victory', expect.anything());
+    expect(cb.onDuelEnd).toHaveBeenCalledWith('victory', expect.anything(), expect.anything());
   });
 
   it('dealDamage to 0 triggers win check', () => {
     const { engine, cb } = makeEngine();
     engine.dealDamage('opponent', 99999);
-    expect(cb.onDuelEnd).toHaveBeenCalledWith('victory', expect.anything());
+    expect(cb.onDuelEnd).toHaveBeenCalledWith('victory', expect.anything(), expect.anything());
   });
 
   it('returns false when both players still alive', () => {

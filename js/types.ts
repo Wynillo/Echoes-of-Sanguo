@@ -308,6 +308,21 @@ export interface GameState {
   firstTurnNoAttack?: boolean;
 }
 
+// ── Duel statistics (tracked by the engine per duel) ────────
+
+export interface DuelStats {
+  turns:            number;
+  monstersPlayed:   number;
+  fusionsPerformed: number;
+  spellsActivated:  number;
+  trapsActivated:   number;
+  cardsDrawn:       number;
+  lpRemaining:      number;
+  opponentLpRemaining: number;
+  deckRemaining:    number;
+  graveyardSize:    number;
+}
+
 // ── UI callbacks ─────────────────────────────────────────────
 
 export interface BattleContext {
@@ -343,7 +358,7 @@ export interface UICallbacks {
   playVFX?:             (type: 'buff' | 'heal' | 'damage', owner: Owner, zone?: number) => Promise<void>;
   playSfx?:             (sfxId: string) => void;
   onDraw?:              (owner: Owner, count: number) => void;
-  onDuelEnd?:           (result: 'victory' | 'defeat', oppId: number | null) => void;
+  onDuelEnd?:           (result: 'victory' | 'defeat', oppId: number | null, stats: DuelStats) => void;
   showCoinToss?:        (playerGoesFirst: boolean) => Promise<void>;
 }
 

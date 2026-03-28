@@ -346,14 +346,22 @@
     "attr_light": "Licht",
     "attr_dark": "Dunkel"
   },
-  "defeated": {
-    "title": "NIEDERLAGE",
-    "message": "Deine Truppen sind gefallen. Doch jeder Krieger kann wieder aufstehen...",
-    "continue": "BELIEBIGE TASTE DRÜCKEN"
-  },
-  "victory": {
-    "title": "SIEG",
-    "message": "Deine Truppen haben triumphiert! Ruhm hallt durch das ganze Land...",
-    "continue": "BELIEBIGE TASTE DRÜCKEN"
+  "duelResult": {
+    "victory_title": "SIEG",
+    "defeat_title": "NIEDERLAGE",
+    "victory_message": "Deine Truppen haben triumphiert! Ruhm hallt durch das ganze Land...",
+    "defeat_message": "Deine Truppen sind gefallen. Doch jeder Krieger kann wieder aufstehen...",
+    "continue": "BELIEBIGE TASTE DRÜCKEN",
+    "coins_earned": "+{{coins}} Jadesteine",
+    "cards_earned": "+{{count}} Karte(n) erhalten",
+    "new_unlock": "Neuer Pfad freigeschaltet!",
+    "stats_title": "Duell-Zusammenfassung",
+    "stat_turns": "Runden",
+    "stat_monsters": "Monster beschworen",
+    "stat_fusions": "Fusionen",
+    "stat_spells": "Zauber eingesetzt",
+    "stat_traps": "Fallen eingesetzt",
+    "stat_deck": "Karten im Deck",
+    "stat_lp": "LP verbleibend"
   }
 }

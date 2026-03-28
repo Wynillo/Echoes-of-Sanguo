@@ -45,7 +45,7 @@ export function ResultModal({ modal }: Props) {
   function backToTitle() {
     closeModal();
     refresh();
-    navigateTo(campaignDuel ? 'defeated' : 'save-point');
+    navigateTo(campaignDuel ? 'duel-result' : 'save-point', campaignDuel ? { result: 'defeat' } : undefined);
   }
 
   return (

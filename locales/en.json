@@ -346,14 +346,22 @@
     "attr_light": "Light",
     "attr_dark": "Dark"
   },
-  "defeated": {
-    "title": "DEFEAT",
-    "message": "Your forces have fallen. But every warrior can rise again...",
-    "continue": "PRESS ANY KEY"
-  },
-  "victory": {
-    "title": "VICTORY",
-    "message": "Your forces have triumphed! Glory echoes across the land...",
-    "continue": "PRESS ANY KEY"
+  "duelResult": {
+    "victory_title": "VICTORY",
+    "defeat_title": "DEFEAT",
+    "victory_message": "Your forces have triumphed! Glory echoes across the land...",
+    "defeat_message": "Your forces have fallen. But every warrior can rise again...",
+    "continue": "PRESS ANY KEY",
+    "coins_earned": "+{{coins}} Jade Coins",
+    "cards_earned": "+{{count}} Card(s) Obtained",
+    "new_unlock": "New path unlocked!",
+    "stats_title": "Duel Summary",
+    "stat_turns": "Turns",
+    "stat_monsters": "Monsters Summoned",
+    "stat_fusions": "Fusions",
+    "stat_spells": "Spells Used",
+    "stat_traps": "Traps Used",
+    "stat_deck": "Cards in Deck",
+    "stat_lp": "LP Remaining"
   }
 }

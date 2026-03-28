@@ -6,7 +6,7 @@ import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, res
 import { executeEffectBlock, matchesFilter } from './effect-registry.js';
 import { CardType } from './types.js';
 import { meetsEquipRequirement } from './types.js';
-import type { Owner, Phase, Position, CardData, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior } from './types.js';
+import type { Owner, Phase, Position, CardData, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types.js';
 
@@ -74,11 +74,20 @@ export class GameEngine {
   _trapResolve: ((result: boolean) => void) | null;
   _currentOpponentId: number | null;
   _aiBehavior!: Required<AIBehavior>;
+  _stats!: DuelStats;
 
   constructor(uiCallbacks: UICallbacks){
     this.ui = uiCallbacks; // { render, log, prompt, showResult, onDuelEnd }
     this._trapResolve = null;
     this._currentOpponentId = null;
+  }
+
+  _initStats(): void {
+    this._stats = {
+      turns: 0, monstersPlayed: 0, fusionsPerformed: 0,
+      spellsActivated: 0, trapsActivated: 0, cardsDrawn: 0,
+      lpRemaining: 0, opponentLpRemaining: 0, deckRemaining: 0, graveyardSize: 0,
+    };
   }
 
   // ───────── Init ─────────────────────────────────────────
@@ -88,6 +97,7 @@ export class GameEngine {
    */
   async initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null){
     EchoesOfSanguo.startSession();
+    this._initStats();
     const oppDeckIds = (opponentConfig && opponentConfig.deckIds) ? opponentConfig.deckIds : OPPONENT_DECK_IDS;
     this._currentOpponentId = (opponentConfig && opponentConfig.id) ? opponentConfig.id : null;
     this._aiBehavior = resolveAIBehavior(opponentConfig?.behaviorId);
@@ -154,6 +164,7 @@ export class GameEngine {
    */
   restoreGame(checkpoint: SerializedCheckpoint): void {
     EchoesOfSanguo.startSession();
+    this._initStats();
     this._currentOpponentId = checkpoint.opponentId;
     this._aiBehavior = resolveAIBehavior(checkpoint.opponentBehaviorId);
 
@@ -290,9 +301,16 @@ export class GameEngine {
   }
 
   _endDuel(result: 'victory' | 'defeat'){
+    // Snapshot final stats from current game state
+    this._stats.turns = this.state.turn;
+    this._stats.lpRemaining = this.state.player.lp;
+    this._stats.opponentLpRemaining = this.state.opponent.lp;
+    this._stats.deckRemaining = this.state.player.deck.length;
+    this._stats.graveyardSize = this.state.player.graveyard.length;
+
     // onDuelEnd allows progression evaluation in the UI layer
     if(typeof this.ui.onDuelEnd === 'function'){
-      this.ui.onDuelEnd(result, this._currentOpponentId);
+      this.ui.onDuelEnd(result, this._currentOpponentId, { ...this._stats });
     } else {
       this.ui.showResult?.(result);
     }
@@ -315,6 +333,7 @@ export class GameEngine {
     }
     // hand limit (draw cap)
     while(st.hand.length > GAME_RULES.handLimitDraw) st.hand.shift();
+    if (owner === 'player') this._stats.cardsDrawn += drawn;
     if(drawn > 0 && this.ui.onDraw) this.ui.onDraw(owner, drawn);
   }
 
@@ -339,6 +358,7 @@ export class GameEngine {
     const fc = new FieldCard(card, position, faceDown);
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
+    if (owner === 'player') this._stats.monstersPlayed++;
     const posStr = faceDown ? 'face-down DEF' : position.toUpperCase();
     this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
     this.ui.playSfx?.('sfx_card_play');
@@ -374,6 +394,7 @@ export class GameEngine {
     const fc = new FieldCard(card, 'atk');
     fc.summonedThisTurn = false; // special summons can usually attack (or keep true for balance)
     st.field.monsters[zone] = fc;
+    if (owner === 'player') this._stats.monstersPlayed++;
     this.addLog(`${ownerLabel(owner)}: ${card.name} Special Summon!`);
     this.ui.playSfx?.('sfx_card_play');
     this._recalcFieldSpellBonuses(fc);
@@ -392,6 +413,7 @@ export class GameEngine {
     const fc = new FieldCard(c, 'atk');
     fc.summonedThisTurn = false;
     st.field.monsters[zone] = fc;
+    if (owner === 'player') this._stats.monstersPlayed++;
     this.addLog(`${ownerLabel(owner)}: ${c.name} summoned from graveyard!`);
     this.ui.playSfx?.('sfx_card_play');
     this._recalcFieldSpellBonuses(fc);
@@ -419,6 +441,7 @@ export class GameEngine {
     const card = st.hand[handIndex];
     if(!card || card.type !== CardType.Spell){ this.addLog('Not a spell card!'); return false; }
     st.hand.splice(handIndex, 1);
+    if (owner === 'player') this._stats.spellsActivated++;
     this.addLog(`${ownerLabel(owner)}: ${card.name} activated!`);
     this.ui.playSfx?.('sfx_spell');
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
@@ -438,6 +461,7 @@ export class GameEngine {
     const fst = st.field.spellTraps[zone];
     if(!fst || fst.card.type !== CardType.Spell) return false;
     fst.faceDown = false;
+    if (owner === 'player') this._stats.spellsActivated++;
     this.addLog(`${ownerLabel(owner)}: ${fst.card.name} activated!`);
     if(this.ui.showActivation) await this.ui.showActivation(fst.card, fst.card.description);
     if(fst.card.effect) try {
@@ -458,6 +482,7 @@ export class GameEngine {
     if(!fst || fst.card.type !== CardType.Trap || fst.used) return null;
     fst.used = true;
     fst.faceDown = false;
+    if (owner === 'player') this._stats.trapsActivated++;
     this.addLog(`${ownerLabel(owner)}: Trap ${fst.card.name} activated!`);
     this.ui.playSfx?.('sfx_trap');
     if(this.ui.showActivation) await this.ui.showActivation(fst.card, fst.card.description);
@@ -560,6 +585,7 @@ export class GameEngine {
     }
 
     st.field.fieldSpell = new FieldSpellTrap(card, false);
+    if (owner === 'player') this._stats.spellsActivated++;
     this.addLog(`${ownerLabel(owner)}: Field Spell ${card.name} activated!`);
     this.ui.playSfx?.('sfx_spell');
     if (this.ui.showActivation) await this.ui.showActivation(card, card.description);
@@ -655,6 +681,7 @@ export class GameEngine {
     const fusionCardData = CARD_DB[recipe.result];
     if (!fusionCardData) { this.addLog('Fusion result card not found!'); return false; }
 
+    if (owner === 'player') this._stats.fusionsPerformed++;
     this.addLog(`${ownerLabel(owner)}: FUSION! ${card1.name} + ${card2.name} = ${fusionCardData.name}!`);
     this.ui.playSfx?.('sfx_fusion');
 
@@ -713,6 +740,7 @@ export class GameEngine {
 
     // Build log message showing the chain
     const cardNames = handIndices.map(i => hand[i].name);
+    if (owner === 'player') this._stats.fusionsPerformed++;
     this.addLog(`${ownerLabel(owner)}: FUSION! ${cardNames.join(' + ')} = ${finalCard.name}!`);
     this.ui.playSfx?.('sfx_fusion');
 

@@ -15,8 +15,7 @@ export type Screen =
   | 'save-point'
   | 'campaign'
   | 'dialogue'
-  | 'defeated'
-  | 'victory';
+  | 'duel-result';
 
 interface ScreenCtx {
   screen: Screen;
@@ -39,8 +38,7 @@ const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
   collection:     'music_shop',
   deckbuilder:    'music_shop',
   'save-point':   'music_shop',
-  defeated:       'music_defeat',
-  victory:        'music_victory',
+  // duel-result music is set explicitly by GameContext before navigating
 };
 
 export function ScreenProvider({ children }: { children: React.ReactNode }) {
