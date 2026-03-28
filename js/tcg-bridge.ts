@@ -4,8 +4,8 @@
 // All side effects (store mutation, blob URL creation, etc.) happen here.
 // ============================================================
 
-import { loadTcgFile, TcgNetworkError, TcgFormatError } from './tcg-format/tcg-loader.js';
-import type { TcgLoadResult, TcgParsedCard, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from './tcg-format/types.js';
+import { loadTcgFile, TcgNetworkError, TcgFormatError } from '@wynillo/tcg-format';
+import type { TcgLoadResult, TcgParsedCard, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from '@wynillo/tcg-format';
 import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
 import { CardType, Rarity } from './types.js';
 import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from './cards.js';
