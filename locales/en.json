@@ -82,11 +82,11 @@
     "back": "← Back",
     "buy_btn": "Buy Pack",
     "packages_title": "◈ Card Packages",
+    "tab_standard": "Standard Packs",
+    "tab_packages": "Card Packages",
     "locked": "🔒 Locked"
   },
   "pack": {
-    "starter_name": "Starter Pack",
-    "starter_desc": "9 Cards · One Race · C/U-heavy",
     "race_name": "Race Pack",
     "race_desc": "9 Cards · Chosen Race · Standard",
     "aether_name": "Jade Pack",

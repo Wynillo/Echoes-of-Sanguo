@@ -94,17 +94,6 @@ export const SHOP_DATA: ShopData = {
   packages: [],
   packs: [
     {
-      id: 'starter',
-      name: 'Starter Pack',
-      desc: '9 cards \u00b7 One race \u00b7 C/U-heavy',
-      price: 200,
-      icon: '\u2726',
-      color: '#4080a0',
-      slots: STANDARD_SLOTS,
-      filter: 'byRace',
-      cardPool: { include: { maxAtk: 1500 } },
-    },
-    {
       id: 'race',
       name: 'Race Pack',
       desc: '9 cards \u00b7 Chosen race \u00b7 Standard',

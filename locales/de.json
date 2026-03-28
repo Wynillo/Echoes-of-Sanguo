@@ -82,11 +82,11 @@
     "back": "← Zurück",
     "buy_btn": "Pack kaufen",
     "packages_title": "◈ Kartenpakete",
+    "tab_standard": "Standardpacks",
+    "tab_packages": "Kartenpakete",
     "locked": "🔒 Gesperrt"
   },
   "pack": {
-    "starter_name": "Starterpack",
-    "starter_desc": "9 Karten · Eine Rasse · C/U-lastig",
     "race_name": "Rassen-Pack",
     "race_desc": "9 Karten · Gewählte Rasse · Standard",
     "aether_name": "Jade-Pack",

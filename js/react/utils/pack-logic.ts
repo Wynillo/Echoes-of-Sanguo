@@ -171,10 +171,8 @@ export function openPack(packType: string, race: Race | null = null): CardData[]
   const packDef = SHOP_DATA.packs.find(p => p.id === packType);
   if (!packDef) return [];
 
-  const starterRace = Progression.getStarterRace();
   const targetRace: Race | null =
-    packDef.filter === 'byRace' && packType === 'race'    ? race
-    : packDef.filter === 'byRace' && packType === 'starter' ? (starterRace != null ? Number(starterRace) as Race : race)
+    packDef.filter === 'byRace' ? race
     : null;
 
   const rarities = _expandSlots(packDef);

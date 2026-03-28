@@ -1,41 +1,6 @@
 {
   "packs": [
     {
-      "id": "starter",
-      "name": "Starter Pack",
-      "desc": "9 cards · One race · C/U-heavy",
-      "price": 200,
-      "icon": "✦",
-      "color": "#4080a0",
-      "slots": [
-        {
-          "count": 5,
-          "rarity": 1
-        },
-        {
-          "count": 2,
-          "rarity": 2
-        },
-        {
-          "count": 1,
-          "rarity": 4
-        },
-        {
-          "count": 1,
-          "pool": "guaranteed_rare_plus",
-          "distribution": {
-            "4": 0.75,
-            "6": 0.2,
-            "8": 0.05
-          }
-        }
-      ],
-      "filter": "byRace",
-      "cardPool": {
-        "include": { "maxAtk": 1500 }
-      }
-    },
-    {
       "id": "aether",
       "name": "Jade Pack",
       "desc": "9 cards · All races · Standard",

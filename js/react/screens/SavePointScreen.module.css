@@ -33,7 +33,7 @@
   font-size: 0.875rem; color: var(--gold-light); letter-spacing: 1px;
 }
 
-.coinsValue { font-weight: bold; font-size: 1rem; }
+.coinsValue { font-weight: bold; font-size: 1rem; font-family: var(--font-stats); }
 
 .backupWarning {
   font-size: 0.75rem; letter-spacing: 1px;
