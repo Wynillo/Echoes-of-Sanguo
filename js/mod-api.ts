@@ -7,6 +7,7 @@
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './cards.js';
 import { EFFECT_REGISTRY, registerEffect } from './effect-registry.js';
 import { loadAndApplyTcg, unloadModCards, getLoadedMods } from './tcg-bridge.js';
+import { TriggerBus } from './trigger-bus.js';
 
 declare global {
   interface Window {
@@ -33,6 +34,10 @@ const modApi = {
   unloadModCards,
   /** List all currently loaded mods with their card IDs and load order. */
   getLoadedMods,
+  /** Fire effects with a custom trigger name. */
+  emitTrigger: TriggerBus.emit,
+  /** Subscribe to a trigger event (returns unsubscribe function). */
+  addTriggerHook: TriggerBus.on,
 };
 
 window.EchoesOfSanguoMod = modApi;

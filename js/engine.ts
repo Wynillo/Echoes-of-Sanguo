@@ -7,6 +7,7 @@ import { executeEffectBlock, matchesFilter } from './effect-registry.js';
 import { CardType } from './types.js';
 import { meetsEquipRequirement } from './types.js';
 import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
+import { TriggerBus } from './trigger-bus.js';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types.js';
 
@@ -375,6 +376,7 @@ export class GameEngine {
     this._recalcFieldSpellBonuses(fc);
     // trigger onSummon effect for every summon method
     await this._triggerEffect(fc, owner, 'onSummon', zone);
+    TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
     this.ui.render(this.state);
     return true;
   }
@@ -390,6 +392,7 @@ export class GameEngine {
     fc.faceDown = false;
     this.addLog(`${fc.card.name} is flipped face-up (Flip Summon)!`);
     await this._triggerFlipEffect(fc, owner, zone);
+    TriggerBus.emit('onFlip', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
     this.ui.render(this.state);
     return true;
   }
@@ -409,6 +412,7 @@ export class GameEngine {
     this.ui.playSfx?.('sfx_card_play');
     this._recalcFieldSpellBonuses(fc);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
+    TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
     this.ui.render(this.state);
     return true;
   }
@@ -428,6 +432,7 @@ export class GameEngine {
     this.ui.playSfx?.('sfx_card_play');
     this._recalcFieldSpellBonuses(fc);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
+    TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
     this.ui.render(this.state);
     return true;
   }
@@ -702,6 +707,7 @@ export class GameEngine {
 
     this.ui.render(this.state);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
+    TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
     return true;
   }
 
@@ -782,6 +788,7 @@ export class GameEngine {
 
     this.ui.render(this.state);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
+    TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
     return true;
   }
 
@@ -800,6 +807,7 @@ export class GameEngine {
       attFC.position = 'atk';
       this.addLog(`${attFC.card.name} is revealed (attack)!`);
       await this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
+      TriggerBus.emit('onFlip', { engine: this, owner: attackerOwner, card: attFC.card, fieldCard: attFC, zone: attackerZone });
     }
     if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
 
@@ -848,6 +856,7 @@ export class GameEngine {
       attFC.position = 'atk';
       this.addLog(`${attFC.card.name} is flipped face-up (Attack)!`);
       await this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
+      TriggerBus.emit('onFlip', { engine: this, owner: attackerOwner, card: attFC.card, fieldCard: attFC, zone: attackerZone });
     }
     if(attFC.position !== 'atk') return;
 
@@ -870,6 +879,7 @@ export class GameEngine {
       defFC.faceDown = false;
       this.addLog(`${defFC.card.name} is revealed!`);
       await this._triggerFlipEffect(defFC, defOwner, defZone);
+      TriggerBus.emit('onFlip', { engine: this, owner: defOwner, card: defFC.card, fieldCard: defFC, zone: defZone });
     }
 
     const defVal = defFC.combatValue();
@@ -892,6 +902,7 @@ export class GameEngine {
         this.dealDamage(defOwner, dmg);
         // attacker effect: onDestroyByBattle
         await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
+        TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
       } else if(effATK === defVal){
         this.addLog('Tie! Both monsters destroyed!');
         await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
@@ -902,7 +913,9 @@ export class GameEngine {
         await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
         this.dealDamage(atkOwner, dmg);
         await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
+        TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
         await this._triggerEffect(defFC, defOwner, 'onDestroyByBattle', null);
+        TriggerBus.emit('onDestroyByBattle', { engine: this, owner: defOwner, card: defFC.card, fieldCard: defFC });
       }
     } else {
       // defender in DEF mode
@@ -936,6 +949,7 @@ export class GameEngine {
     // Shadow Reaper / onDestroyByBattle for defender
     if(reason === 'battle' && byOwner !== owner){
       await this._triggerEffect(fc, owner, 'onDestroyByOpponent', zone);
+      TriggerBus.emit('onDestroyByOpponent', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
     }
 
     st.graveyard.push(fc.card);

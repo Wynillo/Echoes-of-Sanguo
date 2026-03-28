@@ -1,5 +1,5 @@
 // Minimal localStorage mock for Node environment (used by progression.js)
-import { beforeEach } from 'vitest';
+import { afterEach, beforeEach } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -49,3 +49,7 @@ if (typeof window === 'undefined') {
   const buf = await zip.generateAsync({ type: 'arraybuffer' });
   await loadAndApplyTcg(buf);
 }
+
+// Clean TriggerBus between tests so handlers don't leak across test files
+const { TriggerBus } = await import('../js/trigger-bus.js');
+afterEach(() => { TriggerBus.clear(); });
