@@ -40,7 +40,7 @@ test.describe('Title Screen', () => {
 
   test('new game button is present', async ({ page }) => {
     await passPressStart(page);
-    await expect(page.locator('#title-screen button.btn-menu')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'New Game' })).toBeVisible();
   });
 
   test('options button is present', async ({ page }) => {
