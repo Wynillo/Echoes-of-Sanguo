@@ -116,11 +116,13 @@ Convert the closed `EffectDescriptor` union in `js/types.ts` to an open `EffectD
 
 > **Timing note**: This step can be deferred until after Steps 3–9 (engine prep) are complete on a feature branch. Creating the repo early is useful for team visibility but is not a prerequisite for the code changes. The files don't move to the new repo until Step 12.
 
-Create a new GitHub repo under `wynillo/echoes-of-sanguo-tcg-format`.
+Create the new GitHub repo: **[Wynillo/Echoes-of-Sanguo-TCG](https://github.com/Wynillo/Echoes-of-Sanguo-TCG)**
+
+The main game repo is **[Wynillo/Echoes-of-Sanguo](https://github.com/Wynillo/Echoes-of-Sanguo)**.
 
 New repo structure:
 ```
-echoes-of-sanguo-tcg-format/
+Echoes-of-Sanguo-TCG/
 ├── package.json          # name: "@wynillo/tcg-format", type: module
 ├── tsconfig.json         # target ES2020, moduleResolution: bundler, noEmit: false
 ├── src/
