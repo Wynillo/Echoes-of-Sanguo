@@ -2,15 +2,16 @@ import { useTranslation } from 'react-i18next';
 import { useModal }        from '../contexts/ModalContext.js';
 import { Card }            from '../components/Card.js';
 import { CARD_DB, FUSION_RECIPES } from '../../cards.js';
-import { CardType, isEffectMonster } from '../../types.js';
-import { TYPE_CSS, ATTR_CSS } from '../components/Card.js';
+import { CardType } from '../../types.js';
+import type { CardData } from '../../types.js';
+import { cardTypeCss, ATTR_CSS } from '../components/Card.js';
 
 export function CardListModal() {
   const { openModal, closeModal } = useModal();
   const { t } = useTranslation();
 
-  const allCards = Object.values(CARD_DB) as any[];
-  const groups: Record<string, any[]> = {
+  const allCards: CardData[] = Object.values(CARD_DB);
+  const groups: Record<string, CardData[]> = {
     [t('card_list.group_normal')]:  allCards.filter(c => c.type === CardType.Monster && !c.effect),
     [t('card_list.group_effect')]:  allCards.filter(c => c.type === CardType.Monster && c.effect),
     [t('card_list.group_fusion')]:  allCards.filter(c => c.type === CardType.Fusion),
@@ -28,10 +29,10 @@ export function CardListModal() {
           <div key={groupName}>
             <h3 className="cardlist-group-title">{groupName}</h3>
             <div className="cardlist-row">
-              {cards.map((card: any) => (
+              {cards.map((card) => (
                 <div
                   key={card.id}
-                  className={`card hand-card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
+                  className={`card hand-card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                   style={{ cursor: 'pointer' }}
                   onClick={() => openModal({ type: 'card-detail', card })}
                 >
@@ -41,10 +42,10 @@ export function CardListModal() {
             </div>
             {groupName === fusionGroupName && (
               <div className="fusion-recipes">
-                {(FUSION_RECIPES as any[]).map((r: any, i: number) => {
-                  const c1 = (CARD_DB as any)[r.materials[0]];
-                  const c2 = (CARD_DB as any)[r.materials[1]];
-                  const cr = (CARD_DB as any)[r.result];
+                {FUSION_RECIPES.map((r, i) => {
+                  const c1 = CARD_DB[r.materials[0]];
+                  const c2 = CARD_DB[r.materials[1]];
+                  const cr = CARD_DB[r.result];
                   return (
                     <div key={i} className="recipe-line">
                       {c1.name} + {c2.name} → {cr.name}

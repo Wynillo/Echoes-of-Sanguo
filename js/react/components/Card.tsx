@@ -1,20 +1,39 @@
 // ============================================================
 // Card — visual component that mirrors cardInnerHTML()
 // ============================================================
+import i18next from 'i18next';
 import { CardType } from '../../types.js';
+import type { CardData, FieldCard } from '../../types.js';
 import {
   getRaceById, getAttrById, getRarityById, getCardTypeById,
 } from '../../type-metadata.js';
+import { highlightCardText, highlightCardTextHTML } from '../utils/highlightCardText.js';
 import styles from './Card.module.css';
 
-function getTypeLabel(card: any): string {
-  if (card.type === CardType.Monster && card.effect) return 'Effekt';
+/** Map a card to its type-based placeholder art URL, or null if none available. */
+function getPlaceholderUrl(card: CardData): string | null {
+  switch (card.type) {
+    case CardType.Monster:    return './img/placeholders/monster.svg';
+    case CardType.Fusion:     return './img/placeholders/fusion.svg';
+    case CardType.Trap:       return './img/placeholders/trap.svg';
+    case CardType.Equipment:  return './img/placeholders/equipment.svg';
+    case CardType.Spell:
+      return card.spellType === 'field'
+        ? './img/placeholders/field-spell.svg'
+        : './img/placeholders/spell.svg';
+    default:                  return null;
+  }
+}
+
+function getTypeLabel(card: CardData): string {
+  if (card.type === CardType.Monster && card.effect) return i18next.t('card_detail.type_effect');
   return getCardTypeById(card.type)?.value ?? '';
 }
 
-/** Map CardType enum to CSS class prefix */
-function typeCss(type: number): string {
-  return getCardTypeById(type)?.key.toLowerCase() ?? 'monster';
+/** Map CardType enum to CSS class prefix — distinguishes normal vs effect monsters */
+function typeCss(card: CardData): string {
+  if (card.type === CardType.Monster) return card.effect ? 'effect' : 'normal';
+  return getCardTypeById(card.type)?.key.toLowerCase() ?? 'monster';
 }
 
 /** Map Attribute enum to CSS class suffix */
@@ -24,8 +43,8 @@ function attrCssKey(attr: number | undefined): string {
 }
 
 interface Props {
-  card: any;
-  fc?: any | null;
+  card: CardData;
+  fc?: FieldCard | null;
   dimmed?: boolean;
   rotated?: boolean;
   big?: boolean;
@@ -34,15 +53,24 @@ interface Props {
 }
 
 export function Card({ card, fc = null, dimmed = false, rotated = false, big = false, small = false, extraClass = '' }: Props) {
-  const levelStars = card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
+  const isMonLevelC = card.type === CardType.Monster || card.type === CardType.Fusion;
+  const isEquipment = card.type === CardType.Equipment;
+  const levelStars = isMonLevelC && card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
   const typeLabel  = getTypeLabel(card);
-  const effATK     = fc ? fc.effectiveATK() : (card.atk ?? 0);
-  const effDEF     = fc ? fc.effectiveDEF() : (card.def ?? 0);
-  const boosted    = fc && (fc.permATKBonus || fc.tempATKBonus);
+  const placeholderUrl = getPlaceholderUrl(card);
+  const artStyle: React.CSSProperties | undefined = placeholderUrl
+    ? { backgroundImage: `url(${placeholderUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : undefined;
+  const baseATK    = card.atk ?? 0;
+  const baseDEF    = card.def ?? 0;
+  const effATK     = fc ? fc.effectiveATK() : baseATK;
+  const effDEF     = fc ? fc.effectiveDEF() : baseDEF;
+  const atkStatCls = fc ? (effATK > baseATK ? styles.statBuffed : effATK < baseATK ? styles.statNerfed : '') : '';
+  const defStatCls = fc ? (effDEF > baseDEF ? styles.statBuffed : effDEF < baseDEF ? styles.statNerfed : '') : '';
 
-  const isMonster = card.atk !== undefined;
+  const isMonster = card.atk !== undefined && !isEquipment;
 
   // Attribute orb (top-right)
   const orbColor = attrMeta?.color ?? '#444';
@@ -74,14 +102,25 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
     : `[${typeLabel}]`;
 
   // Stats bar
+  const equipAtkB = card.atkBonus ?? 0;
+  const equipDefB = card.defBonus ?? 0;
+  const eqReq = isEquipment ? card.equipRequirement : undefined;
+  const eqReqLabel = eqReq
+    ? [eqReq.race && getRaceById(eqReq.race)?.value, eqReq.attr && getAttrById(eqReq.attr)?.value].filter(Boolean).join(' / ')
+    : '';
   const statsBar = isMonster
-    ? <div className={`${styles.cardStats}${boosted ? ` ${styles.statBoosted}` : ''}`}>
-        <span className={styles.atkVal}>ATK: {effATK}</span>
-        <span className={styles.defVal}>DEF: {effDEF}</span>
+    ? <div className={styles.cardStats}>
+        <span className={`${styles.atkVal}${atkStatCls ? ` ${atkStatCls}` : ''}`}>ATK: {effATK}</span>
+        <span className={`${styles.defVal}${defStatCls ? ` ${defStatCls}` : ''}`}>DEF: {effDEF}</span>
+      </div>
+    : isEquipment
+    ? <div className={styles.cardStats}>
+        {equipAtkB !== 0 && <span className={styles.atkVal}>ATK {equipAtkB >= 0 ? '+' : ''}{equipAtkB}</span>}
+        {equipDefB !== 0 && <span className={styles.defVal}>DEF {equipDefB >= 0 ? '+' : ''}{equipDefB}</span>}
       </div>
     : <div className={`${styles.cardStats} ${styles.noStats}`} />;
 
-  const tCss = typeCss(card.type);
+  const tCss = typeCss(card);
   const aCss = attrCssKey(card.attribute);
 
   const cls = [
@@ -93,17 +132,27 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
     extraClass,
   ].filter(Boolean).join(' ');
 
-  // Small layout: only artwork area + ATK/DEF
+  // Small layout: artwork + ATK/DEF + name
   if (small) {
     return (
       <div className={cls}>
-        <div className={styles.cardArt} />
+        <div className={styles.cardArt} style={artStyle}>
+          {raceBadge}
+        </div>
         {isMonster
           ? <div className={styles.cardStats}>
-              <span className={styles.atkVal}>ATK: {effATK}</span>
-              <span className={styles.defVal}>DEF: {effDEF}</span>
+              <span className={`${styles.atkVal}${atkStatCls ? ` ${atkStatCls}` : ''}`}>{effATK}</span>
+              <span className={`${styles.defVal}${defStatCls ? ` ${defStatCls}` : ''}`}>{effDEF}</span>
             </div>
-          : null}
+          : isEquipment
+          ? <div className={styles.cardStats}>
+              {equipAtkB !== 0 && <span className={styles.atkVal}>{equipAtkB >= 0 ? '+' : ''}{equipAtkB}</span>}
+              {equipDefB !== 0 && <span className={styles.defVal}>{equipDefB >= 0 ? '+' : ''}{equipDefB}</span>}
+            </div>
+          : <div className={styles.cardStats}>
+              <span className={styles.typeLabel}>{typeLabel}</span>
+            </div>}
+        <div className={styles.cardNameSmall}>{card.name}</div>
       </div>
     );
   }
@@ -115,24 +164,29 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
         {attrOrb}
       </div>
       <div className={styles.cardLevel}>{levelStars}</div>
-      <div className={styles.cardArt}>
+      <div className={styles.cardArt} style={artStyle}>
         {raceBadge}
         {rarityText}
       </div>
       <div className={styles.cardBody}>
         <div className={styles.typeSubtype}>{typeSubtypeStr}</div>
-        <div className={styles.descText}>{card.description || ''}</div>
+        <div className={styles.descText}>{big && card.description ? highlightCardText(card.description) : (card.description || '')}</div>
       </div>
       {statsBar}
+      {eqReqLabel && <div className={styles.equipReq}>{eqReqLabel} only</div>}
     </div>
   );
 }
 
 // Re-export CSS helpers for use by other components
-export function TYPE_CSS_FN(type: number): string { return typeCss(type); }
+export function TYPE_CSS_FN(card: CardData): string { return typeCss(card); }
 export function ATTR_CSS_FN(attr: number | undefined): string { return attrCssKey(attr); }
 
-// Backward-compatible record-style exports (used by CollectionScreen, DeckbuilderScreen, PackOpeningScreen)
+/** Card-aware CSS class: distinguishes normal vs effect monsters */
+export function cardTypeCss(card: CardData): string { return typeCss(card); }
+
+// Backward-compatible record-style exports — NOTE: cannot distinguish normal/effect.
+// Prefer cardTypeCss(card) for monster cards.
 export const TYPE_CSS: Record<number, string> = new Proxy({} as Record<number, string>, {
   get(_t, prop) { return getCardTypeById(Number(prop))?.key.toLowerCase() ?? 'monster'; },
 });
@@ -141,16 +195,25 @@ export const ATTR_CSS: Record<number, string> = new Proxy({} as Record<number, s
 });
 
 /** Pure helper used by modules that need the inner HTML string for legacy canvas/clone operations */
-export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: any = null): string {
-  const levelStars = card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
+export function cardInnerHTML(card: CardData, _dimmed = false, _rotated = false, fc: FieldCard | null = null): string {
+  const isMonsterLevelH = card.type === CardType.Monster || card.type === CardType.Fusion;
+  const isEquipmentH = card.type === CardType.Equipment;
+  const levelStars = isMonsterLevelH && card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
   const typeLabel  = getTypeLabel(card);
-  const effATK     = fc ? fc.effectiveATK() : (card.atk ?? 0);
-  const effDEF     = fc ? fc.effectiveDEF() : (card.def ?? 0);
-  const boosted    = fc && (fc.permATKBonus || fc.tempATKBonus);
+  const phUrl = getPlaceholderUrl(card);
+  const artStyleStr = phUrl
+    ? `background-image:url(${phUrl});background-size:cover;background-position:center`
+    : '';
+  const baseATK    = card.atk ?? 0;
+  const baseDEF    = card.def ?? 0;
+  const effATK     = fc ? fc.effectiveATK() : baseATK;
+  const effDEF     = fc ? fc.effectiveDEF() : baseDEF;
+  const atkClsH    = fc ? (effATK > baseATK ? ' stat-buffed' : effATK < baseATK ? ' stat-nerfed' : '') : '';
+  const defClsH    = fc ? (effDEF > baseDEF ? ' stat-buffed' : effDEF < baseDEF ? ' stat-nerfed' : '') : '';
 
-  const isMonster  = card.atk !== undefined;
+  const isMonster  = card.atk !== undefined && !isEquipmentH;
   const orbColor   = attrMeta?.color ?? '#444';
   const orbHTML    = card.attribute
     ? `<span class="card-attr-orb" style="background:${orbColor}">${attrSym}</span>`
@@ -173,10 +236,17 @@ export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: 
     ? `[${typeLabel} / ${raceLabel}]`
     : `[${typeLabel}]`;
 
+  const eqAtkB = card.atkBonus ?? 0;
+  const eqDefB = card.defBonus ?? 0;
   const statsHTML = isMonster
-    ? `<div class="card-stats${boosted ? ' stat-boosted' : ''}">
-        <span class="card-atk-val">ATK: ${effATK}</span>
-        <span class="card-def-val">DEF: ${effDEF}</span>
+    ? `<div class="card-stats">
+        <span class="card-atk-val${atkClsH}">ATK: ${effATK}</span>
+        <span class="card-def-val${defClsH}">DEF: ${effDEF}</span>
+       </div>`
+    : isEquipmentH
+    ? `<div class="card-stats">
+        ${eqAtkB !== 0 ? `<span class="card-atk-val">ATK ${eqAtkB >= 0 ? '+' : ''}${eqAtkB}</span>` : ''}
+        ${eqDefB !== 0 ? `<span class="card-def-val">DEF ${eqDefB >= 0 ? '+' : ''}${eqDefB}</span>` : ''}
        </div>`
     : `<div class="card-stats card-no-stats"></div>`;
 
@@ -185,12 +255,12 @@ export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: 
       <span class="card-name-short">${card.name}</span>${orbHTML}
     </div>
     <div class="card-level">${levelStars}</div>
-    <div class="card-art">
+    <div class="card-art"${artStyleStr ? ` style="${artStyleStr}"` : ''}>
       ${raceBadge}${rarityTextH}
     </div>
     <div class="card-body">
       <div class="card-type-subtype">${typeSubtypeStr}</div>
-      <div class="card-desc-text">${card.description || ''}</div>
+      <div class="card-desc-text">${card.description ? highlightCardTextHTML(card.description) : ''}</div>
     </div>
     ${statsHTML}
   `;

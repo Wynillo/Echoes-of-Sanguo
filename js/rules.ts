@@ -6,12 +6,15 @@
 
 export const GAME_RULES = {
   startingLP: 8000,
+  maxLP: 99999,
   handLimitDraw: 10,
   handLimitEnd: 8,
   fieldZones: 5,
   maxDeckSize: 40,
   maxCardCopies: 3,
   drawPerTurn: 1,
+  handRefillSize: 5,
+  refillHandEnabled: true,
 };
 
 export type GameRules = typeof GAME_RULES;

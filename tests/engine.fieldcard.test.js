@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { FieldCard } from '../js/engine.ts';
 
-const baseCard = { id:'M001', name:'Test', type:'normal', atk:1000, def:800 };
+const baseCard = { id:'1', name:'Test', type:'normal', atk:1000, def:800 };
 
 describe('FieldCard', () => {
   it('defaults to atk position', () => {
@@ -52,9 +52,9 @@ describe('FieldCard', () => {
     expect(fc.card.effect.actions).toHaveLength(2);
   });
 
-  it('summonedThisTurn is true by default (summoning sickness)', () => {
+  it('summonedThisTurn is false by default (FM-style no sickness)', () => {
     const fc = new FieldCard(baseCard);
-    expect(fc.summonedThisTurn).toBe(true);
+    expect(fc.summonedThisTurn).toBe(false);
   });
 
   it('reads piercing passive flag', () => {

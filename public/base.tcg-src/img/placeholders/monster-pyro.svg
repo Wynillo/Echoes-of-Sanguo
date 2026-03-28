@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="mg-pyro" cx="50%" cy="55%" r="55%">
+      <stop offset="0%" stop-color="#e05020"/>
+      <stop offset="45%" stop-color="#c03010"/>
+      <stop offset="100%" stop-color="#180404"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" fill="#0e0202"/>
+  <circle cx="128" cy="140" r="110" fill="url(#mg-pyro)" opacity="0.6"/>
+  <!-- Main flame column -->
+  <path d="M128,230 Q110,190 105,160 Q100,130 110,100 Q118,75 128,55 Q138,75 146,100 Q156,130 151,160 Q146,190 128,230" fill="#c03010" opacity="0.35"/>
+  <path d="M128,225 Q115,190 112,160 Q108,130 116,105 Q122,82 128,65 Q134,82 140,105 Q148,130 144,160 Q141,190 128,225" fill="#e04020" opacity="0.3"/>
+  <path d="M128,220 Q120,190 118,160 Q115,135 122,110 Q126,92 128,78 Q130,92 134,110 Q141,135 138,160 Q136,190 128,220" fill="#f06030" opacity="0.25"/>
+  <!-- Inner flame -->
+  <path d="M128,210 Q122,185 121,165 Q120,145 125,125 Q127,110 128,100 Q129,110 131,125 Q136,145 135,165 Q134,185 128,210" fill="#f08040" opacity="0.25"/>
+  <!-- Side flickers left -->
+  <path d="M105,160 Q90,140 85,115 Q82,100 88,85" fill="none" stroke="#e04020" stroke-width="2.5" opacity="0.35"/>
+  <path d="M100,150 Q88,135 85,120" fill="none" stroke="#c03010" stroke-width="2" opacity="0.25"/>
+  <!-- Side flickers right -->
+  <path d="M151,160 Q166,140 171,115 Q174,100 168,85" fill="none" stroke="#e04020" stroke-width="2.5" opacity="0.35"/>
+  <path d="M156,150 Q168,135 171,120" fill="none" stroke="#c03010" stroke-width="2" opacity="0.25"/>
+  <!-- Hot core -->
+  <circle cx="128" cy="150" r="12" fill="#f08040" opacity="0.2"/>
+  <circle cx="128" cy="150" r="6" fill="#f0a060" opacity="0.2"/>
+  <!-- Ember particles rising -->
+  <circle cx="100" cy="60" r="2.5" fill="#f08040" opacity="0.7"/>
+  <circle cx="158" cy="55" r="2.5" fill="#f0a060" opacity="0.6"/>
+  <circle cx="85" cy="45" r="2" fill="#e04020" opacity="0.5"/>
+  <circle cx="175" cy="42" r="2" fill="#e04020" opacity="0.5"/>
+  <circle cx="115" cy="38" r="1.5" fill="#f09050" opacity="0.5"/>
+  <circle cx="145" cy="35" r="1.5" fill="#f08040" opacity="0.4"/>
+  <circle cx="128" cy="30" r="1.5" fill="#f0a060" opacity="0.4"/>
+  <!-- Sparkles -->
+  <text x="70" y="50" font-size="10" fill="#f0a060" opacity="0.6">&#x2726;</text>
+  <text x="175" y="45" font-size="8" fill="#f08040" opacity="0.5">&#x2726;</text>
+  <text x="128" y="25" font-size="8" fill="#f0c080" opacity="0.4">&#x2726;</text>
+</svg>

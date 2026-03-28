@@ -4,8 +4,15 @@ import {
   resolveAIBehavior,
   AI_BEHAVIOR_REGISTRY,
   pickSummonCandidate,
+  pickSmartSummonCandidate,
   decideSummonPosition,
   shouldActivateNormalSpell,
+  findLethal,
+  planAttacks,
+  pickEquipTarget,
+  pickDebuffTarget,
+  pickBestGraveyardMonster,
+  pickSpellBuffTarget,
 } from '../js/ai-behaviors.js';
 import { CardType } from '../js/types.js';
 
@@ -28,7 +35,7 @@ function monster(overrides = {}) {
 /** Minimal spell card stub. */
 function spell(overrides = {}) {
   return {
-    id: 'S999',
+    id: 'test-spell',
     name: 'TestSpell',
     type: CardType.Spell,
     description: '',
@@ -120,7 +127,7 @@ describe('pickSummonCandidate', () => {
 
   describe('hand with no monsters', () => {
     it('returns -1 when hand has only spells', () => {
-      const hand = [spell(), spell({ id: 'S998' })];
+      const hand = [spell(), spell({ id: 'test-spell-2' })];
       expect(pickSummonCandidate(hand, 'highestATK')).toBe(-1);
     });
   });
@@ -273,42 +280,49 @@ describe('pickSummonCandidate', () => {
 // ── decideSummonPosition ──────────────────────────────────
 
 describe('decideSummonPosition', () => {
+  // Signature: decideSummonPosition(monsterATK, monsterDEF, playerFieldMaxATK, playerHasMonsters, strategy)
   describe('aggressive strategy', () => {
     it('always returns atk regardless of ATK value', () => {
-      expect(decideSummonPosition(100, 2000, true, 'aggressive')).toBe('atk');
-      expect(decideSummonPosition(3000, 2000, true, 'aggressive')).toBe('atk');
-      expect(decideSummonPosition(500, 0, false, 'aggressive')).toBe('atk');
+      expect(decideSummonPosition(100, 800, 2000, true, 'aggressive')).toBe('atk');
+      expect(decideSummonPosition(3000, 2000, 2000, true, 'aggressive')).toBe('atk');
+      expect(decideSummonPosition(500, 400, 0, false, 'aggressive')).toBe('atk');
     });
   });
 
   describe('defensive strategy', () => {
     it('always returns def regardless of ATK value', () => {
-      expect(decideSummonPosition(3000, 100, true, 'defensive')).toBe('def');
-      expect(decideSummonPosition(100, 2000, true, 'defensive')).toBe('def');
-      expect(decideSummonPosition(500, 0, false, 'defensive')).toBe('def');
+      expect(decideSummonPosition(3000, 2000, 100, true, 'defensive')).toBe('def');
+      expect(decideSummonPosition(100, 800, 2000, true, 'defensive')).toBe('def');
+      expect(decideSummonPosition(500, 400, 0, false, 'defensive')).toBe('def');
     });
   });
 
   describe('smart strategy', () => {
-    it('returns def when player has monsters and monster ATK < player min val', () => {
-      expect(decideSummonPosition(500, 1000, true, 'smart')).toBe('def');
+    it('returns def when monster ATK < player max ATK and DEF can survive', () => {
+      // ATK 500 < maxATK 1500, DEF 2000 >= 1500 → def
+      expect(decideSummonPosition(500, 2000, 1500, true, 'smart')).toBe('def');
     });
 
-    it('returns atk when monster ATK >= player min val', () => {
-      expect(decideSummonPosition(1000, 1000, true, 'smart')).toBe('atk');
-      expect(decideSummonPosition(1500, 1000, true, 'smart')).toBe('atk');
+    it('returns def when monster ATK < player max ATK even if DEF cannot survive', () => {
+      // ATK 500 < maxATK 1500, DEF 800 < 1500 → still def (avoid LP damage)
+      expect(decideSummonPosition(500, 800, 1500, true, 'smart')).toBe('def');
+    });
+
+    it('returns atk when monster ATK >= player max ATK', () => {
+      expect(decideSummonPosition(1500, 800, 1000, true, 'smart')).toBe('atk');
+      expect(decideSummonPosition(2000, 1000, 1000, true, 'smart')).toBe('atk');
     });
 
     it('returns atk when player has no monsters (even with low ATK)', () => {
-      expect(decideSummonPosition(100, 0, false, 'smart')).toBe('atk');
+      expect(decideSummonPosition(100, 200, 0, false, 'smart')).toBe('atk');
     });
 
-    it('returns atk when player has monsters but monster ATK equals playerFieldMinVal', () => {
-      expect(decideSummonPosition(800, 800, true, 'smart')).toBe('atk');
+    it('returns atk when monster ATK equals playerFieldMaxATK', () => {
+      expect(decideSummonPosition(800, 600, 800, true, 'smart')).toBe('atk');
     });
 
-    it('returns def when monster ATK is 0 and player has monsters with non-zero min', () => {
-      expect(decideSummonPosition(0, 500, true, 'smart')).toBe('def');
+    it('returns def when monster ATK is 0 and player has monsters', () => {
+      expect(decideSummonPosition(0, 500, 500, true, 'smart')).toBe('def');
     });
   });
 });
@@ -318,39 +332,45 @@ describe('decideSummonPosition', () => {
 describe('shouldActivateNormalSpell', () => {
   describe('with matching spell rule', () => {
     it('activates when rule condition "always" is met', () => {
-      const behavior = resolveAIBehavior('default');
-      // S005 has { when: 'always' } in legacy spell rules
-      expect(shouldActivateNormalSpell('S005', behavior, 8000, 8000)).toBe(true);
-    });
-
-    it('activates S001 (oppLP>N) when player LP exceeds threshold', () => {
-      const behavior = resolveAIBehavior('default');
-      // S001: { when: 'oppLP>N', threshold: 800 }
-      expect(shouldActivateNormalSpell('S001', behavior, 1000, 8000)).toBe(true);
-    });
-
-    it('does not activate S001 when player LP is at or below threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'S001': { when: 'oppLP>N', threshold: 800 } },
+        spellRules: { 'test-always': { when: 'always' } },
       };
-      expect(shouldActivateNormalSpell('S001', behavior, 800, 8000)).toBe(false);
-      expect(shouldActivateNormalSpell('S001', behavior, 500, 8000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-always', behavior, 8000, 8000)).toBe(true);
     });
 
-    it('activates S002 (selfLP<N) when AI LP is below threshold', () => {
-      const behavior = resolveAIBehavior('default');
-      // S002: { when: 'selfLP<N', threshold: 5000 }
-      expect(shouldActivateNormalSpell('S002', behavior, 8000, 4000)).toBe(true);
-    });
-
-    it('does not activate S002 when AI LP is at or above threshold', () => {
+    it('activates (oppLP>N) when player LP exceeds threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'S002': { when: 'selfLP<N', threshold: 5000 } },
+        spellRules: { 'test-opp': { when: 'oppLP>N', threshold: 800 } },
       };
-      expect(shouldActivateNormalSpell('S002', behavior, 8000, 5000)).toBe(false);
-      expect(shouldActivateNormalSpell('S002', behavior, 8000, 6000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-opp', behavior, 1000, 8000)).toBe(true);
+    });
+
+    it('does not activate (oppLP>N) when player LP is at or below threshold', () => {
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'test-opp': { when: 'oppLP>N', threshold: 800 } },
+      };
+      expect(shouldActivateNormalSpell('test-opp', behavior, 800, 8000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-opp', behavior, 500, 8000)).toBe(false);
+    });
+
+    it('activates (selfLP<N) when AI LP is below threshold', () => {
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'test-self': { when: 'selfLP<N', threshold: 5000 } },
+      };
+      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 4000)).toBe(true);
+    });
+
+    it('does not activate (selfLP<N) when AI LP is at or above threshold', () => {
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'test-self': { when: 'selfLP<N', threshold: 5000 } },
+      };
+      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 5000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 6000)).toBe(false);
     });
   });
 
@@ -358,14 +378,20 @@ describe('shouldActivateNormalSpell', () => {
     it('returns true when defaultSpellActivation is "always"', () => {
       const behavior = resolveAIBehavior('aggressive');
       // aggressive has defaultSpellActivation: 'always' and empty spellRules
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(true);
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 8000)).toBe(true);
     });
 
-    it('returns true when defaultSpellActivation is "smart"', () => {
+    it('returns true when defaultSpellActivation is "smart" and AI is losing', () => {
       const behavior = resolveAIBehavior('default');
       // default has defaultSpellActivation: 'smart'
-      // 'S999' is not in legacy rules, so falls through to default
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(true);
+      // 'smart' activates when AI LP < player LP or AI LP < 5000
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 4000)).toBe(true);
+    });
+
+    it('returns false when defaultSpellActivation is "smart" and AI is healthy', () => {
+      const behavior = resolveAIBehavior('default');
+      // AI LP 8000 >= player LP 8000 and AI LP >= 5000
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 8000)).toBe(false);
     });
 
     it('returns false when defaultSpellActivation is "never"', () => {
@@ -375,7 +401,7 @@ describe('shouldActivateNormalSpell', () => {
         defaultSpellActivation: 'never',
         spellRules: {},
       };
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 8000)).toBe(false);
     });
   });
 
@@ -383,21 +409,21 @@ describe('shouldActivateNormalSpell', () => {
     it('uses rule even when defaultSpellActivation is "always"', () => {
       const behavior = {
         ...resolveAIBehavior('aggressive'),
-        spellRules: { 'S999': { when: 'selfLP<N', threshold: 3000 } },
+        spellRules: { 'test-spell': { when: 'selfLP<N', threshold: 3000 } },
       };
-      // defaultSpellActivation is 'always' but S999 has a specific rule
+      // defaultSpellActivation is 'always' but test-spell has a specific rule
       // AI LP 8000 >= 3000, so rule returns false
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 8000)).toBe(false);
     });
 
     it('uses rule even when defaultSpellActivation is "never"', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
         defaultSpellActivation: 'never',
-        spellRules: { 'S999': { when: 'always' } },
+        spellRules: { 'test-spell': { when: 'always' } },
       };
-      // defaultSpellActivation is 'never' but S999 has 'always' rule
-      expect(shouldActivateNormalSpell('S999', behavior, 8000, 8000)).toBe(true);
+      // defaultSpellActivation is 'never' but test-spell has 'always' rule
+      expect(shouldActivateNormalSpell('test-spell', behavior, 8000, 8000)).toBe(true);
     });
   });
 });
@@ -463,5 +489,289 @@ describe('evaluateSpellRule (via shouldActivateNormalSpell)', () => {
       expect(shouldActivateNormalSpell('TEST', b, 8000, 0)).toBe(false);
       expect(shouldActivateNormalSpell('TEST', b, 8000, 1)).toBe(false);
     });
+  });
+});
+
+// ── Mock FieldCard for smart AI tests ─────────────────────
+
+function mockFieldCard(overrides = {}) {
+  const defaults = {
+    card: { id: 'M01', name: 'Mock', type: CardType.Monster, atk: 1000, def: 800, level: 4 },
+    position: 'atk',
+    faceDown: false,
+    hasAttacked: false,
+    summonedThisTurn: false,
+    canDirectAttack: false,
+    cantBeAttacked: false,
+    indestructible: false,
+    piercing: false,
+    effectiveATK() { return this.card.atk + (this._atkBonus ?? 0); },
+    effectiveDEF() { return this.card.def + (this._defBonus ?? 0); },
+    combatValue() { return this.position === 'atk' ? this.effectiveATK() : this.effectiveDEF(); },
+    _atkBonus: 0,
+    _defBonus: 0,
+    ...overrides,
+  };
+  // Re-bind effectiveATK/DEF to use the correct `this`
+  if (overrides.card) defaults.card = { ...defaults.card, ...overrides.card };
+  return defaults;
+}
+
+// ── pickSmartSummonCandidate ─────────────────────────────
+
+describe('pickSmartSummonCandidate', () => {
+  it('returns -1 for empty hand', () => {
+    expect(pickSmartSummonCandidate([], {
+      aiField: [null, null, null, null, null],
+      playerField: [null, null, null, null, null],
+      playerLP: 8000,
+      aiLP: 8000,
+    })).toBe(-1);
+  });
+
+  it('prefers monster that can beat player monsters', () => {
+    const hand = [
+      monster({ id: 'A', atk: 500, def: 400 }),
+      monster({ id: 'B', atk: 1800, def: 1000 }),
+    ];
+    const plrFC = mockFieldCard({ card: { id: 'P1', name: 'P1', type: CardType.Monster, atk: 1500, def: 1200 } });
+    const result = pickSmartSummonCandidate(hand, {
+      aiField: [null, null, null, null, null],
+      playerField: [plrFC, null, null, null, null],
+      playerLP: 8000,
+      aiLP: 8000,
+    });
+    expect(result).toBe(1); // B can beat P1
+  });
+
+  it('prefers effect monsters', () => {
+    const hand = [
+      monster({ id: 'A', atk: 1200, def: 1000 }),
+      monster({
+        id: 'B', atk: 1000, def: 800,
+        effect: { trigger: 'onSummon', actions: [] },
+      }),
+    ];
+    const result = pickSmartSummonCandidate(hand, {
+      aiField: [null, null, null, null, null],
+      playerField: [null, null, null, null, null],
+      playerLP: 8000,
+      aiLP: 8000,
+    });
+    expect(result).toBe(1); // B has effect bonus
+  });
+
+  it('skips non-monster cards', () => {
+    const hand = [spell(), monster({ id: 'M', atk: 1000 })];
+    const result = pickSmartSummonCandidate(hand, {
+      aiField: [null, null, null, null, null],
+      playerField: [null, null, null, null, null],
+      playerLP: 8000,
+      aiLP: 8000,
+    });
+    expect(result).toBe(1);
+  });
+});
+
+// ── findLethal ────────────────────────────────────────────
+
+describe('findLethal', () => {
+  it('returns null when no attackers available', () => {
+    expect(findLethal([null, null, null, null, null], [null, null, null, null, null], 8000)).toBeNull();
+  });
+
+  it('finds lethal with direct attacks when no defenders', () => {
+    const atk1 = mockFieldCard({ card: { ...mockFieldCard().card, atk: 5000 } });
+    const atk2 = mockFieldCard({ card: { ...mockFieldCard().card, atk: 4000 } });
+    const result = findLethal(
+      [atk1, atk2, null, null, null],
+      [null, null, null, null, null],
+      8000,
+    );
+    expect(result).not.toBeNull();
+    expect(result.length).toBe(2);
+    // All should be direct attacks
+    expect(result.every(p => p.targetZone === -1)).toBe(true);
+  });
+
+  it('returns null when not enough ATK for lethal', () => {
+    const atk = mockFieldCard({ card: { ...mockFieldCard().card, atk: 3000 } });
+    const result = findLethal(
+      [atk, null, null, null, null],
+      [null, null, null, null, null],
+      8000,
+    );
+    expect(result).toBeNull();
+  });
+
+  it('finds lethal by clearing defender then going direct', () => {
+    const atk1 = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2500 } });
+    const atk2 = mockFieldCard({ card: { ...mockFieldCard().card, atk: 3000 } });
+    const def = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2000 } });
+    // ATK1 kills def (2500>2000, 500 LP dmg) + ATK2 goes direct (3000 LP dmg) = 3500 >= 3500
+    const result = findLethal(
+      [atk1, atk2, null, null, null],
+      [def, null, null, null, null],
+      3500,
+    );
+    expect(result).not.toBeNull();
+  });
+
+  it('skips monsters that already attacked', () => {
+    const atk = mockFieldCard({ card: { ...mockFieldCard().card, atk: 9000 }, hasAttacked: true });
+    expect(findLethal([atk, null, null, null, null], [null, null, null, null, null], 1000)).toBeNull();
+  });
+
+  it('skips DEF position monsters', () => {
+    const atk = mockFieldCard({ card: { ...mockFieldCard().card, atk: 9000 }, position: 'def' });
+    expect(findLethal([atk, null, null, null, null], [null, null, null, null, null], 1000)).toBeNull();
+  });
+});
+
+// ── planAttacks ───────────────────────────────────────────
+
+describe('planAttacks', () => {
+  const smartBehavior = resolveAIBehavior('smart');
+  const aggressiveBehavior = resolveAIBehavior('aggressive');
+
+  it('returns empty array with no attackers', () => {
+    expect(planAttacks(
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      8000,
+      smartBehavior,
+    )).toEqual([]);
+  });
+
+  it('plans direct attacks when no defenders', () => {
+    const atk = mockFieldCard({ card: { ...mockFieldCard().card, atk: 1500 } });
+    const plans = planAttacks([atk, null, null, null, null], [null, null, null, null, null], 8000, smartBehavior);
+    expect(plans.length).toBe(1);
+    expect(plans[0].targetZone).toBe(-1);
+  });
+
+  it('smart strategy avoids attacking into stronger monsters', () => {
+    const atk = mockFieldCard({ card: { ...mockFieldCard().card, atk: 1000 } });
+    const def = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2000 } });
+    const plans = planAttacks([atk, null, null, null, null], [def, null, null, null, null], 8000, smartBehavior);
+    // Should not attack into a 2000ATK monster with 1000ATK
+    expect(plans.length).toBe(0);
+  });
+
+  it('aggressive strategy attacks even unfavorable targets', () => {
+    const atk = mockFieldCard({ card: { ...mockFieldCard().card, atk: 1000 } });
+    const def = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2000 } });
+    const plans = planAttacks([atk, null, null, null, null], [def, null, null, null, null], 8000, aggressiveBehavior);
+    expect(plans.length).toBe(1);
+  });
+
+  it('uses lethal plan when available', () => {
+    const atk = mockFieldCard({ card: { ...mockFieldCard().card, atk: 5000 } });
+    const plans = planAttacks([atk, null, null, null, null], [null, null, null, null, null], 3000, smartBehavior);
+    expect(plans.length).toBe(1);
+    expect(plans[0].targetZone).toBe(-1); // direct attack for lethal
+  });
+});
+
+// ── pickEquipTarget ─────────────────────────────────────
+
+describe('pickEquipTarget', () => {
+  it('returns -1 when no monsters', () => {
+    expect(pickEquipTarget([null, null, null, null, null], [null, null, null, null, null], 500, 0)).toBe(-1);
+  });
+
+  it('prefers monster that unlocks a kill with the buff', () => {
+    const weak = mockFieldCard({ card: { ...mockFieldCard().card, atk: 800, def: 600 } });
+    const strong = mockFieldCard({ card: { ...mockFieldCard().card, atk: 1800, def: 1000 } });
+    const opp = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2000, def: 1500 } });
+    // +500 ATK: weak→1300 (still can't beat 2000), strong→2300 (CAN beat 2000)
+    const zone = pickEquipTarget(
+      [weak, strong, null, null, null],
+      [opp, null, null, null, null],
+      500, 0,
+    );
+    expect(zone).toBe(1); // strong gets the buff to unlock the kill
+  });
+
+  it('prefers monster that has not attacked', () => {
+    const attacked = mockFieldCard({ card: { ...mockFieldCard().card, atk: 1500 }, hasAttacked: true });
+    const fresh = mockFieldCard({ card: { ...mockFieldCard().card, atk: 1200 } });
+    const zone = pickEquipTarget([attacked, fresh, null, null, null], [null, null, null, null, null], 300, 0);
+    expect(zone).toBe(1); // fresh monster preferred
+  });
+});
+
+// ── pickDebuffTarget ────────────────────────────────────
+
+describe('pickDebuffTarget', () => {
+  it('returns -1 when no opponent monsters', () => {
+    expect(pickDebuffTarget([null, null, null, null, null], -500)).toBe(-1);
+  });
+
+  it('targets strongest opponent monster', () => {
+    const weak = mockFieldCard({ card: { ...mockFieldCard().card, atk: 800 } });
+    const strong = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2500 } });
+    expect(pickDebuffTarget([weak, strong, null, null, null], -500)).toBe(1);
+  });
+
+  it('prioritizes effect monsters', () => {
+    const normal = mockFieldCard({ card: { ...mockFieldCard().card, atk: 1800 } });
+    const effectMon = mockFieldCard({
+      card: { ...mockFieldCard().card, atk: 1500, effect: { trigger: 'onSummon', actions: [] } },
+    });
+    expect(pickDebuffTarget([normal, effectMon, null, null, null], -500)).toBe(1);
+  });
+});
+
+// ── pickBestGraveyardMonster ────────────────────────────
+
+describe('pickBestGraveyardMonster', () => {
+  it('returns null for empty graveyard', () => {
+    expect(pickBestGraveyardMonster([], [null, null, null, null, null])).toBeNull();
+  });
+
+  it('returns null when graveyard has only spells', () => {
+    expect(pickBestGraveyardMonster([spell()], [null, null, null, null, null])).toBeNull();
+  });
+
+  it('picks monster that can beat opponent strongest', () => {
+    const opp = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2000 } });
+    const weak = monster({ id: 'W', atk: 1000 });
+    const strong = monster({ id: 'S', atk: 2500 });
+    const best = pickBestGraveyardMonster([weak, strong], [opp, null, null, null, null]);
+    expect(best.id).toBe('S');
+  });
+
+  it('prefers effect monsters', () => {
+    const noEffect = monster({ id: 'A', atk: 1800 });
+    const withEffect = monster({
+      id: 'B', atk: 1500,
+      effect: { trigger: 'onSummon', actions: [] },
+    });
+    const best = pickBestGraveyardMonster([noEffect, withEffect], [null, null, null, null, null]);
+    expect(best.id).toBe('B'); // effect bonus outweighs 300ATK difference
+  });
+});
+
+// ── pickSpellBuffTarget ─────────────────────────────────
+
+describe('pickSpellBuffTarget', () => {
+  it('returns null when no own monsters', () => {
+    expect(pickSpellBuffTarget([null, null, null, null, null], [null, null, null, null, null])).toBeNull();
+  });
+
+  it('prefers monster that has not attacked yet over similar ATK', () => {
+    const attacked = mockFieldCard({ card: { ...mockFieldCard().card, atk: 1500 }, hasAttacked: true });
+    const fresh = mockFieldCard({ card: { ...mockFieldCard().card, atk: 1400 } });
+    const target = pickSpellBuffTarget([attacked, fresh, null, null, null], [null, null, null, null, null]);
+    expect(target.card.atk).toBe(1400); // fresh monster preferred (hasn't attacked bonus)
+  });
+
+  it('prefers monster close to beating opponent strongest', () => {
+    const farOff = mockFieldCard({ card: { ...mockFieldCard().card, atk: 500 } });
+    const closeToKill = mockFieldCard({ card: { ...mockFieldCard().card, atk: 1800 } });
+    const opp = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2000 } });
+    const target = pickSpellBuffTarget([farOff, closeToKill, null, null, null], [opp, null, null, null, null]);
+    expect(target.card.atk).toBe(1800); // close to beating 2000
   });
 });

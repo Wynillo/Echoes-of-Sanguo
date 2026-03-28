@@ -4,7 +4,7 @@
 // ============================================================
 
 import type JSZip from 'jszip';
-import type { TcgCard, TcgCardDefinition, TcgOpponentDescription, TcgManifest, TcgCampaignJson, ValidationResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgOpponentDescription, TcgManifest, ValidationResult } from './types.js';
 import { validateTcgCards } from './card-validator.js';
 import { validateTcgDefinitions } from './def-validator.js';
 import { validateTcgOpponentDescriptions } from './opp-desc-validator.js';
@@ -205,6 +205,101 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
 }
 
 /**
+ * Validate a shop.json object. Returns an array of warning strings
+ * (shop.json is optional, so issues are warnings not errors).
+ * Pass knownNodeIds to enable cross-validation of unlock conditions.
+ */
+export function validateShopJson(data: unknown, knownNodeIds?: Set<string>): string[] {
+  const warnings: string[] = [];
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    warnings.push('shop.json: must be a JSON object');
+    return warnings;
+  }
+
+  const obj = data as Record<string, unknown>;
+
+  // Validate packs array (if present)
+  if (obj.packs !== undefined && !Array.isArray(obj.packs)) {
+    warnings.push('shop.json: packs must be an array');
+  }
+
+  // Validate packages array (if present)
+  if (obj.packages !== undefined) {
+    if (!Array.isArray(obj.packages)) {
+      warnings.push('shop.json: packages must be an array');
+    } else {
+      const seenIds = new Set<string>();
+      for (let i = 0; i < obj.packages.length; i++) {
+        const pkg = obj.packages[i] as Record<string, unknown>;
+        const prefix = `shop.json: packages[${i}]`;
+
+        if (typeof pkg !== 'object' || pkg === null) {
+          warnings.push(`${prefix}: must be an object`);
+          continue;
+        }
+
+        // Required fields
+        if (typeof pkg.id !== 'string' || !pkg.id) {
+          warnings.push(`${prefix}: missing or invalid "id"`);
+        } else {
+          if (seenIds.has(pkg.id)) warnings.push(`${prefix}: duplicate package id "${pkg.id}"`);
+          seenIds.add(pkg.id);
+        }
+        if (typeof pkg.name !== 'string') warnings.push(`${prefix}: missing or invalid "name"`);
+        if (typeof pkg.price !== 'number' || pkg.price <= 0) warnings.push(`${prefix}: "price" must be a positive number`);
+        if (!Array.isArray(pkg.slots) || !(pkg.slots as unknown[]).length) {
+          warnings.push(`${prefix}: "slots" must be a non-empty array`);
+        }
+
+        // Validate cardPool (optional)
+        if (pkg.cardPool !== undefined) {
+          const cp = pkg.cardPool as Record<string, unknown>;
+          for (const side of ['include', 'exclude'] as const) {
+            if (cp[side] !== undefined) {
+              if (typeof cp[side] !== 'object' || cp[side] === null || Array.isArray(cp[side])) {
+                warnings.push(`${prefix}.cardPool.${side}: must be an object`);
+              } else {
+                const f = cp[side] as Record<string, unknown>;
+                for (const arrField of ['races', 'attributes', 'types', 'spellTypes', 'ids']) {
+                  if (f[arrField] !== undefined && !Array.isArray(f[arrField])) {
+                    warnings.push(`${prefix}.cardPool.${side}.${arrField}: must be an array`);
+                  }
+                }
+                for (const numField of ['maxRarity', 'minRarity', 'maxAtk', 'maxLevel']) {
+                  if (f[numField] !== undefined && typeof f[numField] !== 'number') {
+                    warnings.push(`${prefix}.cardPool.${side}.${numField}: must be a number`);
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Validate unlockCondition (optional)
+        if (pkg.unlockCondition !== undefined && pkg.unlockCondition !== null) {
+          const cond = pkg.unlockCondition as Record<string, unknown>;
+          if (cond.type === 'nodeComplete') {
+            if (typeof cond.nodeId !== 'string') {
+              warnings.push(`${prefix}.unlockCondition: nodeComplete requires a string "nodeId"`);
+            } else if (knownNodeIds && !knownNodeIds.has(cond.nodeId)) {
+              warnings.push(`${prefix}.unlockCondition: nodeId "${cond.nodeId}" not found in campaign.json`);
+            }
+          } else if (cond.type === 'winsCount') {
+            if (typeof cond.count !== 'number' || cond.count <= 0) {
+              warnings.push(`${prefix}.unlockCondition: winsCount requires a positive "count"`);
+            }
+          } else {
+            warnings.push(`${prefix}.unlockCondition: unknown type "${cond.type}" (expected: nodeComplete, winsCount)`);
+          }
+        }
+      }
+    }
+  }
+
+  return warnings;
+}
+
+/**
  * Validate a campaign.json object. Returns an array of warning strings
  * (campaign.json is optional, so issues are warnings not errors).
  */
@@ -293,6 +388,17 @@ export function validateCampaignJson(data: unknown): string[] {
       if (n.type === 'duel' && n.opponentId !== undefined && typeof n.opponentId !== 'number') {
         warnings.push(`campaign.json: node "${n.id}": opponentId must be a number`);
       }
+
+      // Validate gauntlet field for duel nodes
+      if (n.gauntlet !== undefined && n.gauntlet !== null) {
+        if (!Array.isArray(n.gauntlet)) {
+          warnings.push(`campaign.json: node "${n.id}": gauntlet must be an array of opponent IDs`);
+        } else if (n.gauntlet.length < 2) {
+          warnings.push(`campaign.json: node "${n.id}": gauntlet must have at least 2 opponents`);
+        } else if (!n.gauntlet.every((id: unknown) => typeof id === 'number')) {
+          warnings.push(`campaign.json: node "${n.id}": gauntlet entries must be numbers`);
+        }
+      }
     }
   }
 
@@ -300,6 +406,115 @@ export function validateCampaignJson(data: unknown): string[] {
   for (const refId of referencedNodeIds) {
     if (!allNodeIds.has(refId)) {
       warnings.push(`campaign.json: unlock condition references unknown node ID "${refId}"`);
+    }
+  }
+
+  return warnings;
+}
+
+// ── Fusion Formulas Validator ──────────────────────────────────
+
+const VALID_COMBO_TYPES = ['race+race', 'race+attr', 'attr+attr'];
+
+/**
+ * Validate a fusion_formulas.json object. Returns an array of warning strings.
+ */
+export function validateFusionFormulasJson(data: unknown): string[] {
+  const warnings: string[] = [];
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    warnings.push('fusion_formulas.json: must be a JSON object with a "formulas" array');
+    return warnings;
+  }
+
+  const obj = data as Record<string, unknown>;
+  if (!Array.isArray(obj.formulas)) {
+    warnings.push('fusion_formulas.json: missing or invalid "formulas" array');
+    return warnings;
+  }
+
+  const seenIds = new Set<string>();
+  for (let i = 0; i < obj.formulas.length; i++) {
+    const f = obj.formulas[i] as Record<string, unknown>;
+    const prefix = `fusion_formulas.json: formulas[${i}]`;
+
+    if (typeof f !== 'object' || f === null) {
+      warnings.push(`${prefix}: must be an object`);
+      continue;
+    }
+
+    if (typeof f.id !== 'string' || !f.id) {
+      warnings.push(`${prefix}: missing or invalid "id" (must be a non-empty string)`);
+    } else {
+      if (seenIds.has(f.id)) warnings.push(`${prefix}: duplicate formula id "${f.id}"`);
+      seenIds.add(f.id);
+    }
+
+    if (typeof f.comboType !== 'string' || !VALID_COMBO_TYPES.includes(f.comboType)) {
+      warnings.push(`${prefix}: invalid "comboType" "${f.comboType}" (expected: ${VALID_COMBO_TYPES.join(', ')})`);
+    }
+
+    if (typeof f.operand1 !== 'number') warnings.push(`${prefix}: "operand1" must be a number`);
+    if (typeof f.operand2 !== 'number') warnings.push(`${prefix}: "operand2" must be a number`);
+    if (typeof f.priority !== 'number') warnings.push(`${prefix}: "priority" must be a number`);
+
+    if (!Array.isArray(f.resultPool) || f.resultPool.length === 0) {
+      warnings.push(`${prefix}: "resultPool" must be a non-empty array`);
+    } else if (!f.resultPool.every((id: unknown) => typeof id === 'number' && id > 0)) {
+      warnings.push(`${prefix}: "resultPool" entries must be positive numbers`);
+    }
+  }
+
+  return warnings;
+}
+
+// ── Opponent Deck Validator ────────────────────────────────────
+
+/**
+ * Validate a single opponent deck object. Returns an array of warning strings.
+ * Pass knownCardIds to cross-validate deck card references.
+ */
+export function validateOpponentDeck(data: unknown, index: number, knownCardIds?: Set<number>): string[] {
+  const warnings: string[] = [];
+  const prefix = `opponents[${index}]`;
+
+  if (typeof data !== 'object' || data === null) {
+    warnings.push(`${prefix}: must be an object`);
+    return warnings;
+  }
+
+  const o = data as Record<string, unknown>;
+
+  if (typeof o.id !== 'number' || o.id <= 0) {
+    warnings.push(`${prefix}: "id" must be a positive number`);
+  }
+  if (typeof o.name !== 'string' || !o.name) {
+    warnings.push(`${prefix}: "name" must be a non-empty string`);
+  }
+  if (typeof o.title !== 'string') {
+    warnings.push(`${prefix}: "title" must be a string`);
+  }
+  if (typeof o.race !== 'number' || o.race < 1 || o.race > 12) {
+    warnings.push(`${prefix}: "race" must be a number between 1 and 12`);
+  }
+  if (typeof o.coinsWin !== 'number' || o.coinsWin < 0) {
+    warnings.push(`${prefix}: "coinsWin" must be a non-negative number`);
+  }
+  if (typeof o.coinsLoss !== 'number' || o.coinsLoss < 0) {
+    warnings.push(`${prefix}: "coinsLoss" must be a non-negative number`);
+  }
+
+  if (!Array.isArray(o.deckIds) || o.deckIds.length === 0) {
+    warnings.push(`${prefix}: "deckIds" must be a non-empty array`);
+  } else {
+    if (!o.deckIds.every((id: unknown) => typeof id === 'number' && id > 0)) {
+      warnings.push(`${prefix}: "deckIds" entries must be positive numbers`);
+    }
+    if (knownCardIds) {
+      for (const id of o.deckIds) {
+        if (typeof id === 'number' && !knownCardIds.has(id)) {
+          warnings.push(`${prefix}: deckIds references unknown card ID ${id}`);
+        }
+      }
     }
   }
 

@@ -1,16 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
-import { useCampaign }    from '../contexts/CampaignContext.js';
 import { useModal }       from '../contexts/ModalContext.js';
+import { useCampaign }    from '../contexts/CampaignContext.js';
 import { Progression }    from '../../progression.js';
 import styles from './TitleScreen.module.css';
 
 export default function TitleScreen() {
   const { navigateTo } = useScreen();
   const { refresh }   = useProgression();
-  const { hasCampaign } = useCampaign();
   const { openModal } = useModal();
+  const { refreshCampaignProgress } = useCampaign();
   const { t } = useTranslation();
   const hasSave = !Progression.isFirstLaunch();
 
@@ -19,6 +19,7 @@ export default function TitleScreen() {
     Progression.resetAll();
     Progression.init();
     refresh();
+    refreshCampaignProgress();
     navigateTo('starter');
   }
 
@@ -28,7 +29,7 @@ export default function TitleScreen() {
   }
 
   return (
-    <div className={styles.screen}>
+    <div id="title-screen" className={styles.screen}>
       <div className="title-bg"></div>
       <div className={styles.header}>
         <h1 className={styles.gameTitle}>ECHOES OF SANGUO</h1>
@@ -36,15 +37,12 @@ export default function TitleScreen() {
       </div>
       <div className={styles.content}>
         <div className={styles.menu}>
-          <button className="btn-primary" onClick={handleNewGame}>{t('title.new_game')}</button>
+          <button className="btn-menu" onClick={handleNewGame}>{t('title.new_game')}</button>
           {hasSave && (
-            <button className="btn-secondary" onClick={handleLoadGame}>{t('title.load_game')}</button>
+            <button className="btn-menu" onClick={handleLoadGame}>{t('title.load_game')}</button>
           )}
-          {hasCampaign && (
-            <button className="btn-secondary" onClick={() => navigateTo('campaign')}>{t('campaign.title')}</button>
-          )}
-          <button className="btn-secondary" onClick={() => openModal({ type: 'main-options' })}>{t('title.options')}</button>
-          <button className="btn-secondary" onClick={() => window.close()}>{t('title.quit')}</button>
+<button className="btn-menu" onClick={() => openModal({ type: 'main-options' })}>{t('title.options')}</button>
+          <button className="btn-menu" onClick={() => window.close()}>{t('title.quit')}</button>
         </div>
       </div>
     </div>

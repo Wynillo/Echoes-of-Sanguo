@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="sg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#60c0e0"/>
+      <stop offset="40%" stop-color="#8060c0"/>
+      <stop offset="100%" stop-color="#100820"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" fill="#0c0818"/>
+  <circle cx="128" cy="100" r="110" fill="url(#sg)" opacity="0.6"/>
+  <!-- Swirling energy -->
+  <path d="M128,180 Q100,140 110,100 Q120,60 128,40 Q136,60 146,100 Q156,140 128,180" fill="none" stroke="#80e0ff" stroke-width="3" opacity="0.5"/>
+  <path d="M128,180 Q80,150 90,100 Q100,50 128,30 Q156,50 166,100 Q176,150 128,180" fill="none" stroke="#a060e0" stroke-width="2" opacity="0.4"/>
+  <!-- Inner glow -->
+  <circle cx="128" cy="100" r="25" fill="#60c0e0" opacity="0.2"/>
+  <circle cx="128" cy="100" r="12" fill="#a0e0ff" opacity="0.3"/>
+  <!-- Stone altar base -->
+  <polygon points="88,200 168,200 178,220 78,220" fill="#404048"/>
+  <polygon points="95,185 161,185 168,200 88,200" fill="#505058"/>
+  <rect x="100" y="178" width="56" height="7" fill="#585860"/>
+  <!-- Altar crack -->
+  <line x1="128" y1="200" x2="130" y2="218" stroke="#303038" stroke-width="1.5"/>
+  <!-- Floating particles -->
+  <circle cx="100" cy="70" r="2" fill="#c0a0ff" opacity="0.7"/>
+  <circle cx="156" cy="60" r="2" fill="#80e0ff" opacity="0.7"/>
+  <circle cx="110" cy="45" r="1.5" fill="#e0c0ff" opacity="0.5"/>
+  <circle cx="148" cy="80" r="1.5" fill="#a0f0ff" opacity="0.5"/>
+  <circle cx="85" cy="100" r="2" fill="#c0a0ff" opacity="0.4"/>
+  <circle cx="172" cy="95" r="2" fill="#80e0ff" opacity="0.4"/>
+  <!-- Star sparkles -->
+  <text x="70" y="50" font-size="10" fill="#c0a0ff" opacity="0.6">✦</text>
+  <text x="175" y="45" font-size="8" fill="#80e0ff" opacity="0.5">✦</text>
+  <text x="55" y="130" font-size="8" fill="#a080e0" opacity="0.4">✦</text>
+</svg>

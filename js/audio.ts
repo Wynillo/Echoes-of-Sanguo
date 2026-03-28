@@ -33,7 +33,11 @@ let _musicGain: GainNode | null = null;
 let _sfxGain: GainNode | null = null;
 
 const _bufferCache = new Map<string, AudioBuffer>();
-let _currentMusic: { source: AudioBufferSourceNode; id: string } | null = null;
+let _currentMusic: { source: AudioBufferSourceNode; trackGain: GainNode; id: string } | null = null;
+let _musicRequestId = 0;
+// Concurrency limiter: track active source count per SFX ID
+const _activeSfx = new Map<string, number>();
+const MAX_CONCURRENT_SFX = 3;
 
 function _ensureContext(): AudioContext {
   if (!_ctx) {
@@ -74,7 +78,8 @@ async function _loadBuffer(id: string): Promise<AudioBuffer | null> {
     const audioBuf = await ctx.decodeAudioData(arrayBuf);
     _bufferCache.set(id, audioBuf);
     return audioBuf;
-  } catch {
+  } catch (e) {
+    console.warn(`[Audio] Failed to load "${id}":`, e);
     return null;
   }
 }
@@ -87,31 +92,55 @@ function setVolumes(master: number, music: number, sfx: number): void {
   _applyVolumes(master, music, sfx);
 }
 
-async function playMusic(trackId: string): Promise<void> {
-  if (_currentMusic?.id === trackId) return;
-  stopMusic();
+const MUSIC_FADE_S = 0.4; // crossfade duration in seconds
 
+async function playMusic(trackId: string): Promise<void> {
+  _ensureContext();
+  if (_currentMusic?.id === trackId) return;
+
+  // Fade out and schedule stop of the outgoing track
+  if (_currentMusic) {
+    const old = _currentMusic;
+    _currentMusic = null;
+    const ctx = _ensureContext();
+    old.trackGain.gain.setValueAtTime(old.trackGain.gain.value, ctx.currentTime);
+    old.trackGain.gain.linearRampToValueAtTime(0, ctx.currentTime + MUSIC_FADE_S);
+    setTimeout(() => {
+      try { old.source.stop(); old.trackGain.disconnect(); } catch { /* already stopped */ }
+    }, MUSIC_FADE_S * 1000 + 50);
+  }
+
+  const requestId = ++_musicRequestId;
   const buf = await _loadBuffer(trackId);
-  if (!buf) return;
+  // Another playMusic call was made while loading — abort this one
+  if (!buf || requestId !== _musicRequestId) return;
 
   const ctx = _ensureContext();
+  const trackGain = ctx.createGain();
+  trackGain.gain.setValueAtTime(0, ctx.currentTime);
+  trackGain.gain.linearRampToValueAtTime(1, ctx.currentTime + MUSIC_FADE_S);
+  trackGain.connect(_musicGain!);
+
   const source = ctx.createBufferSource();
   source.buffer = buf;
   source.loop = true;
-  source.connect(_musicGain!);
+  source.connect(trackGain);
   source.start(0);
 
-  _currentMusic = { source, id: trackId };
+  _currentMusic = { source, trackGain, id: trackId };
 }
 
 function stopMusic(): void {
   if (_currentMusic) {
-    try { _currentMusic.source.stop(); } catch { /* already stopped */ }
+    try { _currentMusic.source.stop(); _currentMusic.trackGain.disconnect(); } catch { /* already stopped */ }
     _currentMusic = null;
   }
 }
 
 async function playSfx(sfxId: string): Promise<void> {
+  // Prevent unbounded stacking of the same SFX
+  if ((_activeSfx.get(sfxId) ?? 0) >= MAX_CONCURRENT_SFX) return;
+
   const buf = await _loadBuffer(sfxId);
   if (!buf) return;
 
@@ -119,6 +148,12 @@ async function playSfx(sfxId: string): Promise<void> {
   const source = ctx.createBufferSource();
   source.buffer = buf;
   source.connect(_sfxGain!);
+
+  _activeSfx.set(sfxId, (_activeSfx.get(sfxId) ?? 0) + 1);
+  source.onended = () => {
+    _activeSfx.set(sfxId, Math.max(0, (_activeSfx.get(sfxId) ?? 1) - 1));
+  };
+
   source.start(0);
 }
 

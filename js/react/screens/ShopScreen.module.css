@@ -10,15 +10,27 @@
   overflow-y: auto;
 }
 
+.shopBg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  opacity: 0.28;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   max-width: 900px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .shopTitle {
@@ -35,21 +47,129 @@
   gap: 6px;
   color: #c8a84b;
   font-size: 1rem;
+  font-family: var(--font-stats);
+}
+
+.coinsValue {
+  font-weight: bold;
 }
 
 .backBtn { font-size: 0.85rem; }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+/* ── Tabs ── */
+
+.tabs {
+  display: flex;
+  gap: 0;
   max-width: 900px;
   width: 100%;
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 1;
 }
 
-@media (min-width: 700px) {
-  .grid { grid-template-columns: repeat(4, 1fr); }
+.tabBtn {
+  flex: 1;
+  background: #111828;
+  color: var(--text-dim);
+  padding: 8px 14px;
+  border: 2px solid #334;
+  border-radius: 0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: color 0.15s, background 0.15s;
 }
+
+.tabBtn:first-child { border-right: none; }
+
+.tabBtn:hover { color: var(--gold); }
+
+.tabBtn.activeTab {
+  background: #1a2840;
+  color: #c8a84b;
+  border-color: #c8a84b;
+}
+
+/* ── Carousel ── */
+
+.carousel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.carouselTrack {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+  justify-content: center;
+  min-height: 0;
+}
+
+.arrowBtn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: #111828;
+  border: 2px solid #334;
+  border-radius: 0;
+  color: #c8a84b;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  z-index: 2;
+}
+
+.arrowBtn:hover:not(:disabled) {
+  background: #1a2840;
+  color: #f0d080;
+}
+
+.arrowBtn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* ── Dots ── */
+
+.dots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid #556;
+  background: #334;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.dot:hover { border-color: #c8a84b; }
+
+.dotActive {
+  background: #c8a84b;
+  border-color: #c8a84b;
+}
+
+/* ── Pack Tile ── */
 
 .packTile {
   background: #111828;
@@ -63,6 +183,8 @@
   gap: 8px;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  max-width: 280px;
 }
 
 .packTile::before {
@@ -87,7 +209,7 @@
 .packIcon { font-size: 2.5rem; position: relative; }
 .packName { font-size: 0.9rem; font-weight: bold; color: #c0d0e0; position: relative; }
 .packDesc { font-size: 0.72rem; color: #606880; position: relative; }
-.packPrice { font-size: 1rem; color: #c8a84b; font-weight: bold; position: relative; }
+.packPrice { font-size: 1rem; color: #c8a84b; font-weight: bold; position: relative; font-family: var(--font-stats); }
 
 .raceSelectWrap { width: 100%; position: relative; }
 
@@ -121,5 +243,23 @@
 }
 
 .buyBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.packLocked {
+  font-size: 0.75rem;
+  color: #e06040;
+  position: relative;
+}
+
+/* ── Section title (kept for potential fallback) ── */
+
+.sectionTitle {
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  letter-spacing: 2px;
+  color: #c8a84b;
+  text-shadow: 2px 2px 0 #000;
+  margin: 28px 0 16px;
+  max-width: 900px;
+  width: 100%;
+}
 
 .msg { color: #e06040; font-size: 0.9rem; margin-top: 10px; min-height: 1.2em; }

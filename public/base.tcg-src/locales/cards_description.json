@@ -1,0 +1,1562 @@
+[
+  {
+    "id": 1,
+    "name": "Shadow Hatchling",
+    "description": "A fearsome dragon that commands dark energy."
+  },
+  {
+    "id": 2,
+    "name": "Darkscale Drake",
+    "description": "A fearsome dragon that commands dark energy."
+  },
+  {
+    "id": 3,
+    "name": "Flame Whelp",
+    "description": "A mighty dragon wreathed in scorching flames."
+  },
+  {
+    "id": 4,
+    "name": "Nightfang Dragon",
+    "description": "A fearsome dragon that commands dark energy."
+  },
+  {
+    "id": 5,
+    "name": "Duskwing Serpent",
+    "description": "A fearsome dragon that commands dark energy."
+  },
+  {
+    "id": 6,
+    "name": "Ember Wyrm",
+    "description": "A mighty dragon wreathed in scorching flames."
+  },
+  {
+    "id": 7,
+    "name": "Obsidian Dragon",
+    "description": "A fearsome dragon that commands dark energy."
+  },
+  {
+    "id": 8,
+    "name": "Twilight Drake",
+    "description": "A fearsome dragon that commands dark energy."
+  },
+  {
+    "id": 9,
+    "name": "Crimson Fang Dragon",
+    "description": "A mighty dragon wreathed in scorching flames."
+  },
+  {
+    "id": 10,
+    "name": "Moonscale Dragon",
+    "description": "A fearsome dragon that commands dark energy."
+  },
+  {
+    "id": 11,
+    "name": "Dark Tempest Dragon",
+    "description": "A fearsome dragon that commands dark energy."
+  },
+  {
+    "id": 12,
+    "name": "Inferno Serpent",
+    "description": "A mighty dragon wreathed in scorching flames."
+  },
+  {
+    "id": 13,
+    "name": "Shadowflame Dragon",
+    "description": "A fearsome dragon that commands dark energy."
+  },
+  {
+    "id": 14,
+    "name": "Voidfire Dragon",
+    "description": "[Effect] On Summon: Deal 300 damage to opponent."
+  },
+  {
+    "id": 15,
+    "name": "Dread Dragon Lord",
+    "description": "[Effect] On Summon: All your Dragon monsters gain +200 ATK/DEF."
+  },
+  {
+    "id": 16,
+    "name": "Blazescale Wyvern",
+    "description": "[Effect] On Summon: Deal 400 damage to opponent."
+  },
+  {
+    "id": 17,
+    "name": "Eclipse Dragon",
+    "description": "[Effect] When destroyed in battle: Draw 1 card."
+  },
+  {
+    "id": 18,
+    "name": "Flamecrest Dragon",
+    "description": "[Effect] On Summon: All your Dragon monsters gain +300 ATK/DEF."
+  },
+  {
+    "id": 19,
+    "name": "Abyssal Dragon",
+    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+  },
+  {
+    "id": 20,
+    "name": "Darkstorm Wyrm",
+    "description": "[Passive] Piercing: Deals battle damage even when attacking a DEF position monster."
+  },
+  {
+    "id": 21,
+    "name": "Shadow Dragon King",
+    "description": "[Effect] On Summon: All your Dragon monsters gain +400 ATK/DEF."
+  },
+  {
+    "id": 22,
+    "name": "Hellfire Dragon",
+    "description": "[Effect] On Summon: Deal 600 damage to opponent."
+  },
+  {
+    "id": 23,
+    "name": "Nightfall Wyrm",
+    "description": "[Passive] Piercing: Deals battle damage even when attacking a DEF position monster."
+  },
+  {
+    "id": 24,
+    "name": "Chaos Dragon Emperor",
+    "description": "[Effect] On Summon: Deal 800 damage to opponent."
+  },
+  {
+    "id": 25,
+    "name": "Supreme Dragon Lord",
+    "description": "[Effect] On Summon: All your Dragon monsters gain +500 ATK/DEF."
+  },
+  {
+    "id": 26,
+    "name": "Recruit",
+    "description": "A disciplined warrior wielding the strength of earth."
+  },
+  {
+    "id": 27,
+    "name": "Foot Soldier",
+    "description": "A disciplined warrior wielding the strength of earth."
+  },
+  {
+    "id": 28,
+    "name": "Lancer",
+    "description": "A courageous fighter blessed with radiant light."
+  },
+  {
+    "id": 29,
+    "name": "Spear Fighter",
+    "description": "A disciplined warrior wielding the strength of earth."
+  },
+  {
+    "id": 30,
+    "name": "Lance Rider",
+    "description": "A disciplined warrior wielding the strength of earth."
+  },
+  {
+    "id": 31,
+    "name": "Sword Runner",
+    "description": "A disciplined warrior wielding the strength of earth."
+  },
+  {
+    "id": 32,
+    "name": "Blade Warden",
+    "description": "A courageous fighter blessed with radiant light."
+  },
+  {
+    "id": 33,
+    "name": "Shield Master",
+    "description": "A disciplined warrior wielding the strength of earth."
+  },
+  {
+    "id": 34,
+    "name": "Battle Commander",
+    "description": "A disciplined warrior wielding the strength of earth."
+  },
+  {
+    "id": 35,
+    "name": "Blade Lord",
+    "description": "A courageous fighter blessed with radiant light."
+  },
+  {
+    "id": 36,
+    "name": "Battle Titan",
+    "description": "A disciplined warrior wielding the strength of earth."
+  },
+  {
+    "id": 37,
+    "name": "Sword Lord",
+    "description": "A disciplined warrior wielding the strength of earth."
+  },
+  {
+    "id": 38,
+    "name": "Shield Lord",
+    "description": "A courageous fighter blessed with radiant light."
+  },
+  {
+    "id": 39,
+    "name": "Warlord",
+    "description": "[Effect] On Summon: One of your monsters gains +400 ATK until end of turn."
+  },
+  {
+    "id": 40,
+    "name": "Blade Prince",
+    "description": "[Effect] On Summon: One of your monsters permanently gains +200 ATK."
+  },
+  {
+    "id": 41,
+    "name": "Iron General",
+    "description": "[Effect] On Summon: All your Warrior monsters gain +200 ATK/DEF."
+  },
+  {
+    "id": 42,
+    "name": "War Marshal",
+    "description": "[Effect] On Summon: One of your monsters gains +500 ATK until end of turn."
+  },
+  {
+    "id": 43,
+    "name": "Dragon Slayer",
+    "description": "[Effect] When destroyed in battle: Draw 1 card."
+  },
+  {
+    "id": 44,
+    "name": "Celestial Warrior",
+    "description": "[Effect] On Summon: One of your monsters permanently gains +300 ATK."
+  },
+  {
+    "id": 45,
+    "name": "Crimson Blade",
+    "description": "[Effect] On Summon: All your Warrior monsters gain +300 ATK/DEF."
+  },
+  {
+    "id": 46,
+    "name": "Jade Guardian",
+    "description": "[Effect] On Summon: One of your monsters gains +600 ATK until end of turn."
+  },
+  {
+    "id": 47,
+    "name": "Thunder Knight",
+    "description": "[Effect] On Summon: One of your monsters permanently gains +400 ATK."
+  },
+  {
+    "id": 48,
+    "name": "Phantom Swordsman",
+    "description": "[Effect] On Summon: All your Warrior monsters gain +400 ATK/DEF."
+  },
+  {
+    "id": 49,
+    "name": "Golden Vanguard",
+    "description": "[Passive] This monster cannot be targeted by effects."
+  },
+  {
+    "id": 50,
+    "name": "Grand Champion",
+    "description": "[Effect] On Summon: One of your monsters permanently gains +500 ATK."
+  },
+  {
+    "id": 51,
+    "name": "Imperial Warlord",
+    "description": "[Effect] On Summon: All your Warrior monsters gain +500 ATK/DEF."
+  },
+  {
+    "id": 52,
+    "name": "Heaven's Blade",
+    "description": "[Passive] Piercing: Deals battle damage even when attacking a DEF position monster."
+  },
+  {
+    "id": 53,
+    "name": "Tempest Duelist",
+    "description": "[Effect] On Summon: One of your monsters gains +700 ATK until end of turn."
+  },
+  {
+    "id": 54,
+    "name": "Arcane Scholar",
+    "description": "A skilled mage who channels the power of light."
+  },
+  {
+    "id": 55,
+    "name": "Hex Weaver",
+    "description": "A skilled mage who channels the power of light."
+  },
+  {
+    "id": 56,
+    "name": "Spell Sage",
+    "description": "A mysterious sorcerer attuned to dark forces."
+  },
+  {
+    "id": 57,
+    "name": "Rune Master",
+    "description": "A skilled mage who channels the power of light."
+  },
+  {
+    "id": 58,
+    "name": "Archmage",
+    "description": "A skilled mage who channels the power of light."
+  },
+  {
+    "id": 59,
+    "name": "Grand Sorcerer",
+    "description": "A mysterious sorcerer attuned to dark forces."
+  },
+  {
+    "id": 60,
+    "name": "Void Mage",
+    "description": "A skilled mage who channels the power of light."
+  },
+  {
+    "id": 61,
+    "name": "Starlight Diviner",
+    "description": "A skilled mage who channels the power of light."
+  },
+  {
+    "id": 62,
+    "name": "Shadow Enchanter",
+    "description": "A mysterious sorcerer attuned to dark forces."
+  },
+  {
+    "id": 63,
+    "name": "Jade Mystic",
+    "description": "A skilled mage who channels the power of light."
+  },
+  {
+    "id": 64,
+    "name": "Lunar Invoker",
+    "description": "A skilled mage who channels the power of light."
+  },
+  {
+    "id": 65,
+    "name": "Dusk Conjurer",
+    "description": "A mysterious sorcerer attuned to dark forces."
+  },
+  {
+    "id": 66,
+    "name": "Oracle of Light",
+    "description": "[Effect] On Summon: Add 1 card from your Deck to your hand."
+  },
+  {
+    "id": 67,
+    "name": "Celestial Sage",
+    "description": "[Effect] On Summon: All opponent monsters lose 200 ATK and 200 DEF."
+  },
+  {
+    "id": 68,
+    "name": "Twilight Warlock",
+    "description": "[Effect] When destroyed in battle: Draw 2 cards."
+  },
+  {
+    "id": 69,
+    "name": "Healing Sage",
+    "description": "[Effect] On Summon: Gain 500 LP."
+  },
+  {
+    "id": 70,
+    "name": "Grand Diviner",
+    "description": "[Effect] On Summon: Add 1 card from your Deck to your hand."
+  },
+  {
+    "id": 71,
+    "name": "Dark Illusionist",
+    "description": "[Effect] On Summon: All opponent monsters lose 300 ATK and 300 DEF."
+  },
+  {
+    "id": 72,
+    "name": "Radiant Spellweaver",
+    "description": "[Effect] On Summon: Return opponent's strongest monster to their hand."
+  },
+  {
+    "id": 73,
+    "name": "Mind Shatter Mage",
+    "description": "[Effect] On Summon: All opponent monsters lose 400 ATK and 300 DEF."
+  },
+  {
+    "id": 74,
+    "name": "Shadow Oracle",
+    "description": "[Effect] On Summon: Add 1 card from your Deck to your hand."
+  },
+  {
+    "id": 75,
+    "name": "Spirit Banisher",
+    "description": "[Effect] On Summon: Return opponent's strongest monster to their hand."
+  },
+  {
+    "id": 76,
+    "name": "Supreme Enchantress",
+    "description": "[Effect] On Summon: All opponent monsters lose 500 ATK and 400 DEF."
+  },
+  {
+    "id": 77,
+    "name": "Immortal Sage",
+    "description": "[Passive] This monster cannot be targeted by effects."
+  },
+  {
+    "id": 78,
+    "name": "Chaos Sorcerer",
+    "description": "[Effect] On Summon: Return opponent's strongest monster to their hand."
+  },
+  {
+    "id": 79,
+    "name": "War Elephant",
+    "description": "A ferocious beast born from the flames of battle."
+  },
+  {
+    "id": 80,
+    "name": "Mountain Lion",
+    "description": "A ferocious beast born from the flames of battle."
+  },
+  {
+    "id": 81,
+    "name": "Dire Wolf",
+    "description": "A mighty creature infused with the power of earth."
+  },
+  {
+    "id": 82,
+    "name": "Savage Boar",
+    "description": "A ferocious beast born from the flames of battle."
+  },
+  {
+    "id": 83,
+    "name": "Alpha Predator",
+    "description": "A ferocious beast born from the flames of battle."
+  },
+  {
+    "id": 84,
+    "name": "King of Beasts",
+    "description": "A ferocious beast born from the flames of battle."
+  },
+  {
+    "id": 85,
+    "name": "Iron Stag",
+    "description": "A mighty creature infused with the power of earth."
+  },
+  {
+    "id": 86,
+    "name": "Blazeclaw Tiger",
+    "description": "A ferocious beast born from the flames of battle."
+  },
+  {
+    "id": 87,
+    "name": "Firemane Lion",
+    "description": "A ferocious beast born from the flames of battle."
+  },
+  {
+    "id": 88,
+    "name": "Embertusk Boar",
+    "description": "[Effect] On Summon: Deal 300 damage to opponent."
+  },
+  {
+    "id": 89,
+    "name": "Stampede Bull",
+    "description": "[Passive] Piercing: Deals battle damage even when attacking a DEF position monster."
+  },
+  {
+    "id": 90,
+    "name": "Scorchfang Panther",
+    "description": "[Effect] On Summon: Deal 400 damage to opponent."
+  },
+  {
+    "id": 91,
+    "name": "Inferno Tiger",
+    "description": "[Passive] Piercing: Deals battle damage even when attacking a DEF position monster."
+  },
+  {
+    "id": 92,
+    "name": "Ancient Tortoise",
+    "description": "[Effect] When destroyed in battle: Gain 500 LP."
+  },
+  {
+    "id": 93,
+    "name": "Thundermaw Bear",
+    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+  },
+  {
+    "id": 94,
+    "name": "Jungle Lord",
+    "description": "[Passive] Piercing: Deals battle damage even when attacking a DEF position monster."
+  },
+  {
+    "id": 95,
+    "name": "Sacred Qilin",
+    "description": "[Effect] On Summon: Deal 600 damage to opponent."
+  },
+  {
+    "id": 96,
+    "name": "Divine Beast King",
+    "description": "[Passive] When destroyed: Special Summon this monster from the Graveyard once."
+  },
+  {
+    "id": 97,
+    "name": "Raging Behemoth",
+    "description": "[Passive] Piercing: Deals battle damage even when attacking a DEF position monster."
+  },
+  {
+    "id": 98,
+    "name": "Swift Raptor",
+    "description": "[Passive] This monster can attack directly."
+  },
+  {
+    "id": 99,
+    "name": "Seedling",
+    "description": "A sentient plant thriving with earth energy."
+  },
+  {
+    "id": 100,
+    "name": "Thorn Sprout",
+    "description": "A sentient plant thriving with earth energy."
+  },
+  {
+    "id": 101,
+    "name": "Willow Wisp",
+    "description": "A mystical flora channeling the force of wind."
+  },
+  {
+    "id": 102,
+    "name": "Vine Creeper",
+    "description": "A sentient plant thriving with earth energy."
+  },
+  {
+    "id": 103,
+    "name": "Bamboo Sentinel",
+    "description": "A sentient plant thriving with earth energy."
+  },
+  {
+    "id": 104,
+    "name": "Moss Guardian",
+    "description": "A sentient plant thriving with earth energy."
+  },
+  {
+    "id": 105,
+    "name": "Windbloom Fern",
+    "description": "A mystical flora channeling the force of wind."
+  },
+  {
+    "id": 106,
+    "name": "Lotus Spirit",
+    "description": "A sentient plant thriving with earth energy."
+  },
+  {
+    "id": 107,
+    "name": "Root Walker",
+    "description": "A sentient plant thriving with earth energy."
+  },
+  {
+    "id": 108,
+    "name": "Gale Blossom",
+    "description": "A mystical flora channeling the force of wind."
+  },
+  {
+    "id": 109,
+    "name": "Ancient Treant",
+    "description": "[Effect] When destroyed in battle: Gain 500 LP."
+  },
+  {
+    "id": 110,
+    "name": "Jade Lotus",
+    "description": "[Effect] On Summon: Gain 400 LP."
+  },
+  {
+    "id": 111,
+    "name": "Stormleaf Guardian",
+    "description": "[Effect] When destroyed in battle: Draw 1 card."
+  },
+  {
+    "id": 112,
+    "name": "Ironbark Titan",
+    "description": "[Effect] On Summon: One of your monsters gains +300 DEF until end of turn."
+  },
+  {
+    "id": 113,
+    "name": "Sacred Peach Tree",
+    "description": "[Effect] When destroyed in battle: Gain 800 LP."
+  },
+  {
+    "id": 114,
+    "name": "World Tree",
+    "description": "[Effect] On Summon: Gain 800 LP."
+  },
+  {
+    "id": 115,
+    "name": "Celestial Orchid",
+    "description": "[Effect] On Summon: All your Plant monsters gain +300 ATK/DEF."
+  },
+  {
+    "id": 116,
+    "name": "Eternal Banyan",
+    "description": "[Effect] When destroyed in battle: Gain 1200 LP."
+  },
+  {
+    "id": 117,
+    "name": "Pebble",
+    "description": "A massive stone creature animated by earth power."
+  },
+  {
+    "id": 118,
+    "name": "Stone Shard",
+    "description": "A massive stone creature animated by earth power."
+  },
+  {
+    "id": 119,
+    "name": "Obsidian Sentry",
+    "description": "An ancient rock formation infused with dark energy."
+  },
+  {
+    "id": 120,
+    "name": "Boulder",
+    "description": "A massive stone creature animated by earth power."
+  },
+  {
+    "id": 121,
+    "name": "Rock Sentinel",
+    "description": "A massive stone creature animated by earth power."
+  },
+  {
+    "id": 122,
+    "name": "Granite Guard",
+    "description": "A massive stone creature animated by earth power."
+  },
+  {
+    "id": 123,
+    "name": "Dark Ore Golem",
+    "description": "An ancient rock formation infused with dark energy."
+  },
+  {
+    "id": 124,
+    "name": "Iron Ore Colossus",
+    "description": "A massive stone creature animated by earth power."
+  },
+  {
+    "id": 125,
+    "name": "Jade Stone",
+    "description": "A massive stone creature animated by earth power."
+  },
+  {
+    "id": 126,
+    "name": "Onyx Golem",
+    "description": "An ancient rock formation infused with dark energy."
+  },
+  {
+    "id": 127,
+    "name": "Basalt Warden",
+    "description": "[Passive] This monster cannot be targeted by effects."
+  },
+  {
+    "id": 128,
+    "name": "Crystal Colossus",
+    "description": "[Effect] On Summon: All opponent monsters lose 200 ATK and 100 DEF."
+  },
+  {
+    "id": 129,
+    "name": "Shadow Monolith",
+    "description": "[Effect] On Summon: One of your monsters gains +400 DEF until end of turn."
+  },
+  {
+    "id": 130,
+    "name": "Earthquake Giant",
+    "description": "[Effect] When destroyed in battle: Draw 1 card."
+  },
+  {
+    "id": 131,
+    "name": "Mountain Titan",
+    "description": "[Passive] This monster cannot be targeted by effects."
+  },
+  {
+    "id": 132,
+    "name": "Dark Mountain Lord",
+    "description": "[Effect] On Summon: All opponent monsters lose 300 ATK and 200 DEF."
+  },
+  {
+    "id": 133,
+    "name": "Diamond Fortress",
+    "description": "[Effect] On Summon: All opponent monsters lose 400 ATK and 300 DEF."
+  },
+  {
+    "id": 134,
+    "name": "Primordial Colossus",
+    "description": "[Passive] This monster cannot be targeted by effects."
+  },
+  {
+    "id": 135,
+    "name": "Obsidian Emperor",
+    "description": "[Effect] On Summon: All opponent monsters lose 500 ATK and 400 DEF."
+  },
+  {
+    "id": 136,
+    "name": "Earth Colossus",
+    "description": "[Passive] This monster cannot be targeted by effects."
+  },
+  {
+    "id": 137,
+    "name": "Spark",
+    "description": "A radiant firebird blazing with fierce flames."
+  },
+  {
+    "id": 138,
+    "name": "Cinder Bird",
+    "description": "A radiant firebird blazing with fierce flames."
+  },
+  {
+    "id": 139,
+    "name": "Wind Swallow",
+    "description": "An immortal bird soaring on winds of rebirth."
+  },
+  {
+    "id": 140,
+    "name": "Fire Swallow",
+    "description": "A radiant firebird blazing with fierce flames."
+  },
+  {
+    "id": 141,
+    "name": "Ember Crane",
+    "description": "A radiant firebird blazing with fierce flames."
+  },
+  {
+    "id": 142,
+    "name": "Blaze Falcon",
+    "description": "A radiant firebird blazing with fierce flames."
+  },
+  {
+    "id": 143,
+    "name": "Gale Phoenix",
+    "description": "An immortal bird soaring on winds of rebirth."
+  },
+  {
+    "id": 144,
+    "name": "Solar Hawk",
+    "description": "[Effect] On Summon: Deal 400 damage to opponent."
+  },
+  {
+    "id": 145,
+    "name": "Inferno Raptor",
+    "description": "[Passive] When destroyed: Special Summon this monster from the Graveyard once."
+  },
+  {
+    "id": 146,
+    "name": "Stormfire Heron",
+    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+  },
+  {
+    "id": 147,
+    "name": "Crimson Firebird",
+    "description": "[Effect] On Summon: One of your monsters gains +400 ATK until end of turn."
+  },
+  {
+    "id": 148,
+    "name": "Golden Phoenix",
+    "description": "[Passive] When destroyed: Special Summon this monster from the Graveyard once."
+  },
+  {
+    "id": 149,
+    "name": "Blazewing Sovereign",
+    "description": "[Effect] On Summon: Deal 700 damage to opponent."
+  },
+  {
+    "id": 150,
+    "name": "Celestial Phoenix",
+    "description": "[Passive] When destroyed: Special Summon this monster from the Graveyard once."
+  },
+  {
+    "id": 151,
+    "name": "Phoenix Emperor",
+    "description": "[Effect] On Summon: Deal 1000 damage to opponent."
+  },
+  {
+    "id": 152,
+    "name": "Skeleton",
+    "description": "A restless spirit bound by dark sorcery."
+  },
+  {
+    "id": 153,
+    "name": "Ghoul",
+    "description": "A restless spirit bound by dark sorcery."
+  },
+  {
+    "id": 154,
+    "name": "Bone Warrior",
+    "description": "An undead creature risen through earth magic."
+  },
+  {
+    "id": 155,
+    "name": "Restless Spirit",
+    "description": "A restless spirit bound by dark sorcery."
+  },
+  {
+    "id": 156,
+    "name": "Zombie Soldier",
+    "description": "A restless spirit bound by dark sorcery."
+  },
+  {
+    "id": 157,
+    "name": "Phantom",
+    "description": "A restless spirit bound by dark sorcery."
+  },
+  {
+    "id": 158,
+    "name": "Bone Knight",
+    "description": "A restless spirit bound by dark sorcery."
+  },
+  {
+    "id": 159,
+    "name": "Grave Golem",
+    "description": "An undead creature risen through earth magic."
+  },
+  {
+    "id": 160,
+    "name": "Wraith",
+    "description": "A restless spirit bound by dark sorcery."
+  },
+  {
+    "id": 161,
+    "name": "Death Knight",
+    "description": "[Passive] When destroyed: Special Summon this monster from the Graveyard once."
+  },
+  {
+    "id": 162,
+    "name": "Soul Harvester",
+    "description": "[Effect] When destroyed in battle: Gain 600 LP."
+  },
+  {
+    "id": 163,
+    "name": "Lich",
+    "description": "[Effect] When destroyed in battle: Draw 2 cards."
+  },
+  {
+    "id": 164,
+    "name": "Vampire Lord",
+    "description": "[Passive] When destroyed: Special Summon this monster from the Graveyard once."
+  },
+  {
+    "id": 165,
+    "name": "Soul Devourer",
+    "description": "[Effect] On Summon: Gain 600 LP."
+  },
+  {
+    "id": 166,
+    "name": "Undead General",
+    "description": "[Passive] When destroyed: Special Summon this monster from the Graveyard once."
+  },
+  {
+    "id": 167,
+    "name": "Lord of the Dead",
+    "description": "[Effect] When destroyed in battle: Gain 1000 LP."
+  },
+  {
+    "id": 168,
+    "name": "Netherworld King",
+    "description": "[Passive] When destroyed: Special Summon this monster from the Graveyard once."
+  },
+  {
+    "id": 169,
+    "name": "Abyssal Revenant",
+    "description": "[Effect] On Summon: All opponent monsters lose 400 ATK and 300 DEF."
+  },
+  {
+    "id": 170,
+    "name": "Tadpole",
+    "description": "A graceful water creature of the deep currents."
+  },
+  {
+    "id": 171,
+    "name": "Jellyfish",
+    "description": "A graceful water creature of the deep currents."
+  },
+  {
+    "id": 172,
+    "name": "Wind Koi",
+    "description": "A swift aquatic spirit riding wind-touched waves."
+  },
+  {
+    "id": 173,
+    "name": "Reef Fish",
+    "description": "A graceful water creature of the deep currents."
+  },
+  {
+    "id": 174,
+    "name": "River Sprite",
+    "description": "A graceful water creature of the deep currents."
+  },
+  {
+    "id": 175,
+    "name": "Tide Walker",
+    "description": "A graceful water creature of the deep currents."
+  },
+  {
+    "id": 176,
+    "name": "Deep Diver",
+    "description": "A graceful water creature of the deep currents."
+  },
+  {
+    "id": 177,
+    "name": "Coral Guardian",
+    "description": "A swift aquatic spirit riding wind-touched waves."
+  },
+  {
+    "id": 178,
+    "name": "Sea Witch",
+    "description": "A graceful water creature of the deep currents."
+  },
+  {
+    "id": 179,
+    "name": "Abyssal Angler",
+    "description": "A graceful water creature of the deep currents."
+  },
+  {
+    "id": 180,
+    "name": "Leviathan",
+    "description": "[Effect] On Summon: Return opponent's strongest monster to their hand."
+  },
+  {
+    "id": 181,
+    "name": "Gale Mermaid",
+    "description": "[Effect] On Summon: One of your monsters gains +350 DEF until end of turn."
+  },
+  {
+    "id": 182,
+    "name": "Ocean Sage",
+    "description": "[Effect] On Summon: Return opponent's strongest monster to their hand."
+  },
+  {
+    "id": 183,
+    "name": "Depth Oracle",
+    "description": "[Effect] On Summon: Add 1 card from your Deck to your hand."
+  },
+  {
+    "id": 184,
+    "name": "Storm Serpent",
+    "description": "[Effect] On Summon: All opponent monsters lose 300 ATK and 200 DEF."
+  },
+  {
+    "id": 185,
+    "name": "Tidal Lord",
+    "description": "[Effect] On Summon: Return opponent's strongest monster to their hand."
+  },
+  {
+    "id": 186,
+    "name": "Frost Kraken",
+    "description": "[Effect] On Summon: One of your monsters gains +500 DEF until end of turn."
+  },
+  {
+    "id": 187,
+    "name": "Abyssal Sovereign",
+    "description": "[Effect] On Summon: Return opponent's strongest monster to their hand."
+  },
+  {
+    "id": 188,
+    "name": "Ocean Emperor",
+    "description": "[Passive] This monster cannot be targeted by effects."
+  },
+  {
+    "id": 189,
+    "name": "Jade Sea Dragon",
+    "description": "[Effect] On Summon: Return opponent's strongest monster to their hand."
+  },
+  {
+    "id": 190,
+    "name": "Larva",
+    "description": "A swift insect empowered by the wind."
+  },
+  {
+    "id": 191,
+    "name": "Firefly",
+    "description": "A swift insect empowered by the wind."
+  },
+  {
+    "id": 192,
+    "name": "Scarab",
+    "description": "A resilient bug creature of the earth."
+  },
+  {
+    "id": 193,
+    "name": "Windhopper",
+    "description": "A swift insect empowered by the wind."
+  },
+  {
+    "id": 194,
+    "name": "Mantis",
+    "description": "A swift insect empowered by the wind."
+  },
+  {
+    "id": 195,
+    "name": "Beetle Guard",
+    "description": "A swift insect empowered by the wind."
+  },
+  {
+    "id": 196,
+    "name": "Gale Moth",
+    "description": "A swift insect empowered by the wind."
+  },
+  {
+    "id": 197,
+    "name": "Burrowing Centipede",
+    "description": "A resilient bug creature of the earth."
+  },
+  {
+    "id": 198,
+    "name": "Wasp Warrior",
+    "description": "A swift insect empowered by the wind."
+  },
+  {
+    "id": 199,
+    "name": "Silk Spinner",
+    "description": "[Effect] On Summon: One of your monsters gains +300 ATK until end of turn."
+  },
+  {
+    "id": 200,
+    "name": "Hive Commander",
+    "description": "[Effect] On Summon: All your Insect monsters gain +250 ATK/DEF."
+  },
+  {
+    "id": 201,
+    "name": "Thunder Beetle",
+    "description": "[Effect] When destroyed in battle: Draw 2 cards."
+  },
+  {
+    "id": 202,
+    "name": "Scorpion King",
+    "description": "[Effect] On Summon: One of your monsters gains +500 ATK until end of turn."
+  },
+  {
+    "id": 203,
+    "name": "Swarm Queen",
+    "description": "[Effect] On Summon: All your Insect monsters gain +350 ATK/DEF."
+  },
+  {
+    "id": 204,
+    "name": "Sand Worm",
+    "description": "[Effect] On Summon: All your Insect monsters gain +400 ATK/DEF."
+  },
+  {
+    "id": 205,
+    "name": "Earth Borer",
+    "description": "[Effect] On Summon: One of your monsters gains +600 ATK until end of turn."
+  },
+  {
+    "id": 206,
+    "name": "Insect Emperor",
+    "description": "[Effect] On Summon: All your Insect monsters gain +500 ATK/DEF."
+  },
+  {
+    "id": 207,
+    "name": "Windstorm Locust",
+    "description": "[Passive] This monster can attack directly."
+  },
+  {
+    "id": 208,
+    "name": "Cog",
+    "description": "A mechanical construct driven by radiant energy."
+  },
+  {
+    "id": 209,
+    "name": "Gear Soldier",
+    "description": "A mechanical construct driven by radiant energy."
+  },
+  {
+    "id": 210,
+    "name": "Iron Digger",
+    "description": "An advanced automaton powered by earth force."
+  },
+  {
+    "id": 211,
+    "name": "Spark Automaton",
+    "description": "A mechanical construct driven by radiant energy."
+  },
+  {
+    "id": 212,
+    "name": "Bronze Sentry",
+    "description": "A mechanical construct driven by radiant energy."
+  },
+  {
+    "id": 213,
+    "name": "Earth Crawler",
+    "description": "An advanced automaton powered by earth force."
+  },
+  {
+    "id": 214,
+    "name": "Clockwork Knight",
+    "description": "A mechanical construct driven by radiant energy."
+  },
+  {
+    "id": 215,
+    "name": "Luminous Mech",
+    "description": "A mechanical construct driven by radiant energy."
+  },
+  {
+    "id": 216,
+    "name": "Siege Golem",
+    "description": "An advanced automaton powered by earth force."
+  },
+  {
+    "id": 217,
+    "name": "Radiant Automaton",
+    "description": "A mechanical construct driven by radiant energy."
+  },
+  {
+    "id": 218,
+    "name": "Steel Colossus",
+    "description": "[Effect] On Summon: All your Machine monsters gain +200 ATK/DEF."
+  },
+  {
+    "id": 219,
+    "name": "Iron Juggernaut",
+    "description": "[Effect] On Summon: One of your monsters gains +300 ATK until end of turn."
+  },
+  {
+    "id": 220,
+    "name": "War Machine",
+    "description": "[Effect] On Summon: All your Machine monsters gain +300 ATK/DEF."
+  },
+  {
+    "id": 221,
+    "name": "Cannon Golem",
+    "description": "[Effect] On Summon: Deal 400 damage to opponent."
+  },
+  {
+    "id": 222,
+    "name": "Mecha Titan",
+    "description": "[Effect] On Summon: One of your monsters gains +400 ATK until end of turn."
+  },
+  {
+    "id": 223,
+    "name": "Sky Fortress",
+    "description": "[Effect] On Summon: All your Machine monsters gain +400 ATK/DEF."
+  },
+  {
+    "id": 224,
+    "name": "Iron Fortress",
+    "description": "[Effect] On Summon: All your Machine monsters gain +500 ATK/DEF."
+  },
+  {
+    "id": 225,
+    "name": "Omega Machine",
+    "description": "[Effect] On Summon: One of your monsters gains +500 ATK until end of turn."
+  },
+  {
+    "id": 226,
+    "name": "Heaven's Automaton",
+    "description": "[Effect] On Summon: All your Machine monsters gain +600 ATK/DEF."
+  },
+  {
+    "id": 227,
+    "name": "Mecha Dragon",
+    "description": "[Effect] On Summon: All opponent monsters lose 400 ATK and 300 DEF."
+  },
+  {
+    "id": 228,
+    "name": "Ember Sprite",
+    "description": "A blazing pyro creature born from pure fire."
+  },
+  {
+    "id": 229,
+    "name": "Fire Imp",
+    "description": "A blazing pyro creature born from pure fire."
+  },
+  {
+    "id": 230,
+    "name": "Flash Flare",
+    "description": "A volatile fire entity radiating brilliant light."
+  },
+  {
+    "id": 231,
+    "name": "Lava Slug",
+    "description": "A blazing pyro creature born from pure fire."
+  },
+  {
+    "id": 232,
+    "name": "Flame Djinn",
+    "description": "A blazing pyro creature born from pure fire."
+  },
+  {
+    "id": 233,
+    "name": "Solar Wisp",
+    "description": "A volatile fire entity radiating brilliant light."
+  },
+  {
+    "id": 234,
+    "name": "Molten Golem",
+    "description": "A blazing pyro creature born from pure fire."
+  },
+  {
+    "id": 235,
+    "name": "Inferno Hound",
+    "description": "A blazing pyro creature born from pure fire."
+  },
+  {
+    "id": 236,
+    "name": "Blaze Elemental",
+    "description": "A volatile fire entity radiating brilliant light."
+  },
+  {
+    "id": 237,
+    "name": "Volcanic Giant",
+    "description": "[Effect] On Summon: Deal 400 damage to opponent."
+  },
+  {
+    "id": 238,
+    "name": "Fire Lord",
+    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+  },
+  {
+    "id": 239,
+    "name": "Solar Titan",
+    "description": "[Effect] On Summon: Deal 600 damage to opponent."
+  },
+  {
+    "id": 240,
+    "name": "Magma Dragon",
+    "description": "[Effect] On Summon: One of your monsters gains +400 ATK until end of turn."
+  },
+  {
+    "id": 241,
+    "name": "Hellfire Knight",
+    "description": "[Effect] On Summon: Deal 700 damage to opponent."
+  },
+  {
+    "id": 242,
+    "name": "Inferno Colossus",
+    "description": "[Effect] On Summon: Deal 800 damage to opponent."
+  },
+  {
+    "id": 243,
+    "name": "Radiant Pyre",
+    "description": "[Effect] On Summon: One of your monsters gains +500 ATK until end of turn."
+  },
+  {
+    "id": 244,
+    "name": "Eruption King",
+    "description": "[Effect] On Summon: Deal 1000 damage to opponent."
+  },
+  {
+    "id": 245,
+    "name": "Hellfire Sovereign",
+    "description": "[Effect] When destroyed by opponent: Deal 1500 damage to opponent."
+  },
+  {
+    "id": 246,
+    "name": "Dragonflame Fury",
+    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+  },
+  {
+    "id": 247,
+    "name": "Supreme Dragonlord",
+    "description": "[Effect] On Summon: All opponent monsters lose 500 ATK and 400 DEF."
+  },
+  {
+    "id": 248,
+    "name": "Twilight Enchanter",
+    "description": "[Effect] On Summon: Draw 1 card."
+  },
+  {
+    "id": 249,
+    "name": "Grand Shadowcaster",
+    "description": "[Effect] On Summon: Return opponent's strongest monster to their hand."
+  },
+  {
+    "id": 250,
+    "name": "Earth's Vanguard",
+    "description": "[Effect] On Summon: All your Warrior monsters gain +300 ATK/DEF."
+  },
+  {
+    "id": 251,
+    "name": "Imperial War God",
+    "description": "[Effect] On Summon: One of your monsters permanently gains +500 ATK."
+  },
+  {
+    "id": 252,
+    "name": "Stampede Chimera",
+    "description": "[Effect] On Summon: One of your monsters gains +400 ATK until end of turn."
+  },
+  {
+    "id": 253,
+    "name": "Sacred Beast Emperor",
+    "description": "[Effect] On Summon: Deal 600 damage to opponent."
+  },
+  {
+    "id": 254,
+    "name": "Lotus Treeguard",
+    "description": "[Effect] On Summon: Gain 800 LP."
+  },
+  {
+    "id": 255,
+    "name": "Eternal Grove Spirit",
+    "description": "[Effect] On Summon: One of your monsters permanently gains +500 DEF."
+  },
+  {
+    "id": 256,
+    "name": "Granite Overlord",
+    "description": "[Effect] On Summon: One of your monsters gains +500 DEF until end of turn."
+  },
+  {
+    "id": 257,
+    "name": "Primordial Earth Titan",
+    "description": "[Effect] On Summon: All opponent monsters lose 300 ATK and 500 DEF."
+  },
+  {
+    "id": 258,
+    "name": "Blazewing Wyvern",
+    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+  },
+  {
+    "id": 259,
+    "name": "Immortal Phoenix Lord",
+    "description": "[Passive] When destroyed: Special Summon this monster from the Graveyard once."
+  },
+  {
+    "id": 260,
+    "name": "Spectral Warlord",
+    "description": "[Effect] On Summon: All opponent monsters lose 400 ATK until end of turn."
+  },
+  {
+    "id": 261,
+    "name": "Netherworld Overlord",
+    "description": "[Effect] When destroyed in battle: Draw 2 cards."
+  },
+  {
+    "id": 262,
+    "name": "Tidal Dragon",
+    "description": "[Effect] On Summon: Gain 600 LP."
+  },
+  {
+    "id": 263,
+    "name": "Abyssal Sea God",
+    "description": "[Effect] On Summon: All your Water monsters gain +400 ATK/DEF."
+  },
+  {
+    "id": 264,
+    "name": "Ironshell Mantis",
+    "description": "[Effect] On Summon: Draw 1 card."
+  },
+  {
+    "id": 265,
+    "name": "Swarm Overlord",
+    "description": "[Effect] On Summon: One of your monsters gains +600 ATK until end of turn."
+  },
+  {
+    "id": 266,
+    "name": "Flame Arrow",
+    "description": "Deal 300 damage to opponent."
+  },
+  {
+    "id": 267,
+    "name": "Fireball",
+    "description": "Deal 400 damage to opponent."
+  },
+  {
+    "id": 268,
+    "name": "Inferno Blast",
+    "description": "Deal 500 damage to opponent."
+  },
+  {
+    "id": 269,
+    "name": "Herbal Remedy",
+    "description": "Gain 300 LP."
+  },
+  {
+    "id": 270,
+    "name": "Jade Elixir",
+    "description": "Gain 500 LP."
+  },
+  {
+    "id": 271,
+    "name": "Heavenly Blessing",
+    "description": "Gain 800 LP."
+  },
+  {
+    "id": 272,
+    "name": "Dragon's Breath",
+    "description": "Deal 600 damage to opponent."
+  },
+  {
+    "id": 273,
+    "name": "Thunder Strike",
+    "description": "Deal 800 damage to opponent."
+  },
+  {
+    "id": 274,
+    "name": "Warrior's Rally",
+    "description": "One of your monsters gains +300 ATK until end of turn."
+  },
+  {
+    "id": 275,
+    "name": "General's Command",
+    "description": "One of your monsters gains +400 ATK until end of turn."
+  },
+  {
+    "id": 276,
+    "name": "Warlord's Fury",
+    "description": "One of your monsters gains +500 ATK until end of turn."
+  },
+  {
+    "id": 277,
+    "name": "Weakening Hex",
+    "description": "All opponent monsters lose 300 ATK until end of turn."
+  },
+  {
+    "id": 278,
+    "name": "Draw of Fate",
+    "description": "Draw 1 card."
+  },
+  {
+    "id": 279,
+    "name": "Iron Wall Tactic",
+    "description": "One of your monsters gains +400 DEF until end of turn."
+  },
+  {
+    "id": 280,
+    "name": "Mystic Restoration",
+    "description": "Gain 600 LP."
+  },
+  {
+    "id": 281,
+    "name": "Cataclysm",
+    "description": "Deal 1000 damage to opponent."
+  },
+  {
+    "id": 282,
+    "name": "Annihilation Wave",
+    "description": "Deal 1200 damage to opponent."
+  },
+  {
+    "id": 283,
+    "name": "Void Collapse",
+    "description": "Deal 1500 damage to opponent."
+  },
+  {
+    "id": 284,
+    "name": "Blaze Formation",
+    "description": "All your Fire monsters gain +300 ATK/DEF."
+  },
+  {
+    "id": 285,
+    "name": "Tidal Formation",
+    "description": "All your Water monsters gain +300 ATK/DEF."
+  },
+  {
+    "id": 286,
+    "name": "Power Surge",
+    "description": "One of your monsters permanently gains +500 ATK."
+  },
+  {
+    "id": 287,
+    "name": "Forced Retreat",
+    "description": "Return opponent's strongest monster to their hand."
+  },
+  {
+    "id": 288,
+    "name": "Grand Expulsion",
+    "description": "Return all opponent monsters to their hand."
+  },
+  {
+    "id": 289,
+    "name": "Scroll of Wisdom",
+    "description": "Draw 2 cards."
+  },
+  {
+    "id": 290,
+    "name": "Devastation Bolt",
+    "description": "Deal 2000 damage to opponent."
+  },
+  {
+    "id": 291,
+    "name": "Flame Burst",
+    "description": "Activate when an opponent's monster attacks: Negate the attack."
+  },
+  {
+    "id": 292,
+    "name": "Ice Lance",
+    "description": "Activate when an opponent's monster attacks: Negate the attack."
+  },
+  {
+    "id": 293,
+    "name": "Poison Mist",
+    "description": "Activate when an opponent's monster attacks: Negate the attack."
+  },
+  {
+    "id": 294,
+    "name": "Earth Tremor",
+    "description": "Activate when an opponent's monster attacks: Negate the attack."
+  },
+  {
+    "id": 295,
+    "name": "Sword of Light",
+    "description": "Activate when an opponent's monster attacks: Destroy the attacking monster."
+  },
+  {
+    "id": 296,
+    "name": "Curse of Darkness",
+    "description": "Activate when your monster is attacked: Negate the attack."
+  },
+  {
+    "id": 297,
+    "name": "Summon Storm",
+    "description": "Activate when an opponent's monster attacks: Destroy the attacking monster."
+  },
+  {
+    "id": 298,
+    "name": "Life Drain",
+    "description": "Activate when opponent summons a monster: Destroy the summoned monster if it has 1500+ ATK."
+  },
+  {
+    "id": 299,
+    "name": "Ambush Strike",
+    "description": "Activate when opponent summons a monster: Destroy the summoned monster if it has 1500+ ATK."
+  },
+  {
+    "id": 300,
+    "name": "Mirror Force",
+    "description": "Activate when an opponent's monster attacks: Destroy the attacking monster."
+  },
+  {
+    "id": 301,
+    "name": "Annihilation Trap",
+    "description": "Activate when an opponent's monster attacks: Destroy the attacking monster."
+  },
+  {
+    "id": 302,
+    "name": "Shadow Trap",
+    "description": "Activate when an opponent's monster attacks: Destroy the attacking monster."
+  },
+  {
+    "id": 303,
+    "name": "Battle Axe",
+    "description": "Equip to a monster. ATK +500."
+  },
+  {
+    "id": 304,
+    "name": "Iron Shield",
+    "description": "Equip to a monster. DEF +600."
+  },
+  {
+    "id": 305,
+    "name": "War Banner",
+    "description": "Equip to a monster. ATK +300, DEF +200."
+  },
+  {
+    "id": 306,
+    "name": "Guardian Armor",
+    "description": "Equip to a monster. ATK +200, DEF +400."
+  },
+  {
+    "id": 307,
+    "name": "Warlord's Halberd",
+    "description": "Equip to a monster. ATK +800."
+  },
+  {
+    "id": 308,
+    "name": "Mountain Fortress",
+    "description": "[Passive] All your Plant monsters gain +200 ATK/DEF. All your Machine monsters gain -150 ATK/DEF. All your Pyro monsters gain -100 ATK/DEF."
+  },
+  {
+    "id": 309,
+    "name": "Dragon Realm",
+    "description": "[Passive] All your Dragon monsters gain +300 ATK/DEF. All your Insect monsters gain -150 ATK/DEF. All your Aqua monsters gain -100 ATK/DEF."
+  },
+  {
+    "id": 310,
+    "name": "Mage Sanctum",
+    "description": "[Passive] All your Spellcaster monsters gain +250 ATK/DEF. All your Beast monsters gain -150 ATK/DEF. All your Warrior monsters gain -100 ATK/DEF."
+  },
+  {
+    "id": 311,
+    "name": "Dragon Fang Blade",
+    "description": "Equip to a Dragon monster. ATK +700, DEF +300."
+  },
+  {
+    "id": 312,
+    "name": "Flame Armor",
+    "description": "Equip to a Fire monster. ATK +600."
+  }
+]

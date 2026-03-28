@@ -63,7 +63,9 @@ export function NextPhaseButton({ onHideDirectAndReset }: NextPhaseProps) {
 
   function getNextPhaseLabel() {
     if (!isMyTurn)          return t('game.btn_wait');
-    if (phase === 'main')   return t('game.btn_battle');
+    if (phase === 'main') {
+      return gameState?.firstTurnNoAttack ? t('game.btn_end') : t('game.btn_battle');
+    }
     if (phase === 'battle') return t('game.btn_end');
     return t('game.btn_next_turn');
   }

@@ -1,0 +1,11 @@
+{
+  "id": 19,
+  "name": "Zhao Yun",
+  "title": "Der tapfere General (2. Duell)",
+  "race": 3,
+  "flavor": "Der General fordert dich erneut heraus.",
+  "coinsWin": 300,
+  "coinsLoss": 0,
+  "deckIds": [30, 31, 32, 33, 33, 34, 35, 36, 37, 37, 38, 39, 40, 41, 42, 43, 250, 281, 276, 297],
+  "behavior": "smart"
+}

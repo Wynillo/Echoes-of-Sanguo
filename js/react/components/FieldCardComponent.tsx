@@ -1,47 +1,54 @@
+import { useTranslation } from 'react-i18next';
 import { attachHover } from './hoverApi.js';
-import { Card, TYPE_CSS, ATTR_CSS } from './Card.js';
+import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
+import type { FieldCard, CardData } from '../../types.js';
 
 interface Props {
-  fc: any;
+  fc: FieldCard;
   owner: 'player' | 'opponent';
   zone: number;
   selected: boolean;
   targetable: boolean;
   interactive: boolean;
   canAttack: boolean;
+  viewable?: boolean;
   onOwnClick?: () => void;
   onAttackerSelect?: () => void;
   onDefenderClick?: () => void;
+  onViewClick?: () => void;
   onDetail?: () => void;
 }
 
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
 
 export function FieldCardComponent({
-  fc, owner, zone, selected, targetable, interactive, canAttack,
-  onOwnClick, onAttackerSelect, onDefenderClick, onDetail,
+  fc, owner, zone, selected, targetable, interactive, canAttack, viewable,
+  onOwnClick, onAttackerSelect, onDefenderClick, onViewClick, onDetail,
 }: Props) {
+  const { t } = useTranslation();
   const { card } = fc;
   const isPlayer = owner === 'player';
 
   let cls: string;
   if (fc.faceDown && !isPlayer) {
-    cls = 'card field-card face-down';
+    cls = `card field-card face-down${fc.position === 'def' ? ' pos-def' : ''}`;
   } else if (fc.faceDown && isPlayer) {
-    cls = `card field-card face-down own-facedown attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`;
+    cls = `card field-card face-down own-facedown attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}${fc.position === 'def' ? ' pos-def' : ''}`;
   } else {
-    cls = `card field-card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'} pos-${fc.position}`;
+    cls = `card field-card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'} pos-${fc.position}`;
   }
   if (fc.hasAttacked && isPlayer) cls += ' exhausted';
   if (selected)    cls += ' selected';
   if (interactive) cls += ' interactive';
   if (canAttack)   cls += ' can-attack';
   if (targetable)  cls += ' targetable';
+  if (viewable)    cls += ' viewable';
 
   function handleClick() {
     if (canAttack)     { onAttackerSelect?.(); return; }
     if (interactive)   { onOwnClick?.(); return; }
-    if (targetable)    { onDefenderClick?.(); }
+    if (targetable)    { onDefenderClick?.(); return; }
+    if (viewable)      { onViewClick?.(); }
   }
 
   function handleContextMenu(e: React.MouseEvent) {
@@ -67,14 +74,17 @@ export function FieldCardComponent({
     return (
       <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
         <Card card={card} fc={fc} small dimmed />
-        <div className="facedown-overlay">Verdeckt</div>
+        <div className="facedown-overlay">{t('game.facedown')}</div>
       </div>
     );
   }
 
+  const hasEquipment = fc.equippedCards && fc.equippedCards.length > 0;
+
   return (
     <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
       <Card card={card} fc={fc} small />
+      {hasEquipment && <span className="equip-badge" title={fc.equippedCards.map((e: { zone: number; card: CardData }) => e.card.name).join(', ')}>⚔</span>}
     </div>
   );
 }

@@ -13,11 +13,11 @@ beforeEach(() => {
 describe('resetAll', () => {
   it('clears all progression keys from localStorage', () => {
     Progression.addCoins(500);
-    Progression.addCardsToCollection(['M001']);
-    Progression.saveDeck(['M001']);
+    Progression.addCardsToCollection(['1']);
+    Progression.saveDeck(['1']);
     Progression.markStarterChosen('Dragon');
     Progression.saveSettings({ lang: 'de', volMaster: 80, volMusic: 60, volSfx: 40 });
-    Progression.markCardsAsSeen(['M001', 'M002']);
+    Progression.markCardsAsSeen(['1', '2']);
 
     Progression.resetAll();
 
@@ -52,8 +52,8 @@ describe('backupToSession / restoreFromBackup / clearBackup', () => {
 
   it('restoreFromBackup restores previous state', () => {
     Progression.addCoins(300);
-    Progression.addCardsToCollection(['M001', 'M002']);
-    Progression.saveDeck(['M001']);
+    Progression.addCardsToCollection(['1', '2']);
+    Progression.saveDeck(['1']);
     Progression.markStarterChosen('Warrior');
 
     Progression.backupToSession();
@@ -66,9 +66,9 @@ describe('backupToSession / restoreFromBackup / clearBackup', () => {
     // Restore
     Progression.restoreFromBackup();
     expect(Progression.getCoins()).toBe(300);
-    expect(Progression.cardCount('M001')).toBe(1);
-    expect(Progression.cardCount('M002')).toBe(1);
-    expect(Progression.getDeck()).toEqual(['M001']);
+    expect(Progression.cardCount('1')).toBe(1);
+    expect(Progression.cardCount('2')).toBe(1);
+    expect(Progression.getDeck()).toEqual(['1']);
     expect(Progression.getStarterRace()).toBe('Warrior');
   });
 
@@ -194,16 +194,16 @@ describe('collection edge cases', () => {
   });
 
   it('addCardsToCollection accepts card objects with id property', () => {
-    Progression.addCardsToCollection([{ id: 'S001' }, { id: 'S002' }]);
-    expect(Progression.ownsCard('S001')).toBe(true);
-    expect(Progression.ownsCard('S002')).toBe(true);
+    Progression.addCardsToCollection([{ id: '101' }, { id: '102' }]);
+    expect(Progression.ownsCard('101')).toBe(true);
+    expect(Progression.ownsCard('102')).toBe(true);
   });
 
   it('addCardsToCollection merges with existing collection', () => {
-    Progression.addCardsToCollection(['M001', 'M001']);
-    Progression.addCardsToCollection(['M001', 'M002']);
-    expect(Progression.cardCount('M001')).toBe(3);
-    expect(Progression.cardCount('M002')).toBe(1);
+    Progression.addCardsToCollection(['1', '1']);
+    Progression.addCardsToCollection(['1', '2']);
+    expect(Progression.cardCount('1')).toBe(3);
+    expect(Progression.cardCount('2')).toBe(1);
   });
 
   it('cardCount returns 0 for cards never added', () => {
@@ -229,9 +229,9 @@ describe('collection edge cases', () => {
 
 describe('deck edge cases', () => {
   it('saveDeck also writes legacy echoesOfSanguo key', () => {
-    Progression.saveDeck(['M001', 'M002']);
+    Progression.saveDeck(['1', '2']);
     const legacy = JSON.parse(localStorage.getItem('echoesOfSanguo_deck'));
-    expect(legacy).toEqual(['M001', 'M002']);
+    expect(legacy).toEqual(['1', '2']);
   });
 
   it('getDeck reads legacy aetherialClash_deck when main key missing', () => {
@@ -376,11 +376,11 @@ describe('opponents edge cases', () => {
 describe('settings', () => {
   it('getSettings returns defaults when no settings saved', () => {
     const s = Progression.getSettings();
-    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 });
+    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, refillHand: true });
   });
 
   it('saveSettings persists and getSettings retrieves', () => {
-    const custom = { lang: 'de', volMaster: 80, volMusic: 30, volSfx: 100 };
+    const custom = { lang: 'de', volMaster: 80, volMusic: 30, volSfx: 100, refillHand: false };
     Progression.saveSettings(custom);
     expect(Progression.getSettings()).toEqual(custom);
   });
@@ -388,7 +388,7 @@ describe('settings', () => {
   it('getSettings returns defaults for corrupted data', () => {
     localStorage.setItem('tcg_settings', '{{{bad');
     const s = Progression.getSettings();
-    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 });
+    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, refillHand: true });
   });
 });
 
@@ -402,27 +402,27 @@ describe('seen cards', () => {
   });
 
   it('markCardsAsSeen adds cards to seen set', () => {
-    Progression.markCardsAsSeen(['M001', 'M002']);
+    Progression.markCardsAsSeen(['1', '2']);
     const seen = Progression.getSeenCards();
-    expect(seen.has('M001')).toBe(true);
-    expect(seen.has('M002')).toBe(true);
+    expect(seen.has('1')).toBe(true);
+    expect(seen.has('2')).toBe(true);
     expect(seen.size).toBe(2);
   });
 
   it('markCardsAsSeen with empty array is a no-op', () => {
-    Progression.markCardsAsSeen(['M001']);
+    Progression.markCardsAsSeen(['1']);
     Progression.markCardsAsSeen([]);
     expect(Progression.getSeenCards().size).toBe(1);
   });
 
   it('markCardsAsSeen deduplicates across calls', () => {
-    Progression.markCardsAsSeen(['M001', 'M002']);
-    Progression.markCardsAsSeen(['M002', 'M003']);
+    Progression.markCardsAsSeen(['1', '2']);
+    Progression.markCardsAsSeen(['2', '3']);
     const seen = Progression.getSeenCards();
     expect(seen.size).toBe(3);
-    expect(seen.has('M001')).toBe(true);
-    expect(seen.has('M002')).toBe(true);
-    expect(seen.has('M003')).toBe(true);
+    expect(seen.has('1')).toBe(true);
+    expect(seen.has('2')).toBe(true);
+    expect(seen.has('3')).toBe(true);
   });
 
   it('getSeenCards falls back to empty set for corrupted data', () => {
@@ -473,10 +473,10 @@ describe('init edge cases', () => {
 
   it('double init does not reset existing data', () => {
     Progression.addCoins(500);
-    Progression.addCardsToCollection(['M001']);
+    Progression.addCardsToCollection(['1']);
     Progression.init(); // second init
     expect(Progression.getCoins()).toBe(500);
-    expect(Progression.cardCount('M001')).toBe(1);
+    expect(Progression.cardCount('1')).toBe(1);
   });
 
   it('init sets save version stamp', () => {

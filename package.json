@@ -12,7 +12,10 @@
     "build:android": "vite build && cap sync android",
     "cap:sync": "cap sync",
     "cap:open": "cap open android",
-    "generate:tcg": "vite-node js/tcg-format/generate-base-tcg.ts"
+    "generate:tcg": "vite-node js/tcg-format/generate-base-tcg.ts",
+    "release:patch": "npm version patch && git push && git push --tags",
+    "release:minor": "npm version minor && git push && git push --tags",
+    "release:major": "npm version major && git push && git push --tags"
   },
   "repository": {
     "type": "git",
@@ -28,25 +31,25 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/coverage-v8": "^4.1.0",
+    "@vitest/coverage-v8": "^4.1.2",
     "autoprefixer": "^10.4.27",
-    "jsdom": "^29.0.0",
+    "jsdom": "^29.0.1",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5.9.3",
-    "vite": "^8.0.1",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3",
     "vite-node": "^6.0.0",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.2"
   },
   "dependencies": {
-    "@capacitor/android": "^8.2.0",
-    "@capacitor/cli": "^8.2.0",
-    "@capacitor/core": "^8.2.0",
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
     "gsap": "^3.14.2",
-    "i18next": "^25.9.0",
+    "i18next": "^25.10.10",
     "jszip": "^3.10.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-i18next": "^16.5.8"
+    "react-i18next": "^16.6.6"
   }
 }

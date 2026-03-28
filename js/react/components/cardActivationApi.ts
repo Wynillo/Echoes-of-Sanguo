@@ -3,9 +3,10 @@
 // Separated from CardActivationOverlay.tsx so React Fast Refresh
 // can hot-update the component without resetting module-level state.
 // ============================================================
+import type { CardData } from '../../types.js';
 
 export interface ActivationState {
-  card:    any;
+  card:    CardData;
   text:    string;
   resolve: () => void;
 }
@@ -17,7 +18,7 @@ export function setActivationDispatch(fn: ((s: ActivationState | null) => void) 
   _set = fn;
 }
 
-export function showActivation(card: any, text: string): Promise<void> {
+export function showActivation(card: CardData, text: string): Promise<void> {
   return new Promise<void>(resolve => {
     _set?.({ card, text, resolve });
   });

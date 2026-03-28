@@ -1,0 +1,11 @@
+{
+  "id": 37,
+  "name": "Lu Bu",
+  "title": "Der unbesiegbare Krieger",
+  "race": 3,
+  "flavor": "Von Zhang Jue entfesselt — reine Zerstörung.",
+  "coinsWin": 800,
+  "coinsLoss": 0,
+  "deckIds": [39, 40, 41, 42, 43, 44, 45, 45, 46, 46, 47, 47, 48, 48, 49, 49, 50, 50, 51, 51, 52, 250, 251, 290, 302],
+  "behavior": "cheating"
+}

@@ -5,7 +5,7 @@
     "moduleResolution": "bundler",
     "strict": true,
     "strictNullChecks": true,
-    "allowJs": true,
+    "allowJs": false,
     "checkJs": false,
     "noEmit": true,
     "skipLibCheck": true,
@@ -13,5 +13,5 @@
     "jsx": "react-jsx",
     "resolveJsonModule": true
   },
-  "include": ["js/**/*.ts", "js/**/*.js", "js/**/*.tsx"]
+  "include": ["js/**/*.ts", "js/**/*.tsx"]
 }

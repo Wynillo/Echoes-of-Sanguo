@@ -6,8 +6,11 @@ android/.gradle/
 android/app/build/
 android/build/
 android/local.properties
-.claude/
+# Allow .claude/agents/ to be checked in, ignore the rest
+.claude/*
+!.claude/agents/
 *.local
 coverage/
 test-results/
 playwright-report/
+list.zip

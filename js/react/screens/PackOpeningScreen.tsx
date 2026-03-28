@@ -2,9 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { useEffect }   from 'react';
 import { useScreen }   from '../contexts/ScreenContext.js';
 import { getRarityById } from '../../type-metadata.js';
-import { TYPE_CSS, ATTR_CSS } from '../components/Card.js';
+import { cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { Audio }        from '../../audio.js';
-import { CardType, isEffectMonster } from '../../types.js';
+import { CardType } from '../../types.js';
 import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
 import styles from './PackOpeningScreen.module.css';
@@ -44,7 +44,7 @@ export default function PackOpeningScreen() {
               style={{ animationDelay: `${i * 0.08}s` }}
             >
               <div
-                className={`${styles.cardInner} card ${TYPE_CSS[card.type] || 'monster'}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
+                className={`${styles.cardInner} card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                 style={{ '--rarity-color': rarColor } as React.CSSProperties}
               >
                 {isNew && <div className={styles.newBadge}>{t('pack_opening.new_badge')}</div>}
@@ -73,7 +73,7 @@ export default function PackOpeningScreen() {
 
       <div className={styles.buttons}>
         <button className="btn-secondary" onClick={() => navigateTo('shop')}>{t('pack_opening.back_shop')}</button>
-        <button className="btn-primary"   onClick={() => navigateTo('title')}>{t('pack_opening.home')}</button>
+        <button className="btn-primary"   onClick={() => navigateTo('save-point')}>{t('pack_opening.home')}</button>
       </div>
     </div>
   );

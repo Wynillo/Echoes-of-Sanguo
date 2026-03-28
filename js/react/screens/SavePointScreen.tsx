@@ -34,6 +34,14 @@ export default function SavePointScreen() {
 
   return (
     <div className={styles.screen}>
+      <button
+        className="options-btn-floating"
+        title={t('title.options')}
+        onClick={() => openModal({ type: 'main-options' })}
+      >
+        <span className="btn-options-mobile">☰</span>
+        <span className="btn-options-desktop">OPTIONS</span>
+      </button>
       <div className="title-bg"></div>
       <div className={styles.content}>
         <div className="title-rune">★</div>
@@ -47,16 +55,16 @@ export default function SavePointScreen() {
           <p className={styles.backupWarning}>{t('save.backup_warning')}</p>
         )}
         <div className={styles.menu}>
-          <button className="btn-primary" onClick={handleSave}>
+          <button className="btn-menu" onClick={() => navigateTo('campaign')}>{t('save.btn_story')}</button>
+          <button className="btn-menu" onClick={() => navigateTo('opponent')}>{t('save.btn_duel')}</button>
+          <button className="btn-menu" onClick={() => navigateTo('shop')}>{t('save.btn_shop')}</button>
+          <button className="btn-menu" onClick={() => navigateTo('collection')}>{t('save.btn_collection')}</button>
+          <button className="btn-menu" onClick={() => navigateTo('deckbuilder')}>{t('save.btn_deckbuilder')}</button>
+          <button className="btn-menu" onClick={() => openModal({ type: 'card-list' })}>{t('save.btn_cardlist')}</button>
+          <button className="btn-menu" onClick={handleToMainMenu}>{t('save.btn_mainmenu')}</button>
+          <button className="btn-menu" onClick={handleSave}>
             {savedMsg ? t('save.btn_saved') : t('save.btn_save')}
           </button>
-          <button className="btn-secondary" onClick={() => navigateTo('opponent')}>{t('save.btn_story')}</button>
-          <button className="btn-secondary" onClick={() => navigateTo('opponent')}>{t('save.btn_duel')}</button>
-          <button className="btn-secondary" onClick={() => navigateTo('shop')}>{t('save.btn_shop')}</button>
-          <button className="btn-secondary" onClick={() => navigateTo('collection')}>{t('save.btn_collection')}</button>
-          <button className="btn-secondary" onClick={() => navigateTo('deckbuilder')}>{t('save.btn_deckbuilder')}</button>
-          <button className="btn-secondary" onClick={() => openModal({ type: 'card-list' })}>{t('save.btn_cardlist')}</button>
-          <button className="btn-secondary" onClick={handleToMainMenu}>{t('save.btn_mainmenu')}</button>
         </div>
       </div>
     </div>

@@ -3,8 +3,8 @@
 // Validates TcgCard[] from cards.json
 // ============================================================
 
-import type { TcgCard, ValidationResult } from './types.js';
-import { TCG_TYPES, TCG_ATTRIBUTES, TCG_RACES, TCG_RARITIES, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_MONSTER, TCG_TYPE_FUSION } from './types.js';
+import type { ValidationResult } from './types.js';
+import { TCG_TYPES, TCG_ATTRIBUTES, TCG_RACES, TCG_RARITIES, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_EQUIPMENT } from './types.js';
 import { isValidEffectString } from './effect-serializer.js';
 
 const VALID_TYPES      = new Set(TCG_TYPES);
@@ -28,9 +28,12 @@ function validateSingleCard(card: unknown, index: number): string[] {
     errors.push(`${prefix}.id: must be a positive integer, got ${c.id}`);
   }
 
-  // level: required int 1-12
-  if (typeof c.level !== 'number' || !Number.isInteger(c.level) || c.level < 1 || c.level > 12) {
-    errors.push(`${prefix}.level: must be integer 1-12, got ${c.level}`);
+  // level: required int 1-12 for monsters/fusions, optional (ignored) for spells/traps
+  const needsLevel = c.type === TCG_TYPE_MONSTER || c.type === TCG_TYPE_FUSION;
+  if (needsLevel) {
+    if (typeof c.level !== 'number' || !Number.isInteger(c.level) || c.level < 1 || c.level > 12) {
+      errors.push(`${prefix}.level: must be integer 1-12, got ${c.level}`);
+    }
   }
 
   // type: required int in {1,2,3,4}
@@ -40,6 +43,7 @@ function validateSingleCard(card: unknown, index: number): string[] {
 
   const isSpellOrTrap = c.type === TCG_TYPE_SPELL || c.type === TCG_TYPE_TRAP;
   const isMonsterOrFusion = c.type === TCG_TYPE_MONSTER || c.type === TCG_TYPE_FUSION;
+  const isEquipment = c.type === TCG_TYPE_EQUIPMENT;
 
   // atk: optional, required for monsters/fusions, absent for spells/traps
   if (isMonsterOrFusion) {
@@ -59,6 +63,41 @@ function validateSingleCard(card: unknown, index: number): string[] {
   }
   if (isSpellOrTrap && c.def !== undefined && c.def !== null) {
     errors.push(`${prefix}.def: should be absent for spells/traps`);
+  }
+
+  // Equipment: atkBonus and/or defBonus (at least one should be present)
+  if (isEquipment) {
+    const hasAtkBonus = c.atkBonus !== undefined && c.atkBonus !== null;
+    const hasDefBonus = c.defBonus !== undefined && c.defBonus !== null;
+    if (!hasAtkBonus && !hasDefBonus) {
+      errors.push(`${prefix}: equipment card must have atkBonus and/or defBonus`);
+    }
+    if (hasAtkBonus && (typeof c.atkBonus !== 'number' || !Number.isInteger(c.atkBonus))) {
+      errors.push(`${prefix}.atkBonus: must be an integer, got ${c.atkBonus}`);
+    }
+    if (hasDefBonus && (typeof c.defBonus !== 'number' || !Number.isInteger(c.defBonus))) {
+      errors.push(`${prefix}.defBonus: must be an integer, got ${c.defBonus}`);
+    }
+    if (c.equipReqRace !== undefined && c.equipReqRace !== null) {
+      if (typeof c.equipReqRace !== 'number' || !VALID_RACES.has(c.equipReqRace as any)) {
+        errors.push(`${prefix}.equipReqRace: must be a valid race, got ${c.equipReqRace}`);
+      }
+    }
+    if (c.equipReqAttr !== undefined && c.equipReqAttr !== null) {
+      if (typeof c.equipReqAttr !== 'number' || !VALID_ATTRIBUTES.has(c.equipReqAttr as any)) {
+        errors.push(`${prefix}.equipReqAttr: must be a valid attribute, got ${c.equipReqAttr}`);
+      }
+    }
+  }
+
+  // equipReqRace / equipReqAttr only allowed on equipment cards
+  if (!isEquipment) {
+    if (c.equipReqRace !== undefined && c.equipReqRace !== null) {
+      errors.push(`${prefix}.equipReqRace: only allowed on equipment cards`);
+    }
+    if (c.equipReqAttr !== undefined && c.equipReqAttr !== null) {
+      errors.push(`${prefix}.equipReqAttr: only allowed on equipment cards`);
+    }
   }
 
   // rarity: required int in valid set

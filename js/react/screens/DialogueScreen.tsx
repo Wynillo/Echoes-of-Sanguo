@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useScreen }   from '../contexts/ScreenContext.js';
 import { useGame }     from '../contexts/GameContext.js';
 import { CAMPAIGN_IMAGES, CAMPAIGN_I18N } from '../../campaign.js';
-import { OPPONENT_CONFIGS } from '../../cards.js';
 import { Progression } from '../../progression.js';
 import type { DialogueScene, ForegroundSprite } from '../../tcg-format/types.js';
 import type { Screen } from '../contexts/ScreenContext.js';

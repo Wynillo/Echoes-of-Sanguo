@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="mg" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#d0b060"/>
+      <stop offset="45%" stop-color="#a08030"/>
+      <stop offset="100%" stop-color="#141008"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" fill="#0c0a06"/>
+  <circle cx="128" cy="115" r="110" fill="url(#mg)" opacity="0.6"/>
+  <!-- Shield silhouette -->
+  <path d="M128,50 Q170,55 185,80 Q195,100 190,130 Q185,160 128,200 Q71,160 66,130 Q61,100 71,80 Q86,55 128,50Z" fill="#806020" opacity="0.3"/>
+  <path d="M128,60 Q162,64 175,85 Q183,102 179,128 Q174,155 128,190 Q82,155 77,128 Q73,102 81,85 Q94,64 128,60Z" fill="#907030" opacity="0.25"/>
+  <!-- Inner emblem — star -->
+  <polygon points="128,80 135,108 164,108 140,124 150,152 128,136 106,152 116,124 92,108 121,108" fill="#c0a040" opacity="0.3"/>
+  <polygon points="128,90 133,110 152,110 137,121 143,142 128,131 113,142 119,121 104,110 123,110" fill="#d0b050" opacity="0.2"/>
+  <!-- Inner glow -->
+  <circle cx="128" cy="120" r="22" fill="#a08030" opacity="0.15"/>
+  <circle cx="128" cy="118" r="10" fill="#d0b060" opacity="0.12"/>
+  <!-- Floating particles -->
+  <circle cx="65" cy="75" r="2" fill="#d0b060" opacity="0.6"/>
+  <circle cx="195" cy="80" r="2" fill="#c0a040" opacity="0.5"/>
+  <circle cx="50" cy="150" r="1.5" fill="#a08030" opacity="0.4"/>
+  <circle cx="205" cy="145" r="1.5" fill="#d0b060" opacity="0.4"/>
+  <circle cx="100" cy="45" r="1.5" fill="#c0a040" opacity="0.5"/>
+  <circle cx="160" cy="42" r="1.5" fill="#d0b060" opacity="0.4"/>
+  <!-- Sparkles -->
+  <text x="45" y="60" font-size="9" fill="#d0b060" opacity="0.5">&#x2726;</text>
+  <text x="200" y="55" font-size="8" fill="#c0a040" opacity="0.4">&#x2726;</text>
+  <text x="128" y="225" font-size="8" fill="#a08030" opacity="0.35">&#x2726;</text>
+</svg>

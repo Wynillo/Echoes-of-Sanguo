@@ -1,17 +1,86 @@
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
+import { useCampaign }    from '../contexts/CampaignContext.js';
 import { Progression }    from '../../progression.js';
 import { getAllRaces, getRaceByKey } from '../../type-metadata.js';
-import { PACK_TYPES, openPack } from '../utils/pack-logic.js';
+import { PACK_TYPES, openPack, openPackage, isPackageUnlocked } from '../utils/pack-logic.js';
+import type { PackTypeInfo } from '../utils/pack-logic.js';
+import { SHOP_DATA } from '../../shop-data.js';
+import type { PackageDef } from '../../shop-data.js';
 import { Audio }               from '../../audio.js';
 import { Race } from '../../types.js';
 import type { CardData } from '../../types.js';
 import styles from './ShopScreen.module.css';
 
+type Tab = 'standard' | 'packages';
+
+function useItemsPerPage() {
+  const [ipp, setIpp] = useState(() => window.matchMedia('(min-width: 700px)').matches ? 2 : 1);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 700px)');
+    const handler = (e: MediaQueryListEvent) => setIpp(e.matches ? 2 : 1);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return ipp;
+}
+
 export default function ShopScreen() {
   const { navigateTo } = useScreen();
   const { coins, refresh } = useProgression();
+  const { progress } = useCampaign();
+  const bgUrl = SHOP_DATA.backgrounds[progress.currentChapter] ?? SHOP_DATA.backgrounds['ch1'] ?? '';
+  const { t } = useTranslation();
+
+  const hasPackages = SHOP_DATA.packages.length > 0;
+  const [activeTab, setActiveTab] = useState<Tab>('standard');
+  const [page, setPage] = useState(0);
+  const itemsPerPage = useItemsPerPage();
+
+  // Touch swipe tracking
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+
+  const packs = Object.values(PACK_TYPES);
+  const packages = SHOP_DATA.packages;
+  const items = activeTab === 'standard' ? packs : packages;
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+
+  // Reset page when switching tabs or when items per page changes
+  useEffect(() => { setPage(0); }, [activeTab, itemsPerPage]);
+
+  const goPage = useCallback((p: number) => {
+    setPage(Math.max(0, Math.min(p, totalPages - 1)));
+  }, [totalPages]);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    // Only trigger swipe if horizontal movement > vertical and > 50px threshold
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) goPage(page + 1);
+      else goPage(page - 1);
+    }
+  }, [goPage, page]);
+
+  function buyPackage(packageId: string) {
+    const pkg = SHOP_DATA.packages.find(p => p.id === packageId);
+    if (!pkg || coins < pkg.price) return;
+    if (!Progression.spendCoins(pkg.price)) return;
+    Audio.playSfx('sfx_coin');
+    const preOpen = Progression.getCollection();
+    const cards   = openPackage(packageId);
+    Progression.addCardsToCollection(cards.map((c: CardData) => c.id));
+    refresh();
+    navigateTo('pack-opening', { cards, preOpen });
+  }
 
   function buy(packType: string, race: string | null) {
     const pt = PACK_TYPES[packType];
@@ -25,28 +94,89 @@ export default function ShopScreen() {
     navigateTo('pack-opening', { cards, preOpen });
   }
 
-  const { t } = useTranslation();
+  // Slice items for current page
+  const startIdx = page * itemsPerPage;
+  const visibleItems = items.slice(startIdx, startIdx + itemsPerPage);
 
   return (
     <div className={styles.screen}>
+      <div className={styles.shopBg} style={{ backgroundImage: `url(${bgUrl})` }} />
+
+      {/* Header */}
       <div className={styles.header}>
         <h2 className={styles.shopTitle}>{t('shop.title')}</h2>
         <div className={styles.coinsBar}>
           <span className="coins-icon">◈</span>
-          <span id="shop-coin-display">{coins.toLocaleString()}</span>
+          <span className={styles.coinsValue}>{coins.toLocaleString()}</span>
           <span className="coins-label">{t('common.coins')}</span>
         </div>
-        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('title')}>{t('shop.back')}</button>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('shop.back')}</button>
       </div>
 
-      <div className={styles.grid}>
-        {Object.values(PACK_TYPES).map(pt => {
-          const affordable = coins >= pt.price;
-          return (
-            <PackTile key={pt.id} pt={pt} affordable={affordable} onBuy={buy} />
-          );
-        })}
+      {/* Tabs */}
+      {hasPackages && (
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tabBtn}${activeTab === 'standard' ? ` ${styles.activeTab}` : ''}`}
+            onClick={() => setActiveTab('standard')}
+          >{t('shop.tab_standard')}</button>
+          <button
+            className={`${styles.tabBtn}${activeTab === 'packages' ? ` ${styles.activeTab}` : ''}`}
+            onClick={() => setActiveTab('packages')}
+          >{t('shop.tab_packages')}</button>
+        </div>
+      )}
+
+      {/* Carousel */}
+      <div className={styles.carousel} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {/* Arrow left */}
+        {totalPages > 1 && (
+          <button
+            className={`${styles.arrowBtn} ${styles.arrowLeft}`}
+            disabled={page === 0}
+            onClick={() => goPage(page - 1)}
+            aria-label="Previous"
+          >‹</button>
+        )}
+
+        <div className={styles.carouselTrack}>
+          {activeTab === 'standard'
+            ? (visibleItems as PackTypeInfo[]).map(pt => {
+                const affordable = coins >= pt.price;
+                return <PackTile key={pt.id} pt={pt} affordable={affordable} onBuy={buy} />;
+              })
+            : (visibleItems as PackageDef[]).map(pkg => {
+                const unlocked = isPackageUnlocked(pkg);
+                const affordable = coins >= pkg.price;
+                return <PackageTile key={pkg.id} pkg={pkg} unlocked={unlocked} affordable={affordable} onBuy={buyPackage} />;
+              })
+          }
+        </div>
+
+        {/* Arrow right */}
+        {totalPages > 1 && (
+          <button
+            className={`${styles.arrowBtn} ${styles.arrowRight}`}
+            disabled={page >= totalPages - 1}
+            onClick={() => goPage(page + 1)}
+            aria-label="Next"
+          >›</button>
+        )}
       </div>
+
+      {/* Dots */}
+      {totalPages > 1 && (
+        <div className={styles.dots}>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              className={`${styles.dot}${i === page ? ` ${styles.dotActive}` : ''}`}
+              onClick={() => goPage(i)}
+              aria-label={`Page ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -55,6 +185,36 @@ interface PackTileProps {
   pt: PackTypeInfo;
   affordable: boolean;
   onBuy: (packType: string, race: string | null) => void;
+}
+
+interface PackageTileProps {
+  pkg: PackageDef;
+  unlocked: boolean;
+  affordable: boolean;
+  onBuy: (packageId: string) => void;
+}
+
+function PackageTile({ pkg, unlocked, affordable, onBuy }: PackageTileProps) {
+  const { t } = useTranslation();
+  const canBuy = unlocked && affordable;
+
+  return (
+    <div
+      className={`${styles.packTile}${canBuy ? '' : ` ${styles.packDisabled}`}`}
+      style={{ '--pack-color': pkg.color } as React.CSSProperties}
+    >
+      <div className={styles.packIcon}>{pkg.icon}</div>
+      <div className={styles.packName}>{pkg.name}</div>
+      <div className={styles.packDesc}>{pkg.desc}</div>
+      <div className={styles.packPrice}>◈ {pkg.price.toLocaleString()}</div>
+      {!unlocked && (
+        <div className={styles.packLocked}>{t('shop.locked')}</div>
+      )}
+      <button className={styles.buyBtn} disabled={!canBuy} onClick={() => onBuy(pkg.id)}>
+        {t('shop.buy_btn')}
+      </button>
+    </div>
+  );
 }
 
 function PackTile({ pt, affordable, onBuy }: PackTileProps) {

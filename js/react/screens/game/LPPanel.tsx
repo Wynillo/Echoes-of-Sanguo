@@ -23,7 +23,7 @@ export function LPPanel({ playerLp, oppLp, playerDeck, oppDeck }: Props) {
             <div id="opp-lp-bar" className="lp-bar opp-lp-bar" style={{ width: lpPct(oppLp) }}></div>
           </div>
           <span className="lp-value" id="opp-lp">{oppLpDisplay}</span>
-          <span className="lp-deck" id="opp-deck-count">{oppDeck}</span>
+          <span className="lp-deck" id="opp-deck-count">🂠{oppDeck}</span>
         </div>
       </div>
       <div className="lp-row player-lp-row">
@@ -33,7 +33,7 @@ export function LPPanel({ playerLp, oppLp, playerDeck, oppDeck }: Props) {
             <div id="player-lp-bar" className="lp-bar" style={{ width: lpPct(playerLp) }}></div>
           </div>
           <span className="lp-value" id="player-lp">{playerLpDisplay}</span>
-          <span className="lp-deck" id="player-deck-count">{playerDeck}</span>
+          <span className="lp-deck" id="player-deck-count">🂠{playerDeck}</span>
         </div>
       </div>
     </div>

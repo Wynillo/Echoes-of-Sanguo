@@ -26,7 +26,7 @@ function openMany(packType, count, race = null) {
 describe('PACK_TYPES', () => {
   it('contains the expected pack type keys', () => {
     expect(Object.keys(PACK_TYPES)).toEqual(
-      expect.arrayContaining(['starter', 'race', 'aether', 'rarity'])
+      expect.arrayContaining(['race', 'aether', 'rarity'])
     );
   });
 
@@ -44,10 +44,9 @@ describe('PACK_TYPES', () => {
     }
   });
 
-  it('pack prices are ordered: starter < race < aether < rarity', () => {
-    expect(PACK_TYPES.starter.price).toBeLessThan(PACK_TYPES.race.price);
-    expect(PACK_TYPES.race.price).toBeLessThan(PACK_TYPES.aether.price);
-    expect(PACK_TYPES.aether.price).toBeLessThan(PACK_TYPES.rarity.price);
+  it('pack prices are ordered: aether < race < rarity', () => {
+    expect(PACK_TYPES.aether.price).toBeLessThan(PACK_TYPES.race.price);
+    expect(PACK_TYPES.race.price).toBeLessThan(PACK_TYPES.rarity.price);
   });
 });
 
@@ -108,7 +107,7 @@ describe('openPack race filtering', () => {
   });
 
   it('race pack works for multiple different races', () => {
-    const races = [Race.Warrior, Race.Spellcaster, Race.Fire];
+    const races = [Race.Warrior, Race.Spellcaster, Race.Beast];
     for (const race of races) {
       const cards = openPack('race', race);
       for (const card of cards) {
@@ -119,23 +118,6 @@ describe('openPack race filtering', () => {
     }
   });
 
-  it('starter pack uses the saved starter race from Progression', () => {
-    // Set a starter race in localStorage
-    Progression.markStarterChosen(String(Race.Dragon));
-    const cards = openMany('starter', 20);
-    for (const card of cards) {
-      if (card.race !== undefined) {
-        expect(card.race).toBe(Race.Dragon);
-      }
-    }
-  });
-
-  it('starter pack with no saved race and no explicit race returns all-race cards', () => {
-    // No starter race set, no race argument → targetRace is null
-    const cards = openPack('starter');
-    // Should still return 9 cards — no crash
-    expect(cards).toHaveLength(9);
-  });
 
   it('aether pack ignores race parameter and returns cards from any race', () => {
     const cards = openMany('aether', 20);
@@ -287,15 +269,6 @@ describe('openPack edge cases', () => {
     expect(unique.size).toBeGreaterThan(1);
   });
 
-  it('starter pack falls back to race argument when no saved starter race', () => {
-    // No starter race in localStorage; pass race explicitly
-    const cards = openMany('starter', 20, Race.Warrior);
-    for (const card of cards) {
-      if (card.race !== undefined) {
-        expect(card.race).toBe(Race.Warrior);
-      }
-    }
-  });
 });
 
 // ── _pickCard fallback behavior (tested indirectly) ───────
@@ -337,7 +310,7 @@ describe('rarity fallback behavior', () => {
   });
 
   it('all cards returned have valid card types', () => {
-    const validTypes = [CardType.Monster, CardType.Fusion, CardType.Spell, CardType.Trap];
+    const validTypes = [CardType.Monster, CardType.Fusion, CardType.Spell, CardType.Trap, CardType.Equipment];
     for (const packType of Object.keys(PACK_TYPES)) {
       const cards = openPack(packType);
       for (const card of cards) {

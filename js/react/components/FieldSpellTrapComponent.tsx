@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { attachHover } from './hoverApi.js';
-import { Card, TYPE_CSS } from './Card.js';
+import { Card, cardTypeCss } from './Card.js';
 import { CardType } from '../../types.js';
+import type { FieldSpellTrap } from '../../types.js';
 
 interface Props {
-  fst: any;
+  fst: FieldSpellTrap;
   owner: 'player' | 'opponent';
   zone: number;
   interactive: boolean;
@@ -14,6 +16,7 @@ interface Props {
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
 
 export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick, onDetail }: Props) {
+  const { t } = useTranslation();
   const { card } = fst;
   const isPlayer = owner === 'player';
 
@@ -23,7 +26,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
   } else if (fst.faceDown && isPlayer) {
     cls = 'card field-card face-down own-facedown attr-spell';
   } else {
-    cls = `card field-card ${TYPE_CSS[card.type] || 'spell'}-card attr-spell`;
+    cls = `card field-card ${cardTypeCss(card)}-card attr-spell`;
   }
   if (interactive) cls += ' interactive';
 
@@ -50,7 +53,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
            onClick={interactive ? onClick : undefined}
            onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
         <div className="facedown-overlay">
-          {card.type === CardType.Trap ? '⚠ Falle' : '✦ Zauber'}
+          {card.type === CardType.Trap ? t('game.facedown_trap') : card.type === CardType.Equipment ? t('game.facedown_equip') : t('game.facedown_spell')}
         </div>
       </div>
     );
@@ -58,6 +61,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
 
   return (
     <div className={cls} ref={attachRef}
+         onClick={!interactive ? () => onDetail?.() : undefined}
          onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
       <Card card={card} small />
     </div>

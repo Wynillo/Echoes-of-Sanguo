@@ -6,12 +6,13 @@ export function useAnimatedNumber(target: number, duration = 0.7): number {
   const obj = useRef({ val: target });
 
   useEffect(() => {
-    gsap.to(obj.current, {
+    const tw = gsap.to(obj.current, {
       val: target,
       duration,
       ease: 'power2.out',
       onUpdate() { setDisplay(Math.round(obj.current.val)); },
     });
+    return () => { tw.kill(); };
   }, [target, duration]);
 
   return display;

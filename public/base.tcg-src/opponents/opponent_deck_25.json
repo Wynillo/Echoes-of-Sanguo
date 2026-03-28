@@ -1,0 +1,11 @@
+{
+  "id": 25,
+  "name": "Huang Sha",
+  "title": "Lehrling des Erdschreins",
+  "race": 6,
+  "flavor": "Der gelbe Sand verschluckt alles.",
+  "coinsWin": 300,
+  "coinsLoss": 0,
+  "deckIds": [117, 117, 118, 118, 119, 119, 120, 120, 121, 121, 122, 122, 123, 123, 124, 271, 279, 296],
+  "behavior": "defensive"
+}

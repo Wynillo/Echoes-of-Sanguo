@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { Progression } from '../../progression.js';
+import { CARD_DB } from '../../cards.js';
+import { GAME_RULES } from '../../rules.js';
 import type { CollectionEntry, OpponentRecord } from '../../types.js';
 
 interface ProgressionCtx {
@@ -31,7 +33,24 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
 
   const loadDeck = useCallback(() => {
     const saved = Progression.getDeck();
-    if (saved && saved.length > 0) { setCurrentDeck(saved); return; }
+    if (saved && saved.length > 0) {
+      // Validate: strip unknown IDs, enforce copy limits, enforce max deck size
+      const copyCounts: Record<string, number> = {};
+      const sanitized = saved.filter(id => {
+        if (!CARD_DB[id]) {
+          console.warn(`[ProgressionContext] Removing unknown card "${id}" from saved deck.`);
+          return false;
+        }
+        copyCounts[id] = (copyCounts[id] ?? 0) + 1;
+        if (copyCounts[id] > GAME_RULES.maxCardCopies) {
+          console.warn(`[ProgressionContext] Removing excess copy of "${id}" from saved deck.`);
+          return false;
+        }
+        return true;
+      }).slice(0, GAME_RULES.maxDeckSize);
+      setCurrentDeck(sanitized);
+      return;
+    }
     // Fallback: import PLAYER_DECK_IDS lazily to avoid circular dep
     import('../../cards.js').then(m => setCurrentDeck([...m.PLAYER_DECK_IDS]));
   }, []);

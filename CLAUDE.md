@@ -1,6 +1,6 @@
 # CLAUDE.md — Echoes of Sanguo
 
-Browser-based TCG inspired by Yu-Gi-Oh! Forbidden Memories. Built with React 19, TypeScript, Vite, and a custom ZIP-based card format (.tcg).
+Browser-based TCG inspired by Yu-Gi-Oh! Forbidden Memories. Built with React 19, TypeScript 6, Vite 8, and a custom ZIP-based card format (.tcg).
 
 ## Quick Commands
 
@@ -21,8 +21,8 @@ npm run cap:open       # Open Android Studio
 
 Three-layer design with strict separation:
 
-1. **Engine Layer** (pure TypeScript, no React) — `js/engine.ts`, `js/effect-registry.ts`, `js/ai-behaviors.ts`
-2. **Data Layer** — `js/cards-data.ts`, `js/types.ts`, `js/progression.ts`, `js/tcg-format/`
+1. **Engine Layer** (pure TypeScript, no React) — `js/engine.ts`, `js/effect-registry.ts`, `js/ai-behaviors.ts`, `js/ai-orchestrator.ts`, `js/field.ts`, `js/rules.ts`
+2. **Data Layer** — `js/types.ts`, `js/cards.ts`, `js/progression.ts`, `js/campaign.ts`, `js/campaign-types.ts`, `js/campaign-store.ts`, `js/shop-data.ts`, `js/tcg-format/`
 3. **UI Layer** (React) — `js/react/` with Context-based state management
 
 The engine communicates with the UI through the `UICallbacks` interface (render, log, prompt, showResult, playAttackAnimation, etc.). The engine never imports React.
@@ -31,31 +31,52 @@ The engine communicates with the UI through the `UICallbacks` interface (render,
 
 ```
 js/
+├── main.ts                # Entry point (loads base.tcg-src, mounts React)
 ├── engine.ts              # Game logic (phases, battle, summoning, AI turns)
+├── field.ts               # Field management
+├── rules.ts               # Game rules
 ├── types.ts               # Core types/enums (CardData, GameState, Phase, Owner, etc.)
+├── type-metadata.ts       # Type metadata helpers
 ├── cards.ts               # Card database store (CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS)
-├── cards-data.ts          # Card definitions
 ├── effect-registry.ts     # Data-driven effect executor (EFFECT_REGISTRY)
 ├── ai-behaviors.ts        # AI behavior profiles (AI_BEHAVIOR_REGISTRY)
+├── ai-orchestrator.ts     # AI decision-making orchestrator
+├── campaign.ts            # Campaign logic
+├── campaign-types.ts      # Campaign type definitions
+├── campaign-store.ts      # Campaign state management
 ├── progression.ts         # Save/load via localStorage (coins, collection, deck)
+├── shop-data.ts           # Shop configuration
 ├── audio.ts               # Web Audio API singleton
 ├── mod-api.ts             # window.EchoesOfSanguoMod API for community mods
 ├── i18n.ts                # i18next setup (de + en)
-├── main.js                # Entry point (loads base.tcg-src, mounts React)
+├── debug-logger.ts        # Debug utility
 ├── tcg-format/            # ZIP-based card format (.tcg) — pack, load, validate
+│   ├── index.ts           # Export barrel
+│   ├── types.ts           # TCG format types
+│   ├── enums.ts           # TCG format enums
 │   ├── tcg-loader.ts      # Load .tcg ZIP → CARD_DB, FUSION_RECIPES, etc.
 │   ├── tcg-builder.ts     # Pack base.tcg-src/ → base.tcg (ZIP)
 │   ├── tcg-validator.ts   # Format validation
-│   ├── effect-serializer.ts
+│   ├── card-validator.ts  # Card-level validation
+│   ├── def-validator.ts   # Definition validator
+│   ├── opp-desc-validator.ts # Opponent description validator
+│   ├── effect-serializer.ts  # Effect string codec
 │   └── generate-base-tcg.ts  # CLI script for npm run generate:tcg
 └── react/
     ├── App.tsx             # Root component, screen router
-    ├── contexts/           # GameContext, ProgressionContext, ModalContext, ScreenContext, SelectionContext
-    ├── screens/            # TitleScreen, GameScreen, ShopScreen, CollectionScreen, DeckbuilderScreen, etc.
-    ├── components/         # Card, HandCard, FieldCardComponent, HoverPreview, ErrorBoundary
-    ├── modals/             # CardActionMenu, CardDetailModal, ResultModal, TrapPromptModal, etc.
-    ├── hooks/              # useAnimatedNumber, useAttackAnimation, useAudio, useKeyboardShortcuts
-    └── utils/pack-logic.ts # Booster pack generation
+    ├── index.tsx           # React entry point
+    ├── contexts/           # GameContext, ProgressionContext, ModalContext, ScreenContext, SelectionContext, CampaignContext
+    ├── screens/            # TitleScreen, PressStartScreen, StarterScreen, CampaignScreen, DialogueScreen,
+    │                       #   OpponentScreen, GameScreen, DefeatedScreen, ShopScreen, PackOpeningScreen,
+    │                       #   CollectionScreen, DeckbuilderScreen, SavePointScreen
+    │   └── game/           # GameScreen sub-components (HandArea, LPPanel, OpponentField, PlayerField, PhaseControls)
+    ├── components/         # Card, HandCard, FieldCardComponent, FieldSpellTrapComponent, HoverPreview,
+    │                       #   CardActivationOverlay, VFXOverlay, ErrorBoundary
+    ├── modals/             # BattleLogModal, CardDetailModal, CardListModal, CoinTossModal,
+    │                       #   GauntletTransitionModal, GraveSelectModal, OptionsModal, ResultModal, TrapPromptModal
+    ├── hooks/              # useAnimatedNumber, useAttackAnimation, useAudio, useFusionAnimation,
+    │                       #   useKeyboardShortcuts, useLongPress
+    └── utils/              # pack-logic.ts, highlightCardText.tsx
 
 tests/                     # Vitest unit/integration tests
 tests-e2e/                 # Playwright E2E tests
@@ -63,21 +84,25 @@ css/                       # style.css, animations.css, progression.css
 locales/                   # de.json, en.json
 public/
 ├── base.tcg-src/          # TCG source folder (served directly by Vite)
-│   ├── cards.json         # Card data (numeric IDs)
+│   ├── cards.json         # Card data (312 cards, numeric IDs)
 │   ├── races.json         # Race metadata { id, key, value, color, icon }
 │   ├── attributes.json    # Attribute metadata { id, key, value, color, symbol }
 │   ├── card_types.json    # Card type metadata { id, key, value, color }
 │   ├── rarities.json      # Rarity metadata { id, key, value, color }
-│   ├── meta.json          # Fusion recipes, starter decks
+│   ├── meta.json          # Starter decks
+│   ├── fusion_formulas.json # Fusion recipe formulas
 │   ├── manifest.json      # Format version
-│   ├── shop.json          # Shop/booster pack definitions
-│   ├── campaign.json      # Campaign map data
+│   ├── shop.json          # Shop/booster pack & package definitions
+│   ├── campaign.json      # Campaign map data (7 chapters, 39 duels)
 │   ├── id_migration.json  # String-ID → Numeric-ID mapping
-│   ├── locales/           # Translation overrides (de_cards_description.json, de_races.json, …)
-│   └── opponents/         # Per-opponent deck JSON files
-├── audio/                 # Sound effects
+│   ├── locales/           # cards_description.json, opponents_description.json
+│   └── opponents/         # 39 per-opponent deck JSON files
+├── audio/                 # Music and sound effects
+│   ├── music/             # battle, defeat, shop, title, victory
+│   └── sfx/               # attack, button, card-play, coin, damage, destroy, draw, fusion, etc.
 └── title-bg.png
 android/                   # Capacitor Android project
+docs/                      # Documentation (tcg-format.md)
 ```
 
 ## Key Conventions
@@ -94,7 +119,7 @@ android/                   # Capacitor Android project
 
 ### State Management
 - React Context API only (no Redux/Zustand)
-- Five contexts: GameContext, ProgressionContext, ModalContext, ScreenContext, SelectionContext
+- Six contexts: GameContext, ProgressionContext, ModalContext, ScreenContext, SelectionContext, CampaignContext
 - Persistence via localStorage with `tcg_` / `eos_` key prefixes
 
 ### Commit Messages
@@ -138,8 +163,9 @@ the distributed archive in sync — changes to one must be reflected in the othe
 - `FieldCard` — runtime monster instance with bonuses and status flags
 - `UICallbacks` — engine→UI communication interface
 - `CardEffectBlock` — { trigger, actions: EffectDescriptor[] }
-- Enums: `CardType`, `Attribute`, `Race`, `Rarity`, `SpellType`
+- Enums: `CardType` (Monster, Fusion, Spell, Trap, Equipment), `Attribute`, `Race`, `Rarity`, `SpellType`
 - Union types: `Owner` ('player'|'opponent'), `Phase` ('draw'|'main'|'battle'|'end'), `Position` ('atk'|'def')
+- Additional unions: `TrapTrigger`, `EffectTrigger` ('onSummon'|'onDestroyByBattle'|'onDestroyByOpponent'|'passive'|'onFlip')
 
 ## Testing
 
@@ -157,20 +183,19 @@ the distributed archive in sync — changes to one must be reflected in the othe
 
 ## CI/CD
 
-GitHub Actions (`.github/workflows/deploy.yml`):
-- Triggers on push to `main`
-- Steps: `npm ci` → `npm test` → `npm run build` → deploy to GitHub Pages
-- Node.js 20 with npm caching
+GitHub Actions (`.github/workflows/`):
+- `deploy.yml` — Triggers on push to `main`: `npm ci` → `npm test` → `npm run build` → deploy to GitHub Pages (Node.js 20)
+- `summary.yml` — AI issue summarization workflow
 
 ## Tech Stack
 
 | Layer | Tech |
 |-------|------|
 | Framework | React 19 |
-| Language | TypeScript 5.9 |
+| Language | TypeScript 6.0 |
 | Build | Vite 8 |
 | Styling | Tailwind CSS 4 + custom CSS + GSAP animations |
 | Testing | Vitest 4 + Playwright 1.58 |
 | i18n | i18next |
 | Mobile | Capacitor 8 (Android) |
-| Fonts | Press Start 2P, Silkscreen (pixel art theme) |
+| Fonts | Press Start 2P, Pixelify Sans (pixel art theme) |

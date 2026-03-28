@@ -24,9 +24,13 @@ export function cardDataToTcgCard(card: CardData, numId: number): TcgCard {
     if (card.race)              tc.race = raceToInt(card.race);
   }
   if (card.effect) tc.effect = serializeEffect(card.effect);
-  if (card.spellType)   tc.spellType   = spellTypeToInt(card.spellType as any);
-  if (card.trapTrigger) tc.trapTrigger = trapTriggerToInt(card.trapTrigger as any);
-  if (card.target)      tc.target      = card.target as string;
+  if (card.spellType)   tc.spellType   = spellTypeToInt(card.spellType);
+  if (card.trapTrigger) tc.trapTrigger = trapTriggerToInt(card.trapTrigger);
+  if (card.target)      tc.target      = card.target;
+  if (card.atkBonus !== undefined) tc.atkBonus = card.atkBonus;
+  if (card.defBonus !== undefined) tc.defBonus = card.defBonus;
+  if (card.equipRequirement?.race) tc.equipReqRace = raceToInt(card.equipRequirement.race);
+  if (card.equipRequirement?.attr) tc.equipReqAttr = attributeToInt(card.equipRequirement.attr);
   return tc;
 }
 
@@ -43,7 +47,7 @@ export function cardDataToTcgDef(card: CardData, numId: number): TcgCardDefiniti
  */
 export function buildManifest(overrides?: Partial<TcgManifest>): TcgManifest {
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     ...overrides,
   };
 }

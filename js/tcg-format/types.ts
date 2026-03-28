@@ -4,12 +4,13 @@
 // ============================================================
 
 // ── Card Type ────────────────────────────────────────────────
-// 1=Monster (normal+effect), 2=Fusion, 3=Spell, 4=Trap
-export const TCG_TYPE_MONSTER = 1;
-export const TCG_TYPE_FUSION  = 2;
-export const TCG_TYPE_SPELL   = 3;
-export const TCG_TYPE_TRAP    = 4;
-export const TCG_TYPES = [TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP] as const;
+// 1=Monster (normal+effect), 2=Fusion, 3=Spell, 4=Trap, 5=Equipment
+export const TCG_TYPE_MONSTER   = 1;
+export const TCG_TYPE_FUSION    = 2;
+export const TCG_TYPE_SPELL     = 3;
+export const TCG_TYPE_TRAP      = 4;
+export const TCG_TYPE_EQUIPMENT = 5;
+export const TCG_TYPES = [TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_EQUIPMENT] as const;
 
 // ── Attribute ────────────────────────────────────────────────
 export const TCG_ATTR_LIGHT = 1;
@@ -24,14 +25,16 @@ export const TCG_ATTRIBUTES = [TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG
 export const TCG_RACE_DRAGON      = 1;
 export const TCG_RACE_SPELLCASTER = 2;
 export const TCG_RACE_WARRIOR     = 3;
-export const TCG_RACE_FIRE        = 4;
+export const TCG_RACE_BEAST       = 4;
 export const TCG_RACE_PLANT       = 5;
-export const TCG_RACE_STONE       = 6;
-export const TCG_RACE_FLYER       = 7;
-export const TCG_RACE_ELF         = 8;
-export const TCG_RACE_DEMON       = 9;
-export const TCG_RACE_WATER       = 10;
-export const TCG_RACES = [TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_FIRE, TCG_RACE_PLANT, TCG_RACE_STONE, TCG_RACE_FLYER, TCG_RACE_ELF, TCG_RACE_DEMON, TCG_RACE_WATER] as const;
+export const TCG_RACE_ROCK        = 6;
+export const TCG_RACE_PHOENIX     = 7;
+export const TCG_RACE_UNDEAD      = 8;
+export const TCG_RACE_AQUA        = 9;
+export const TCG_RACE_INSECT      = 10;
+export const TCG_RACE_MACHINE     = 11;
+export const TCG_RACE_PYRO        = 12;
+export const TCG_RACES = [TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_BEAST, TCG_RACE_PLANT, TCG_RACE_ROCK, TCG_RACE_PHOENIX, TCG_RACE_UNDEAD, TCG_RACE_AQUA, TCG_RACE_INSECT, TCG_RACE_MACHINE, TCG_RACE_PYRO] as const;
 
 // ── Rarity (1-8 range) ──────────────────────────────────────
 export const TCG_RARITY_COMMON     = 1;
@@ -51,11 +54,15 @@ export interface TcgCard {
   rarity:     number;       // 1-8
   type:       number;       // 1-4
   attribute?: number;       // 1-6, absent for Spells/Traps
-  race?:      number;       // 1-10, absent for Spells/Traps
+  race?:      number;       // 1-12, absent for Spells/Traps
   effect?:    string;       // serialized effect string
   spellType?:   number;    // 1=normal, 2=targeted, 3=fromGrave
   trapTrigger?: number;    // 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual
   target?:      string;    // targeting hint: 'ownMonster', 'oppMonster', etc.
+  atkBonus?:    number;    // Equipment: ATK bonus applied to equipped monster
+  defBonus?:    number;    // Equipment: DEF bonus applied to equipped monster
+  equipReqRace?: number;  // Equipment: required race (1-12) for target monster
+  equipReqAttr?: number;  // Equipment: required attribute (1-6) for target monster
 }
 
 // ── Card Definition (localized) ──────────────────────────────
@@ -72,7 +79,7 @@ export interface TcgOpponentDeck {
   id:        number;
   name:      string;
   title:     string;
-  race:      number;    // TCG int (1-10), converted to Race enum by loader
+  race:      number;    // TCG int (1-12), converted to Race enum by loader
   flavor:    string;
   coinsWin:  number;
   coinsLoss: number;
@@ -148,6 +155,17 @@ export type TcgLocaleOverrides = Record<string, string>;
 // ── TCG Archive metadata ──────────────────────────────────────
 
 
+// ── Fusion Formulas (type-based, Forbidden Memories style) ──
+
+export interface TcgFusionFormula {
+  id:         string;
+  comboType:  string;    // 'race+race' | 'race+attr' | 'attr+attr'
+  operand1:   number;
+  operand2:   number;
+  priority:   number;
+  resultPool: number[];  // numeric card IDs (converted to string by loader)
+}
+
 export interface TcgMeta {
   fusionRecipes?: Array<{ materials: [number, number]; result: number }>;
   opponentConfigs?: TcgOpponentDeck[];
@@ -185,6 +203,7 @@ export interface TcgPackDef {
 export interface TcgShopJson {
   packs: TcgPackDef[];
   currency?: { nameKey: string; icon: string };
+  backgrounds?: Record<string, string>;  // chapter key -> path within TCG archive
 }
 
 // ── Campaign JSON (alias) ────────────────────────────────
@@ -220,7 +239,7 @@ interface NodeBase {
   unlockCondition: UnlockCondition | null;
   rewards: CampaignRewards | null;
 }
-export interface DuelNode   extends NodeBase { type: 'duel';   opponentId: number; isBoss: boolean; preDialogue: DialogueScene | null; postDialogue: DialogueScene | null; }
+export interface DuelNode   extends NodeBase { type: 'duel';   opponentId: number; isBoss: boolean; completeOnLoss?: boolean; preDialogue: DialogueScene | null; postDialogue: DialogueScene | null; }
 export interface StoryNode  extends NodeBase { type: 'story';  scene: DialogueScene; }
 export interface RewardNode extends NodeBase { type: 'reward'; }
 export interface ShopNode   extends NodeBase { type: 'shop';   shopId: string; }

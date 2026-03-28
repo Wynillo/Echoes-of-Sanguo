@@ -9,8 +9,9 @@ export type { TcgCard, TcgCardDefinition, TcgManifest, TcgMeta, TcgOpponentDeck,
 export {
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPES,
   TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG_ATTR_WATER, TCG_ATTR_EARTH, TCG_ATTR_WIND, TCG_ATTRIBUTES,
-  TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_FIRE, TCG_RACE_PLANT,
-  TCG_RACE_STONE, TCG_RACE_FLYER, TCG_RACE_ELF, TCG_RACE_DEMON, TCG_RACE_WATER, TCG_RACES,
+  TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_BEAST, TCG_RACE_PLANT,
+  TCG_RACE_ROCK, TCG_RACE_PHOENIX, TCG_RACE_UNDEAD, TCG_RACE_AQUA, TCG_RACE_INSECT,
+  TCG_RACE_MACHINE, TCG_RACE_PYRO, TCG_RACES,
   TCG_RARITY_COMMON, TCG_RARITY_UNCOMMON, TCG_RARITY_RARE, TCG_RARITY_SUPER_RARE, TCG_RARITY_ULTRA_RARE, TCG_RARITIES,
 } from './types.js';
 
@@ -31,11 +32,11 @@ export { serializeEffect, deserializeEffect, isValidEffectString } from './effec
 // Validators
 export { validateTcgCards } from './card-validator.js';
 export { validateTcgDefinitions } from './def-validator.js';
-export { validateTcgArchive } from './tcg-validator.js';
+export { validateTcgArchive, validateFusionFormulasJson, validateOpponentDeck } from './tcg-validator.js';
 export type { TcgArchiveContents } from './tcg-validator.js';
 
 // Builder
 export { cardDataToTcgCard, cardDataToTcgDef, buildManifest, buildRacesJson, buildAttributesJson, buildCardTypesJson, buildRaritiesJson } from './tcg-builder.js';
 
 // Loader
-export { loadTcgFile, loadTcgFolder, revokeTcgImages } from './tcg-loader.js';
+export { loadTcgFile, revokeTcgImages, TcgNetworkError, TcgFormatError } from './tcg-loader.js';

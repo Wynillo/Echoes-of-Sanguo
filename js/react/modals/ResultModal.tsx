@@ -10,7 +10,7 @@ import type { ModalState } from '../contexts/ModalContext.js';
 interface Props { modal: Extract<ModalState, { type: 'result' }>; }
 
 export function ResultModal({ modal }: Props) {
-  const { resultType, coinsEarned } = modal;
+  const { resultType, coinsEarned, campaignDuel } = modal;
   const { closeModal }  = useModal();
   const { startGame, lastOpponent } = useGame();
   const { navigateTo }  = useScreen();
@@ -45,7 +45,7 @@ export function ResultModal({ modal }: Props) {
   function backToTitle() {
     closeModal();
     refresh();
-    navigateTo('title');
+    navigateTo(campaignDuel ? 'duel-result' : 'save-point', campaignDuel ? { result: 'defeat' } : undefined);
   }
 
   return (
@@ -61,9 +61,15 @@ export function ResultModal({ modal }: Props) {
           <div className="result-coins">{t('result.coins_earned', { coins: coinsEarned })}</div>
         )}
         <div className="result-buttons">
-          <button className="btn-primary"   onClick={playAgain}>{t('result.play_again')}</button>
-          <button className="btn-secondary" onClick={chooseOpponent}>{t('result.choose_opponent')}</button>
-          <button className="btn-secondary" onClick={backToTitle}>{t('result.home')}</button>
+          {campaignDuel ? (
+            <button className="btn-primary" onClick={backToTitle}>{t('result.home')}</button>
+          ) : (
+            <>
+              <button className="btn-primary"   onClick={playAgain}>{t('result.play_again')}</button>
+              <button className="btn-secondary" onClick={chooseOpponent}>{t('result.choose_opponent')}</button>
+              <button className="btn-secondary" onClick={backToTitle}>{t('result.home')}</button>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -1,0 +1,11 @@
+{
+  "id": 18,
+  "name": "Huang Bing",
+  "title": "Fußsoldat der Gelben Turbane",
+  "race": 3,
+  "flavor": "Der erste Feind nach der Rückkehr in die Vergangenheit.",
+  "coinsWin": 250,
+  "coinsLoss": 0,
+  "deckIds": [29, 30, 31, 32, 33, 34, 79, 80, 81, 82, 83, 84, 85, 86, 268, 274, 275, 295],
+  "behavior": "aggressive"
+}
