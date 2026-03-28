@@ -33,21 +33,44 @@ The goal is to create a standalone `@wynillo/tcg-format` npm package in its own 
 
 ---
 
-## Internal Dependency Map (Current)
+## Internal Dependency Map (Current → Target)
 
+**Current** (all in `js/tcg-format/`, coupled to game internals):
 ```
-tcg-format/enums.ts        ← CardType, Attribute, Race, Rarity      (../types.js)
+tcg-format/enums.ts         ← CardType, Attribute, Race, Rarity     (../types.js)
+tcg-format/card-validator.ts← isValidEffectString                    (./effect-serializer.js)
 tcg-format/effect-serializer.ts ← CardEffectBlock, EffectDescriptor,
                                    CardFilter, ValueExpr, StatTarget,
                                    EffectTrigger, TrapTrigger         (../types.js)
 tcg-format/tcg-loader.ts   ← CardData, FusionRecipe, OpponentConfig  (../types.js)
-                           ← CARD_DB, FUSION_RECIPES, etc.           (../cards.js)   [mutated!]
+                           ← CARD_DB, FUSION_RECIPES, etc.           (../cards.js)  [mutated!]
                            ← applyRules()                            (../rules.js)
                            ← applyTypeMeta(), TYPE_META              (../type-metadata.js)
                            ← applyShopData()                         (../shop-data.js)
                            ← applyCampaignData()                     (../campaign-store.js)
 tcg-format/tcg-builder.ts  ← CardData, CardType                      (../types.js)
                            ← TYPE_META                               (../type-metadata.js)
+                           ← serializeEffect                         (./effect-serializer.js)
+```
+
+**Target** (after extraction):
+```
+@wynillo/tcg-format          ← jszip only; zero game imports
+  src/tcg-loader.ts            — pure: returns TcgLoadResult, no mutations, no browser globals
+  src/card-validator.ts        — effect field treated as opaque string; no effect-serializer dep
+
+js/enums.ts (engine)         ← CardType, Attribute, Race, Rarity     (./types.js)
+js/effect-serializer.ts      ← CardEffectBlock, ...                   (./types.js)
+                             ← intToSpellType, intToTrapTrigger, ...  (./enums.js)
+js/tcg-builder.ts            ← CardData, CardType                     (./types.js)
+                             ← TYPE_META                              (./type-metadata.js)
+                             ← serializeEffect                        (./effect-serializer.js)
+                             ← TcgCard, TcgManifest, ...              (@wynillo/tcg-format)
+js/tcg-bridge.ts (new)       ← loadTcgFile, TcgParsedCard, ...        (@wynillo/tcg-format)
+                             ← CARD_DB, FUSION_RECIPES, ...           (./cards.js)  [mutated here]
+                             ← intToCardType, intToRace, ...          (./enums.js)
+                             ← deserializeEffect                      (./effect-serializer.js)
+                             ← applyTypeMeta, applyRules, ...         (various game modules)
 ```
 
 ---
@@ -76,7 +99,7 @@ tcg-format/tcg-builder.ts  ← CardData, CardType                      (../types
 The correct strategy is **Option C — converters stay in the engine, the package doesn't export them**:
 - `js/tcg-format/enums.ts` moves to `js/enums.ts` (engine file), keeping its game imports untouched
 - The package's `src/` has **no converter functions** — it deals purely in raw ints (the wire format already uses ints)
-- `TcgDecodedCard` uses `number` fields for type/attribute/race/rarity (same numeric values as the engine enums, but typed as `number` in the package's namespace)
+- `TcgParsedCard` uses `number` fields for type/attribute/race/rarity (same numeric values as the engine enums, but typed as `number` in the package's namespace)
 - The bridge's `decodedToCardData` is a trivial spread — TypeScript numeric enum values are assignable to `number`, so `{ ...decoded, effect }` is type-safe without casting
 
 This means no call sites in the engine change at all.
@@ -102,7 +125,7 @@ echoes-of-sanguo-tcg-format/
 ├── tsconfig.json         # target ES2020, moduleResolution: bundler, noEmit: false
 ├── src/
 │   ├── index.ts          # public API barrel
-│   ├── types.ts          # TcgCard, TcgManifest, TcgMeta, TcgDecodedCard, etc. (NO effect types)
+│   ├── types.ts          # TcgCard, TcgManifest, TcgMeta, TcgParsedCard, etc. (NO effect types)
 │   ├── enums.ts          # refactored: string literal types, NO game imports
 │   ├── card-validator.ts
 │   ├── def-validator.ts
@@ -170,36 +193,42 @@ The game enums are **numeric** (`CardType.Monster = 1`, not `'Monster'`). The co
 
 Update all engine-internal import paths from `'./tcg-format/enums.js'` to `'./enums.js'`. The package's `src/` directory has no `enums.ts` file; the string validator functions (`isValidTrigger`, `isValidSpellType`) move inline to the validator files that need them.
 
-### Step 5 — Add `TcgDecodedCard` to `js/tcg-format/types.ts`
+### Step 5 — Add `TcgParsedCard` to `js/tcg-format/types.ts`
 
-The package's loader returns decoded card objects without using game types. Since the game enums are numeric, `TcgDecodedCard` uses `number` for all int fields (same values as the engine enums — no conversion needed in the bridge):
+The package's loader merges `TcgCard` (int fields) + `TcgCardDefinition` (name, description) into a single flat object. The name "parsed" reflects that the ZIP/JSON parsing is done; the wire-format int values remain as-is — `spellType: 1` not `'normal'`, `type: 3` not `CardType.Spell`. The engine bridge does the final int→enum/string conversion.
+
+`TcgParsedCard` uses `number` for all int fields:
 
 ```typescript
-// src/types.ts — package-native decoded card (no game imports)
-export interface TcgDecodedCard {
-  id:           string;    // stringified numeric id (e.g. "42")
-  name:         string;
-  type:         number;    // TCG_TYPE_MONSTER etc — same value as CardType enum
-  attribute?:   number;    // TCG_ATTR_* — same value as Attribute enum
-  race?:        number;    // TCG_RACE_* — same value as Race enum
-  rarity?:      number;    // TCG_RARITY_* — same value as Rarity enum
-  level?:       number;
-  atk?:         number;
-  def?:         number;
-  description:  string;
+// src/types.ts — flat merge of TcgCard (int wire fields) + TcgCardDefinition (name/description)
+// Wire-format ints are left as-is; the engine bridge handles int→enum/string conversion.
+export interface TcgParsedCard {
+  id:            string;   // stringified numeric id (e.g. "42")
+  name:          string;   // from TcgCardDefinition for the requested locale
+  description:   string;   // from TcgCardDefinition for the requested locale
+  type:          number;   // TCG_TYPE_* — same numeric value as CardType enum
+  rarity:        number;   // TCG_RARITY_* — same numeric value as Rarity enum
+  level?:        number;
+  atk?:          number;
+  def?:          number;
+  attribute?:    number;   // TCG_ATTR_* — same numeric value as Attribute enum
+  race?:         number;   // TCG_RACE_* — same numeric value as Race enum
   effectString?: string;   // raw serialized effect string (package treats as opaque)
-  spellType?:   number;    // 1=normal, 2=targeted, 3=fromGrave, 4=field
-  trapTrigger?: number;    // 1=onAttack, 2=onOwnMonsterAttacked, etc.
-  target?:      string;    // targeting hint: 'ownMonster', 'oppMonster', etc.
-  atkBonus?:    number;
-  defBonus?:    number;
-  equipRequirement?: { race?: number; attr?: number };
+  spellType?:    number;   // 1=normal, 2=targeted, 3=fromGrave, 4=field
+  trapTrigger?:  number;   // 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual
+  target?:       string;   // targeting hint: 'ownMonster', 'oppMonster', etc.
+  atkBonus?:     number;
+  defBonus?:     number;
+  equipRequirement?: { race?: number; attr?: number };  // int values, not enum
 }
 ```
 
-The bridge's `decodedToCardData` is a trivial spread — TypeScript numeric enum values are structurally compatible with `number`, so `{ ...decoded, effect }` satisfies `CardData` without a cast. No int↔enum conversion step needed.
+The game's `CardData` in `js/types.ts` remains the source of truth, with its own `effect?: CardEffectBlock`. The bridge's `parsedToCardData` converts `TcgParsedCard → CardData` by:
+- Casting numeric enum fields (`type as CardType`, `rarity as Rarity`, etc.) — safe since values are identical
+- Calling `intToSpellType()` / `intToTrapTrigger()` for string-typed fields (these stay in `js/enums.ts`)
+- Deserializing `effectString` via `deserializeEffect()`
 
-The game's `CardData` in `js/types.ts` remains the source of truth, with its own `effect?: CardEffectBlock`. The bridge converts `TcgDecodedCard → CardData` only by deserializing the `effectString`.
+A simple spread `{ ...parsed, effect }` is **not sufficient** — `spellType` and `trapTrigger` are `number` in `TcgParsedCard` but `SpellType` (`'normal'`|...) and `TrapTrigger` (`'onAttack'`|...) in `CardData`. TypeScript would silently produce incorrect runtime values.
 
 ### Step 6 — Refactor `tcg-loader.ts` (eliminate side effects)
 
@@ -211,7 +240,7 @@ Remove all game store imports. Change `loadTcgFile()` to return all data instead
 ```typescript
 interface TcgLoadResult {
   cards: TcgCard[];                         // raw int-based cards from cards.json
-  decodedCards: TcgDecodedCard[];           // decoded, effect as opaque string, all fields numeric
+  parsedCards: TcgParsedCard[];           // decoded, effect as opaque string, all fields numeric
   definitions: Map<string, TcgCardDefinition[]>;  // locale → definitions
   rawImages: Map<number, ArrayBuffer>;      // card id → raw PNG bytes (NOT blob URLs — loader is environment-agnostic)
   meta?: TcgMeta;
@@ -254,7 +283,8 @@ Remove `getBrowserLang()` / `navigator.language` from the loader. The bridge pas
 
 **Two other key changes**:
 1. `URL.createObjectURL` is browser-only — the loader returns raw `ArrayBuffer` per image. The bridge creates blob URLs. `revokeTcgImages()` moves to the bridge.
-2. `tcgCardToCardData()` is removed from the loader — the bridge handles `TcgDecodedCard → CardData` conversion (only the `effectString` deserialization differs between the two types).
+2. `tcgCardToCardData()` is removed from the loader — the bridge handles `TcgParsedCard → CardData` conversion via an explicit `parsedToCardData()` function (see Step 10).
+3. `applyTcgMeta()` and `applyFusionFormulas()` are currently unexported local functions in `tcg-loader.ts`. Their bodies move to the bridge — they mutate game stores and have no place in a pure loader.
 
 ### Step 7 — Refactor `js/tcg-format/tcg-builder.ts`
 
@@ -305,14 +335,15 @@ This file does everything `tcg-loader.ts` used to do on the game side, plus mod 
 
 ```typescript
 // js/tcg-bridge.ts
-import { loadTcgFile, type TcgLoadResult, type TcgDecodedCard } from '@wynillo/tcg-format';
+import { loadTcgFile, type TcgLoadResult, type TcgParsedCard, type TcgMeta, type TcgOpponentDeck, type TcgOpponentDescription, type TcgFusionFormula } from '@wynillo/tcg-format';
 import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from './cards.js';
 import { applyRules } from './rules.js';
 import { applyTypeMeta } from './type-metadata.js';
 import { applyShopData } from './shop-data.js';
 import { applyCampaignData } from './campaign-store.js';
 import { deserializeEffect, isValidEffectString } from './effect-serializer.js';
-import type { CardData } from './types.js';
+import { intToCardType, intToRarity, intToAttribute, intToRace, intToSpellType, intToTrapTrigger } from './enums.js';
+import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
 
 // ── Mod Tracking ─────────────────────────────────────────────
 interface LoadedMod {
@@ -323,20 +354,125 @@ interface LoadedMod {
 }
 const loadedMods: LoadedMod[] = [];
 
-function decodedToCardData(decoded: TcgDecodedCard, warnings: string[]): CardData {
+// ── TcgParsedCard → CardData conversion ───────────────────────
+// Mirrors the old tcgCardToCardData() from tcg-loader.ts.
+// Cannot use a simple spread: spellType and trapTrigger are `number` in TcgParsedCard
+// but string-based types (SpellType, TrapTrigger) in CardData.
+function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
   let effect = undefined;
-  if (decoded.effectString) {
-    // Semantic validation: warn on unknown effect types (don't hard-fail — custom effects via registerEffect still work)
-    if (!isValidEffectString(decoded.effectString)) {
-      warnings.push(`Card ${decoded.id}: effect string may contain unknown actions: "${decoded.effectString}"`);
+  if (p.effectString) {
+    // Semantic validation: warn on unknown types but don't hard-fail (custom effects via registerEffect still work)
+    if (!isValidEffectString(p.effectString)) {
+      warnings.push(`Card ${p.id}: effect string may contain unknown actions: "${p.effectString}"`);
     }
-    effect = deserializeEffect(decoded.effectString);
+    try {
+      effect = deserializeEffect(p.effectString);
+    } catch (e) {
+      warnings.push(`Card ${p.id} (${p.name}): failed to deserialize effect — effect disabled. ${e instanceof Error ? e.message : e}`);
+    }
   }
-  // Note: TcgDecodedCard.id and CardData.id are both `string` — no numeric conversion needed.
-  // CARD_DB is indexed by string (e.g. "42"). Verified: js/types.ts CardData.id is `string`.
-  return { ...decoded, effect };
+
+  const card: CardData = {
+    id:          p.id,
+    name:        p.name,
+    type:        intToCardType(p.type, !!p.effectString),
+    description: p.description,
+    level:       p.level ?? undefined,
+    rarity:      intToRarity(p.rarity),
+  };
+
+  if (p.atk !== undefined) card.atk = p.atk;
+  if (p.def !== undefined) card.def = p.def;
+  if (p.attribute !== undefined && p.attribute > 0) {
+    try { card.attribute = intToAttribute(p.attribute); }
+    catch { warnings.push(`Card ${p.id}: invalid attribute ${p.attribute}`); }
+  }
+  if (p.race !== undefined && p.race > 0) {
+    try { card.race = intToRace(p.race); }
+    catch { warnings.push(`Card ${p.id}: invalid race ${p.race}`); }
+  }
+  if (effect)       card.effect      = effect;
+  if (p.spellType)   card.spellType   = intToSpellType(p.spellType);
+  if (p.trapTrigger) card.trapTrigger = intToTrapTrigger(p.trapTrigger);
+  if (p.target)      card.target      = p.target;
+  if (p.atkBonus !== undefined) card.atkBonus = p.atkBonus;
+  if (p.defBonus !== undefined) card.defBonus = p.defBonus;
+  if (p.equipRequirement?.race !== undefined || p.equipRequirement?.attr !== undefined) {
+    card.equipRequirement = {};
+    if (p.equipRequirement.race !== undefined) {
+      try { card.equipRequirement.race = intToRace(p.equipRequirement.race); }
+      catch { warnings.push(`Card ${p.id}: invalid equipRequirement.race`); }
+    }
+    if (p.equipRequirement.attr !== undefined) {
+      try { card.equipRequirement.attr = intToAttribute(p.equipRequirement.attr); }
+      catch { warnings.push(`Card ${p.id}: invalid equipRequirement.attr`); }
+    }
+  }
+
+  return card;
 }
 
+// ── applyTcgMeta — moved from tcg-loader.ts (was unexported local) ──────────
+function applyTcgMeta(
+  meta: TcgMeta,
+  tcgOpponents?: TcgOpponentDeck[],
+  oppDescs?: Map<string, TcgOpponentDescription[]>,
+  lang?: string,
+): void {
+  const rid = (numId: number): string => String(numId);
+
+  if (meta.fusionRecipes) {
+    const recipes: FusionRecipe[] = meta.fusionRecipes.map(r => ({
+      materials: [rid(r.materials[0]), rid(r.materials[1])] as [string, string],
+      result: rid(r.result),
+    }));
+    FUSION_RECIPES.push(...recipes);
+  }
+
+  const rawOpponents = tcgOpponents ?? meta.opponentConfigs;
+  if (rawOpponents) {
+    const localizedDescs = oppDescs?.get(lang ?? '') ?? (oppDescs?.size ? oppDescs.values().next().value! : undefined);
+    const oppDescMap = new Map<number, TcgOpponentDescription>();
+    if (localizedDescs) {
+      for (const d of localizedDescs) oppDescMap.set(d.id, d);
+    }
+    const configs: OpponentConfig[] = rawOpponents.map(o => {
+      const desc = oppDescMap.get(o.id);
+      return {
+        id: o.id, name: desc?.name ?? o.name, title: desc?.title ?? o.title,
+        race: intToRace(o.race), flavor: desc?.flavor ?? o.flavor,
+        coinsWin: o.coinsWin, coinsLoss: o.coinsLoss,
+        deckIds: o.deckIds.map(rid), behaviorId: o.behavior,
+      };
+    });
+    OPPONENT_CONFIGS.push(...configs);
+  }
+
+  if (meta.starterDecks) {
+    for (const [raceKey, numIds] of Object.entries(meta.starterDecks)) {
+      STARTER_DECKS[Number(raceKey)] = numIds.map(rid);
+    }
+    const firstDeck = Object.values(STARTER_DECKS)[0];
+    if (firstDeck) {
+      PLAYER_DECK_IDS.splice(0, PLAYER_DECK_IDS.length, ...firstDeck);
+      OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
+    }
+  }
+}
+
+// ── applyFusionFormulas — moved from tcg-loader.ts (was unexported local) ───
+function applyFusionFormulas(raw: TcgFusionFormula[]): void {
+  const rid = (numId: number): string => String(numId);
+  const converted: FusionFormula[] = raw.map(f => ({
+    id: f.id, comboType: f.comboType as FusionComboType,
+    operand1: f.operand1, operand2: f.operand2, priority: f.priority,
+    resultPool: f.resultPool.map(rid),
+  }));
+  converted.sort((a, b) => b.priority - a.priority);
+  FUSION_FORMULAS.push(...converted);
+}
+
+// ── Image handling ────────────────────────────────────────────
 // Bridge creates blob URLs from raw ArrayBuffers (loader is environment-agnostic)
 const blobUrls: Map<number, string> = new Map();
 function applyImages(rawImages: Map<number, ArrayBuffer>): Map<number, string> {
@@ -351,6 +487,7 @@ export function revokeTcgImages(): void {
   blobUrls.clear();
 }
 
+// ── Public API ────────────────────────────────────────────────
 export async function loadAndApplyTcg(
   source: string | ArrayBuffer,
   onProgress?: (percent: number) => void,
@@ -362,27 +499,27 @@ export async function loadAndApplyTcg(
     cardIds: [], opponentIds: [], timestamp: Date.now(),
   };
 
-  // Convert TcgDecodedCard[] → CardData[] with collision detection
-  for (const decoded of result.decodedCards) {
-    if (CARD_DB[decoded.id]) {
-      result.warnings.push(`Card ${decoded.id} ("${decoded.name}") overwrites existing card "${CARD_DB[decoded.id].name}"`);
+  // Convert TcgParsedCard[] → CardData[] with collision detection
+  for (const parsed of result.parsedCards) {
+    if (CARD_DB[parsed.id]) {
+      result.warnings.push(`Card ${parsed.id} ("${parsed.name}") overwrites existing card "${CARD_DB[parsed.id].name}"`);
     }
-    CARD_DB[decoded.id] = decodedToCardData(decoded, result.warnings);
-    mod.cardIds.push(decoded.id);
+    CARD_DB[parsed.id] = parsedToCardData(parsed, result.warnings);
+    mod.cardIds.push(parsed.id);
   }
 
-  // Convert raw image ArrayBuffers → blob URLs (browser-only; done here, not in the package)
-  const images = applyImages(result.rawImages);
+  // Convert raw image ArrayBuffers → blob URLs
+  applyImages(result.rawImages);
 
   // Apply game-specific side effects
   if (result.typeMeta?.races)      applyTypeMeta({ races: result.typeMeta.races });
   if (result.typeMeta?.attributes) applyTypeMeta({ attributes: result.typeMeta.attributes });
   if (result.typeMeta?.cardTypes)  applyTypeMeta({ cardTypes: result.typeMeta.cardTypes });
   if (result.typeMeta?.rarities)   applyTypeMeta({ rarities: result.typeMeta.rarities });
-  if (result.rules)        applyRules(result.rules);
-  if (result.shopData)     applyShopData(result.shopData);
-  if (result.campaignData) applyCampaignData(result.campaignData);
-  if (result.meta)         applyTcgMeta(result.meta, result.opponents, result.opponentDescriptions);
+  if (result.rules)          applyRules(result.rules);
+  if (result.shopData)       applyShopData(result.shopData);
+  if (result.campaignData)   applyCampaignData(result.campaignData);
+  if (result.meta)           applyTcgMeta(result.meta, result.opponents, result.opponentDescriptions, lang);
   if (result.fusionFormulas) applyFusionFormulas(result.fusionFormulas);
 
   loadedMods.push(mod);
@@ -392,7 +529,7 @@ export async function loadAndApplyTcg(
 /**
  * Partial unload — removes cards and opponents added by this mod only.
  * Does NOT revert: fusion recipes/formulas, shop data, campaign data, rules, or type metadata.
- * Renamed from `unloadMod` to set correct expectations. Full unload is a v2 feature.
+ * Full unload is a v2 feature (see Known Limitations).
  */
 export function unloadModCards(source: string): boolean {
   console.warn('[EOS] unloadModCards: partial unload — fusion recipes, shop data, campaign data, rules, and type metadata from this mod are NOT reverted.');
@@ -473,7 +610,7 @@ Add CI step to produce the standalone `.d.ts` file from `js/types.ts` + `js/mod-
 
 **Move to package repo:**
 - `tests/tcg-format.test.js` (validators only, after split above)
-- `tests/tcg-loader.test.js` — adapted for new pure API: assert on `TcgLoadResult` fields (`decodedCards`, `rawImages`, `typeMeta`, etc.); no global store assertions; pass explicit `lang: 'en'` option
+- `tests/tcg-loader.test.js` — adapted for new pure API: assert on `TcgLoadResult` fields (`parsedCards`, `rawImages`, `typeMeta`, etc.); no global store assertions; pass explicit `lang: 'en'` option
 - `tests/tcg-validator.test.js` — archive validation tests
 - `tests/tcg-packer.test.js` — new: test `packTcgArchive()` round-trips correctly
 
