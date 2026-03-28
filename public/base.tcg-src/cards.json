@@ -2854,21 +2854,24 @@
     "rarity": 2,
     "type": 3,
     "effect": "onSummon:tempAtkBonus(ownMonster,300)",
-    "spellType": 2
+    "spellType": 2,
+    "target": "ownMonster"
   },
   {
     "id": 275,
     "rarity": 2,
     "type": 3,
     "effect": "onSummon:tempAtkBonus(ownMonster,400)",
-    "spellType": 2
+    "spellType": 2,
+    "target": "ownMonster"
   },
   {
     "id": 276,
     "rarity": 2,
     "type": 3,
     "effect": "onSummon:tempAtkBonus(ownMonster,500)",
-    "spellType": 2
+    "spellType": 2,
+    "target": "ownMonster"
   },
   {
     "id": 277,
@@ -2889,7 +2892,8 @@
     "rarity": 2,
     "type": 3,
     "effect": "onSummon:tempDefBonus(ownMonster,400)",
-    "spellType": 2
+    "spellType": 2,
+    "target": "ownMonster"
   },
   {
     "id": 280,
@@ -2938,7 +2942,8 @@
     "rarity": 4,
     "type": 3,
     "effect": "onSummon:permAtkBonus(ownMonster,500)",
-    "spellType": 2
+    "spellType": 2,
+    "target": "ownMonster"
   },
   {
     "id": 287,
