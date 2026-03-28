@@ -97,6 +97,26 @@ function _triggerBuffVFX(fc: FieldCard, ctx: EffectContext): void {
   }
 }
 
+// ── Helpers ─────────────────────────────────────────────────
+
+/** Find the monster zone index with the highest or lowest effective ATK. */
+function findMonsterByATK(
+  monsters: Array<FieldCard | null>,
+  mode: 'strongest' | 'weakest',
+  opts?: { excludeUntargetable?: boolean },
+): number | null {
+  const cmp = mode === 'strongest'
+    ? (a: number, b: number) => a > b
+    : (a: number, b: number) => a < b;
+  let idx: number | null = null;
+  monsters.forEach((fm, i) => {
+    if (!fm) return;
+    if (opts?.excludeUntargetable && fm.cannotBeTargeted) return;
+    if (idx === null || cmp(fm.effectiveATK(), monsters[idx]!.effectiveATK())) idx = i;
+  });
+  return idx;
+}
+
 // ── Effect Implementations ──────────────────────────────────
 
 // Public API type — call sites receive EffectDescriptor (no `any`)
@@ -187,13 +207,9 @@ const IMPL: Record<string, InternalImpl> = {
     const opp = oppOf(ctx.owner);
     const st = ctx.engine.getState();
     const monsters = st[opp].field.monsters;
-    let strongest: number | null = null;
-    monsters.forEach((fm, i) => {
-      if (!fm || fm.cannotBeTargeted) return;
-      if (strongest === null || fm.effectiveATK() > monsters[strongest]!.effectiveATK()) strongest = i;
-    });
+    const strongest = findMonsterByATK(monsters, 'strongest', { excludeUntargetable: true });
     if (strongest !== null && monsters[strongest]) {
-      const fc = monsters[strongest]!;
+      const fc = monsters[strongest];
       st[opp].hand.push(fc.card);
       monsters[strongest] = null;
       ctx.engine._removeEquipmentForMonster(opp, strongest);
@@ -343,13 +359,9 @@ const IMPL: Record<string, InternalImpl> = {
     const opp = oppOf(ctx.owner);
     const st = ctx.engine.getState();
     const monsters = st[opp].field.monsters;
-    let weakestIdx: number | null = null;
-    monsters.forEach((fm, i) => {
-      if (!fm) return;
-      if (weakestIdx === null || fm.effectiveATK() < monsters[weakestIdx]!.effectiveATK()) weakestIdx = i;
-    });
+    const weakestIdx = findMonsterByATK(monsters, 'weakest');
     if (weakestIdx !== null && monsters[weakestIdx]) {
-      const fc = monsters[weakestIdx]!;
+      const fc = monsters[weakestIdx];
       st[opp].graveyard.push(fc.card);
       monsters[weakestIdx] = null;
       ctx.engine._removeEquipmentForMonster(opp, weakestIdx);
@@ -362,13 +374,9 @@ const IMPL: Record<string, InternalImpl> = {
     const opp = oppOf(ctx.owner);
     const st = ctx.engine.getState();
     const monsters = st[opp].field.monsters;
-    let strongestIdx: number | null = null;
-    monsters.forEach((fm, i) => {
-      if (!fm) return;
-      if (strongestIdx === null || fm.effectiveATK() > monsters[strongestIdx]!.effectiveATK()) strongestIdx = i;
-    });
+    const strongestIdx = findMonsterByATK(monsters, 'strongest');
     if (strongestIdx !== null && monsters[strongestIdx]) {
-      const fc = monsters[strongestIdx]!;
+      const fc = monsters[strongestIdx];
       st[opp].graveyard.push(fc.card);
       monsters[strongestIdx] = null;
       ctx.engine._removeEquipmentForMonster(opp, strongestIdx);

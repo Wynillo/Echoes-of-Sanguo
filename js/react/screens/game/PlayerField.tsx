@@ -6,6 +6,8 @@ import { useSelection } from '../../contexts/SelectionContext.js';
 import { FieldCardComponent }     from '../../components/FieldCardComponent.js';
 import { FieldSpellTrapComponent } from '../../components/FieldSpellTrapComponent.js';
 import { CardType, meetsEquipRequirement } from '../../../types.js';
+import type { FieldCard } from '../../../field.js';
+import type { FieldSpellTrap } from '../../../field.js';
 
 const FIELD_ZONES = [0, 1, 2, 3, 4] as const;
 
@@ -63,7 +65,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
       && meetsEquipRequirement(sel.equipCard!, fc.card);
   }
 
-  const onOwnFieldCardClick = useCallback((fc: any, zone: number) => {
+  const onOwnFieldCardClick = useCallback((fc: FieldCard, zone: number) => {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'main') return;
     openModal({ type: 'card-detail', card: fc.card, fc, index: zone, state: gameState, source: 'field' });
@@ -75,7 +77,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     const fc = player.field.monsters[zone];
     if (!fc || fc.hasAttacked || fc.position !== 'atk') return;
     resetSel();
-    const oppHasMonsters = opp.field.monsters.some((m: any) => m !== null);
+    const oppHasMonsters = opp.field.monsters.some(m => m !== null);
     setSel({ mode: 'attack', attackerZone: zone, hint: t('game.hint_selected', { name: fc.card.name }) });
     setShowDirect(!oppHasMonsters || fc.canDirectAttack);
   }, [gameRef, isMyTurn, phase, player.field.monsters, opp.field.monsters, resetSel, setSel, setShowDirect]);
@@ -97,7 +99,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     resetSel();
   }, [gameRef, selMode, player.field.monsters, sel.spellHandIndex, sel.spellFieldZone, sel.equipHandIndex, resetSel]);
 
-  const onFieldSpellTrapClick = useCallback((zone: number, fst: any) => {
+  const onFieldSpellTrapClick = useCallback((zone: number, fst: FieldSpellTrap) => {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'main' || !fst.faceDown) return;
     if (fst.card.type === CardType.Spell) {

@@ -389,6 +389,7 @@ export declare class FieldCard {
   equippedCards:    Array<{ zone: number; card: CardData }>;
   effectiveATK():   number;
   effectiveDEF():   number;
+  combatValue():    number;
 }
 
 export declare class FieldSpellTrap {
