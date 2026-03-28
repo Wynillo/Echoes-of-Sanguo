@@ -272,7 +272,7 @@ export async function loadTcgFile(
 
 // After — lang is a parameter, not detected from browser globals
 export async function loadTcgFile(
-  source: string | ArrayBuffer,
+  source: string | ArrayBuffer,  // string = HTTPS URL (uses fetch); NOT a filesystem path
   options?: {
     lang?: string;                         // e.g. 'en', 'de' — defaults to '' (first locale wins)
     onProgress?: (percent: number) => void;
@@ -402,8 +402,14 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
     catch { warnings.push(`Card ${p.id}: invalid race ${p.race}`); }
   }
   if (effect)       card.effect      = effect;
-  if (p.spellType)   card.spellType   = intToSpellType(p.spellType);
-  if (p.trapTrigger) card.trapTrigger = intToTrapTrigger(p.trapTrigger);
+  if (p.spellType) {
+    try { card.spellType = intToSpellType(p.spellType); }
+    catch { warnings.push(`Card ${p.id}: invalid spellType int ${p.spellType}`); }
+  }
+  if (p.trapTrigger) {
+    try { card.trapTrigger = intToTrapTrigger(p.trapTrigger); }
+    catch { warnings.push(`Card ${p.id}: invalid trapTrigger int ${p.trapTrigger}`); }
+  }
   if (p.target)      card.target      = p.target;
   if (p.atkBonus !== undefined) card.atkBonus = p.atkBonus;
   if (p.defBonus !== undefined) card.defBonus = p.defBonus;
