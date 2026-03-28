@@ -4,13 +4,13 @@
 
 The `js/tcg-format/` folder is a format library for the custom `.tcg` ZIP-based card archive format. It handles serialization, validation, ZIP packaging, and loading of card data. It has enough scope to stand alone as a reusable npm package — useful to any community mod author or third-party tool that needs to read/write `.tcg` files — but currently it is tightly coupled to the main game's internals through six internal import paths, making extraction non-trivial.
 
-The goal is to create a standalone `@wynillo/tcg-format` npm package in its own GitHub repository, then consume it as a regular dependency in the main game repo.
+The goal is to create a standalone `@nightbeak/tcg-format` npm package in its own GitHub repository, then consume it as a regular dependency in the main game repo.
 
 ---
 
 ## Critical Files
 
-**Move to `@wynillo/tcg-format` package:**
+**Move to `@nightbeak/tcg-format` package:**
 - `js/tcg-format/index.ts` — public export barrel
 - `js/tcg-format/types.ts` — TcgCard, TcgManifest, TcgMeta, etc.
 - `js/tcg-format/tcg-loader.ts` — refactored to return pure data (no global store mutations, no browser globals)
@@ -55,7 +55,7 @@ tcg-format/tcg-builder.ts  ← CardData, CardType                      (../types
 
 **Target** (after extraction):
 ```
-@wynillo/tcg-format          ← jszip only; zero game imports
+@nightbeak/tcg-format          ← jszip only; zero game imports
   src/tcg-loader.ts            — pure: returns TcgLoadResult, no mutations, no browser globals
   src/card-validator.ts        — effect field treated as opaque string; no effect-serializer dep
 
@@ -65,8 +65,8 @@ js/effect-serializer.ts      ← CardEffectBlock, ...                   (./types
 js/tcg-builder.ts            ← CardData, CardType                     (./types.js)
                              ← TYPE_META                              (./type-metadata.js)
                              ← serializeEffect                        (./effect-serializer.js)
-                             ← TcgCard, TcgManifest, ...              (@wynillo/tcg-format)
-js/tcg-bridge.ts (new)       ← loadTcgFile, TcgParsedCard, ...        (@wynillo/tcg-format)
+                             ← TcgCard, TcgManifest, ...              (@nightbeak/tcg-format)
+js/tcg-bridge.ts (new)       ← loadTcgFile, TcgParsedCard, ...        (@nightbeak/tcg-format)
                              ← CARD_DB, FUSION_RECIPES, ...           (./cards.js)  [mutated here]
                              ← intToCardType, intToRace, ...          (./enums.js)
                              ← deserializeEffect                      (./effect-serializer.js)
@@ -123,7 +123,7 @@ The main game repo is **[Wynillo/Echoes-of-Sanguo](https://github.com/Wynillo/Ec
 New repo structure:
 ```
 Echoes-of-Sanguo-TCG/
-├── package.json          # name: "@wynillo/tcg-format", type: module
+├── package.json          # name: "@nightbeak/tcg-format", type: module
 ├── tsconfig.json         # target ES2020, moduleResolution: bundler, noEmit: false
 ├── src/
 │   ├── index.ts          # public API barrel
@@ -150,7 +150,7 @@ Echoes-of-Sanguo-TCG/
 `package.json` key fields:
 ```json
 {
-  "name": "@wynillo/tcg-format",
+  "name": "@nightbeak/tcg-format",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -184,7 +184,7 @@ The raw grammar parser (`parseEffectString`) would only be ~40 lines of code in 
 
 - **`effect-serializer.ts` stays in `js/` unchanged.** It keeps its imports from `./types.js` and handles both the string grammar and the semantic mapping.
 - **The package treats `effect` as an opaque `string`** in `TcgCard.effect`. It never parses, validates, or interprets effect strings.
-- **No `effect-serializer.ts` in the package at all.** The `src/` directory in `@wynillo/tcg-format` has no effect-related code.
+- **No `effect-serializer.ts` in the package at all.** The `src/` directory in `@nightbeak/tcg-format` has no effect-related code.
 
 This means:
 - Adding a new effect action in `EOS:Engine` requires zero changes to `EOS:TCG`
@@ -317,7 +317,7 @@ export function buildRacesJson(races: TcgRaceEntry[]): TcgRacesJson
 ```typescript
 // shape-check.ts (delete after verification)
 import type { CampaignData } from './js/campaign-types.js';
-import type { TcgCampaignJson } from '@wynillo/tcg-format'; // or local package path
+import type { TcgCampaignJson } from '@nightbeak/tcg-format'; // or local package path
 type _AssertAssignable = CampaignData extends TcgCampaignJson
   ? TcgCampaignJson extends CampaignData ? true : never
   : never;
@@ -328,9 +328,9 @@ If `tsc --noEmit` fails, resolve field mismatches in the package definition befo
 **After migration**: The package's `src/types.ts` is the single canonical source for `TcgCampaignJson`, `DialogueScene`, `ForegroundSprite`, `CampaignChapter`, `CampaignNode`, etc.
 
 In the game repo:
-- `js/campaign-types.ts`: delete the dialogue/campaign structure types; keep only `CampaignProgress`, `PendingDuel`, `NodeRewards`; re-export `TcgCampaignJson as CampaignData` from `@wynillo/tcg-format`
-- `js/react/screens/DialogueScreen.tsx`: change import to `from '@wynillo/tcg-format'`
-- `js/campaign.ts`: change `CampaignData` import to `from '@wynillo/tcg-format'`
+- `js/campaign-types.ts`: delete the dialogue/campaign structure types; keep only `CampaignProgress`, `PendingDuel`, `NodeRewards`; re-export `TcgCampaignJson as CampaignData` from `@nightbeak/tcg-format`
+- `js/react/screens/DialogueScreen.tsx`: change import to `from '@nightbeak/tcg-format'`
+- `js/campaign.ts`: change `CampaignData` import to `from '@nightbeak/tcg-format'`
 
 ### Step 9 — Move engine files out of `js/tcg-format/`
 
@@ -347,7 +347,7 @@ Before the package extraction, move the three files that stay in the engine:
   - Update `'../type-metadata.js'` → `'./type-metadata.js'`
 - Update all imports across the codebase that reference these files at their old paths.
 
-**Dependency note**: After this step, `js/tcg-builder.ts` imports from both `@wynillo/tcg-format` (for `TcgCard`, `TcgManifest` format types) AND `./effect-serializer.js` (for `serializeEffect`). Engine → Package is the correct direction; there is no bidirectional dependency since the package never imports from the engine.
+**Dependency note**: After this step, `js/tcg-builder.ts` imports from both `@nightbeak/tcg-format` (for `TcgCard`, `TcgManifest` format types) AND `./effect-serializer.js` (for `serializeEffect`). Engine → Package is the correct direction; there is no bidirectional dependency since the package never imports from the engine.
 
 Tests green. Now `js/tcg-format/` contains ONLY files destined for the package.
 
@@ -357,7 +357,7 @@ This file does everything `tcg-loader.ts` used to do on the game side, plus mod 
 
 ```typescript
 // js/tcg-bridge.ts
-import { loadTcgFile, type TcgLoadResult, type TcgParsedCard, type TcgMeta, type TcgOpponentDeck, type TcgOpponentDescription, type TcgFusionFormula } from '@wynillo/tcg-format';
+import { loadTcgFile, type TcgLoadResult, type TcgParsedCard, type TcgMeta, type TcgOpponentDeck, type TcgOpponentDescription, type TcgFusionFormula } from '@nightbeak/tcg-format';
 import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from './cards.js';
 import { applyRules } from './rules.js';
 import { applyTypeMeta } from './type-metadata.js';
@@ -624,13 +624,13 @@ import { loadAndApplyTcg } from './tcg-bridge.js';
 
 Verify all `../` imports are gone from `js/tcg-format/`. The remaining files must compile in isolation with only `jszip` as an external dependency.
 
-Create the `@wynillo/tcg-format` repo. Copy cleaned files to `src/`. Add `tcg-packer.ts` (extracted from `generate-base-tcg.ts`) and `cli.ts`. Set up build, tests, CI. CI green.
+Create the `@nightbeak/tcg-format` repo. Copy cleaned files to `src/`. Add `tcg-packer.ts` (extracted from `generate-base-tcg.ts`) and `cli.ts`. Set up build, tests, CI. CI green.
 
 ### Step 13 — Publish package and consume in game repo
 
-1. Publish `@wynillo/tcg-format` to npm (or use `npm link` for local dev)
-2. `npm install @wynillo/tcg-format` in game repo
-3. Flip all imports from `./tcg-format/` to `@wynillo/tcg-format`
+1. Publish `@nightbeak/tcg-format` to npm (or use `npm link` for local dev)
+2. `npm install @nightbeak/tcg-format` in game repo
+3. Flip all imports from `./tcg-format/` to `@nightbeak/tcg-format`
 4. Delete `js/tcg-format/` directory
 5. Tests green
 
@@ -640,13 +640,13 @@ The package exports `packTcgArchive(sourceDir, outputPath)` programmatically, an
 
 ```typescript
 // js/generate-base-tcg.ts (game repo — 5 lines)
-import { packTcgArchive } from '@wynillo/tcg-format';
+import { packTcgArchive } from '@nightbeak/tcg-format';
 const src = new URL('../public/base.tcg-src/', import.meta.url).pathname;
 const out = new URL('../public/base.tcg', import.meta.url).pathname;
 await packTcgArchive(src, out);
 ```
 
-Or modders use the CLI: `npx @wynillo/tcg-format pack ./my-mod/ -o my-mod.tcg`
+Or modders use the CLI: `npx @nightbeak/tcg-format pack ./my-mod/ -o my-mod.tcg`
 
 ### Step 15 — Add TriggerBus *(optional — consider splitting to follow-up PR)*
 
@@ -751,7 +751,7 @@ Same pattern applies to `EffectTrigger` if we convert it from a string union to 
 
 ## Modder CLI
 
-The package ships a CLI tool via `npx @wynillo/tcg-format <command>`:
+The package ships a CLI tool via `npx @nightbeak/tcg-format <command>`:
 
 | Command | Description |
 |---|---|
@@ -759,7 +759,7 @@ The package ships a CLI tool via `npx @wynillo/tcg-format <command>`:
 | `pack <dir> -o <file>` | Pack a source folder into a `.tcg` ZIP archive |
 | `inspect <file>` | Print summary of a `.tcg` archive (card count, format version, file list) |
 
-The CLI is implemented in `src/cli.ts` and uses the same validation/packing functions exposed in the public API. The `generate-base-tcg.ts` script in the game repo is replaced by `npx @wynillo/tcg-format pack public/base.tcg-src/ -o public/base.tcg` (or a thin programmatic wrapper).
+The CLI is implemented in `src/cli.ts` and uses the same validation/packing functions exposed in the public API. The `generate-base-tcg.ts` script in the game repo is replaced by `npx @nightbeak/tcg-format pack public/base.tcg-src/ -o public/base.tcg` (or a thin programmatic wrapper).
 
 **CLI file I/O pattern** — the CLI never uses `fetch()`. It reads files via `fs.readFile` and passes an `ArrayBuffer` to the package's functions:
 ```typescript
@@ -907,7 +907,7 @@ window.EchoesOfSanguoMod.unloadModCards('https://mod-author.com/my-expansion.tcg
 | Register custom JS effect handlers | ✅ | `registerEffect` in mod API |
 | Extend `EffectDescriptorMap` with typed custom actions | ✅ | Declaration merging via `eos-engine.d.ts` |
 | Create derived trigger hooks | ✅ | `emitTrigger` + `addTriggerHook` in mod API |
-| Build `.tcg` tooling (pack/validate) | ✅ | `@wynillo/tcg-format` package alone |
+| Build `.tcg` tooling (pack/validate) | ✅ | `@nightbeak/tcg-format` package alone |
 | Load `.tcg` at runtime without rebuild | ✅ | `loadModTcg` in mod API |
 | Add new engine lifecycle trigger points | ❌ | Needs engine update (to add `TriggerBus.emit()` call) |
 
@@ -951,7 +951,7 @@ When a mod ships a card with the same numeric ID as an existing card, the bridge
 
 ### 3. CLI does not validate effect strings semantically
 
-`npx @wynillo/tcg-format validate <dir>` checks JSON structure and int ranges but does not validate effect string content (unknown action types, wrong arg counts). This is intentional — the package treats effects as opaque — but modders would benefit from a `--engine-validate` flag that accepts a path to `eos-engine.d.ts` and checks effect strings against known types.
+`npx @nightbeak/tcg-format validate <dir>` checks JSON structure and int ranges but does not validate effect string content (unknown action types, wrong arg counts). This is intentional — the package treats effects as opaque — but modders would benefit from a `--engine-validate` flag that accepts a path to `eos-engine.d.ts` and checks effect strings against known types.
 
 **Track as**: `feat(cli): --engine-validate flag for semantic effect string checking`.
 
@@ -971,7 +971,7 @@ Steps 15–16 (TriggerBus + `eos-engine.d.ts` generation) are independent of the
 
 ## Package Versioning Strategy
 
-`@wynillo/tcg-format` follows semver. The game repo pins a **caret range** (`"^1.0.0"`) to receive non-breaking updates automatically.
+`@nightbeak/tcg-format` follows semver. The game repo pins a **caret range** (`"^1.0.0"`) to receive non-breaking updates automatically.
 
 | Change type | Semver bump | Example |
 |---|---|---|
@@ -983,7 +983,7 @@ Steps 15–16 (TriggerBus + `eos-engine.d.ts` generation) are independent of the
 
 **`formatVersion` vs npm version**: These are independent. `formatVersion` in `TcgManifest` is the wire format version (checked at load time). The npm package version tracks the package's own code. A package `v1.2.0` can still load format v2 archives.
 
-**Game repo constraint**: The game repo should use `"@wynillo/tcg-format": "^1.0.0"` (caret). When a major version bump is needed, update the game repo's `package.json` explicitly and migrate any changed API call sites.
+**Game repo constraint**: The game repo should use `"@nightbeak/tcg-format": "^1.0.0"` (caret). When a major version bump is needed, update the game repo's `package.json` explicitly and migrate any changed API call sites.
 
 ---
 
@@ -991,10 +991,10 @@ Steps 15–16 (TriggerBus + `eos-engine.d.ts` generation) are independent of the
 
 For local development before publishing:
 1. `npm link` in package repo
-2. `npm link @wynillo/tcg-format` in game repo
+2. `npm link @nightbeak/tcg-format` in game repo
 
 For CI:
-1. Publish `@wynillo/tcg-format` to npm (or GitHub Packages)
+1. Publish `@nightbeak/tcg-format` to npm (or GitHub Packages)
 2. Update game repo dependency to use published version
 
 ---
@@ -1006,4 +1006,4 @@ For CI:
 3. `npm run dev` — game loads and plays normally
 4. `npm run build` — production build succeeds, chunk sizes unchanged
 5. `npm run test:e2e` — Playwright tests pass end-to-end
-6. Check that `@wynillo/tcg-format` can be imported in isolation without any game code present (verify in a fresh Node.js script)
+6. Check that `@nightbeak/tcg-format` can be imported in isolation without any game code present (verify in a fresh Node.js script)
