@@ -27,6 +27,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Build and link @wynillo/tcg-format
+        run: |
+          git clone https://github.com/Wynillo/Echoes-of-Sanguo-TCG.git /tmp/tcg-format
+          cd /tmp/tcg-format
+          npm ci
+          npm run build
+          npm link
+          cd ${{ github.workspace }}
+          npm link @wynillo/tcg-format
       - run: npm test
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
