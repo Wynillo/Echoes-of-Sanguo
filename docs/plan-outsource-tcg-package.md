@@ -160,7 +160,10 @@ echoes-of-sanguo-tcg-format/
     ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" }
   },
   "dependencies": { "jszip": "^3.10.1" },
-  "devDependencies": { "typescript": "^6.0.2", "vitest": "^4.1.2" },
+  "devDependencies": {
+    "typescript": "^6.0.2",  // matches the game repo — these ARE the versions this project uses
+    "vitest": "^4.1.2"
+  },
   "engines": { "node": ">=18" },
   "scripts": {
     "build": "tsc",
@@ -289,9 +292,11 @@ Remove `getBrowserLang()` / `navigator.language` from the loader. The bridge pas
 
 ### Step 7 — Refactor `js/tcg-format/tcg-builder.ts`
 
-Remove `cardDataToTcgCard()` and `cardDataToTcgDef()` (game-type dependent, move to bridge).
+`cardDataToTcgCard()` and `cardDataToTcgDef()` depend on `CardData` and are needed by `npm run generate:tcg`. They **stay in `js/tcg-builder.ts`** (engine file, already has `CardData` import). They are NOT moved to the bridge (the bridge only converts in the opposite direction: `TcgParsedCard → CardData`). The plan's earlier wording "remove ... move to bridge" was imprecise — these functions have no equivalent purpose in the bridge.
 
-Keep and refactor to accept data as parameters:
+What actually changes in `js/tcg-builder.ts`:
+- The `buildRacesJson()` / `buildAttributesJson()` / `buildCardTypesJson()` / `buildRaritiesJson()` functions that currently read `TYPE_META` global are refactored to accept data as parameters (so they can be exported to the package as pure functions in `tcg-packer.ts`):
+
 ```typescript
 // Before: reads TYPE_META global
 export function buildRacesJson(): TcgRacesJson
@@ -300,9 +305,23 @@ export function buildRacesJson(): TcgRacesJson
 export function buildRacesJson(races: TcgRaceEntry[]): TcgRacesJson
 ```
 
+`cardDataToTcgCard()` and `cardDataToTcgDef()` keep their current signatures unchanged. `generate-base-tcg.ts` continues to call them directly.
+
 ### Step 8 — Consolidate campaign types
 
 `js/tcg-format/types.ts` currently has a full copy of `CampaignData` and also re-exports `CampaignData as TcgCampaignJson` from `../campaign-types.js`. This is a circular dependency that must be broken.
+
+**Precondition — shape compatibility check**: Before migrating, verify that the `CampaignData` definition in `js/campaign-types.ts` exactly matches the shape being placed in the package. Even a single optional/required variance will produce TypeScript errors across all `DialogueScreen.tsx` and `campaign.ts` call sites. Add this assertion to a scratch file and run `tsc --noEmit` before touching any imports:
+```typescript
+// shape-check.ts (delete after verification)
+import type { CampaignData } from './js/campaign-types.js';
+import type { TcgCampaignJson } from '@wynillo/tcg-format'; // or local package path
+type _AssertAssignable = CampaignData extends TcgCampaignJson
+  ? TcgCampaignJson extends CampaignData ? true : never
+  : never;
+const _check: _AssertAssignable = true;
+```
+If `tsc --noEmit` fails, resolve field mismatches in the package definition before proceeding.
 
 **After migration**: The package's `src/types.ts` is the single canonical source for `TcgCampaignJson`, `DialogueScene`, `ForegroundSprite`, `CampaignChapter`, `CampaignNode`, etc.
 
@@ -429,13 +448,15 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
 }
 
 // ── applyTcgMeta — moved from tcg-loader.ts (was unexported local) ──────────
+// Returns the list of opponent IDs added so the caller can track them for unload.
 function applyTcgMeta(
   meta: TcgMeta,
   tcgOpponents?: TcgOpponentDeck[],
   oppDescs?: Map<string, TcgOpponentDescription[]>,
   lang?: string,
-): void {
+): number[] {  // ← returns added opponent IDs
   const rid = (numId: number): string => String(numId);
+  const addedOpponentIds: number[] = [];
 
   if (meta.fusionRecipes) {
     const recipes: FusionRecipe[] = meta.fusionRecipes.map(r => ({
@@ -454,6 +475,7 @@ function applyTcgMeta(
     }
     const configs: OpponentConfig[] = rawOpponents.map(o => {
       const desc = oppDescMap.get(o.id);
+      addedOpponentIds.push(o.id);
       return {
         id: o.id, name: desc?.name ?? o.name, title: desc?.title ?? o.title,
         race: intToRace(o.race), flavor: desc?.flavor ?? o.flavor,
@@ -474,16 +496,26 @@ function applyTcgMeta(
       OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
     }
   }
+
+  return addedOpponentIds;
 }
 
 // ── applyFusionFormulas — moved from tcg-loader.ts (was unexported local) ───
-function applyFusionFormulas(raw: TcgFusionFormula[]): void {
+const VALID_COMBO_TYPES = new Set<FusionComboType>(['race+race', 'race+attr', 'attr+attr']);
+function applyFusionFormulas(raw: TcgFusionFormula[], warnings: string[]): void {
   const rid = (numId: number): string => String(numId);
-  const converted: FusionFormula[] = raw.map(f => ({
-    id: f.id, comboType: f.comboType as FusionComboType,
-    operand1: f.operand1, operand2: f.operand2, priority: f.priority,
-    resultPool: f.resultPool.map(rid),
-  }));
+  const converted: FusionFormula[] = [];
+  for (const f of raw) {
+    if (!VALID_COMBO_TYPES.has(f.comboType as FusionComboType)) {
+      warnings.push(`Fusion formula ${f.id}: unknown comboType "${f.comboType}" — skipped`);
+      continue;
+    }
+    converted.push({
+      id: f.id, comboType: f.comboType as FusionComboType,
+      operand1: f.operand1, operand2: f.operand2, priority: f.priority,
+      resultPool: f.resultPool.map(rid),
+    });
+  }
   converted.sort((a, b) => b.priority - a.priority);
   FUSION_FORMULAS.push(...converted);
 }
@@ -541,8 +573,11 @@ export async function loadAndApplyTcg(
   if (result.rules)          applyRules(result.rules);
   if (result.shopData)       applyShopData(result.shopData);
   if (result.campaignData)   applyCampaignData(result.campaignData);
-  if (result.meta)           applyTcgMeta(result.meta, result.opponents, result.opponentDescriptions, lang);
-  if (result.fusionFormulas) applyFusionFormulas(result.fusionFormulas);
+  if (result.meta) {
+    const opponentIds = applyTcgMeta(result.meta, result.opponents, result.opponentDescriptions, lang);
+    mod.opponentIds.push(...opponentIds);  // track for unloadModCards
+  }
+  if (result.fusionFormulas) applyFusionFormulas(result.fusionFormulas, result.warnings);
 
   loadedMods.push(mod);
   const { rawImages: _, ...rest } = result;
