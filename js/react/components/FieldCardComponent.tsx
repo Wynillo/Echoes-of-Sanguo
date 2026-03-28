@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { attachHover } from './hoverApi.js';
 import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
+import type { FieldCard, CardData } from '../../types.js';
 
 interface Props {
-  fc: any;
+  fc: FieldCard;
   owner: 'player' | 'opponent';
   zone: number;
   selected: boolean;
@@ -23,6 +25,7 @@ export function FieldCardComponent({
   fc, owner, zone, selected, targetable, interactive, canAttack, viewable,
   onOwnClick, onAttackerSelect, onDefenderClick, onViewClick, onDetail,
 }: Props) {
+  const { t } = useTranslation();
   const { card } = fc;
   const isPlayer = owner === 'player';
 
@@ -71,7 +74,7 @@ export function FieldCardComponent({
     return (
       <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
         <Card card={card} fc={fc} small dimmed />
-        <div className="facedown-overlay">Verdeckt</div>
+        <div className="facedown-overlay">{t('game.facedown')}</div>
       </div>
     );
   }
@@ -81,7 +84,7 @@ export function FieldCardComponent({
   return (
     <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
       <Card card={card} fc={fc} small />
-      {hasEquipment && <span className="equip-badge" title={fc.equippedCards.map((e: any) => e.card.name).join(', ')}>⚔</span>}
+      {hasEquipment && <span className="equip-badge" title={fc.equippedCards.map((e: { zone: number; card: CardData }) => e.card.name).join(', ')}>⚔</span>}
     </div>
   );
 }

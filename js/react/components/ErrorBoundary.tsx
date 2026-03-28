@@ -50,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
               cursor: 'pointer', fontSize: '0.9rem',
             }}
           >
-            {this.props.onReset ? '← Zurück zum Titel' : '⟳ Neu laden'}
+            {this.props.onReset ? '← Back to Title' : '⟳ Reload'}
           </button>
         </div>
       );

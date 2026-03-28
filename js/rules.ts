@@ -6,6 +6,7 @@
 
 export const GAME_RULES = {
   startingLP: 8000,
+  maxLP: 99999,
   handLimitDraw: 10,
   handLimitEnd: 8,
   fieldZones: 5,

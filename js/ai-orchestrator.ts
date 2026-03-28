@@ -13,6 +13,7 @@ import { CardType, Attribute, isMonsterType } from './types.js';
 import type { AIBehavior, CardData } from './types.js';
 import type { FieldCard } from './field.js';
 import { checkFusion, CARD_DB } from './cards.js';
+import { AI_SCORE, AI_LP_THRESHOLD } from './ai-behaviors.js';
 // Use import type to avoid circular dependency (engine.ts → ai-orchestrator.ts → engine.ts)
 import type { GameEngine } from './engine.js';
 import {
@@ -225,7 +226,7 @@ async function _activateSpells(engine: GameEngine): Promise<void> {
           should = true;
         } else if (heals) {
           // Heal when below 60% LP or losing
-          should = ai.lp < 5000 || ai.lp < plr.lp;
+          should = ai.lp < AI_LP_THRESHOLD.DEFENSIVE || ai.lp < plr.lp;
         } else if (buffs) {
           // Use buffs when we have monsters on the field
           should = ai.field.monsters.some(fc => fc !== null);
@@ -481,7 +482,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     if (atk.effectiveATK() >= defVal) {
       let score = 1000 - defVal; // prefer weaker DEF (easier kill)
       // Face-down monsters are worth revealing
-      if (def.faceDown && atk.effectiveATK() >= 1500) score += 300;
+      if (def.faceDown && atk.effectiveATK() >= AI_SCORE.PROBE_ATK_THRESHOLD) score += AI_SCORE.LOW_LP_SURVIVAL;
       if (score > safeScore) { safeScore = score; safeTarget = dz; }
     }
   }
@@ -553,7 +554,7 @@ function _findSmartFusionChain(
       let score = currentATK;
 
       // Big bonus if the fusion can beat the player's strongest monster
-      if (currentATK > plrMaxATK && plrMaxATK > 0) score += 2000;
+      if (currentATK > plrMaxATK && plrMaxATK > 0) score += AI_SCORE.EQUIP_UNLOCK_KILL;
 
       // Bonus for effect on the fusion result
       const fusionCard = CARD_DB[currentId];

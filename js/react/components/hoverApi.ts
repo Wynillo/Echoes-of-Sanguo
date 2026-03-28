@@ -3,10 +3,11 @@
 // Separated from HoverPreview.tsx so React Fast Refresh can
 // hot-update the component without resetting module-level state.
 // ============================================================
+import type { CardData, FieldCard } from '../../types.js';
 
 export interface HoverState {
-  card: any;
-  fc:   any | null;
+  card: CardData;
+  fc:   FieldCard | null;
   x:    number;
   y:    number;
 }
@@ -18,7 +19,7 @@ export function setHoverDispatch(fn: ((s: HoverState | null) => void) | null) {
   _set = fn;
 }
 
-export function showHoverPreview(card: any, fc: any | null, x: number, y: number) {
+export function showHoverPreview(card: CardData, fc: FieldCard | null, x: number, y: number) {
   _set?.({ card, fc, x, y });
 }
 
@@ -41,7 +42,7 @@ function position(el: HTMLElement, mx: number, my: number) {
   el.style.top  = top  + 'px';
 }
 
-export function attachHover(el: HTMLElement, card: any, fc: any | null) {
+export function attachHover(el: HTMLElement, card: CardData, fc: FieldCard | null) {
   const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
   if (isTouchDevice) return;
   el.addEventListener('mouseenter', e => showHoverPreview(card, fc, (e as MouseEvent).clientX, (e as MouseEvent).clientY));
