@@ -37,12 +37,12 @@ export default function TitleScreen() {
       </div>
       <div className={styles.content}>
         <div className={styles.menu}>
-          <button className="btn-primary" onClick={handleNewGame}>{t('title.new_game')}</button>
+          <button className="btn-menu" onClick={handleNewGame}>{t('title.new_game')}</button>
           {hasSave && (
-            <button className="btn-secondary" onClick={handleLoadGame}>{t('title.load_game')}</button>
+            <button className="btn-menu" onClick={handleLoadGame}>{t('title.load_game')}</button>
           )}
-<button className="btn-secondary" onClick={() => openModal({ type: 'main-options' })}>{t('title.options')}</button>
-          <button className="btn-secondary" onClick={() => window.close()}>{t('title.quit')}</button>
+<button className="btn-menu" onClick={() => openModal({ type: 'main-options' })}>{t('title.options')}</button>
+          <button className="btn-menu" onClick={() => window.close()}>{t('title.quit')}</button>
         </div>
       </div>
     </div>

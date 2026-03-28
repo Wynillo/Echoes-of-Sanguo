@@ -47,7 +47,6 @@
   align-items: center; gap: 10px;
 }
 
-.menu :global(.btn-primary),
-.menu :global(.btn-secondary) {
+.menu :global(.btn-menu) {
   width: 260px; text-align: center;
 }

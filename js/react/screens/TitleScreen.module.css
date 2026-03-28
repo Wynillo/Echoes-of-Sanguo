@@ -43,19 +43,11 @@
   backdrop-filter: blur(2px);
 }
 
-.menu :global(.btn-primary) {
-  width: 220px; text-align: center;
-  background: rgba(20, 100, 50, 0.55);
-  border-color: rgba(40, 160, 80, 0.7) rgba(8, 40, 20, 0.7) rgba(8, 40, 20, 0.7) rgba(40, 160, 80, 0.7);
-}
-.menu :global(.btn-primary):hover {
-  background: rgba(25, 115, 60, 0.7);
-}
-.menu :global(.btn-secondary) {
+.menu :global(.btn-menu) {
   width: 220px; text-align: center;
   background: rgba(18, 85, 45, 0.55);
   border-color: rgba(35, 145, 70, 0.7) rgba(8, 40, 20, 0.7) rgba(8, 40, 20, 0.7) rgba(35, 145, 70, 0.7);
 }
-.menu :global(.btn-secondary):hover {
+.menu :global(.btn-menu):hover {
   background: rgba(22, 100, 55, 0.7);
 }
