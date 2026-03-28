@@ -14,7 +14,7 @@ import {
   TCG_RACE_ROCK, TCG_RACE_PHOENIX, TCG_RACE_UNDEAD, TCG_RACE_AQUA, TCG_RACE_INSECT,
   TCG_RACE_MACHINE, TCG_RACE_PYRO,
   TCG_RARITY_COMMON, TCG_RARITY_UNCOMMON, TCG_RARITY_RARE, TCG_RARITY_SUPER_RARE, TCG_RARITY_ULTRA_RARE,
-} from './tcg-format/types.js';
+} from '@wynillo/tcg-format';
 
 // ── CardType ─────────────────────────────────────────────────
 // CardType.Monster (1) == TCG_TYPE_MONSTER (1), etc.
