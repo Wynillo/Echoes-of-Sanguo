@@ -32,11 +32,11 @@ export { serializeEffect, deserializeEffect, isValidEffectString } from './effec
 // Validators
 export { validateTcgCards } from './card-validator.js';
 export { validateTcgDefinitions } from './def-validator.js';
-export { validateTcgArchive } from './tcg-validator.js';
+export { validateTcgArchive, validateFusionFormulasJson, validateOpponentDeck } from './tcg-validator.js';
 export type { TcgArchiveContents } from './tcg-validator.js';
 
 // Builder
 export { cardDataToTcgCard, cardDataToTcgDef, buildManifest, buildRacesJson, buildAttributesJson, buildCardTypesJson, buildRaritiesJson } from './tcg-builder.js';
 
 // Loader
-export { loadTcgFile, revokeTcgImages } from './tcg-loader.js';
+export { loadTcgFile, revokeTcgImages, TcgNetworkError, TcgFormatError } from './tcg-loader.js';

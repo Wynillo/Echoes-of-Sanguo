@@ -411,3 +411,112 @@ export function validateCampaignJson(data: unknown): string[] {
 
   return warnings;
 }
+
+// ── Fusion Formulas Validator ──────────────────────────────────
+
+const VALID_COMBO_TYPES = ['race+race', 'race+attr', 'attr+attr'];
+
+/**
+ * Validate a fusion_formulas.json object. Returns an array of warning strings.
+ */
+export function validateFusionFormulasJson(data: unknown): string[] {
+  const warnings: string[] = [];
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    warnings.push('fusion_formulas.json: must be a JSON object with a "formulas" array');
+    return warnings;
+  }
+
+  const obj = data as Record<string, unknown>;
+  if (!Array.isArray(obj.formulas)) {
+    warnings.push('fusion_formulas.json: missing or invalid "formulas" array');
+    return warnings;
+  }
+
+  const seenIds = new Set<string>();
+  for (let i = 0; i < obj.formulas.length; i++) {
+    const f = obj.formulas[i] as Record<string, unknown>;
+    const prefix = `fusion_formulas.json: formulas[${i}]`;
+
+    if (typeof f !== 'object' || f === null) {
+      warnings.push(`${prefix}: must be an object`);
+      continue;
+    }
+
+    if (typeof f.id !== 'string' || !f.id) {
+      warnings.push(`${prefix}: missing or invalid "id" (must be a non-empty string)`);
+    } else {
+      if (seenIds.has(f.id)) warnings.push(`${prefix}: duplicate formula id "${f.id}"`);
+      seenIds.add(f.id);
+    }
+
+    if (typeof f.comboType !== 'string' || !VALID_COMBO_TYPES.includes(f.comboType)) {
+      warnings.push(`${prefix}: invalid "comboType" "${f.comboType}" (expected: ${VALID_COMBO_TYPES.join(', ')})`);
+    }
+
+    if (typeof f.operand1 !== 'number') warnings.push(`${prefix}: "operand1" must be a number`);
+    if (typeof f.operand2 !== 'number') warnings.push(`${prefix}: "operand2" must be a number`);
+    if (typeof f.priority !== 'number') warnings.push(`${prefix}: "priority" must be a number`);
+
+    if (!Array.isArray(f.resultPool) || f.resultPool.length === 0) {
+      warnings.push(`${prefix}: "resultPool" must be a non-empty array`);
+    } else if (!f.resultPool.every((id: unknown) => typeof id === 'number' && id > 0)) {
+      warnings.push(`${prefix}: "resultPool" entries must be positive numbers`);
+    }
+  }
+
+  return warnings;
+}
+
+// ── Opponent Deck Validator ────────────────────────────────────
+
+/**
+ * Validate a single opponent deck object. Returns an array of warning strings.
+ * Pass knownCardIds to cross-validate deck card references.
+ */
+export function validateOpponentDeck(data: unknown, index: number, knownCardIds?: Set<number>): string[] {
+  const warnings: string[] = [];
+  const prefix = `opponents[${index}]`;
+
+  if (typeof data !== 'object' || data === null) {
+    warnings.push(`${prefix}: must be an object`);
+    return warnings;
+  }
+
+  const o = data as Record<string, unknown>;
+
+  if (typeof o.id !== 'number' || o.id <= 0) {
+    warnings.push(`${prefix}: "id" must be a positive number`);
+  }
+  if (typeof o.name !== 'string' || !o.name) {
+    warnings.push(`${prefix}: "name" must be a non-empty string`);
+  }
+  if (typeof o.title !== 'string') {
+    warnings.push(`${prefix}: "title" must be a string`);
+  }
+  if (typeof o.race !== 'number' || o.race < 1 || o.race > 12) {
+    warnings.push(`${prefix}: "race" must be a number between 1 and 12`);
+  }
+  if (typeof o.coinsWin !== 'number' || o.coinsWin < 0) {
+    warnings.push(`${prefix}: "coinsWin" must be a non-negative number`);
+  }
+  if (typeof o.coinsLoss !== 'number' || o.coinsLoss < 0) {
+    warnings.push(`${prefix}: "coinsLoss" must be a non-negative number`);
+  }
+
+  if (!Array.isArray(o.deckIds) || o.deckIds.length === 0) {
+    warnings.push(`${prefix}: "deckIds" must be a non-empty array`);
+  } else {
+    if (!o.deckIds.every((id: unknown) => typeof id === 'number' && id > 0)) {
+      warnings.push(`${prefix}: "deckIds" entries must be positive numbers`);
+    }
+    if (knownCardIds) {
+      for (const id of o.deckIds) {
+        if (typeof id === 'number' && !knownCardIds.has(id)) {
+          warnings.push(`${prefix}: deckIds references unknown card ID ${id}`);
+        }
+      }
+    }
+  }
+
+  return warnings;
+}

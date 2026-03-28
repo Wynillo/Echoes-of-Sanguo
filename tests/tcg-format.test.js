@@ -359,4 +359,45 @@ describe('TCG Builder', () => {
     expect(def.name).toBe('Feuersalamander');
     expect(def.description).toBe('A fire salamander');
   });
+
+  it('converts an equipment CardData with atkBonus and defBonus', () => {
+    const card = {
+      id: '306', name: 'Flame Sword', type: CardType.Equipment,
+      description: 'A sword imbued with fire',
+      rarity: Rarity.Rare, atkBonus: 500, defBonus: 0,
+    };
+    const tc = cardDataToTcgCard(card, 306);
+    expect(tc.id).toBe(306);
+    expect(tc.type).toBe(5); // TCG_TYPE_EQUIPMENT
+    expect(tc.atkBonus).toBe(500);
+    expect(tc.defBonus).toBe(0);
+    expect(tc.atk).toBeUndefined();
+    expect(tc.def).toBeUndefined();
+    expect(tc.attribute).toBeUndefined();
+    expect(tc.race).toBeUndefined();
+  });
+
+  it('converts equipment with equipRequirement race and attr', () => {
+    const card = {
+      id: '307', name: 'Dragon Armor', type: CardType.Equipment,
+      description: 'Armor for dragons only',
+      rarity: Rarity.SuperRare, atkBonus: 300, defBonus: 600,
+      equipRequirement: { race: Race.Dragon, attr: Attribute.Fire },
+    };
+    const tc = cardDataToTcgCard(card, 307);
+    expect(tc.atkBonus).toBe(300);
+    expect(tc.defBonus).toBe(600);
+    expect(tc.equipReqRace).toBe(raceToInt(Race.Dragon));
+    expect(tc.equipReqAttr).toBe(attributeToInt(Attribute.Fire));
+  });
+
+  it('omits equipRequirement fields when not present', () => {
+    const card = {
+      id: '1', name: 'Basic Sword', type: CardType.Equipment,
+      description: 'A basic sword', rarity: Rarity.Common, atkBonus: 200, defBonus: 0,
+    };
+    const tc = cardDataToTcgCard(card, 1);
+    expect(tc.equipReqRace).toBeUndefined();
+    expect(tc.equipReqAttr).toBeUndefined();
+  });
 });
