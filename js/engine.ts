@@ -6,7 +6,7 @@ import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, res
 import { executeEffectBlock, matchesFilter } from './effect-registry.js';
 import { CardType } from './types.js';
 import { meetsEquipRequirement } from './types.js';
-import type { Owner, Phase, Position, CardData, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior } from './types.js';
+import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior } from './types.js';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types.js';
 
@@ -250,6 +250,16 @@ export class GameEngine {
     this.ui.log(msg);
   }
 
+  /** Safely execute an effect block, logging errors without crashing. */
+  private _safeExecuteEffect(block: CardEffectBlock, ctx: EffectContext, cardId: string, label: string): EffectSignal | null {
+    try {
+      return executeEffectBlock(block, ctx);
+    } catch (e) {
+      EchoesOfSanguo.log('EFFECT', `Error in ${label} [${cardId}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
+      return null;
+    }
+  }
+
   dealDamage(target: Owner, amount: number){
     this.state[target].lp = Math.max(0, this.state[target].lp - amount);
     this.addLog(`${ownerLabel(target)} takes ${amount} damage. (LP: ${this.state[target].lp})`);
@@ -259,7 +269,7 @@ export class GameEngine {
   }
 
   gainLP(target: Owner, amount: number){
-    this.state[target].lp = Math.min(this.state[target].lp + amount, 99999);
+    this.state[target].lp = Math.min(this.state[target].lp + amount, GAME_RULES.maxLP);
     this.addLog(`${ownerLabel(target)} gains ${amount} LP. (LP: ${this.state[target].lp})`);
     this.ui.playVFX?.('heal', target);
     this.ui.render(this.state);
@@ -355,10 +365,10 @@ export class GameEngine {
 
   async flipSummon(owner: Owner, zone: number){
     const fc = this.state[owner].field.monsters[zone];
-    if(!fc || !fc.faceDown){ this.addLog('Kein verdecktes Monster!'); return false; }
-    if(fc.summonedThisTurn){ this.addLog('Kann nicht im selben Zug geflippt werden!'); return false; }
+    if(!fc || !fc.faceDown){ this.addLog('No face-down monster!'); return false; }
+    if(fc.summonedThisTurn){ this.addLog('Cannot flip on the same turn!'); return false; }
     fc.faceDown = false;
-    this.addLog(`${fc.card.name} wird aufgedeckt (Flip-Beschwörung)!`);
+    this.addLog(`${fc.card.name} is flipped face-up (Flip Summon)!`);
     await this._triggerFlipEffect(fc, owner, zone);
     this.ui.render(this.state);
     return true;
@@ -422,11 +432,9 @@ export class GameEngine {
     this.addLog(`${ownerLabel(owner)}: ${card.name} activated!`);
     this.ui.playSfx?.('sfx_spell');
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
-    if(card.effect) try {
+    if(card.effect) {
       const ctx = this._buildSpellContext(owner, targetInfo);
-      executeEffectBlock(card.effect, ctx);
-    } catch(e) {
-      EchoesOfSanguo.log('EFFECT', `Error in spell effect [${card.id}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
+      this._safeExecuteEffect(card.effect, ctx, card.id, 'spell effect');
     }
     st.graveyard.push(card);
     this.ui.render(this.state);
@@ -440,11 +448,9 @@ export class GameEngine {
     fst.faceDown = false;
     this.addLog(`${ownerLabel(owner)}: ${fst.card.name} activated!`);
     if(this.ui.showActivation) await this.ui.showActivation(fst.card, fst.card.description);
-    if(fst.card.effect) try {
+    if(fst.card.effect) {
       const ctx = this._buildSpellContext(owner, targetInfo);
-      executeEffectBlock(fst.card.effect, ctx);
-    } catch(e) {
-      EchoesOfSanguo.log('EFFECT', `Error in spell field effect [${fst.card.id}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
+      this._safeExecuteEffect(fst.card.effect, ctx, fst.card.id, 'spell field effect');
     }
     st.graveyard.push(fst.card);
     st.field.spellTraps[zone] = null;
@@ -462,12 +468,9 @@ export class GameEngine {
     this.ui.playSfx?.('sfx_trap');
     if(this.ui.showActivation) await this.ui.showActivation(fst.card, fst.card.description);
     let result: EffectSignal | null = null;
-    if(fst.card.effect) try {
+    if(fst.card.effect) {
       const ctx = this._buildTrapContext(owner, fst.card.trapTrigger, args);
-      result = executeEffectBlock(fst.card.effect, ctx);
-    } catch(e) {
-      EchoesOfSanguo.log('EFFECT', `Error in trap effect [${fst.card.id}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
-      result = {};
+      result = this._safeExecuteEffect(fst.card.effect, ctx, fst.card.id, 'trap effect') ?? {};
     }
     st.graveyard.push(fst.card);
     st.field.spellTraps[zone] = null;
@@ -516,11 +519,9 @@ export class GameEngine {
     if (this.ui.showActivation) await this.ui.showActivation(card, card.description);
 
     // Execute effect block if present
-    if (card.effect) try {
+    if (card.effect) {
       const ctx: EffectContext = { engine: this, owner, targetFC };
-      executeEffectBlock(card.effect, ctx);
-    } catch (e) {
-      EchoesOfSanguo.log('EFFECT', `Error in equipment effect [${card.id}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
+      this._safeExecuteEffect(card.effect, ctx, card.id, 'equipment effect');
     }
 
     this.ui.render(this.state);
@@ -602,10 +603,9 @@ export class GameEngine {
       if (!fs?.card.effect) continue;
       for (const action of fs.card.effect.actions) {
         if (action.type === 'buffField') {
-          const filter = (action as any).filter;
-          if (!filter || matchesFilter(fc.card, filter)) {
-            atkBuff += (action as any).value ?? 0;
-            defBuff += (action as any).value ?? 0;
+          if (!action.filter || matchesFilter(fc.card, action.filter)) {
+            atkBuff += action.value ?? 0;
+            defBuff += action.value ?? 0;
           }
         }
       }
@@ -818,7 +818,7 @@ export class GameEngine {
     if(attFC.faceDown){
       attFC.faceDown = false;
       attFC.position = 'atk';
-      this.addLog(`${attFC.card.name} wird aufgedeckt (Angriff)!`);
+      this.addLog(`${attFC.card.name} is flipped face-up (Attack)!`);
       await this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
     }
     if(attFC.position !== 'atk') return;
@@ -949,12 +949,8 @@ export class GameEngine {
     if(!card.effect || card.effect.trigger !== trigger) return;
     EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: ${trigger}`);
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
-    try {
-      const ctx: EffectContext = { engine: this, owner };
-      executeEffectBlock(card.effect, ctx);
-    } catch(e) {
-      EchoesOfSanguo.log('EFFECT', `Error in effect [${card.id}] trigger=${trigger}: ${e instanceof Error ? e.message : String(e)}`, '#f44');
-    }
+    const ctx: EffectContext = { engine: this, owner };
+    this._safeExecuteEffect(card.effect, ctx, card.id, `effect trigger=${trigger}`);
   }
 
   async _triggerFlipEffect(fc: FieldCard, owner: Owner, zone: number){
@@ -962,14 +958,10 @@ export class GameEngine {
     fc.hasFlipped = true;
     const card = fc.card;
     if(!card.effect || card.effect.trigger !== 'onFlip') return;
-    EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Flip-Effekt`);
+    EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Flip Effect`);
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
-    try {
-      const ctx: EffectContext = { engine: this, owner };
-      executeEffectBlock(card.effect, ctx);
-    } catch(e) {
-      EchoesOfSanguo.log('EFFECT', `Fehler in Flip-Effekt [${card.id}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
-    }
+    const ctx: EffectContext = { engine: this, owner };
+    this._safeExecuteEffect(card.effect, ctx, card.id, 'flip effect');
   }
 
   // ───────── Trap prompts ──────────────────────────────────

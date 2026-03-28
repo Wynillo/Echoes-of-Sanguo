@@ -2,9 +2,10 @@ import { useRef } from 'react';
 import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
 import { attachHover } from './hoverApi.js';
 import { useLongPress } from '../hooks/useLongPress.js';
+import type { CardData } from '../../types.js';
 
 interface Props {
-  card: any;
+  card: CardData;
   index: number;
   playable: boolean;
   fusionable: boolean;
@@ -44,7 +45,7 @@ export function HandCard({ card, index, playable, fusionable, targetable, chainS
   return (
     <div
       ref={el => {
-        (ref as any).current = el;
+        (ref as React.MutableRefObject<HTMLDivElement | null>).current = el;
         if (el) attachHover(el, card, null);
       }}
       className={cls}

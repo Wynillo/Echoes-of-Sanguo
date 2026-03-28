@@ -176,7 +176,7 @@ export const ATTR_CSS: Record<number, string> = new Proxy({} as Record<number, s
 });
 
 /** Pure helper used by modules that need the inner HTML string for legacy canvas/clone operations */
-export function cardInnerHTML(card: any, _dimmed = false, _rotated = false, fc: any = null): string {
+export function cardInnerHTML(card: CardData, _dimmed = false, _rotated = false, fc: FieldCard | null = null): string {
   const isMonsterLevelH = card.type === CardType.Monster || card.type === CardType.Fusion;
   const isEquipmentH = card.type === CardType.Equipment;
   const levelStars = isMonsterLevelH && card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';
