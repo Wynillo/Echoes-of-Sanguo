@@ -4,7 +4,7 @@
 // ============================================================
 import type { CardData } from './types.js';
 import { CardType } from './types.js';
-import type { TcgCard, TcgCardDefinition, TcgManifest, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson } from './tcg-format/types.js';
+import type { TcgCard, TcgCardDefinition, TcgManifest, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson } from '@wynillo/tcg-format';
 import { cardTypeToInt, attributeToInt, raceToInt, rarityToInt, spellTypeToInt, trapTriggerToInt } from './enums.js';
 import { serializeEffect } from './effect-serializer.js';
 import type { RaceMeta, AttributeMeta, CardTypeMeta, RarityMeta } from './type-metadata.js';
