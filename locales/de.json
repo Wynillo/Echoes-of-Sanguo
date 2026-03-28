@@ -48,7 +48,8 @@
   "opponent": {
     "headline": "FREIES DUELL",
     "subtitle": "Wähle deinen Gegner",
-    "back": "← Zurück"
+    "back": "← Zurück",
+    "none_unlocked": "Noch keine Gegner freigeschaltet. Besiege sie zuerst in der Kampagne!"
   },
   "save": {
     "headline": "SPEICHERPUNKT",
@@ -268,6 +269,7 @@
     "completed": "Abgeschlossen",
     "available": "Verfügbar",
     "no_data": "Keine Kampagnendaten geladen.",
+    "no_missions": "Noch keine Missionen verfügbar.",
     "ch_han_court": "Der Kaiserliche Hof",
     "ch_tournament": "Neo-Shanghai Turnier",
     "ch_return": "Rückkehr in die Vergangenheit",

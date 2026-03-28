@@ -44,33 +44,32 @@ export default function OpponentScreen() {
       </div>
 
       <div className={styles.grid}>
-        {(OPPONENT_CONFIGS as OpponentConfig[]).map(cfg => {
-          const oppData = opponents[cfg.id] || { unlocked: cfg.id === 1, wins: 0, losses: 0 };
-          const isAvailable = beatenInCampaign.has(cfg.id);
+        {(OPPONENT_CONFIGS as OpponentConfig[]).filter(cfg => beatenInCampaign.has(cfg.id)).map(cfg => {
+          const oppData = opponents[cfg.id] || { wins: 0, losses: 0 };
           const raceMeta = getRaceById(cfg.race);
           const accent = raceMeta?.color ?? '#888';
 
           return (
             <div
               key={cfg.id}
-              className={`${styles.tile}${isAvailable ? '' : ` ${styles.locked}`}`}
-              onClick={() => isAvailable && selectOpponent(cfg)}
-              onMouseEnter={() => isAvailable && setHovered(cfg)}
+              className={styles.tile}
+              onClick={() => selectOpponent(cfg)}
+              onMouseEnter={() => setHovered(cfg)}
               onMouseLeave={() => setHovered(null)}
             >
               <div className={styles.frame} style={{ borderColor: accent }}>
                 <div className={styles.art} style={{ background: `linear-gradient(135deg,${accent}44,#111830)` }}>
                   <div className={styles.symbol}>{raceMeta?.icon ?? '?'}</div>
                 </div>
-                {!isAvailable && <div className={styles.lockedOverlay}>🔒</div>}
               </div>
-              <div className={styles.name}>{isAvailable ? cfg.name : '???'}</div>
-              {isAvailable && (
-                <div className={styles.record}>{(oppData as any).wins ?? 0}W / {(oppData as any).losses ?? 0}L</div>
-              )}
+              <div className={styles.name}>{cfg.name}</div>
+              <div className={styles.record}>{(oppData as any).wins ?? 0}W / {(oppData as any).losses ?? 0}L</div>
             </div>
           );
         })}
+        {beatenInCampaign.size === 0 && (
+          <p style={{ color: '#6080a0', gridColumn: '1 / -1', textAlign: 'center', marginTop: 20 }}>{t('opponent.none_unlocked')}</p>
+        )}
       </div>
 
       <div className={styles.info}>
