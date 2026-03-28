@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
 import JSZip from 'jszip';
-import { validateTcgArchive, validateFusionFormulasJson, validateOpponentDeck } from '../js/tcg-format/index.js';
+import { validateTcgArchive, validateFusionFormulasJson, validateOpponentDeck } from '@wynillo/tcg-format';
 
 // ── Helpers ────────────────────────────────────────────────────
 

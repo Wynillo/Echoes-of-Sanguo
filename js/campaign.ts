@@ -3,7 +3,7 @@
 // Global stores populated by tcg-loader from base.tcg
 // ============================================================
 
-import type { CampaignData } from '@wynillo/tcg-format';
+import type { CampaignData } from './campaign-types.js';
 
 export let CAMPAIGN_DATA: CampaignData | null = null;
 export const CAMPAIGN_IMAGES = new Map<string, string>();  // path → blob URL
