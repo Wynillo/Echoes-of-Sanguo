@@ -1,12 +1,14 @@
 // Entry point — loads card data from base.tcg then mounts the app
 import './cards.js';           // empty data stores + helpers
 import './mod-api.js';         // exposes window.EchoesOfSanguoMod (live references to stores)
-import { loadTcgFile } from './tcg-format/tcg-loader.js';
+import { loadAndApplyTcg } from './tcg-bridge.js';
 
 const loadingBar = document.getElementById('loading-bar');
 try {
-  await loadTcgFile(import.meta.env.BASE_URL + 'base.tcg', (pct) => {
-    if (loadingBar) (loadingBar as HTMLElement).style.width = pct + '%';
+  await loadAndApplyTcg(import.meta.env.BASE_URL + 'base.tcg', {
+    onProgress: (pct) => {
+      if (loadingBar) (loadingBar as HTMLElement).style.width = pct + '%';
+    },
   }); // populates CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS
   // Note: blob URLs are intentionally kept alive for the session lifetime.
   // Call revokeTcgImages() before reloading the TCG file if needed.

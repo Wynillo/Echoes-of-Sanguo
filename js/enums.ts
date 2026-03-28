@@ -5,8 +5,8 @@
 // TCG format constants, these conversions are identity mappings.
 // ============================================================
 
-import { CardType, Attribute, Race, Rarity } from '../types.js';
-import type { EffectTrigger, TrapTrigger, SpellType } from '../types.js';
+import { CardType, Attribute, Race, Rarity } from './types.js';
+import type { EffectTrigger, TrapTrigger, SpellType } from './types.js';
 import {
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_EQUIPMENT,
   TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG_ATTR_WATER, TCG_ATTR_EARTH, TCG_ATTR_WIND,
@@ -14,7 +14,7 @@ import {
   TCG_RACE_ROCK, TCG_RACE_PHOENIX, TCG_RACE_UNDEAD, TCG_RACE_AQUA, TCG_RACE_INSECT,
   TCG_RACE_MACHINE, TCG_RACE_PYRO,
   TCG_RARITY_COMMON, TCG_RARITY_UNCOMMON, TCG_RARITY_RARE, TCG_RARITY_SUPER_RARE, TCG_RARITY_ULTRA_RARE,
-} from './types.js';
+} from './tcg-format/types.js';
 
 // ── CardType ─────────────────────────────────────────────────
 // CardType.Monster (1) == TCG_TYPE_MONSTER (1), etc.

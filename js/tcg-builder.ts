@@ -2,12 +2,12 @@
 // ECHOES OF SANGUO — TCG Builder
 // Converts CardData → TcgCard / TcgCardDefinition for export
 // ============================================================
-import type { CardData } from '../types.js';
-import { CardType } from '../types.js';
-import type { TcgCard, TcgCardDefinition, TcgManifest, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson } from './types.js';
+import type { CardData } from './types.js';
+import { CardType } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgManifest, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson } from './tcg-format/types.js';
 import { cardTypeToInt, attributeToInt, raceToInt, rarityToInt, spellTypeToInt, trapTriggerToInt } from './enums.js';
 import { serializeEffect } from './effect-serializer.js';
-import { TYPE_META } from '../type-metadata.js';
+import type { RaceMeta, AttributeMeta, CardTypeMeta, RarityMeta } from './type-metadata.js';
 
 export function cardDataToTcgCard(card: CardData, numId: number): TcgCard {
   const isMonster = card.type === CardType.Monster || card.type === CardType.Fusion;
@@ -52,22 +52,22 @@ export function buildManifest(overrides?: Partial<TcgManifest>): TcgManifest {
   };
 }
 
-/** Build races.json from the current TYPE_META store. */
-export function buildRacesJson(): TcgRacesJson {
-  return TYPE_META.races.map(r => ({ id: r.id, key: r.key, value: r.value, color: r.color, ...(r.icon ? { icon: r.icon } : {}) }));
+/** Build races.json from race metadata entries. */
+export function buildRacesJson(races: RaceMeta[]): TcgRacesJson {
+  return races.map(r => ({ id: r.id, key: r.key, value: r.value, color: r.color, ...(r.icon ? { icon: r.icon } : {}) }));
 }
 
-/** Build attributes.json from the current TYPE_META store. */
-export function buildAttributesJson(): TcgAttributesJson {
-  return TYPE_META.attributes.map(a => ({ id: a.id, key: a.key, value: a.value, color: a.color, ...(a.symbol ? { symbol: a.symbol } : {}) }));
+/** Build attributes.json from attribute metadata entries. */
+export function buildAttributesJson(attributes: AttributeMeta[]): TcgAttributesJson {
+  return attributes.map(a => ({ id: a.id, key: a.key, value: a.value, color: a.color, ...(a.symbol ? { symbol: a.symbol } : {}) }));
 }
 
-/** Build card_types.json from the current TYPE_META store. */
-export function buildCardTypesJson(): TcgCardTypesJson {
-  return TYPE_META.cardTypes.map(c => ({ id: c.id, key: c.key, value: c.value, color: c.color }));
+/** Build card_types.json from card type metadata entries. */
+export function buildCardTypesJson(cardTypes: CardTypeMeta[]): TcgCardTypesJson {
+  return cardTypes.map(c => ({ id: c.id, key: c.key, value: c.value, color: c.color }));
 }
 
-/** Build rarities.json from the current TYPE_META store. */
-export function buildRaritiesJson(): TcgRaritiesJson {
-  return TYPE_META.rarities.map(r => ({ id: r.id, key: r.key, value: r.value, color: r.color }));
+/** Build rarities.json from rarity metadata entries. */
+export function buildRaritiesJson(rarities: RarityMeta[]): TcgRaritiesJson {
+  return rarities.map(r => ({ id: r.id, key: r.key, value: r.value, color: r.color }));
 }

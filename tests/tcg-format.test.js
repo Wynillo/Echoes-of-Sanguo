@@ -257,10 +257,11 @@ describe('Card Validator', () => {
     expect(result.errors.some(e => e.includes('duplicate'))).toBe(true);
   });
 
-  it('rejects invalid effect syntax', () => {
+  it('accepts any effect string (opaque at format level)', () => {
+    // Effect strings are treated as opaque by the card validator — semantic
+    // validation is done by the engine bridge after loading.
     const result = validateTcgCards([{ ...validMonster, effect: 'not_a_valid_effect' }]);
-    expect(result.valid).toBe(false);
-    expect(result.errors[0]).toContain('effect');
+    expect(result.valid).toBe(true);
   });
 
   it('accepts valid effect syntax', () => {
