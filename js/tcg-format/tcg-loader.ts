@@ -79,7 +79,10 @@ async function loadMetadataFile<T extends { key: string; value: string }>(
  * Validates the ZIP archive, converts cards to internal format, and populates
  * CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, and STARTER_DECKS.
  */
-export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoadResult> {
+export async function loadTcgFile(
+  source: string | ArrayBuffer,
+  onProgress?: (percent: number) => void,
+): Promise<TcgLoadResult> {
   // Fetch if URL
   let buffer: ArrayBuffer;
   if (typeof source === 'string') {
@@ -94,6 +97,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
   } else {
     buffer = source;
   }
+  onProgress?.(10);
 
   // Open ZIP
   let zip: JSZip;
@@ -102,6 +106,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
   } catch (e) {
     throw new TcgFormatError(`Failed to open ZIP archive: ${e instanceof Error ? e.message : e}`);
   }
+  onProgress?.(15);
 
   // Validate
   const result = await validateTcgArchive(zip);
@@ -119,16 +124,20 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
       `Please update the game engine or regenerate base.tcg with \`npm run generate:tcg\`.`
     );
   }
+  onProgress?.(20);
 
   // Extract images as blob URLs
   const images = new Map<number, string>();
-  for (const cardId of imageIds) {
+  const imageIdArr = [...imageIds];
+  for (let i = 0; i < imageIdArr.length; i++) {
+    const cardId = imageIdArr[i];
     const imgFile = zip.file(`img/${cardId}.png`);
     if (imgFile) {
       const blob = await imgFile.async('blob');
       const url = URL.createObjectURL(blob);
       images.set(cardId, url);
     }
+    onProgress?.(20 + Math.round(((i + 1) / imageIdArr.length) * 35));
   }
 
   // Load meta.json if present
@@ -195,6 +204,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     }
     tcgOpponents.sort((a, b) => a.id - b.id);
   }
+  onProgress?.(65);
 
   // Convert TcgCards to CardData and populate CARD_DB
   // Pick the best description file (prefer browser language, fallback to first)
@@ -212,6 +222,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
     const cardData = tcgCardToCardData(tc, def, result.warnings);
     CARD_DB[cardData.id] = cardData;
   }
+  onProgress?.(75);
 
   // Load split metadata files from ZIP (races.json, attributes.json, card_types.json, rarities.json)
   await loadMetadataFile(zip, 'races.json', lang, 'races', result.warnings);
@@ -228,6 +239,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
       result.warnings.push('rarities.json: failed to parse, using defaults');
     }
   }
+  onProgress?.(85);
 
   // Load campaign.json if present
   const campaignFile = zip.file('campaign.json');
@@ -258,6 +270,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
       result.warnings.push('fusion_formulas.json: failed to parse, skipping');
     }
   }
+  onProgress?.(92);
 
   // Pick the best opponent description file (same logic as card descriptions)
   const oppDescs = opponentDescriptions.get(lang) ?? (opponentDescriptions.size > 0 ? opponentDescriptions.values().next().value! : undefined);
@@ -270,6 +283,7 @@ export async function loadTcgFile(source: string | ArrayBuffer): Promise<TcgLoad
       result.warnings.push(`meta.json: failed to apply game data — ${e instanceof Error ? e.message : e}`);
     }
   }
+  onProgress?.(100);
 
   return {
     cards,
