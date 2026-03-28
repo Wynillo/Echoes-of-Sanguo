@@ -41,6 +41,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run E2E tests
         run: npm run test:e2e
+      - run: npm run generate:tcg
       - run: npm run build
       - uses: actions/configure-pages@v4
       - name: Delete stale github-pages artifacts
