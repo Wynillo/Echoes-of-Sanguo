@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import JSZip from 'jszip';
-import { loadTcgFile, TcgNetworkError, TcgFormatError } from '../js/tcg-format/tcg-loader.js';
+import { loadTcgFile, TcgNetworkError, TcgFormatError } from '../js/tcg-format/index.js';
 import { loadAndApplyTcg, revokeTcgImages } from '../js/tcg-bridge.js';
 import { CARD_DB, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS } from '../js/cards.js';
 
