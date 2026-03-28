@@ -50,7 +50,7 @@ html {
 html, body {
   width: 100%; height: 100%;
   overflow: hidden;
-  font-family: 'Silkscreen', monospace;
+  font-family: 'Pixelify Sans', monospace;
   background: var(--bg);
   color: var(--text);
   user-select: none;
@@ -621,7 +621,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   background: rgba(0, 0, 0, 0.85);
   border: 2px solid #ffd700;
   border-radius: 8px;
-  font-family: 'Silkscreen', 'Press Start 2P', monospace;
+  font-family: 'Pixelify Sans', 'Press Start 2P', monospace;
   font-size: 10px;
   color: #eee;
   position: absolute;
@@ -831,7 +831,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   padding: 8px 12px;
   margin: 8px 0 4px;
   text-align: center;
-  font-family: 'Silkscreen', monospace;
+  font-family: 'Pixelify Sans', monospace;
   font-size: 0.75rem;
   color: #ffcccc;
   line-height: 1.5;

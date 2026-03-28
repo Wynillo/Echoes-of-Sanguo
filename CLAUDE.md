@@ -198,4 +198,4 @@ GitHub Actions (`.github/workflows/`):
 | Testing | Vitest 4 + Playwright 1.58 |
 | i18n | i18next |
 | Mobile | Capacitor 8 (Android) |
-| Fonts | Press Start 2P, Silkscreen (pixel art theme) |
+| Fonts | Press Start 2P, Pixelify Sans (pixel art theme) |
