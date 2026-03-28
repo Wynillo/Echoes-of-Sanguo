@@ -33,9 +33,10 @@
   letter-spacing: -1px; flex-shrink: 0;
 }
 
-/* Art area — takes remaining vertical space */
+/* Art area — square aspect ratio */
 .cardArt {
-  flex: 1;
+  aspect-ratio: 1 / 1;
+  width: calc(100% - 10px);
   position: relative; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   min-height: 0;

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a90c2"/>
+      <stop offset="60%" stop-color="#7ab8d4"/>
+      <stop offset="100%" stop-color="#a8d8a0"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a6888"/>
+      <stop offset="100%" stop-color="#1a3850"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" fill="url(#sky)"/>
+  <!-- Mountains -->
+  <polygon points="0,160 60,80 120,160" fill="#5a7a5a" opacity="0.7"/>
+  <polygon points="80,160 160,60 240,160" fill="#4a6a4a" opacity="0.8"/>
+  <polygon points="160,160 220,90 280,160" fill="#3a5a3a" opacity="0.6"/>
+  <!-- Snow caps -->
+  <polygon points="145,70 160,60 175,70 165,75 155,75" fill="#e8e8f0" opacity="0.9"/>
+  <!-- Ground -->
+  <rect y="160" width="256" height="30" fill="#3a6a3a"/>
+  <!-- Water -->
+  <rect y="190" width="256" height="66" fill="url(#water)"/>
+  <!-- Water waves -->
+  <path d="M0,210 Q32,205 64,210 Q96,215 128,210 Q160,205 192,210 Q224,215 256,210" fill="none" stroke="#4a9ac8" stroke-width="1.5" opacity="0.5"/>
+  <path d="M0,225 Q32,220 64,225 Q96,230 128,225 Q160,220 192,225 Q224,230 256,225" fill="none" stroke="#4a9ac8" stroke-width="1" opacity="0.4"/>
+  <!-- Trees -->
+  <polygon points="20,160 30,120 40,160" fill="#2a5a2a"/>
+  <polygon points="230,160 240,125 250,160" fill="#2a5a2a"/>
+  <!-- Chinese pavilion hint -->
+  <rect x="105" y="145" width="20" height="15" fill="#3a3028" opacity="0.6"/>
+  <polygon points="100,145 115,132 130,145" fill="#2a2820" opacity="0.7"/>
+</svg>

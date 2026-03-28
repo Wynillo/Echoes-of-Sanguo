@@ -10,6 +10,20 @@ import {
 import { highlightCardText, highlightCardTextHTML } from '../utils/highlightCardText.js';
 import styles from './Card.module.css';
 
+/** Map a card to its type-based placeholder art URL, or null for normal/effect monsters. */
+function getPlaceholderUrl(card: CardData): string | null {
+  switch (card.type) {
+    case CardType.Fusion:     return './img/placeholders/fusion.svg';
+    case CardType.Trap:       return './img/placeholders/trap.svg';
+    case CardType.Equipment:  return './img/placeholders/equipment.svg';
+    case CardType.Spell:
+      return card.spellType === 'field'
+        ? './img/placeholders/field-spell.svg'
+        : './img/placeholders/spell.svg';
+    default:                  return null;
+  }
+}
+
 function getTypeLabel(card: CardData): string {
   if (card.type === CardType.Monster && card.effect) return i18next.t('card_detail.type_effect');
   return getCardTypeById(card.type)?.value ?? '';
@@ -44,6 +58,10 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
   const typeLabel  = getTypeLabel(card);
+  const placeholderUrl = getPlaceholderUrl(card);
+  const artStyle: React.CSSProperties | undefined = placeholderUrl
+    ? { backgroundImage: `url(${placeholderUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : undefined;
   const baseATK    = card.atk ?? 0;
   const baseDEF    = card.def ?? 0;
   const effATK     = fc ? fc.effectiveATK() : baseATK;
@@ -117,7 +135,7 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
   if (small) {
     return (
       <div className={cls}>
-        <div className={styles.cardArt}>
+        <div className={styles.cardArt} style={artStyle}>
           {raceBadge}
         </div>
         {isMonster
@@ -145,7 +163,7 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
         {attrOrb}
       </div>
       <div className={styles.cardLevel}>{levelStars}</div>
-      <div className={styles.cardArt}>
+      <div className={styles.cardArt} style={artStyle}>
         {raceBadge}
         {rarityText}
       </div>
@@ -183,6 +201,10 @@ export function cardInnerHTML(card: CardData, _dimmed = false, _rotated = false,
   const attrMeta   = card.attribute ? getAttrById(card.attribute) : undefined;
   const attrSym    = attrMeta?.symbol ?? '\u2726';
   const typeLabel  = getTypeLabel(card);
+  const phUrl = getPlaceholderUrl(card);
+  const artStyleStr = phUrl
+    ? `background-image:url(${phUrl});background-size:cover;background-position:center`
+    : '';
   const baseATK    = card.atk ?? 0;
   const baseDEF    = card.def ?? 0;
   const effATK     = fc ? fc.effectiveATK() : baseATK;
@@ -232,7 +254,7 @@ export function cardInnerHTML(card: CardData, _dimmed = false, _rotated = false,
       <span class="card-name-short">${card.name}</span>${orbHTML}
     </div>
     <div class="card-level">${levelStars}</div>
-    <div class="card-art">
+    <div class="card-art"${artStyleStr ? ` style="${artStyleStr}"` : ''}>
       ${raceBadge}${rarityTextH}
     </div>
     <div class="card-body">

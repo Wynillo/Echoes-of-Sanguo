@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="tg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#a02050"/>
+      <stop offset="60%" stop-color="#601040"/>
+      <stop offset="100%" stop-color="#180818"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" fill="url(#tg)"/>
+  <!-- Vortex rings -->
+  <circle cx="128" cy="128" r="100" fill="none" stroke="#c03060" stroke-width="2" opacity="0.4"/>
+  <circle cx="128" cy="128" r="75" fill="none" stroke="#a02050" stroke-width="2" opacity="0.5"/>
+  <circle cx="128" cy="128" r="50" fill="none" stroke="#801840" stroke-width="2" opacity="0.6"/>
+  <!-- Trap jaws (bear trap shape) -->
+  <path d="M68,148 L88,108 L98,138" fill="none" stroke="#808890" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M98,138 L108,108 L118,138" fill="none" stroke="#808890" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M118,138 L128,108" fill="none" stroke="#808890" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M128,108 L138,138 L148,108 L158,138 L168,108 L188,148" fill="none" stroke="#808890" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Base plate -->
+  <ellipse cx="128" cy="155" rx="50" ry="12" fill="#606870" opacity="0.7"/>
+  <!-- Chain -->
+  <path d="M128,167 L128,200 L108,220" fill="none" stroke="#505860" stroke-width="3" opacity="0.6"/>
+  <!-- Danger sparkles -->
+  <text x="60" y="80" font-size="16" fill="#ff4070" opacity="0.6">✦</text>
+  <text x="180" y="90" font-size="12" fill="#ff4070" opacity="0.4">✦</text>
+  <text x="170" y="200" font-size="14" fill="#ff4070" opacity="0.5">✦</text>
+</svg>
