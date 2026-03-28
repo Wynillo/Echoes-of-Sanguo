@@ -3,7 +3,7 @@
 // ============================================================
 
 // Types
-export type { TcgCard, TcgCardDefinition, TcgManifest, TcgMeta, TcgOpponentDeck, TcgLoadResult, ValidationResult,
+export type { TcgCard, TcgCardDefinition, TcgParsedCard, TcgManifest, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgLoadResult, TcgCampaignJson, TcgShopJson, ValidationResult,
   TcgRaceEntry, TcgRacesJson, TcgAttributeEntry, TcgAttributesJson,
   TcgCardTypeEntry, TcgCardTypesJson, TcgRarityEntry, TcgRaritiesJson, TcgLocaleOverrides } from './types.js';
 export {
@@ -24,10 +24,10 @@ export {
   isValidTrigger, isValidSpellType,
   spellTypeToInt, intToSpellType,
   trapTriggerToInt, intToTrapTrigger,
-} from './enums.js';
+} from '../enums.js';
 
 // Effect serializer
-export { serializeEffect, deserializeEffect, isValidEffectString } from './effect-serializer.js';
+export { serializeEffect, deserializeEffect, isValidEffectString } from '../effect-serializer.js';
 
 // Validators
 export { validateTcgCards } from './card-validator.js';
@@ -36,7 +36,7 @@ export { validateTcgArchive, validateFusionFormulasJson, validateOpponentDeck } 
 export type { TcgArchiveContents } from './tcg-validator.js';
 
 // Builder
-export { cardDataToTcgCard, cardDataToTcgDef, buildManifest, buildRacesJson, buildAttributesJson, buildCardTypesJson, buildRaritiesJson } from './tcg-builder.js';
+export { cardDataToTcgCard, cardDataToTcgDef, buildManifest, buildRacesJson, buildAttributesJson, buildCardTypesJson, buildRaritiesJson } from '../tcg-builder.js';
 
 // Loader
-export { loadTcgFile, revokeTcgImages, TcgNetworkError, TcgFormatError } from './tcg-loader.js';
+export { loadTcgFile, TcgNetworkError, TcgFormatError } from './tcg-loader.js';

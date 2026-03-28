@@ -104,62 +104,71 @@ export interface CardFilter {
   random?:    number;
 }
 
-/** Discriminated union of all effect actions */
-export type EffectDescriptor =
+/**
+ * Open map of effect action types → payloads.
+ * Modders can extend this via declaration merging to add custom effect types.
+ */
+export interface EffectDescriptorMap {
   // Damage & healing
-  | { type: 'dealDamage';          target: 'opponent' | 'self'; value: ValueExpr }
-  | { type: 'gainLP';             target: 'opponent' | 'self'; value: number | ValueExpr }
+  dealDamage:            { target: 'opponent' | 'self'; value: ValueExpr };
+  gainLP:               { target: 'opponent' | 'self'; value: number | ValueExpr };
   // Card draw
-  | { type: 'draw';               target: 'self' | 'opponent'; count: number }
+  draw:                 { target: 'self' | 'opponent'; count: number };
   // Field-wide buffs/debuffs (unified with CardFilter)
-  | { type: 'buffField';          value: number; filter?: CardFilter }
-  | { type: 'tempBuffField';      value: number; filter?: CardFilter }
-  | { type: 'debuffField';        atkD: number; defD: number }
-  | { type: 'tempDebuffField';    atkD: number; defD?: number }
+  buffField:            { value: number; filter?: CardFilter };
+  tempBuffField:        { value: number; filter?: CardFilter };
+  debuffField:          { atkD: number; defD: number };
+  tempDebuffField:      { atkD: number; defD?: number };
   // Bounce
-  | { type: 'bounceStrongestOpp' }
-  | { type: 'bounceAttacker' }
-  | { type: 'bounceAllOppMonsters' }
+  bounceStrongestOpp:   {};
+  bounceAttacker:       {};
+  bounceAllOppMonsters: {};
   // Search
-  | { type: 'searchDeckToHand';   filter: CardFilter }
+  searchDeckToHand:     { filter: CardFilter };
   // Targeted stat modification (spells + traps)
-  | { type: 'tempAtkBonus';       target: StatTarget; value: number }
-  | { type: 'permAtkBonus';       target: StatTarget; value: number; filter?: CardFilter }
-  | { type: 'tempDefBonus';       target: StatTarget; value: number }
-  | { type: 'permDefBonus';       target: StatTarget; value: number }
+  tempAtkBonus:         { target: StatTarget; value: number };
+  permAtkBonus:         { target: StatTarget; value: number; filter?: CardFilter };
+  tempDefBonus:         { target: StatTarget; value: number };
+  permDefBonus:         { target: StatTarget; value: number };
   // Graveyard
-  | { type: 'reviveFromGrave' }
+  reviveFromGrave:      {};
   // Trap signals
-  | { type: 'cancelAttack' }
-  | { type: 'destroyAttacker' }
-  | { type: 'destroySummonedIf';  minAtk: number }
+  cancelAttack:         {};
+  destroyAttacker:      {};
+  destroySummonedIf:    { minAtk: number };
   // Destruction
-  | { type: 'destroyAllOpp' }
-  | { type: 'destroyAll' }
-  | { type: 'destroyWeakestOpp' }
-  | { type: 'destroyStrongestOpp' }
+  destroyAllOpp:        {};
+  destroyAll:           {};
+  destroyWeakestOpp:    {};
+  destroyStrongestOpp:  {};
   // Graveyard & Deck manipulation
-  | { type: 'sendTopCardsToGrave';    count: number }
-  | { type: 'sendTopCardsToGraveOpp'; count: number }
-  | { type: 'salvageFromGrave';       filter: CardFilter }
-  | { type: 'recycleFromGraveToDeck'; filter: CardFilter }
-  | { type: 'shuffleGraveIntoDeck' }
-  | { type: 'shuffleDeck' }
-  | { type: 'peekTopCard' }
+  sendTopCardsToGrave:    { count: number };
+  sendTopCardsToGraveOpp: { count: number };
+  salvageFromGrave:       { filter: CardFilter };
+  recycleFromGraveToDeck: { filter: CardFilter };
+  shuffleGraveIntoDeck:   {};
+  shuffleDeck:            {};
+  peekTopCard:            {};
   // Special Summon
-  | { type: 'specialSummonFromHand';  filter?: CardFilter }
+  specialSummonFromHand:  { filter?: CardFilter };
   // Hand manipulation
-  | { type: 'discardFromHand';    count: number }
-  | { type: 'discardOppHand';     count: number }
+  discardFromHand:      { count: number };
+  discardOppHand:       { count: number };
   // Passive flags
-  | { type: 'passive_piercing' }
-  | { type: 'passive_untargetable' }
-  | { type: 'passive_directAttack' }
-  | { type: 'passive_vsAttrBonus'; attr: Attribute; atk: number }
-  | { type: 'passive_phoenixRevival' }
-  | { type: 'passive_indestructible' }
-  | { type: 'passive_effectImmune' }
-  | { type: 'passive_cantBeAttacked' };
+  passive_piercing:          {};
+  passive_untargetable:      {};
+  passive_directAttack:      {};
+  passive_vsAttrBonus:  { attr: Attribute; atk: number };
+  passive_phoenixRevival:    {};
+  passive_indestructible:    {};
+  passive_effectImmune:      {};
+  passive_cantBeAttacked:    {};
+}
+
+/** Discriminated union of all effect actions, derived from EffectDescriptorMap */
+export type EffectDescriptor = {
+  [K in keyof EffectDescriptorMap]: { type: K } & EffectDescriptorMap[K]
+}[keyof EffectDescriptorMap];
 
 /** Context passed to effect implementations at runtime */
 export interface EffectContext {

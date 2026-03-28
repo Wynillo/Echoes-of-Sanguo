@@ -1,21 +1,13 @@
 // ============================================================
-// ECHOES OF SANGUO — TCG File Loader
-// Loads .tcg (ZIP) files and populates the card database
+// ECHOES OF SANGUO — TCG File Loader (Pure)
+// Loads .tcg (ZIP) files and returns parsed data.
+// No side effects — no global store mutations, no browser APIs.
+// The engine bridge (js/tcg-bridge.ts) handles applying data.
 // ============================================================
 
 import JSZip from 'jszip';
-import type { CardData, CardEffectBlock, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from '../types.js';
-import type { TcgCard, TcgCardDefinition, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgLocaleOverrides, TcgShopJson, TcgCampaignJson, TcgLoadResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgParsedCard, TcgMeta, TcgOpponentDeck, TcgFusionFormula, TcgLocaleOverrides, TcgShopJson, TcgCampaignJson, TcgLoadResult } from './types.js';
 import { validateTcgArchive, validateCampaignJson, validateFusionFormulasJson } from './tcg-validator.js';
-import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
-import { deserializeEffect } from './effect-serializer.js';
-import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../cards.js';
-import { applyRules } from '../rules.js';
-import type { GameRules } from '../rules.js';
-import { applyTypeMeta } from '../type-metadata.js';
-import type { TypeMetaData } from '../type-metadata.js';
-import { applyShopData } from '../shop-data.js';
-import { applyCampaignData } from '../campaign-store.js';
 
 // ── Error Classes ───────────────────────────────────────────
 
@@ -41,23 +33,18 @@ const SUPPORTED_FORMAT_VERSION = 2;
 
 // ── Helpers ─────────────────────────────────────────────────
 
-function getBrowserLang(): string {
-  return typeof navigator !== 'undefined' ? navigator.language.substring(0, 2) : '';
-}
-
 /**
- * Load and apply a split metadata file (races.json, attributes.json, etc.)
- * with optional locale overrides. Reduces repetition for each metadata type.
+ * Load a split metadata file (races.json, attributes.json, etc.)
+ * with optional locale overrides. Returns the parsed array or undefined.
  */
 async function loadMetadataFile<T extends { key: string; value: string }>(
   zip: JSZip,
   filename: string,
   lang: string,
-  metaKey: keyof TypeMetaData,
   warnings: string[],
-): Promise<void> {
+): Promise<T[] | undefined> {
   const file = zip.file(filename);
-  if (!file) return;
+  if (!file) return undefined;
   try {
     const data: T[] = JSON.parse(await file.async('string'));
     const localeSuffix = filename.replace('.json', '');
@@ -68,21 +55,53 @@ async function loadMetadataFile<T extends { key: string; value: string }>(
         if (overrides[entry.key] !== undefined) entry.value = overrides[entry.key];
       }
     }
-    applyTypeMeta({ [metaKey]: data } as TypeMetaData);
+    return data;
   } catch {
     warnings.push(`${filename}: failed to parse, using defaults`);
+    return undefined;
   }
 }
 
 /**
+ * Build a TcgParsedCard by merging a TcgCard with its TcgCardDefinition.
+ * All numeric fields are kept as-is — no enum conversion.
+ */
+function tcgCardToParsedCard(tc: TcgCard, def: TcgCardDefinition | undefined): TcgParsedCard {
+  const parsed: TcgParsedCard = {
+    id:          tc.id,
+    name:        def?.name ?? `Card #${tc.id}`,
+    description: def?.description ?? '',
+    type:        tc.type,
+    level:       tc.level,
+    rarity:      tc.rarity,
+  };
+  if (tc.atk !== undefined) parsed.atk = tc.atk;
+  if (tc.def !== undefined) parsed.def = tc.def;
+  if (tc.attribute !== undefined) parsed.attribute = tc.attribute;
+  if (tc.race !== undefined) parsed.race = tc.race;
+  if (tc.effect) parsed.effect = tc.effect;
+  if (tc.spellType !== undefined) parsed.spellType = tc.spellType;
+  if (tc.trapTrigger !== undefined) parsed.trapTrigger = tc.trapTrigger;
+  if (tc.target) parsed.target = tc.target;
+  if (tc.atkBonus !== undefined) parsed.atkBonus = tc.atkBonus;
+  if (tc.defBonus !== undefined) parsed.defBonus = tc.defBonus;
+  if (tc.equipReqRace !== undefined) parsed.equipReqRace = tc.equipReqRace;
+  if (tc.equipReqAttr !== undefined) parsed.equipReqAttr = tc.equipReqAttr;
+  return parsed;
+}
+
+/**
  * Load a .tcg file from a URL or ArrayBuffer.
- * Validates the ZIP archive, converts cards to internal format, and populates
- * CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, and STARTER_DECKS.
+ * Returns all parsed data without any side effects.
+ * The engine bridge is responsible for populating game stores.
  */
 export async function loadTcgFile(
   source: string | ArrayBuffer,
-  onProgress?: (percent: number) => void,
+  options?: { lang?: string; onProgress?: (percent: number) => void },
 ): Promise<TcgLoadResult> {
+  const lang = options?.lang ?? '';
+  const onProgress = options?.onProgress;
+
   // Fetch if URL
   let buffer: ArrayBuffer;
   if (typeof source === 'string') {
@@ -115,6 +134,7 @@ export async function loadTcgFile(
   }
 
   const { cards, definitions, opponentDescriptions, imageIds, manifest } = result.contents;
+  const warnings = result.warnings;
 
   // Validate format version from manifest
   if (manifest && manifest.formatVersion > SUPPORTED_FORMAT_VERSION) {
@@ -126,16 +146,14 @@ export async function loadTcgFile(
   }
   onProgress?.(20);
 
-  // Extract images as blob URLs
-  const images = new Map<number, string>();
+  // Extract images as raw ArrayBuffers (environment-agnostic — no blob URLs)
+  const rawImages = new Map<number, ArrayBuffer>();
   const imageIdArr = [...imageIds];
   for (let i = 0; i < imageIdArr.length; i++) {
     const cardId = imageIdArr[i];
     const imgFile = zip.file(`img/${cardId}.png`);
     if (imgFile) {
-      const blob = await imgFile.async('blob');
-      const url = URL.createObjectURL(blob);
-      images.set(cardId, url);
+      rawImages.set(cardId, await imgFile.async('arraybuffer'));
     }
     onProgress?.(20 + Math.round(((i + 1) / imageIdArr.length) * 35));
   }
@@ -145,46 +163,41 @@ export async function loadTcgFile(
   const metaFile = zip.file('meta.json');
   if (metaFile) {
     try {
-      const metaJson = await metaFile.async('string');
-      meta = JSON.parse(metaJson);
+      meta = JSON.parse(await metaFile.async('string'));
     } catch {
-      result.warnings.push('meta.json: failed to parse, skipping');
+      warnings.push('meta.json: failed to parse, skipping');
     }
   }
 
-  // Load rules.json if present and apply overrides
+  // Load rules.json if present — return as raw data, no application
+  let rules: Record<string, unknown> | undefined;
   const rulesFile = zip.file('rules.json');
   if (rulesFile) {
     try {
-      const rulesJson = await rulesFile.async('string');
-      const partial: Partial<GameRules> = JSON.parse(rulesJson);
-      applyRules(partial);
+      rules = JSON.parse(await rulesFile.async('string'));
     } catch {
-      result.warnings.push('rules.json: failed to parse, skipping');
+      warnings.push('rules.json: failed to parse, skipping');
     }
   }
 
-  // Load shop.json if present
+  // Load shop.json if present — return raw data, extract background images as ArrayBuffers
+  let shopData: TcgShopJson | undefined;
+  let rawShopBackgrounds: Map<string, ArrayBuffer> | undefined;
   const shopFile = zip.file('shop.json');
   if (shopFile) {
     try {
-      const shopJson = await shopFile.async('string');
-      const shopData: TcgShopJson = JSON.parse(shopJson);
-      // Resolve background image paths → blob URLs
-      if (shopData.backgrounds) {
-        const resolvedBgs: Record<string, string> = {};
-        for (const [key, path] of Object.entries(shopData.backgrounds)) {
+      shopData = JSON.parse(await shopFile.async('string'));
+      if (shopData!.backgrounds) {
+        rawShopBackgrounds = new Map();
+        for (const [key, path] of Object.entries(shopData!.backgrounds)) {
           const bgFile = zip.file(path);
           if (bgFile) {
-            const blob = await bgFile.async('blob');
-            resolvedBgs[key] = URL.createObjectURL(blob);
+            rawShopBackgrounds.set(key, await bgFile.async('arraybuffer'));
           }
         }
-        shopData.backgrounds = resolvedBgs;
       }
-      applyShopData(shopData);
     } catch {
-      result.warnings.push('shop.json: failed to parse, using defaults');
+      warnings.push('shop.json: failed to parse, using defaults');
     }
   }
 
@@ -192,251 +205,96 @@ export async function loadTcgFile(
   const oppPaths = Object.keys(zip.files)
     .filter(f => /^opponents\/[^/]+\.json$/.test(f))
     .sort();
-  let tcgOpponents: TcgOpponentDeck[] | undefined;
+  let opponents: TcgOpponentDeck[] | undefined;
   if (oppPaths.length > 0) {
-    tcgOpponents = [];
+    opponents = [];
     for (const p of oppPaths) {
       try {
-        tcgOpponents.push(JSON.parse(await zip.file(p)!.async('string')));
+        opponents.push(JSON.parse(await zip.file(p)!.async('string')));
       } catch {
-        result.warnings.push(`${p}: failed to parse opponent deck, skipping`);
+        warnings.push(`${p}: failed to parse opponent deck, skipping`);
       }
     }
-    tcgOpponents.sort((a, b) => a.id - b.id);
+    opponents.sort((a, b) => a.id - b.id);
   }
   onProgress?.(65);
 
-  // Convert TcgCards to CardData and populate CARD_DB
-  // Pick the best description file (prefer browser language, fallback to first)
-  const lang = getBrowserLang();
+  // Build TcgParsedCard[] — merge TcgCard with definition, keep ints as-is
+  const parsedCards: TcgParsedCard[] = [];
   if (definitions.size === 0) {
-    result.warnings.push('No card definitions found in TCG archive');
-    return { cards, definitions, images, meta, manifest, warnings: result.warnings };
+    warnings.push('No card definitions found in TCG archive');
   }
-  const defs = definitions.get(lang) ?? definitions.values().next().value!;
+  const defs = definitions.get(lang) ?? (definitions.size > 0 ? definitions.values().next().value! : []);
   const defMap = new Map<number, TcgCardDefinition>();
   for (const d of defs) defMap.set(d.id, d);
 
   for (const tc of cards) {
-    const def = defMap.get(tc.id);
-    const cardData = tcgCardToCardData(tc, def, result.warnings);
-    CARD_DB[cardData.id] = cardData;
+    parsedCards.push(tcgCardToParsedCard(tc, defMap.get(tc.id)));
   }
   onProgress?.(75);
 
   // Load split metadata files from ZIP (races.json, attributes.json, card_types.json, rarities.json)
-  await loadMetadataFile(zip, 'races.json', lang, 'races', result.warnings);
-  await loadMetadataFile(zip, 'attributes.json', lang, 'attributes', result.warnings);
-  await loadMetadataFile(zip, 'card_types.json', lang, 'cardTypes', result.warnings);
+  const typeMeta: TcgLoadResult['typeMeta'] = {};
+  typeMeta.races = await loadMetadataFile(zip, 'races.json', lang, warnings) ?? undefined;
+  typeMeta.attributes = await loadMetadataFile(zip, 'attributes.json', lang, warnings) ?? undefined;
+  typeMeta.cardTypes = await loadMetadataFile(zip, 'card_types.json', lang, warnings) ?? undefined;
 
   // Rarities have no locale overrides
   const raritiesZipFile = zip.file('rarities.json');
   if (raritiesZipFile) {
     try {
-      const raritiesData = JSON.parse(await raritiesZipFile.async('string'));
-      applyTypeMeta({ rarities: raritiesData });
+      typeMeta.rarities = JSON.parse(await raritiesZipFile.async('string'));
     } catch {
-      result.warnings.push('rarities.json: failed to parse, using defaults');
+      warnings.push('rarities.json: failed to parse, using defaults');
     }
   }
   onProgress?.(85);
 
   // Load campaign.json if present
+  let campaignData: TcgCampaignJson | undefined;
   const campaignFile = zip.file('campaign.json');
   if (campaignFile) {
     try {
-      const campaignJson = await campaignFile.async('string');
-      const campaignData: TcgCampaignJson = JSON.parse(campaignJson);
-      const campaignWarnings = validateCampaignJson(campaignData);
-      result.warnings.push(...campaignWarnings);
-      applyCampaignData(campaignData);
+      campaignData = JSON.parse(await campaignFile.async('string'));
+      const campaignWarnings = validateCampaignJson(campaignData!);
+      warnings.push(...campaignWarnings);
     } catch {
-      result.warnings.push('campaign.json: failed to parse, skipping');
+      warnings.push('campaign.json: failed to parse, skipping');
     }
   }
 
   // Load fusion_formulas.json if present
+  let fusionFormulas: TcgFusionFormula[] | undefined;
   const formulasFile = zip.file('fusion_formulas.json');
   if (formulasFile) {
     try {
-      const formulasJson = await formulasFile.async('string');
-      const formulasData = JSON.parse(formulasJson);
+      const formulasData = JSON.parse(await formulasFile.async('string'));
       const formulaWarnings = validateFusionFormulasJson(formulasData);
-      result.warnings.push(...formulaWarnings);
+      warnings.push(...formulaWarnings);
       if (formulasData?.formulas && Array.isArray(formulasData.formulas)) {
-        applyFusionFormulas(formulasData.formulas as TcgFusionFormula[]);
+        fusionFormulas = formulasData.formulas as TcgFusionFormula[];
       }
     } catch {
-      result.warnings.push('fusion_formulas.json: failed to parse, skipping');
-    }
-  }
-  onProgress?.(92);
-
-  // Pick the best opponent description file (same logic as card descriptions)
-  const oppDescs = opponentDescriptions.get(lang) ?? (opponentDescriptions.size > 0 ? opponentDescriptions.values().next().value! : undefined);
-
-  // Apply meta to game data stores
-  if (meta) {
-    try {
-      applyTcgMeta(meta, tcgOpponents, oppDescs);
-    } catch (e) {
-      result.warnings.push(`meta.json: failed to apply game data — ${e instanceof Error ? e.message : e}`);
+      warnings.push('fusion_formulas.json: failed to parse, skipping');
     }
   }
   onProgress?.(100);
 
   return {
     cards,
+    parsedCards,
     definitions,
-    images,
+    rawImages,
     meta,
     manifest,
-    warnings: result.warnings,
+    warnings,
+    opponents,
+    opponentDescriptions,
+    typeMeta: (typeMeta.races || typeMeta.attributes || typeMeta.cardTypes || typeMeta.rarities) ? typeMeta : undefined,
+    rules,
+    shopData,
+    rawShopBackgrounds,
+    campaignData,
+    fusionFormulas,
   };
-}
-
-/**
- * Convert a TcgCard + TcgCardDefinition to the internal CardData format.
- *
- * Intentionally lenient: invalid effects are disabled with a warning rather than
- * rejecting the card, so that archives with newer effect syntax degrade gracefully.
- */
-function tcgCardToCardData(tc: TcgCard, def: TcgCardDefinition | undefined, warnings: string[]): CardData {
-  let effect: CardEffectBlock | undefined;
-  if (tc.effect) {
-    try {
-      effect = deserializeEffect(tc.effect);
-    } catch (e) {
-      warnings.push(`Card #${tc.id} (${def?.name ?? 'unknown'}): failed to deserialize effect — effect disabled. ${e instanceof Error ? e.message : e}`);
-    }
-  }
-
-  const hasEffect = !!tc.effect;
-  const type = intToCardType(tc.type, hasEffect);
-
-  const card: CardData = {
-    id:          String(tc.id),
-    name:        def?.name ?? `Card #${tc.id}`,
-    type,
-    description: def?.description ?? '',
-    level:       tc.level ?? undefined,
-    rarity:      intToRarity(tc.rarity),
-  };
-
-  if (tc.atk !== undefined) card.atk = tc.atk;
-  if (tc.def !== undefined) card.def = tc.def;
-  if (tc.attribute !== undefined && tc.attribute > 0) {
-    try { card.attribute = intToAttribute(tc.attribute); }
-    catch { warnings.push(`Card #${tc.id}: invalid attribute ${tc.attribute}`); }
-  }
-  if (tc.race !== undefined && tc.race > 0) {
-    try { card.race = intToRace(tc.race); }
-    catch { warnings.push(`Card #${tc.id}: invalid race ${tc.race}`); }
-  }
-  if (effect) card.effect = effect;
-  if (tc.spellType)   card.spellType   = intToSpellType(tc.spellType);
-  if (tc.trapTrigger) card.trapTrigger = intToTrapTrigger(tc.trapTrigger);
-  if (tc.target)      card.target      = tc.target;
-  if (tc.atkBonus !== undefined) card.atkBonus = tc.atkBonus;
-  if (tc.defBonus !== undefined) card.defBonus = tc.defBonus;
-  if (tc.equipReqRace !== undefined || tc.equipReqAttr !== undefined) {
-    card.equipRequirement = {};
-    if (tc.equipReqRace !== undefined) {
-      try { card.equipRequirement.race = intToRace(tc.equipReqRace); }
-      catch { warnings.push(`Card #${tc.id}: invalid equipReqRace ${tc.equipReqRace}`); }
-    }
-    if (tc.equipReqAttr !== undefined) {
-      try { card.equipRequirement.attr = intToAttribute(tc.equipReqAttr); }
-      catch { warnings.push(`Card #${tc.id}: invalid equipReqAttr ${tc.equipReqAttr}`); }
-    }
-  }
-
-  return card;
-}
-
-/**
- * Apply TcgMeta to the game's live data stores.
- * If tcgOpponents is provided (from opponents/ folder), it takes priority
- * over meta.opponentConfigs (fallback for archives without the folder).
- */
-function applyTcgMeta(
-  meta: TcgMeta,
-  tcgOpponents?: TcgOpponentDeck[],
-  oppDescs?: TcgOpponentDescription[],
-): void {
-  const rid = (numId: number): string => String(numId);
-
-  if (meta.fusionRecipes) {
-    const recipes: FusionRecipe[] = meta.fusionRecipes.map(r => ({
-      materials: [rid(r.materials[0]), rid(r.materials[1])] as [string, string],
-      result: rid(r.result),
-    }));
-    FUSION_RECIPES.push(...recipes);
-  }
-
-  // Use opponents/ folder if available, else fall back to meta.opponentConfigs
-  const rawOpponents = tcgOpponents ?? meta.opponentConfigs;
-  if (rawOpponents) {
-    // Build lookup from opponent descriptions (localized name/title/flavor)
-    const oppDescMap = new Map<number, TcgOpponentDescription>();
-    if (oppDescs) {
-      for (const d of oppDescs) oppDescMap.set(d.id, d);
-    }
-
-    const configs: OpponentConfig[] = rawOpponents.map(o => {
-      const desc = oppDescMap.get(o.id);
-      return {
-        id:         o.id,
-        name:       desc?.name ?? o.name,
-        title:      desc?.title ?? o.title,
-        race:       intToRace(o.race),
-        flavor:     desc?.flavor ?? o.flavor,
-        coinsWin:   o.coinsWin,
-        coinsLoss:  o.coinsLoss,
-        deckIds:    o.deckIds.map(rid),
-        behaviorId: o.behavior,
-      };
-    });
-    OPPONENT_CONFIGS.push(...configs);
-  }
-
-  if (meta.starterDecks) {
-    for (const [raceKey, numIds] of Object.entries(meta.starterDecks)) {
-      const raceNum = Number(raceKey);
-      STARTER_DECKS[raceNum] = numIds.map(rid);
-    }
-    // Populate fallback IDs from first available starter deck
-    const firstDeck = Object.values(STARTER_DECKS)[0];
-    if (firstDeck) {
-      PLAYER_DECK_IDS.splice(0, PLAYER_DECK_IDS.length, ...firstDeck);
-      OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
-    }
-  }
-}
-
-/**
- * Convert raw TcgFusionFormula entries to FusionFormula and populate the store.
- * Sorted by descending priority for deterministic lookup order.
- */
-function applyFusionFormulas(raw: TcgFusionFormula[]): void {
-  const rid = (numId: number): string => String(numId);
-  const converted: FusionFormula[] = raw.map(f => ({
-    id:         f.id,
-    comboType:  f.comboType as FusionComboType,
-    operand1:   f.operand1,
-    operand2:   f.operand2,
-    priority:   f.priority,
-    resultPool: f.resultPool.map(rid),
-  }));
-  converted.sort((a, b) => b.priority - a.priority);
-  FUSION_FORMULAS.push(...converted);
-}
-
-/**
- * Revoke all blob URLs from a previous load to free memory.
- */
-export function revokeTcgImages(images: Map<number, string>): void {
-  for (const url of images.values()) {
-    URL.revokeObjectURL(url);
-  }
 }

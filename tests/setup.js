@@ -21,7 +21,7 @@ if (typeof window === 'undefined') {
   const { readdirSync } = await import('fs');
   const { readFile: readFileAsync } = await import('fs/promises');
   const JSZip = (await import('jszip')).default;
-  const { loadTcgFile } = await import('../js/tcg-format/tcg-loader.js');
+  const { loadAndApplyTcg } = await import('../js/tcg-bridge.js');
 
   // Pack public/base.tcg-src/ folder into an in-memory ZIP for the loader
   const folderPath = join(__dirname, '../public/base.tcg-src');
@@ -47,5 +47,5 @@ if (typeof window === 'undefined') {
     zip.folder('img');
   }
   const buf = await zip.generateAsync({ type: 'arraybuffer' });
-  await loadTcgFile(buf);
+  await loadAndApplyTcg(buf);
 }

@@ -73,6 +73,30 @@ export interface TcgCardDefinition {
   description: string;
 }
 
+// ── Parsed Card (flat merge of TcgCard + TcgCardDefinition) ──
+// Wire-format ints are left as-is; the engine bridge handles int→enum/string conversion.
+
+export interface TcgParsedCard {
+  id:            number;
+  name:          string;     // from TcgCardDefinition for the requested locale
+  description:   string;     // from TcgCardDefinition for the requested locale
+  type:          number;     // TCG_TYPE_* — same numeric value as CardType enum
+  level:         number;
+  rarity:        number;     // TCG_RARITY_* — same numeric value as Rarity enum
+  atk?:          number;
+  def?:          number;
+  attribute?:    number;     // TCG_ATTR_* — same numeric value as Attribute enum
+  race?:         number;     // TCG_RACE_* — same numeric value as Race enum
+  effect?:       string;     // raw serialized effect string (opaque at format level)
+  spellType?:    number;     // 1=normal, 2=targeted, 3=fromGrave, 4=field
+  trapTrigger?:  number;     // 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual
+  target?:       string;     // targeting hint: 'ownMonster', 'oppMonster', etc.
+  atkBonus?:     number;
+  defBonus?:     number;
+  equipReqRace?: number;     // int race value, not enum
+  equipReqAttr?: number;     // int attribute value, not enum
+}
+
 // ── Opponent Deck (opponents/opponent_deck_N.json inside base.tcg) ──
 
 export interface TcgOpponentDeck {
@@ -206,19 +230,33 @@ export interface TcgShopJson {
   backgrounds?: Record<string, string>;  // chapter key -> path within TCG archive
 }
 
-// ── Campaign JSON (alias) ────────────────────────────────
+// ── Campaign JSON (alias of local CampaignData) ──────────────
 
-export type { CampaignData as TcgCampaignJson } from '../campaign-types.js';
+export type TcgCampaignJson = CampaignData;
 
 // ── Load result ──────────────────────────────────────────────
 
 export interface TcgLoadResult {
-  cards:       TcgCard[];
-  definitions: Map<string, TcgCardDefinition[]>;  // lang -> definitions
-  images:      Map<number, string>;               // card id -> blob URL
-  meta?:       TcgMeta;
-  manifest?:   TcgManifest;
-  warnings:    string[];
+  cards:                TcgCard[];
+  parsedCards:          TcgParsedCard[];
+  definitions:          Map<string, TcgCardDefinition[]>;  // lang -> definitions
+  rawImages:            Map<number, ArrayBuffer>;           // card id -> raw PNG bytes (NOT blob URLs)
+  meta?:                TcgMeta;
+  manifest?:            TcgManifest;
+  warnings:             string[];
+  opponents?:           TcgOpponentDeck[];
+  opponentDescriptions?: Map<string, TcgOpponentDescription[]>;  // locale -> descriptions
+  typeMeta?:            {
+    races?:      TcgRacesJson;
+    attributes?: TcgAttributesJson;
+    cardTypes?:  TcgCardTypesJson;
+    rarities?:   TcgRaritiesJson;
+  };
+  rules?:               Record<string, unknown>;
+  shopData?:            TcgShopJson;
+  rawShopBackgrounds?:  Map<string, ArrayBuffer>;    // background key -> raw image bytes
+  campaignData?:        TcgCampaignJson;
+  fusionFormulas?:      TcgFusionFormula[];
 }
 
 // ── Campaign System ───────────────────────────────────────────
