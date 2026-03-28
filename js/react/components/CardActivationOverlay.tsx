@@ -3,6 +3,7 @@
 // Imperative API lives in cardActivationApi.ts
 // ============================================================
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { Card } from './Card.js';
 import { CardType } from '../../types.js';
@@ -10,12 +11,13 @@ import { setActivationDispatch } from './cardActivationApi.js';
 import type { ActivationState } from './cardActivationApi.js';
 import { onSkip, pushAnim, popAnim, fireSkip } from './animSkipSignal.js';
 
-const LABELS: Record<number, string> = {
-  [CardType.Spell]: 'ZAUBER AKTIVIERT', [CardType.Trap]: 'FALLE AKTIVIERT',
-  [CardType.Monster]: 'EFFEKT AUSGELÖST', [CardType.Fusion]: 'FUSION!',
+const LABEL_KEYS: Record<number, string> = {
+  [CardType.Spell]: 'game.activation_spell', [CardType.Trap]: 'game.activation_trap',
+  [CardType.Monster]: 'game.activation_effect', [CardType.Fusion]: 'game.activation_fusion',
 };
 
 export function CardActivationOverlay() {
+  const { t } = useTranslation();
   const [act, setAct] = useState<ActivationState | null>(null);
   const bgRef      = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -58,7 +60,7 @@ export function CardActivationOverlay() {
           <Card card={act.card} big />
         </div>
         <div id="card-activate-effect-box">
-          <div id="card-activate-label">{LABELS[act.card.type] || 'AKTIVIERT'}</div>
+          <div id="card-activate-label">{t(LABEL_KEYS[act.card.type] || 'game.activation_default')}</div>
           <div id="card-activate-effect-text">{act.text || act.card.description || '—'}</div>
         </div>
       </div>

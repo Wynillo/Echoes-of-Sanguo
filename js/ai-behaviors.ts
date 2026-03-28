@@ -8,6 +8,38 @@ import type { AIBehavior, AISpellRule, CardData, PlayerState } from './types.js'
 import { CardType, meetsEquipRequirement } from './types.js';
 import type { FieldCard } from './field.js';
 
+// ── AI Scoring Constants ────────────────────────────────────
+
+export const AI_SCORE = {
+  /** Bonus for effect monsters during summon priority evaluation */
+  EFFECT_CARD_BONUS:      10000,
+  /** Base bonus when an attacker can destroy a target */
+  DESTROY_TARGET:         1000,
+  /** Bonus for strong attackers probing face-down monsters */
+  STRONG_PROBE:           200,
+  /** ATK threshold for safely probing face-down monsters */
+  PROBE_ATK_THRESHOLD:    1800,
+  /** Penalty for weak attackers vs face-down monsters */
+  FACEDOWN_RISK:          300,
+  /** Bonus when equipment unlocks a kill */
+  EQUIP_UNLOCK_KILL:      2000,
+  /** Bonus when revived monster beats strongest opponent */
+  REVIVE_BEATS_STRONGEST: 1000,
+  /** Bonus when buff spell could unlock a kill */
+  BUFF_UNLOCK_KILL:       800,
+  /** Max gap between ATK and opponent for buff to matter */
+  BUFF_KILL_THRESHOLD:    1000,
+  /** Bonus for surviving when AI is low LP */
+  LOW_LP_SURVIVAL:        300,
+} as const;
+
+export const AI_LP_THRESHOLD = {
+  /** LP below which AI is considered dangerously low */
+  LOW:       3000,
+  /** LP below which AI activates defensive spells */
+  DEFENSIVE: 5000,
+} as const;
+
 // ── Behavior Profiles ───────────────────────────────────────
 
 const DEFAULT: AIBehavior = {
@@ -100,7 +132,7 @@ export function shouldActivateNormalSpell(
   switch (behavior.defaultSpellActivation) {
     case 'always': return true;
     case 'never':  return false;
-    case 'smart':  return aiLP < playerLP || aiLP < 5000;
+    case 'smart':  return aiLP < playerLP || aiLP < AI_LP_THRESHOLD.DEFENSIVE;
   }
 }
 
@@ -133,7 +165,7 @@ export function pickSummonCandidate(hand: CardData[], priority: Required<AIBehav
         break;
       case 'effectFirst':
         // Effect monsters get a large bonus, then sort by ATK
-        score = (card.effect ? 10000 : 0) + (card.atk ?? 0);
+        score = (card.effect ? AI_SCORE.EFFECT_CARD_BONUS : 0) + (card.atk ?? 0);
         break;
       case 'lowestLevel':
         // Invert level so lower = higher score (max level 12)
@@ -164,12 +196,9 @@ export function decideSummonPosition(
     case 'defensive':
       return 'def';
     case 'smart':
-      // If player has monsters that can destroy us in ATK, consider DEF
+      // If player has monsters that can destroy us in ATK, go DEF to avoid LP damage
       if (playerHasMonsters && monsterATK < playerFieldMaxATK) {
-        // Only go DEF if our DEF can actually survive their strongest attack
-        if (monsterDEF >= playerFieldMaxATK) return 'def';
-        // Weak ATK and weak DEF — go DEF to avoid LP damage
-        if (monsterATK < playerFieldMaxATK) return 'def';
+        return 'def';
       }
       return 'atk';
   }
@@ -226,7 +255,7 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
     if (card.effect) score += 400;
 
     // If we're low on LP, prefer monsters that can survive
-    if (ctx.aiLP < 3000 && def > playerMaxThreat) score += 300;
+    if (ctx.aiLP < AI_LP_THRESHOLD.LOW && def > playerMaxThreat) score += AI_SCORE.LOW_LP_SURVIVAL;
 
     if (score > bestScore) {
       bestScore = score;
@@ -428,7 +457,7 @@ export function planAttacks(
 
       if (aAtk > dVal) {
         // Can destroy — good
-        score += 1000;
+        score += AI_SCORE.DESTROY_TARGET;
         // Bonus for LP damage (only in ATK position)
         if (d.fc.position === 'atk') score += (aAtk - dVal);
         // Prioritize destroying effect monsters (they're dangerous)
@@ -455,8 +484,8 @@ export function planAttacks(
       // Face-down DEF monsters are risky (unknown stats)
       if (d.fc.faceDown) {
         if (strategy === 'conservative') score = -Infinity;
-        else if (aAtk >= 1800) score += 200; // strong attackers can safely probe
-        else score -= 300; // risky for weak attackers
+        else if (aAtk >= AI_SCORE.PROBE_ATK_THRESHOLD) score += AI_SCORE.STRONG_PROBE;
+        else score -= AI_SCORE.FACEDOWN_RISK;
       }
 
       attackOptions.push({ aZone: a.zone, dZone: d.zone, score });
@@ -530,7 +559,7 @@ export function pickEquipTarget(
 
     // Can this equipment enable a new kill?
     if (curATK <= oppMaxVal && boostedATK > oppMaxVal) {
-      score += 2000; // Unlocks a kill — highest priority
+      score += AI_SCORE.EQUIP_UNLOCK_KILL; // Unlocks a kill — highest priority
     }
 
     // Higher base ATK benefits more from staying alive to attack
@@ -611,7 +640,7 @@ export function pickBestGraveyardMonster(
     let score = atk;
 
     // Can it beat the strongest opponent? Big bonus
-    if (atk > oppMaxATK && oppMaxATK > 0) score += 1000;
+    if (atk > oppMaxATK && oppMaxATK > 0) score += AI_SCORE.REVIVE_BEATS_STRONGEST;
 
     // Effect monsters are more valuable
     if (card.effect) score += 500;
@@ -652,7 +681,7 @@ export function pickSpellBuffTarget(
 
     // Bonus if close to being able to beat opponent's strongest
     const diff = oppMaxATK - fc.effectiveATK();
-    if (diff > 0 && diff < 1000) score += 800; // buff could unlock a kill
+    if (diff > 0 && diff < AI_SCORE.BUFF_KILL_THRESHOLD) score += AI_SCORE.BUFF_UNLOCK_KILL;
 
     if (score > bestScore) {
       bestScore = score;

@@ -286,7 +286,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         import('../../cards.js').then(({ OPPONENT_CONFIGS }) =>
           import('../../progression.js').then(({ Progression }) => {
             Progression.recordDuelResult(opponentId, result === 'victory');
-            const cfg = OPPONENT_CONFIGS.find((o: any) => o.id === opponentId);
+            const cfg = OPPONENT_CONFIGS.find((o) => o.id === opponentId);
             if (cfg) {
               coinsEarned = result === 'victory' ? cfg.coinsWin : 0;
               Progression.addCoins(coinsEarned);

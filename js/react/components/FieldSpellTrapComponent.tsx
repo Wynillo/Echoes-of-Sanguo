@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { attachHover } from './hoverApi.js';
 import { Card, cardTypeCss } from './Card.js';
 import { CardType } from '../../types.js';
+import type { FieldSpellTrap } from '../../types.js';
 
 interface Props {
-  fst: any;
+  fst: FieldSpellTrap;
   owner: 'player' | 'opponent';
   zone: number;
   interactive: boolean;
@@ -14,6 +16,7 @@ interface Props {
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
 
 export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick, onDetail }: Props) {
+  const { t } = useTranslation();
   const { card } = fst;
   const isPlayer = owner === 'player';
 
@@ -50,7 +53,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
            onClick={interactive ? onClick : undefined}
            onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
         <div className="facedown-overlay">
-          {card.type === CardType.Trap ? '⚠ Falle' : card.type === CardType.Equipment ? '⚔ Equip' : '✦ Zauber'}
+          {card.type === CardType.Trap ? t('game.facedown_trap') : card.type === CardType.Equipment ? t('game.facedown_equip') : t('game.facedown_spell')}
         </div>
       </div>
     );

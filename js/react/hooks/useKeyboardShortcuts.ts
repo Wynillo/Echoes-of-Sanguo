@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import type { GameState } from '../../types.js';
+import type { GameEngine } from '../../engine.js';
 
 interface Params {
   gameState: GameState | null;
-  gameRef:   React.MutableRefObject<any>;
+  gameRef:   React.MutableRefObject<GameEngine | null>;
   resetSel:  () => void;
   onHideDirect: () => void;
 }

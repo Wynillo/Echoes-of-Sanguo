@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        pixel: ['"Silkscreen"', 'monospace'],
+        pixel: ['"Pixelify Sans"', 'monospace'],
         title: ['"Press Start 2P"', 'monospace'],
       },
       borderRadius: {

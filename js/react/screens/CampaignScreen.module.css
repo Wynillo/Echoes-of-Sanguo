@@ -160,7 +160,7 @@
   color: #8090a0;
   text-align: center;
   margin-top: 2px;
-  font-family: 'Silkscreen', monospace;
+  font-family: 'Pixelify Sans', monospace;
   max-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -178,7 +178,7 @@
 .nodeStatus {
   font-size: 0.4rem;
   margin-top: 1px;
-  font-family: 'Silkscreen', monospace;
+  font-family: 'Pixelify Sans', monospace;
 }
 
 .statusCompleted {
@@ -219,7 +219,7 @@
   font-size: 0.75rem;
   line-height: 1.6;
   margin-bottom: 16px;
-  font-family: 'Silkscreen', monospace;
+  font-family: 'Pixelify Sans', monospace;
 }
 
 .dialogueClose {

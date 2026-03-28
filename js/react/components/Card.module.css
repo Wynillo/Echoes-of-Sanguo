@@ -149,7 +149,7 @@
 :global(.opponent-side) .descText     { font-size: 5px; -webkit-line-clamp: 1; }
 :global(.opponent-side) .cardStats    { padding: 1px 3px 2px; min-height: 13px; }
 :global(.opponent-side) .atkVal,
-:global(.opponent-side) .defVal       { font-size: 7px; }
+:global(.opponent-side) .defVal       { font-size: 8px; }
 
 /* ── Small-card layout (art + ATK/DEF + name) ───────────────────── */
 :global(.small-card) .cardArt { max-height: 80px; }

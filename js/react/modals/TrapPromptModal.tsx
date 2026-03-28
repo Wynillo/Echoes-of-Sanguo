@@ -10,7 +10,7 @@ export function TrapPromptModal({ modal }: Props) {
   const { opts, resolve } = modal;
   const { closeModal }   = useModal();
   const { t }            = useTranslation();
-  const card             = (CARD_DB as any)[opts.cardId];
+  const card             = CARD_DB[opts.cardId];
   const bc               = opts.battleContext;
 
   function answer(val: boolean) { closeModal(); resolve(val); }
@@ -36,8 +36,8 @@ export function TrapPromptModal({ modal }: Props) {
     }
   }
 
-  const attackerCard = bc?.attackerCardId != null ? (CARD_DB as any)[bc.attackerCardId] : null;
-  const defenderCard = bc?.defenderCardId != null ? (CARD_DB as any)[bc.defenderCardId] : null;
+  const attackerCard = bc?.attackerCardId != null ? CARD_DB[bc.attackerCardId] : null;
+  const defenderCard = bc?.defenderCardId != null ? CARD_DB[bc.defenderCardId] : null;
 
   return (
     <div id="trap-prompt-modal" className="modal" role="dialog" aria-modal="true">
