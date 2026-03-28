@@ -10,9 +10,10 @@ import {
 import { highlightCardText, highlightCardTextHTML } from '../utils/highlightCardText.js';
 import styles from './Card.module.css';
 
-/** Map a card to its type-based placeholder art URL, or null for normal/effect monsters. */
+/** Map a card to its type-based placeholder art URL, or null if none available. */
 function getPlaceholderUrl(card: CardData): string | null {
   switch (card.type) {
+    case CardType.Monster:    return './img/placeholders/monster.svg';
     case CardType.Fusion:     return './img/placeholders/fusion.svg';
     case CardType.Trap:       return './img/placeholders/trap.svg';
     case CardType.Equipment:  return './img/placeholders/equipment.svg';
@@ -20,13 +21,6 @@ function getPlaceholderUrl(card: CardData): string | null {
       return card.spellType === 'field'
         ? './img/placeholders/field-spell.svg'
         : './img/placeholders/spell.svg';
-    case CardType.Monster: {
-      const raceMeta = card.race != null ? getRaceById(card.race) : undefined;
-      if (raceMeta) {
-        return `./img/placeholders/monster-${raceMeta.key.toLowerCase()}.svg`;
-      }
-      return null;
-    }
     default:                  return null;
   }
 }
