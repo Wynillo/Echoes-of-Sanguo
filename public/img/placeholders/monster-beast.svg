@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="mg-beast" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#f09050"/>
+      <stop offset="45%" stop-color="#e07030"/>
+      <stop offset="100%" stop-color="#1a0808"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" fill="#100604"/>
+  <circle cx="128" cy="115" r="110" fill="url(#mg-beast)" opacity="0.6"/>
+  <!-- Tiger/beast crouching silhouette -->
+  <path d="M60,160 Q70,130 90,120 Q110,112 128,115 Q146,112 166,120 Q186,130 196,160" fill="none" stroke="#f0a060" stroke-width="4" opacity="0.5"/>
+  <!-- Head -->
+  <path d="M110,115 Q115,95 128,90 Q141,95 146,115" fill="none" stroke="#f0a060" stroke-width="3" opacity="0.5"/>
+  <!-- Ears -->
+  <path d="M115,100 L108,80 L120,95" fill="#e08040" opacity="0.3"/>
+  <path d="M141,100 L148,80 L136,95" fill="#e08040" opacity="0.3"/>
+  <!-- Eyes -->
+  <circle cx="120" cy="105" r="3" fill="#f0d060" opacity="0.7"/>
+  <circle cx="136" cy="105" r="3" fill="#f0d060" opacity="0.7"/>
+  <!-- Claw marks -->
+  <line x1="75" y1="160" x2="90" y2="200" stroke="#f09050" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <line x1="85" y1="158" x2="100" y2="198" stroke="#f09050" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <line x1="95" y1="156" x2="110" y2="196" stroke="#f09050" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <!-- Tail -->
+  <path d="M196,160 Q210,140 215,120 Q218,100 210,90" fill="none" stroke="#e07030" stroke-width="3" opacity="0.4"/>
+  <!-- Inner glow -->
+  <circle cx="128" cy="110" r="20" fill="#e07030" opacity="0.15"/>
+  <!-- Floating particles -->
+  <circle cx="55" cy="90" r="2" fill="#f0a060" opacity="0.6"/>
+  <circle cx="205" cy="80" r="2" fill="#f0c080" opacity="0.5"/>
+  <circle cx="45" cy="180" r="1.5" fill="#e07030" opacity="0.4"/>
+  <circle cx="210" cy="170" r="1.5" fill="#f0a060" opacity="0.4"/>
+  <!-- Sparkles -->
+  <text x="40" y="70" font-size="9" fill="#f0a060" opacity="0.5">&#x2726;</text>
+  <text x="200" y="65" font-size="8" fill="#f0c080" opacity="0.4">&#x2726;</text>
+</svg>

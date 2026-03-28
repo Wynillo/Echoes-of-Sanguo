@@ -20,6 +20,13 @@ function getPlaceholderUrl(card: CardData): string | null {
       return card.spellType === 'field'
         ? './img/placeholders/field-spell.svg'
         : './img/placeholders/spell.svg';
+    case CardType.Monster: {
+      const raceMeta = card.race != null ? getRaceById(card.race) : undefined;
+      if (raceMeta) {
+        return `./img/placeholders/monster-${raceMeta.key.toLowerCase()}.svg`;
+      }
+      return null;
+    }
     default:                  return null;
   }
 }

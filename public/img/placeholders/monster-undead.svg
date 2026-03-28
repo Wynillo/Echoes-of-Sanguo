@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="mg-undead" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#a060b0"/>
+      <stop offset="45%" stop-color="#804090"/>
+      <stop offset="100%" stop-color="#100818"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" fill="#0a0610"/>
+  <circle cx="128" cy="108" r="110" fill="url(#mg-undead)" opacity="0.7"/>
+  <!-- Skull outline -->
+  <path d="M95,120 Q90,90 100,70 Q110,52 128,48 Q146,52 156,70 Q166,90 161,120" fill="#605070" opacity="0.35"/>
+  <path d="M95,120 Q100,140 115,145 Q120,146 128,148 Q136,146 141,145 Q156,140 161,120" fill="#504060" opacity="0.3"/>
+  <!-- Eye sockets -->
+  <ellipse cx="112" cy="95" rx="10" ry="12" fill="#200830" opacity="0.7"/>
+  <ellipse cx="144" cy="95" rx="10" ry="12" fill="#200830" opacity="0.7"/>
+  <!-- Eye glow -->
+  <circle cx="112" cy="95" r="4" fill="#c060e0" opacity="0.5"/>
+  <circle cx="144" cy="95" r="4" fill="#c060e0" opacity="0.5"/>
+  <!-- Nose cavity -->
+  <path d="M124,110 L128,118 L132,110" fill="#200830" opacity="0.5"/>
+  <!-- Teeth hint -->
+  <line x1="115" y1="132" x2="115" y2="140" stroke="#605070" stroke-width="2" opacity="0.3"/>
+  <line x1="123" y1="134" x2="123" y2="142" stroke="#605070" stroke-width="2" opacity="0.3"/>
+  <line x1="133" y1="134" x2="133" y2="142" stroke="#605070" stroke-width="2" opacity="0.3"/>
+  <line x1="141" y1="132" x2="141" y2="140" stroke="#605070" stroke-width="2" opacity="0.3"/>
+  <!-- Ectoplasm wisps -->
+  <path d="M85,130 Q70,150 60,180 Q55,200 65,215" fill="none" stroke="#a070c0" stroke-width="2.5" opacity="0.35"/>
+  <path d="M171,130 Q186,150 196,180 Q201,200 191,215" fill="none" stroke="#a070c0" stroke-width="2.5" opacity="0.35"/>
+  <path d="M100,145 Q85,170 80,200" fill="none" stroke="#9060b0" stroke-width="1.5" opacity="0.25"/>
+  <path d="M156,145 Q171,170 176,200" fill="none" stroke="#9060b0" stroke-width="1.5" opacity="0.25"/>
+  <!-- Inner glow -->
+  <circle cx="128" cy="100" r="22" fill="#804090" opacity="0.15"/>
+  <!-- Floating particles -->
+  <circle cx="60" cy="80" r="2" fill="#c080d0" opacity="0.6"/>
+  <circle cx="200" cy="75" r="2" fill="#a070c0" opacity="0.5"/>
+  <circle cx="50" cy="160" r="1.5" fill="#9060b0" opacity="0.4"/>
+  <circle cx="205" cy="155" r="1.5" fill="#c080d0" opacity="0.4"/>
+  <!-- Sparkles -->
+  <text x="45" y="60" font-size="9" fill="#c080d0" opacity="0.5">&#x2726;</text>
+  <text x="195" y="55" font-size="8" fill="#a070c0" opacity="0.4">&#x2726;</text>
+  <text x="128" y="210" font-size="8" fill="#9060b0" opacity="0.35">&#x2726;</text>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="mg-rock" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#a0a080"/>
+      <stop offset="45%" stop-color="#808060"/>
+      <stop offset="100%" stop-color="#101008"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" fill="#0a0a06"/>
+  <circle cx="128" cy="128" r="110" fill="url(#mg-rock)" opacity="0.6"/>
+  <!-- Crystal/boulder formation -->
+  <polygon points="128,40 155,100 145,105 128,50 111,105 101,100" fill="#909070" opacity="0.5"/>
+  <polygon points="100,70 120,110 108,115 85,80" fill="#808060" opacity="0.4"/>
+  <polygon points="156,70 136,110 148,115 171,80" fill="#808060" opacity="0.4"/>
+  <!-- Central boulder -->
+  <polygon points="80,140 105,100 128,95 151,100 176,140 165,180 91,180" fill="#606050" opacity="0.4"/>
+  <polygon points="90,145 110,108 128,103 146,108 166,145 158,175 98,175" fill="#707060" opacity="0.3"/>
+  <!-- Crystal highlight -->
+  <polygon points="128,45 138,85 128,55 118,85" fill="#c0c0a0" opacity="0.3"/>
+  <!-- Cracks -->
+  <line x1="128" y1="95" x2="125" y2="140" stroke="#505040" stroke-width="1.5" opacity="0.5"/>
+  <line x1="125" y1="140" x2="110" y2="170" stroke="#505040" stroke-width="1" opacity="0.4"/>
+  <line x1="125" y1="140" x2="145" y2="165" stroke="#505040" stroke-width="1" opacity="0.4"/>
+  <!-- Ground debris -->
+  <polygon points="65,190 80,180 90,192" fill="#606050" opacity="0.3"/>
+  <polygon points="170,188 185,178 190,190" fill="#606050" opacity="0.3"/>
+  <!-- Inner glow -->
+  <circle cx="128" cy="110" r="20" fill="#a0a080" opacity="0.12"/>
+  <!-- Floating particles (dust) -->
+  <circle cx="60" cy="100" r="2" fill="#b0b090" opacity="0.5"/>
+  <circle cx="198" cy="95" r="2" fill="#a0a080" opacity="0.4"/>
+  <circle cx="75" cy="60" r="1.5" fill="#c0c0a0" opacity="0.4"/>
+  <circle cx="185" cy="55" r="1.5" fill="#b0b090" opacity="0.4"/>
+  <!-- Sparkles -->
+  <text x="50" y="75" font-size="9" fill="#c0c0a0" opacity="0.5">&#x2726;</text>
+  <text x="195" y="70" font-size="8" fill="#b0b090" opacity="0.4">&#x2726;</text>
+</svg>

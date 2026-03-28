@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="mg-aqua" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#50a0d0"/>
+      <stop offset="45%" stop-color="#3080b0"/>
+      <stop offset="100%" stop-color="#040c18"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" fill="#020810"/>
+  <circle cx="128" cy="120" r="110" fill="url(#mg-aqua)" opacity="0.7"/>
+  <!-- Wave patterns -->
+  <path d="M20,120 Q50,100 80,120 Q110,140 140,120 Q170,100 200,120 Q230,140 256,120" fill="none" stroke="#60b0d0" stroke-width="3" opacity="0.4"/>
+  <path d="M20,145 Q50,125 80,145 Q110,165 140,145 Q170,125 200,145 Q230,165 256,145" fill="none" stroke="#50a0c0" stroke-width="2.5" opacity="0.35"/>
+  <path d="M20,170 Q50,150 80,170 Q110,190 140,170 Q170,150 200,170 Q230,190 256,170" fill="none" stroke="#4090b0" stroke-width="2" opacity="0.3"/>
+  <!-- Serpent/fish silhouette -->
+  <path d="M70,100 Q90,80 110,85 Q128,90 140,80 Q155,70 170,75 Q185,80 190,95 Q195,110 185,115 Q175,120 160,115" fill="none" stroke="#70c0e0" stroke-width="3" opacity="0.45"/>
+  <!-- Serpent eye -->
+  <circle cx="178" cy="90" r="3" fill="#a0e0ff" opacity="0.6"/>
+  <!-- Tail fin -->
+  <path d="M70,100 Q55,90 50,75" fill="none" stroke="#60b0d0" stroke-width="2.5" opacity="0.4"/>
+  <path d="M70,100 Q55,105 48,95" fill="none" stroke="#60b0d0" stroke-width="2" opacity="0.35"/>
+  <!-- Bubbles -->
+  <circle cx="95" cy="60" r="5" fill="none" stroke="#80d0f0" stroke-width="1" opacity="0.4"/>
+  <circle cx="160" cy="55" r="4" fill="none" stroke="#80d0f0" stroke-width="1" opacity="0.35"/>
+  <circle cx="110" cy="45" r="3" fill="none" stroke="#a0e0ff" stroke-width="1" opacity="0.3"/>
+  <!-- Inner glow -->
+  <circle cx="128" cy="110" r="25" fill="#3080b0" opacity="0.15"/>
+  <!-- Floating particles -->
+  <circle cx="55" cy="80" r="2" fill="#80d0f0" opacity="0.6"/>
+  <circle cx="205" cy="85" r="2" fill="#a0e0ff" opacity="0.5"/>
+  <circle cx="40" cy="190" r="1.5" fill="#60b0d0" opacity="0.4"/>
+  <circle cx="215" cy="185" r="1.5" fill="#80d0f0" opacity="0.4"/>
+  <!-- Sparkles -->
+  <text x="40" y="55" font-size="9" fill="#a0e0ff" opacity="0.5">&#x2726;</text>
+  <text x="200" y="50" font-size="8" fill="#80d0f0" opacity="0.4">&#x2726;</text>
+</svg>
