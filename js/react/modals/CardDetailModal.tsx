@@ -99,8 +99,8 @@ export function CardDetailModal({ modal }: Props) {
           startSpellTargeting(card, index, state, game, setSel, openModal, closeModal, t);
         } else {
           game.activateSpell('player', index);
+          closeModal();
         }
-        closeModal();
       }));
       actions.push(actionBtn(t('card_action.set_spell'), () => {
         const zone = state.player.field.spellTraps.findIndex((z): z is null => z === null);
@@ -140,7 +140,6 @@ export function CardDetailModal({ modal }: Props) {
       if (phase === 'battle' && card.trapTrigger === 'manual') {
         actions.push(actionBtn(t('card_action.activate_trap'), () => {
           startTrapTargeting(card, index, state, game, setSel, closeModal, t);
-          closeModal();
         }));
       }
     }
@@ -202,15 +201,19 @@ function startSpellTargeting(card: CardData, handIndex: number, state: GameState
     const targets = state.player.field.monsters
       .map((fc, i) => ({ fc, zone: i }))
       .filter((e): e is { fc: FieldCard; zone: number } => e.fc !== null);
-    if (!targets.length) return;
+    if (!targets.length) { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); close(); return; }
     if (targets.length === 1) { game.activateSpell('player', handIndex, targets[0].fc); close(); return; }
     setSel({ mode: 'spell-target', spellHandIndex: handIndex, spellCard: card, hint: t('card_action.hint_spell_own') });
+    close();
   } else if (card.spellType === 'targeted' && card.target === 'ownDarkMonster') {
     const fc = state.player.field.monsters.find(m => m && m.card.attribute === Attribute.Dark);
-    if (fc) game.activateSpell('player', handIndex, fc);
+    if (fc) { game.activateSpell('player', handIndex, fc); }
+    else { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); }
+    close();
   } else if (card.spellType === 'fromGrave') {
     const monsters = state.player.graveyard.filter(c => isMonsterType(c.type));
-    if (!monsters.length) return;
+    if (!monsters.length) { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); close(); return; }
+    close();
     openModal({ type: 'grave-select', cards: monsters, resolve: (chosen) => game.activateSpell('player', handIndex, chosen) });
   }
 }
@@ -220,22 +223,26 @@ function startFieldSpellTargeting(card: CardData, zone: number, state: GameState
     const targets = state.player.field.monsters
       .map((fc, i) => ({ fc, zone: i }))
       .filter((e): e is { fc: FieldCard; zone: number } => e.fc !== null);
-    if (!targets.length) return;
+    if (!targets.length) { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); close(); return; }
     if (targets.length === 1) { game.activateSpellFromField('player', zone, targets[0].fc); close(); return; }
     setSel({ mode: 'field-spell-target', spellFieldZone: zone, spellCard: card, hint: t('card_action.hint_spell_own') });
     close();
   } else if (card.spellType === 'targeted' && card.target === 'ownDarkMonster') {
     const fc = state.player.field.monsters.find(m => m && m.card.attribute === Attribute.Dark);
-    if (fc) { game.activateSpellFromField('player', zone, fc); close(); }
+    if (fc) { game.activateSpellFromField('player', zone, fc); }
+    else { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); }
+    close();
   } else if (card.spellType === 'fromGrave') {
     const monsters = state.player.graveyard.filter(c => isMonsterType(c.type));
-    if (!monsters.length) return;
+    if (!monsters.length) { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); close(); return; }
+    close();
     openModal({ type: 'grave-select', cards: monsters, resolve: (chosen) => game.activateSpellFromField('player', zone, chosen) });
   }
 }
 
-function startTrapTargeting(card: CardData, handIndex: number, _state: GameState, _game: GameEngine, setSel: SetSel, _close: () => void, t: TFunc) {
+function startTrapTargeting(card: CardData, handIndex: number, _state: GameState, _game: GameEngine, setSel: SetSel, close: () => void, t: TFunc) {
   if (card.target === 'oppMonster') {
     setSel({ mode: 'trap-target', spellHandIndex: handIndex, spellCard: card, hint: t('card_action.hint_trap_opp') });
   }
+  close();
 }
