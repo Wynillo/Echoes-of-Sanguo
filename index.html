@@ -11,7 +11,47 @@
   <link rel="stylesheet" href="css/progression.css">
 </head>
 <body>
-<div id="react-root"></div>
+<div id="react-root">
+  <style>
+    .loading-screen {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 24px;
+      background: url('/title-bg.png') center center/cover no-repeat, #080c18;
+      z-index: 100;
+    }
+    .loading-screen p {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      color: #f0d080;
+      text-shadow: 0 0 10px rgba(255, 220, 100, 0.6);
+      animation: loading-blink 1.2s step-start infinite;
+    }
+    .loading-bar-track {
+      width: 200px; height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .loading-bar-fill {
+      height: 100%; width: 0%;
+      background: #f0d080;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    @keyframes loading-blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+  <div class="loading-screen">
+    <p>LOADING…</p>
+    <div class="loading-bar-track">
+      <div class="loading-bar-fill" id="loading-bar"></div>
+    </div>
+  </div>
+</div>
 <div id="crt-overlay"></div>
 <script type="module" src="/js/main.ts"></script>
 </body>

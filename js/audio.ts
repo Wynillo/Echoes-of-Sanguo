@@ -95,6 +95,7 @@ function setVolumes(master: number, music: number, sfx: number): void {
 const MUSIC_FADE_S = 0.4; // crossfade duration in seconds
 
 async function playMusic(trackId: string): Promise<void> {
+  _ensureContext();
   if (_currentMusic?.id === trackId) return;
 
   // Fade out and schedule stop of the outgoing track
