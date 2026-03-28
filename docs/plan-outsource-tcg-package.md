@@ -100,7 +100,7 @@ The correct strategy is **Option C — converters stay in the engine, the packag
 - `js/tcg-format/enums.ts` moves to `js/enums.ts` (engine file), keeping its game imports untouched
 - The package's `src/` has **no converter functions** — it deals purely in raw ints (the wire format already uses ints)
 - `TcgParsedCard` uses `number` fields for type/attribute/race/rarity (same numeric values as the engine enums, but typed as `number` in the package's namespace)
-- The bridge's `decodedToCardData` is a trivial spread — TypeScript numeric enum values are assignable to `number`, so `{ ...decoded, effect }` is type-safe without casting
+- The bridge's `parsedToCardData()` does explicit conversions — casts for enum fields (`type as CardType`) and `intToSpellType`/`intToTrapTrigger` calls for the string-typed fields. A simple spread is not sufficient (see Step 5).
 
 This means no call sites in the engine change at all.
 
@@ -126,19 +126,19 @@ echoes-of-sanguo-tcg-format/
 ├── src/
 │   ├── index.ts          # public API barrel
 │   ├── types.ts          # TcgCard, TcgManifest, TcgMeta, TcgParsedCard, etc. (NO effect types)
-│   ├── enums.ts          # refactored: string literal types, NO game imports
-│   ├── card-validator.ts
+│   │                     # NO enums.ts — converters stay in engine; package uses raw ints only
+│   ├── card-validator.ts # isValidTrigger + isValidSpellType inlined here (small string sets)
 │   ├── def-validator.ts
 │   ├── opp-desc-validator.ts
 │   ├── tcg-validator.ts
-│   ├── tcg-loader.ts     # refactored: pure, returns expanded TcgLoadResult
+│   ├── tcg-loader.ts     # refactored: pure, returns expanded TcgLoadResult; accepts lang param
 │   ├── tcg-packer.ts     # packs a source folder → .tcg ZIP (used by CLI + programmatic API)
-│   └── cli.ts            # CLI entry point: validate, pack, inspect commands
+│   └── cli.ts            # CLI entry point: validate, pack, inspect commands (uses fs.readFile)
 └── tests/
-    ├── tcg-format.test.js   # enum/validator tests (moved from main repo)
+    ├── tcg-validator.test.js # moved from main repo
     ├── tcg-loader.test.js   # loader tests (adapted for new pure API)
     ├── tcg-packer.test.js   # packing tests
-    └── tcg-validator.test.js # moved from main repo
+    └── tcg-card-validator.test.js # card/def/opp-desc validator tests
 ```
 
 **NOT in the package (stays in game repo):**
@@ -161,6 +161,7 @@ echoes-of-sanguo-tcg-format/
   },
   "dependencies": { "jszip": "^3.10.1" },
   "devDependencies": { "typescript": "^6.0.2", "vitest": "^4.1.2" },
+  "engines": { "node": ">=18" },
   "scripts": {
     "build": "tsc",
     "test": "vitest run"
@@ -281,7 +282,7 @@ export async function loadTcgFile(
 
 Remove `getBrowserLang()` / `navigator.language` from the loader. The bridge passes `navigator.language.substring(0, 2)` from the browser context. The CLI passes `options.lang` from a `--lang` flag.
 
-**Two other key changes**:
+**Three other key changes**:
 1. `URL.createObjectURL` is browser-only — the loader returns raw `ArrayBuffer` per image. The bridge creates blob URLs. `revokeTcgImages()` moves to the bridge.
 2. `tcgCardToCardData()` is removed from the loader — the bridge handles `TcgParsedCard → CardData` conversion via an explicit `parsedToCardData()` function (see Step 10).
 3. `applyTcgMeta()` and `applyFusionFormulas()` are currently unexported local functions in `tcg-loader.ts`. Their bodies move to the bridge — they mutate game stores and have no place in a pure loader.
@@ -372,13 +373,22 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
     }
   }
 
+  // Wrap all intTo* calls consistently — throw → warn, never crash the load loop
+  let type = 1 as CardType;  // fallback: Monster
+  try { type = intToCardType(p.type, !!p.effectString); }
+  catch { warnings.push(`Card ${p.id}: unknown type int ${p.type}, defaulting to Monster`); }
+
+  let rarity = 1 as Rarity;  // fallback: Common
+  try { rarity = intToRarity(p.rarity); }
+  catch { warnings.push(`Card ${p.id}: unknown rarity int ${p.rarity}, defaulting to Common`); }
+
   const card: CardData = {
     id:          p.id,
     name:        p.name,
-    type:        intToCardType(p.type, !!p.effectString),
+    type,
     description: p.description,
     level:       p.level ?? undefined,
-    rarity:      intToRarity(p.rarity),
+    rarity,
   };
 
   if (p.atk !== undefined) card.atk = p.atk;
@@ -472,6 +482,12 @@ function applyFusionFormulas(raw: TcgFusionFormula[]): void {
   FUSION_FORMULAS.push(...converted);
 }
 
+// ── BridgeLoadResult — replaces rawImages with ready-to-use blob URLs ────────
+export interface BridgeLoadResult extends Omit<TcgLoadResult, 'rawImages'> {
+  images: Map<number, string>;  // card id → blob URL (created by bridge; revoke via revokeTcgImages)
+  warnings: string[];
+}
+
 // ── Image handling ────────────────────────────────────────────
 // Bridge creates blob URLs from raw ArrayBuffers (loader is environment-agnostic)
 const blobUrls: Map<number, string> = new Map();
@@ -491,7 +507,7 @@ export function revokeTcgImages(): void {
 export async function loadAndApplyTcg(
   source: string | ArrayBuffer,
   onProgress?: (percent: number) => void,
-): Promise<TcgLoadResult> {
+): Promise<BridgeLoadResult> {
   const lang = typeof navigator !== 'undefined' ? navigator.language.substring(0, 2) : '';
   const result = await loadTcgFile(source, { lang, onProgress });
   const mod: LoadedMod = {
@@ -508,8 +524,8 @@ export async function loadAndApplyTcg(
     mod.cardIds.push(parsed.id);
   }
 
-  // Convert raw image ArrayBuffers → blob URLs
-  applyImages(result.rawImages);
+  // Convert raw ArrayBuffers → blob URLs; return images instead of rawImages
+  const images = applyImages(result.rawImages);
 
   // Apply game-specific side effects
   if (result.typeMeta?.races)      applyTypeMeta({ races: result.typeMeta.races });
@@ -523,7 +539,8 @@ export async function loadAndApplyTcg(
   if (result.fusionFormulas) applyFusionFormulas(result.fusionFormulas);
 
   loadedMods.push(mod);
-  return result;
+  const { rawImages: _, ...rest } = result;
+  return { ...rest, images };
 }
 
 /**
@@ -701,6 +718,23 @@ The package ships a CLI tool via `npx @wynillo/tcg-format <command>`:
 
 The CLI is implemented in `src/cli.ts` and uses the same validation/packing functions exposed in the public API. The `generate-base-tcg.ts` script in the game repo is replaced by `npx @wynillo/tcg-format pack public/base.tcg-src/ -o public/base.tcg` (or a thin programmatic wrapper).
 
+**CLI file I/O pattern** — the CLI never uses `fetch()`. It reads files via `fs.readFile` and passes an `ArrayBuffer` to the package's functions:
+```typescript
+// src/cli.ts (Node.js — safe fs usage)
+import { readFile } from 'node:fs/promises';
+
+// inspect <file>
+const buf = await readFile(filePath);
+const result = await loadTcgFile(buf.buffer, { lang: options.lang ?? '' });
+
+// validate <dir>  — reads source folder JSON files directly, no ZIP involved
+// pack <dir> -o <file> — reads source folder, calls packTcgArchive(), writes output
+```
+
+The `loadTcgFile` function accepts `string | ArrayBuffer`. When `source` is a `string`, the loader uses `fetch()` (available in browsers and Node.js ≥ 18). When `source` is an `ArrayBuffer`, no network call is made. The CLI always passes an `ArrayBuffer` so `fetch` is never called from the CLI path.
+
+**Node.js version requirement**: The package requires `"node": ">=18"` (for native `fetch` when URL strings are passed, and for `node:fs/promises`). This is documented in `package.json`'s `engines` field.
+
 Note: The CLI does NOT validate effect strings semantically — it only checks JSON structure and int ranges. Effect strings are opaque at the format level. A future `--engine-validate` flag could accept a path to an engine types file to check effect strings against known types.
 
 ---
@@ -836,6 +870,12 @@ window.EchoesOfSanguoMod.unloadModCards('https://mod-author.com/my-expansion.tcg
 
 **Format version forward-compatibility**: The `SUPPORTED_FORMAT_VERSION` guard stays in the package loader. When a mod ships a v3 `.tcg` and the game only supports v2, it throws `TcgFormatError` with a clear message. The game repo updates the package version to gain v3 support — same flow as today with an inline version bump.
 
+**CORS constraint**: `loadModTcg('https://...')` uses `fetch()` internally, which is subject to browser CORS policy. If the mod author's server does not set `Access-Control-Allow-Origin: *`, the fetch will fail with a network error. Mod authors must either:
+- Host their `.tcg` file on a CORS-enabled server (most CDNs do this by default)
+- Distribute the file for users to load locally (e.g. drag-and-drop into the game UI — pass `ArrayBuffer` directly)
+
+Document this in the modder guide shipped with `eos-engine.d.ts`.
+
 ---
 
 ## Known Limitations / Follow-up Issues
@@ -871,6 +911,36 @@ When a mod ships a card with the same numeric ID as an existing card, the bridge
 `npx @wynillo/tcg-format validate <dir>` checks JSON structure and int ranges but does not validate effect string content (unknown action types, wrong arg counts). This is intentional — the package treats effects as opaque — but modders would benefit from a `--engine-validate` flag that accepts a path to `eos-engine.d.ts` and checks effect strings against known types.
 
 **Track as**: `feat(cli): --engine-validate flag for semantic effect string checking`.
+
+### 4. `rawImages` uses `ArrayBuffer` — consider `Uint8Array` in v2
+
+`TcgLoadResult.rawImages` is `Map<number, ArrayBuffer>`. `Uint8Array` is more ergonomic for both browser (`new Blob([uint8arr])`) and Node.js consumers, and is the preferred type in modern Web APIs. The bridge wraps the buffer in `new Blob([buf])` regardless, so the difference is minor. Changing the type would be a minor semver bump since it's a pure public API improvement.
+
+**Track as**: `refactor(loader): use Uint8Array instead of ArrayBuffer for rawImages`.
+
+### 5. TriggerBus (Step 15) should be a separate PR
+
+Steps 15–16 (TriggerBus + `eos-engine.d.ts` generation) are independent of the package extraction. TriggerBus touches `engine.ts` — the most critical and complex file in the codebase — and changes the effect dispatch model. Mixing it into the package extraction PR increases review burden and rollback complexity if something goes wrong.
+
+**Recommendation**: Ship Steps 1–14 + 17 as the package extraction PR. Open a follow-up PR for Steps 15–16 once the extraction is stable.
+
+---
+
+## Package Versioning Strategy
+
+`@wynillo/tcg-format` follows semver. The game repo pins a **caret range** (`"^1.0.0"`) to receive non-breaking updates automatically.
+
+| Change type | Semver bump | Example |
+|---|---|---|
+| New **optional** field in `TcgCard` or `TcgLoadResult` | **minor** | Add `fusionFormulas?` to result |
+| New **required** field in `TcgCard` | **major** | Any new mandatory wire field |
+| `TcgManifest.formatVersion` bump | **minor** (if backward-compatible) or **major** | Format v2 → v3 |
+| Bug fix or validation improvement | **patch** | Fix off-by-one in int range check |
+| New CLI command or flag | **minor** | Add `--lang` flag to `inspect` |
+
+**`formatVersion` vs npm version**: These are independent. `formatVersion` in `TcgManifest` is the wire format version (checked at load time). The npm package version tracks the package's own code. A package `v1.2.0` can still load format v2 archives.
+
+**Game repo constraint**: The game repo should use `"@wynillo/tcg-format": "^1.0.0"` (caret). When a major version bump is needed, update the game repo's `package.json` explicitly and migrate any changed API call sites.
 
 ---
 
