@@ -125,16 +125,23 @@ export function HandArea() {
       <div id="player-hand">
         {player.hand.map((card, i) => {
           const isNewlyDrawn = i >= newDrawBase;
-          const playable     = isMyTurn && phase === 'main';
+          const isMon        = isMonsterType(card.type);
+          const playable     = isMyTurn && phase === 'main' && (
+            isMon
+              ? !player.normalSummonUsed && player.field.monsters.some(z => z === null)
+              : player.field.spellTraps.some(z => z === null)
+          );
           const inFusion     = fusionGroup.includes(i);
           const fusionIdx    = inFusion ? fusionGroup.indexOf(i) : undefined;
           const fusionable   = selMode === 'fusion1' && i !== sel.fusion1?.handIndex;
           const targetable   = selMode === 'fusion1' && i !== sel.fusion1?.handIndex;
+          const dimmed       = isMyTurn && phase === 'main' && !playable && !inFusion;
           return (
             <HandCard
               key={`${card.id}-${i}`}
               card={card} index={i}
               playable={playable}
+              dimmed={dimmed}
               fusionable={fusionable}
               targetable={targetable}
               fusionSelected={inFusion}

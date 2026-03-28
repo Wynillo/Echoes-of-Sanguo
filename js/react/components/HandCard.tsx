@@ -7,6 +7,7 @@ interface Props {
   card: any;
   index: number;
   playable: boolean;
+  dimmed?: boolean;
   fusionable: boolean;
   targetable: boolean;
   chainSelected?: boolean;
@@ -19,7 +20,7 @@ interface Props {
   onLongPress?: () => void;
 }
 
-export function HandCard({ card, index, playable, fusionable, targetable, chainSelected, chainIndex, fusionSelected, fusionIndex, newlyDrawn, drawDelay, onClick, onLongPress }: Props) {
+export function HandCard({ card, index, playable, dimmed, fusionable, targetable, chainSelected, chainIndex, fusionSelected, fusionIndex, newlyDrawn, drawDelay, onClick, onLongPress }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   const isSelected = chainSelected || fusionSelected;
@@ -35,6 +36,7 @@ export function HandCard({ card, index, playable, fusionable, targetable, chainS
     `${cardTypeCss(card)}-card`,
     `attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`,
     playable       ? 'playable'       : '',
+    dimmed         ? 'dimmed'         : '',
     fusionable     ? 'fusionable'     : '',
     targetable     ? 'targetable'     : '',
     isSelected     ? 'chain-selected' : '',
