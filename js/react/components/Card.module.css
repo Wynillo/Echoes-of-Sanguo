@@ -101,8 +101,8 @@
   gap: 4px;
 }
 
-.atkVal { font-size: 9px; font-weight: bold; color: #ff9955; }
-.defVal { font-size: 9px; font-weight: bold; color: #55aaff; }
+.atkVal { font-size: 9px; font-weight: bold; color: #ff9955; font-family: var(--font-stats); }
+.defVal { font-size: 9px; font-weight: bold; color: #55aaff; font-family: var(--font-stats); }
 
 /* Per-stat buff/nerf coloring */
 .statBuffed { color: #88ff88 !important; }

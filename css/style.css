@@ -41,6 +41,7 @@ button:focus-visible, [role="button"]:focus-visible {
   --card-h-opp:  94px;
   --card-w-big:  180px;
   --card-h-big:  248px;
+  --font-stats:  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 html {
@@ -518,12 +519,12 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .equipment-card { border-color: rgba(224,128,48,0.8); }
 
 /* Type background tints — color wash layered over attr gradient */
-.normal-card::before { content:''; position:absolute; inset:0; background:rgba(220,220,220,0.15); z-index:0; pointer-events:none; border-radius:0; }
-.effect-card::before { content:''; position:absolute; inset:0; background:rgba(160,80,20,0.22);  z-index:0; pointer-events:none; border-radius:0; }
-.fusion-card::before { content:''; position:absolute; inset:0; background:rgba(120,40,200,0.25); z-index:0; pointer-events:none; border-radius:0; }
-.spell-card::before  { content:''; position:absolute; inset:0; background:rgba(20,140,80,0.22);  z-index:0; pointer-events:none; border-radius:0; }
-.trap-card::before      { content:''; position:absolute; inset:0; background:rgba(180,20,60,0.22);  z-index:0; pointer-events:none; border-radius:0; }
-.equipment-card::before { content:''; position:absolute; inset:0; background:rgba(224,128,48,0.22); z-index:0; pointer-events:none; border-radius:0; }
+.normal-card::before { content:''; position:absolute; inset:0; background:rgba(220,220,220,0.35); z-index:0; pointer-events:none; border-radius:0; }
+.effect-card::before { content:''; position:absolute; inset:0; background:rgba(160,80,20,0.45);  z-index:0; pointer-events:none; border-radius:0; }
+.fusion-card::before { content:''; position:absolute; inset:0; background:rgba(120,40,200,0.50); z-index:0; pointer-events:none; border-radius:0; }
+.spell-card::before  { content:''; position:absolute; inset:0; background:rgba(20,140,80,0.45);  z-index:0; pointer-events:none; border-radius:0; }
+.trap-card::before      { content:''; position:absolute; inset:0; background:rgba(180,20,60,0.45);  z-index:0; pointer-events:none; border-radius:0; }
+.equipment-card::before { content:''; position:absolute; inset:0; background:rgba(224,128,48,0.45); z-index:0; pointer-events:none; border-radius:0; }
 
 /* Attribute backgrounds */
 .attr-fire  { background: #451005; }
@@ -795,7 +796,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .detail-info h2 { color: var(--gold-light); font-size: 1.125rem; margin-bottom: 6px; text-align: left; }
 .detail-type  { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; }
 .detail-desc  { font-size: 0.75rem; color: var(--text); line-height: 1.5; margin-bottom: 8px; }
-.detail-stats { font-size: 0.875rem; font-weight: bold; color: var(--gold); }
+.detail-stats { font-size: 0.875rem; font-weight: bold; color: var(--gold); font-family: var(--font-stats); }
 
 /* ── Card description keyword highlights ──────────────────── */
 .kw-effect  { font-weight: bold; color: #ff9955; }
