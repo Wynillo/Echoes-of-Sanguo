@@ -34,7 +34,7 @@ export function CardActivationOverlay() {
     gsap.set(con, { y: 50, scale: 0.75, opacity: 0 });
 
     pushAnim();
-    const unsub = onSkip(() => { tl.timeScale(8); });
+    const unsub = onSkip(() => { tl.progress(1); });
 
     const tl = gsap.timeline({
       onComplete() { popAnim(); unsub(); setAct(null); act.resolve(); },
