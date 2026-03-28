@@ -43,10 +43,10 @@ export default function CampaignScreen() {
   const PADDING_BOTTOM = 50; // px bottom padding
 
   const { nodePositions, mapHeight } = useMemo(() => {
-    if (!activeChapter) return { nodePositions: new Map<string, { leftPct: number; topPx: number }>(), mapHeight: 300 };
+    if (visibleNodes.length === 0) return { nodePositions: new Map<string, { leftPct: number; topPx: number }>(), mapHeight: 300 };
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    for (const node of activeChapter.nodes) {
+    for (const node of visibleNodes) {
       if (node.position.x < minX) minX = node.position.x;
       if (node.position.x > maxX) maxX = node.position.x;
       if (node.position.y < minY) minY = node.position.y;
@@ -57,7 +57,7 @@ export default function CampaignScreen() {
     const rangeY = maxY - minY;
 
     const positions = new Map<string, { leftPct: number; topPx: number }>();
-    for (const node of activeChapter.nodes) {
+    for (const node of visibleNodes) {
       const leftPct = rangeX === 0
         ? 50
         : PADDING_X + ((node.position.x - minX) / rangeX) * (100 - 2 * PADDING_X);
@@ -69,13 +69,23 @@ export default function CampaignScreen() {
 
     const maxTop = Math.max(...Array.from(positions.values()).map(p => p.topPx));
     return { nodePositions: positions, mapHeight: maxTop + PADDING_BOTTOM };
-  }, [activeChapter]);
+  }, [visibleNodes]);
 
   function getNodeState(node: CampaignNode): 'completed' | 'available' | 'locked' {
     if (progress.completedNodes.includes(node.id)) return 'completed';
     if (isNodeUnlocked(node.id)) return 'available';
     return 'locked';
   }
+
+  // Only show nodes that are available/completed, or locked but marked alwaysVisible
+  const visibleNodes = useMemo(() => {
+    if (!activeChapter) return [];
+    return activeChapter.nodes.filter(node => {
+      const state = getNodeState(node);
+      if (state !== 'locked') return true;
+      return node.alwaysVisible === true;
+    });
+  }, [activeChapter, progress.completedNodes]);
 
   function handleNodeClick(node: CampaignNode) {
     const state = getNodeState(node);
@@ -142,14 +152,16 @@ export default function CampaignScreen() {
     setDialogueNode(null);
   }
 
-  // Build connection lines from node.connections
+  // Build connection lines between visible nodes only
   const connections = useMemo(() => {
     if (!activeChapter) return [];
+    const visibleSet = new Set(visibleNodes.map(n => n.id));
     const nodeMap = new Map(activeChapter.nodes.map(n => [n.id, n]));
     const lines: Array<{ from: CampaignNode; to: CampaignNode; completed: boolean }> = [];
-    for (const node of activeChapter.nodes) {
+    for (const node of visibleNodes) {
       if (node.connections) {
         for (const targetId of node.connections) {
+          if (!visibleSet.has(targetId)) continue;
           const target = nodeMap.get(targetId);
           if (target) {
             const completed = progress.completedNodes.includes(node.id) && progress.completedNodes.includes(targetId);
@@ -159,7 +171,7 @@ export default function CampaignScreen() {
       }
     }
     return lines;
-  }, [activeChapter, progress.completedNodes]);
+  }, [activeChapter, visibleNodes, progress.completedNodes]);
 
   if (!activeChapter) {
     return (
@@ -190,16 +202,22 @@ export default function CampaignScreen() {
               if (chapterUnlocked[idx]) setActiveChapterIdx(idx);
             }}
           >
-            {chapters.map((ch, idx) => (
-              <option key={ch.id} value={idx} disabled={!chapterUnlocked[idx]}>
-                {t(`campaign.chapter_${ch.id}`, ch.id)}{!chapterUnlocked[idx] ? ` 🔒` : ''}
-              </option>
-            ))}
+            {chapters.map((ch, idx) => {
+              if (!chapterUnlocked[idx]) return null;
+              return (
+                <option key={ch.id} value={idx}>
+                  {t(`campaign.chapter_${ch.id}`, ch.id)}
+                </option>
+              );
+            })}
           </select>
         </div>
       )}
 
       <div className={styles.mapContainer}>
+        {visibleNodes.length === 0 && (
+          <p style={{ color: '#6080a0', textAlign: 'center', marginTop: 40 }}>{t('campaign.no_missions')}</p>
+        )}
         <div className={styles.mapInner} style={{ height: mapHeight }}>
           {/* Connection lines (SVG overlay) */}
           <svg
@@ -224,7 +242,7 @@ export default function CampaignScreen() {
           </svg>
 
           {/* Nodes */}
-          {activeChapter.nodes.map(node => {
+          {visibleNodes.map(node => {
             const state = getNodeState(node);
             const pos = nodePositions.get(node.id);
             if (!pos) return null;

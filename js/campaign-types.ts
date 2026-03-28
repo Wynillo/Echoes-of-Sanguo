@@ -18,6 +18,7 @@ export interface CampaignNode {
   opponentId?: number;        // for duel nodes
   completeOnLoss?: boolean;   // node completes even on defeat (e.g. scripted loss)
   gauntlet?: number[];        // ordered opponent IDs for back-to-back duels (no saving between)
+  alwaysVisible?: boolean;    // if true, node is shown on the map even when locked (default: false = hidden when locked)
   position: { x: number; y: number };  // for map rendering
   unlockCondition: UnlockCondition | null;  // null = always unlocked (start node)
   rewards?: NodeRewards;

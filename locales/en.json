@@ -48,7 +48,8 @@
   "opponent": {
     "headline": "FREE DUEL",
     "subtitle": "Choose your opponent",
-    "back": "← Back"
+    "back": "← Back",
+    "none_unlocked": "No opponents unlocked yet. Beat them in the campaign first!"
   },
   "save": {
     "headline": "SAVE POINT",
@@ -268,6 +269,7 @@
     "completed": "Completed",
     "available": "Available",
     "no_data": "No campaign data loaded.",
+    "no_missions": "No missions available yet.",
     "ch_han_court": "The Imperial Court",
     "ch_tournament": "Neo-Shanghai Tournament",
     "ch_return": "Return to the Past",
