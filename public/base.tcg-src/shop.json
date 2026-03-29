@@ -1,57 +1,5 @@
 {
-  "packs": [
-    {
-      "id": "aether",
-      "name": "Jade Pack",
-      "desc": "9 cards · All races · Standard",
-      "price": 450,
-      "icon": "◈",
-      "color": "#2a7848",
-      "slots": [
-        { "count": 8 },
-        { "count": 1, "pool": "guaranteed_rare_plus", "distribution": { "4": 0.75, "6": 0.2, "8": 0.05 } }
-      ]
-    },
-    {
-      "id": "race",
-      "name": "Race Pack",
-      "desc": "9 cards · Chosen race · Max. Rare · Max. 2500 ATK",
-      "price": 500,
-      "icon": "⚔",
-      "color": "#a06020",
-      "slots": [
-        { "count": 8 },
-        { "count": 1, "pool": "guaranteed_rare_plus", "distribution": { "4": 0.75, "6": 0.2, "8": 0.05 } }
-      ],
-      "filter": "byRace",
-      "cardPool": {
-        "include": { "maxRarity": 4, "maxAtk": 2500 }
-      }
-    },
-    {
-      "id": "rarity",
-      "name": "Rarity Pack",
-      "desc": "9 cards · Min. Rare · Increased SR/UR chance",
-      "price": 600,
-      "icon": "★",
-      "color": "#c0a020",
-      "slots": [
-        {
-          "count": 7,
-          "rarity": 4
-        },
-        {
-          "count": 2,
-          "pool": "guaranteed_sr_plus",
-          "distribution": {
-            "4": 0.55,
-            "6": 0.3,
-            "8": 0.15
-          }
-        }
-      ]
-    }
-  ],
+  "packs": [],
   "packages": [
     {
       "id": "tier_1_recruit",

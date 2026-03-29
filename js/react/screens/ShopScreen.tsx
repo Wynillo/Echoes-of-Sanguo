@@ -4,17 +4,14 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useCampaign }    from '../contexts/CampaignContext.js';
 import { Progression }    from '../../progression.js';
-import { getAllRaces, getRaceByKey, getRarityById } from '../../type-metadata.js';
-import { PACK_TYPES, openPack, openPackage, isPackageUnlocked, buildCardPool } from '../utils/pack-logic.js';
-import type { PackTypeInfo } from '../utils/pack-logic.js';
+import { getRarityById } from '../../type-metadata.js';
+import { openPackage, isPackageUnlocked, buildCardPool } from '../utils/pack-logic.js';
 import { SHOP_DATA } from '../../shop-data.js';
-import type { PackDef, PackageDef, PackSlotDef } from '../../shop-data.js';
+import type { PackageDef, PackSlotDef } from '../../shop-data.js';
 import { Audio }               from '../../audio.js';
-import { Rarity, Race } from '../../types.js';
+import { Rarity } from '../../types.js';
 import type { CardData } from '../../types.js';
 import styles from './ShopScreen.module.css';
-
-type Tab = 'standard' | 'packages';
 
 /** Compute total card count from slots. */
 function totalCards(slots: PackSlotDef[]): number {
@@ -80,23 +77,20 @@ export default function ShopScreen() {
   const bgUrl = SHOP_DATA.backgrounds[progress.currentChapter] ?? SHOP_DATA.backgrounds['ch1'] ?? '';
   const { t } = useTranslation();
 
-  const hasPackages = SHOP_DATA.packages.length > 0;
-  const [activeTab, setActiveTab] = useState<Tab>('standard');
   const [page, setPage] = useState(0);
   const itemsPerPage = useItemsPerPage();
-  const [infoTarget, setInfoTarget] = useState<{ pack: PackDef; type: 'pack' } | { pack: PackageDef; type: 'package' } | null>(null);
+  const [infoTarget, setInfoTarget] = useState<{ pack: PackageDef } | null>(null);
 
   // Touch swipe tracking
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
 
-  const packs = Object.values(PACK_TYPES);
   const unlockedPackages = SHOP_DATA.packages.filter(pkg => isPackageUnlocked(pkg));
-  const items = activeTab === 'standard' ? packs : unlockedPackages;
+  const items = unlockedPackages;
   const totalPages = Math.ceil(items.length / itemsPerPage);
 
-  // Reset page when switching tabs or when items per page changes
-  useEffect(() => { setPage(0); }, [activeTab, itemsPerPage]);
+  // Reset page when items per page changes
+  useEffect(() => { setPage(0); }, [itemsPerPage]);
 
   const goPage = useCallback((p: number) => {
     setPage(Math.max(0, Math.min(p, totalPages - 1)));
@@ -128,20 +122,8 @@ export default function ShopScreen() {
     navigateTo('pack-opening', { cards, preOpen });
   }
 
-  function buy(packType: string, race: string | null) {
-    const pt = PACK_TYPES[packType];
-    if (!pt || coins < pt.price) return;
-    if (!Progression.spendCoins(pt.price)) return;
-    Audio.playSfx('sfx_coin');
-    const preOpen = Progression.getCollection();
-    const cards   = openPack(packType, race !== null ? Number(race) as Race : null);
-    Progression.addCardsToCollection(cards.map((c: CardData) => c.id));
-    refresh();
-    navigateTo('pack-opening', { cards, preOpen });
-  }
-
-  function showInfo(pack: PackDef | PackageDef, type: 'pack' | 'package') {
-    setInfoTarget({ pack: pack as any, type });
+  function showInfo(pack: PackageDef) {
+    setInfoTarget({ pack });
   }
 
   // Slice items for current page
@@ -163,20 +145,6 @@ export default function ShopScreen() {
         <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('shop.back')}</button>
       </div>
 
-      {/* Tabs */}
-      {hasPackages && (
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tabBtn}${activeTab === 'standard' ? ` ${styles.activeTab}` : ''}`}
-            onClick={() => setActiveTab('standard')}
-          >{t('shop.tab_standard')}</button>
-          <button
-            className={`${styles.tabBtn}${activeTab === 'packages' ? ` ${styles.activeTab}` : ''}`}
-            onClick={() => setActiveTab('packages')}
-          >{t('shop.tab_packages')}</button>
-        </div>
-      )}
-
       {/* Carousel */}
       <div className={styles.carousel} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {/* Arrow left */}
@@ -193,34 +161,18 @@ export default function ShopScreen() {
           className={styles.carouselTrack}
           style={{ '--items-per-page': itemsPerPage } as React.CSSProperties}
         >
-          {activeTab === 'standard'
-            ? (visibleItems as PackTypeInfo[]).map(pt => {
-                const packDef = SHOP_DATA.packs.find(p => p.id === pt.id)!;
-                const affordable = coins >= pt.price;
-                return (
-                  <PackTile
-                    key={pt.id}
-                    pt={pt}
-                    packDef={packDef}
-                    affordable={affordable}
-                    onBuy={buy}
-                    onInfo={() => showInfo(packDef, 'pack')}
-                  />
-                );
-              })
-            : (visibleItems as PackageDef[]).map(pkg => {
-                const affordable = coins >= pkg.price;
-                return (
-                  <PackageTile
-                    key={pkg.id}
-                    pkg={pkg}
-                    affordable={affordable}
-                    onBuy={buyPackage}
-                    onInfo={() => showInfo(pkg, 'package')}
-                  />
-                );
-              })
-          }
+          {(visibleItems as PackageDef[]).map(pkg => {
+            const affordable = coins >= pkg.price;
+            return (
+              <PackageTile
+                key={pkg.id}
+                pkg={pkg}
+                affordable={affordable}
+                onBuy={buyPackage}
+                onInfo={() => showInfo(pkg)}
+              />
+            );
+          })}
         </div>
 
         {/* Arrow right */}
@@ -252,64 +204,9 @@ export default function ShopScreen() {
       {infoTarget && (
         <PackInfoModal
           pack={infoTarget.pack}
-          type={infoTarget.type}
           onClose={() => setInfoTarget(null)}
         />
       )}
-    </div>
-  );
-}
-
-// ── Pack Tile ──────────────────────────────────────────────
-
-interface PackTileProps {
-  pt: PackTypeInfo;
-  packDef: PackDef;
-  affordable: boolean;
-  onBuy: (packType: string, race: string | null) => void;
-  onInfo: () => void;
-}
-
-function PackTile({ pt, packDef, affordable, onBuy, onInfo }: PackTileProps) {
-  const { t } = useTranslation();
-  const starterRace = Progression.getStarterRace() || '';
-  const raceKeys = getAllRaces().map(r => r.key);
-
-  function handleBuy() {
-    let race: string | null = null;
-    if (pt.id === 'race') {
-      const sel = document.getElementById(`shop-race-select-${pt.id}`) as HTMLSelectElement | null;
-      race = sel ? sel.value : starterRace || null;
-    }
-    onBuy(pt.id, race);
-  }
-
-  return (
-    <div
-      className={styles.packTile}
-      style={{ '--pack-color': pt.color } as React.CSSProperties}
-    >
-      <button className={styles.infoBtn} onClick={(e) => { e.stopPropagation(); onInfo(); }} aria-label="Pack info">?</button>
-
-      <div className={styles.packTop}>
-        <div className={styles.packIcon}>{pt.icon}</div>
-        <div className={styles.packName}>{t(`pack.${pt.id}_name`)}</div>
-        <div className={styles.packCardCount}>{t('shop.cards_count', { count: totalCards(packDef.slots) })}</div>
-      </div>
-
-      <div className={styles.packBottom}>
-        <div className={styles.packPrice}>◈ {pt.price.toLocaleString()}</div>
-        {pt.id === 'race' && (
-          <div className={styles.raceSelectWrap}>
-            <select id={`shop-race-select-${pt.id}`} className={styles.raceSelect} defaultValue={starterRace}>
-              {raceKeys.map(k => (
-                <option key={k} value={k}>{getRaceByKey(k)?.icon ?? ''} {t(`cards.race_${k}`)}</option>
-              ))}
-            </select>
-          </div>
-        )}
-        <button className={styles.buyBtn} disabled={!affordable} onClick={handleBuy}>{t('shop.buy_btn')}</button>
-      </div>
     </div>
   );
 }
@@ -352,27 +249,22 @@ function PackageTile({ pkg, affordable, onBuy, onInfo }: PackageTileProps) {
 // ── Pack Info Modal ────────────────────────────────────────
 
 interface PackInfoModalProps {
-  pack: PackDef | PackageDef;
-  type: 'pack' | 'package';
+  pack: PackageDef;
   onClose: () => void;
 }
 
-function PackInfoModal({ pack, type, onClose }: PackInfoModalProps) {
+function PackInfoModal({ pack, onClose }: PackInfoModalProps) {
   const { t } = useTranslation();
 
   const distribution = useMemo(() => computeDistribution(pack.slots), [pack]);
 
   const pool = useMemo(() => {
-    const cardPool = 'cardPool' in pack ? pack.cardPool : undefined;
-    return buildCardPool(cardPool);
+    return buildCardPool(pack.cardPool);
   }, [pack]);
 
   const poolByRarity = useMemo(() => countByRarity(pool), [pool]);
 
-  const isRacePack = type === 'pack' && (pack as PackDef).filter === 'byRace';
   const total = totalCards(pack.slots);
-  const displayName = type === 'pack' ? t(`pack.${pack.id}_name`) : pack.name;
-  const displayDesc = type === 'pack' ? t(`pack.${pack.id}_desc`) : pack.desc;
 
   return (
     <div className={styles.infoOverlay} onClick={onClose}>
@@ -381,8 +273,8 @@ function PackInfoModal({ pack, type, onClose }: PackInfoModalProps) {
         <div className={styles.infoModalHeader}>
           <span className={styles.infoModalIcon}>{pack.icon}</span>
           <div>
-            <div className={styles.infoModalTitle}>{displayName}</div>
-            <div className={styles.infoModalDesc}>{displayDesc}</div>
+            <div className={styles.infoModalTitle}>{pack.name}</div>
+            <div className={styles.infoModalDesc}>{pack.desc}</div>
           </div>
         </div>
 
@@ -427,7 +319,6 @@ function PackInfoModal({ pack, type, onClose }: PackInfoModalProps) {
               );
             })}
           </div>
-          {isRacePack && <div className={styles.raceNote}>{t('shop.info_race_note')}</div>}
         </div>
 
         <button className={styles.infoCloseBtn} onClick={onClose}>{t('shop.info_close')}</button>
