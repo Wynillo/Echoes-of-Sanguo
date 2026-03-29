@@ -217,6 +217,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               if (adjustedRewards.coins) adjustedRewards.coins = applyBadgeMultiplier(adjustedRewards.coins);
               if (adjustedRewards.coins) Progression.addCoins(adjustedRewards.coins);
               const allCards = [...(adjustedRewards.cards ?? []), ...badgeDrops];
+              const newCardIds = allCards.filter(id => !Progression.ownsCard(id));
               if (allCards.length) Progression.addCardsToCollection(allCards);
               if (badgeDrops.length) adjustedRewards.cards = allCards;
 
@@ -226,6 +227,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
                 navigateToRef.current('duel-result', resultData('victory', {
                   rewards: adjustedRewards,
                   badges,
+                  newCardIds,
                   nextScreen: 'dialogue',
                   dialogueData: {
                     scene: pending.postDialogue as unknown as Record<string, unknown>,
@@ -236,6 +238,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
                 navigateToRef.current('duel-result', resultData('victory', {
                   rewards: adjustedRewards,
                   badges,
+                  newCardIds,
                   nextScreen: 'campaign',
                 }));
               }
@@ -272,6 +275,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             }
             if (adjustedRewards?.coins) Progression.addCoins(adjustedRewards.coins);
             const allCards = [...(adjustedRewards?.cards ?? []), ...badgeDrops];
+            const newCardIds = allCards.filter(id => !Progression.ownsCard(id));
             if (allCards.length) {
               Progression.addCardsToCollection(allCards);
               if (adjustedRewards && badgeDrops.length) adjustedRewards.cards = allCards;
@@ -290,6 +294,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             navigateToRef.current('duel-result', resultData('victory', {
               rewards: pending.rewards,
               badges,
+              newCardIds,
               nextScreen: 'dialogue',
               dialogueData: {
                 scene: pending.postDialogue as unknown as Record<string, unknown>,
@@ -300,6 +305,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             navigateToRef.current('duel-result', resultData('victory', {
               rewards: pending.rewards,
               badges,
+              newCardIds,
               nextScreen: 'campaign',
             }));
           } else if (isComplete && pending.postDialogue && pending.postDialogue.length > 0) {
@@ -331,6 +337,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             }
             // S-rank card drops
             const badgeDrops = rollSRankDrops();
+            const newCardIds = badgeDrops.filter(id => !Progression.ownsCard(id));
             if (badgeDrops.length) Progression.addCardsToCollection(badgeDrops);
 
             refreshRef.current();
@@ -339,6 +346,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
                 ? { coins: coinsEarned || undefined, cards: badgeDrops.length > 0 ? badgeDrops : undefined }
                 : undefined,
               badges,
+              newCardIds: newCardIds.length > 0 ? newCardIds : undefined,
               mode: 'free',
             }));
           })
