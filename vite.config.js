@@ -4,6 +4,9 @@ export default defineConfig({
   plugins: [react()],
   root: '.',
   base: './',
+  optimizeDeps: {
+    include: ['@wynillo/tcg-format'],
+  },
   build: {
     outDir: 'dist',
     chunkSizeWarningLimit: 600,
