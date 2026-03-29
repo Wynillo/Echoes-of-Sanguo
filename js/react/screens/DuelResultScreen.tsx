@@ -4,10 +4,11 @@ import { gsap } from 'gsap';
 import { useScreen } from '../contexts/ScreenContext.js';
 import { Audio } from '../../audio.js';
 import type { DuelStats } from '../../types.js';
+import type { BattleBadges } from '../../battle-badges.js';
 import styles from './DuelResultScreen.module.css';
 
 const PARTICLE_COUNT = 22;
-const ANIM_LOCK_MS = 3200;
+const ANIM_LOCK_MS = 3600;
 
 interface Rewards {
   coins?: number;
@@ -23,6 +24,7 @@ export default function DuelResultScreen() {
   const stats = screenData?.stats as DuelStats | undefined;
   const rewards = screenData?.rewards as Rewards | undefined;
   const mode = screenData?.mode as 'campaign' | 'free' | undefined;
+  const badges = screenData?.badges as BattleBadges | undefined;
 
   const [locked, setLocked] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -32,6 +34,8 @@ export default function DuelResultScreen() {
   const reasonRef = useRef<HTMLParagraphElement>(null);
   const statsPanelRef = useRef<HTMLDivElement>(null);
   const oppStatsPanelRef = useRef<HTMLDivElement>(null);
+  const badgesRef = useRef<HTMLDivElement>(null);
+  const badgeMultRef = useRef<HTMLDivElement>(null);
   const rewardsRef = useRef<HTMLDivElement>(null);
   const continueRef = useRef<HTMLParagraphElement>(null);
 
@@ -130,6 +134,24 @@ export default function DuelResultScreen() {
       }, 1.4);
     }
 
+    // Badges (victory only)
+    if (badgesRef.current) {
+      gsap.set(badgesRef.current, { y: 15, opacity: 0 });
+      tl.to(badgesRef.current, {
+        y: 0, opacity: 1, duration: 0.4,
+        ease: 'back.out(1.4)',
+      }, 1.6);
+    }
+
+    // Badge multiplier text
+    if (badgeMultRef.current) {
+      gsap.set(badgeMultRef.current, { opacity: 0 });
+      tl.to(badgeMultRef.current, {
+        opacity: 1, duration: 0.3,
+        ease: 'power2.out',
+      }, 1.9);
+    }
+
     // Rewards (victory only)
     if (rewardsRef.current) {
       gsap.set(rewardsRef.current, { y: 15, opacity: 0 });
@@ -139,7 +161,7 @@ export default function DuelResultScreen() {
         onStart: () => {
           if (victory && rewards?.coins) Audio.playSfx('sfx_coin');
         },
-      }, 1.8);
+      }, 2.1);
     }
 
     // Continue prompt
@@ -148,7 +170,7 @@ export default function DuelResultScreen() {
       tl.to(continueRef.current, {
         opacity: 1, duration: 0.3,
         ease: 'none',
-      }, 2.5);
+      }, 2.8);
     }
 
     // Unlock input after animation
@@ -273,6 +295,37 @@ export default function DuelResultScreen() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Battle Badges (victory only) */}
+        {victory && badges && (
+          <>
+            <div ref={badgesRef} className={styles.badges}>
+              {([badges.pow, badges.tec] as const).map((b) => (
+                <div
+                  key={b.category}
+                  className={`${styles.badge} ${b.rank === 'S' ? styles.badgeS : b.rank === 'A' ? styles.badgeA : styles.badgeB}`}
+                >
+                  <span className={styles.badgeCategory}>
+                    {t(`duelResult.badge_${b.category.toLowerCase()}`)}
+                  </span>
+                  <span className={styles.badgeRank}>
+                    {t(`duelResult.badge_rank_${b.rank.toLowerCase()}`)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div
+              ref={badgeMultRef}
+              className={`${styles.badgeMultiplier} ${
+                badges.best === 'S' ? styles.multiplierS
+                : badges.best === 'A' ? styles.multiplierA
+                : styles.multiplierB
+              }`}
+            >
+              {t('duelResult.coin_multiplier', { multiplier: badges.coinMultiplier })}
+            </div>
+          </>
         )}
 
         {/* Rewards (victory only) */}

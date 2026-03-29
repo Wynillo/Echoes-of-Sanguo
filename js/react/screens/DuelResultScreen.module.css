@@ -143,6 +143,55 @@
   font-size: 0.5rem;
 }
 
+/* ── Badges ──────────────────────────────────────────────── */
+.badges {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  opacity: 0;
+}
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  background: rgba(0,0,0,0.5);
+  min-width: 72px;
+}
+
+.badgeCategory {
+  font-size: 0.45rem;
+  letter-spacing: 2px;
+  color: #908070;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.badgeRank {
+  font-size: 1rem;
+  font-family: 'Press Start 2P', monospace;
+  text-shadow: 0 0 12px currentColor;
+}
+
+.badgeS { color: #f5c518; border-color: rgba(245,197,24,0.4); }
+.badgeA { color: #c0c0c0; border-color: rgba(192,192,192,0.3); }
+.badgeB { color: #cd7f32; border-color: rgba(205,127,50,0.3); }
+
+.badgeMultiplier {
+  font-size: 0.45rem;
+  letter-spacing: 1px;
+  font-family: 'Press Start 2P', monospace;
+  margin-top: 4px;
+  opacity: 0;
+}
+
+.multiplierS { color: #f5c518; text-shadow: 0 0 10px rgba(245,197,24,0.5); }
+.multiplierA { color: #b0a090; }
+.multiplierB { color: #cd7f32; }
+
 /* ── Rewards ─────────────────────────────────────────────── */
 .rewards {
   display: flex;

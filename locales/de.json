@@ -395,6 +395,13 @@
     "win_reason_deckout": "Gegners Deck hatte keine Karten mehr.",
     "loss_reason_lp": "Deine Lebenspunkte wurden auf 0 reduziert.",
     "loss_reason_deckout": "Dein Deck hatte keine Karten mehr.",
-    "loss_reason_surrender": "Du hast aufgegeben."
+    "loss_reason_surrender": "Du hast aufgegeben.",
+    "badge_pow": "POW",
+    "badge_tec": "TEC",
+    "badge_rank_s": "S",
+    "badge_rank_a": "A",
+    "badge_rank_b": "B",
+    "coin_multiplier": "x{{multiplier}} Münzen",
+    "badge_cards_earned": "+{{count}} Karte(n) vom Gegner"
   }
 }
