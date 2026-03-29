@@ -369,12 +369,24 @@
     "cards_earned": "+{{count}} Card(s) Obtained",
     "new_unlock": "New path unlocked!",
     "stats_title": "Duel Summary",
+    "player_stats_title": "Your Stats",
+    "opponent_stats_title": "Opponent Stats",
     "stat_turns": "Turns",
     "stat_monsters": "Monsters Summoned",
     "stat_fusions": "Fusions",
     "stat_spells": "Spells Used",
     "stat_traps": "Traps Used",
     "stat_deck": "Cards in Deck",
-    "stat_lp": "LP Remaining"
+    "stat_lp": "LP Remaining",
+    "opp_stat_lp": "LP Remaining",
+    "opp_stat_monsters": "Monsters Summoned",
+    "opp_stat_fusions": "Fusions",
+    "opp_stat_spells": "Spells Used",
+    "opp_stat_traps": "Traps Used",
+    "win_reason_lp": "Opponent's life points were reduced to 0.",
+    "win_reason_deckout": "Opponent's deck ran out of cards.",
+    "loss_reason_lp": "Your life points were reduced to 0.",
+    "loss_reason_deckout": "Your deck ran out of cards.",
+    "loss_reason_surrender": "You surrendered."
   }
 }

@@ -7,7 +7,7 @@ import type { DuelStats } from '../../types.js';
 import styles from './DuelResultScreen.module.css';
 
 const PARTICLE_COUNT = 22;
-const ANIM_LOCK_MS = 2500;
+const ANIM_LOCK_MS = 3200;
 
 interface Rewards {
   coins?: number;
@@ -22,13 +22,16 @@ export default function DuelResultScreen() {
   const victory = result === 'victory';
   const stats = screenData?.stats as DuelStats | undefined;
   const rewards = screenData?.rewards as Rewards | undefined;
+  const mode = screenData?.mode as 'campaign' | 'free' | undefined;
 
   const [locked, setLocked] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const sepRef = useRef<HTMLDivElement>(null);
   const msgRef = useRef<HTMLParagraphElement>(null);
+  const reasonRef = useRef<HTMLParagraphElement>(null);
   const statsPanelRef = useRef<HTMLDivElement>(null);
+  const oppStatsPanelRef = useRef<HTMLDivElement>(null);
   const rewardsRef = useRef<HTMLDivElement>(null);
   const continueRef = useRef<HTMLParagraphElement>(null);
 
@@ -53,6 +56,10 @@ export default function DuelResultScreen() {
 
   function proceed() {
     if (locked) return;
+    if (mode === 'free') {
+      navigateTo('opponent');
+      return;
+    }
     if (victory) {
       const next = screenData?.nextScreen as string | undefined;
       if (next === 'dialogue') {
@@ -96,13 +103,31 @@ export default function DuelResultScreen() {
       }, 0.8);
     }
 
-    // Stats panel
+    // Win/loss reason
+    if (reasonRef.current) {
+      gsap.set(reasonRef.current, { y: 8, opacity: 0 });
+      tl.to(reasonRef.current, {
+        y: 0, opacity: 1, duration: 0.35,
+        ease: 'power2.out',
+      }, 1.0);
+    }
+
+    // Stats panel (player)
     if (statsPanelRef.current) {
       gsap.set(statsPanelRef.current, { y: 20, opacity: 0 });
       tl.to(statsPanelRef.current, {
         y: 0, opacity: 1, duration: 0.45,
         ease: 'power2.out',
-      }, 1.0);
+      }, 1.2);
+    }
+
+    // Stats panel (opponent)
+    if (oppStatsPanelRef.current) {
+      gsap.set(oppStatsPanelRef.current, { y: 20, opacity: 0 });
+      tl.to(oppStatsPanelRef.current, {
+        y: 0, opacity: 1, duration: 0.45,
+        ease: 'power2.out',
+      }, 1.4);
     }
 
     // Rewards (victory only)
@@ -114,7 +139,7 @@ export default function DuelResultScreen() {
         onStart: () => {
           if (victory && rewards?.coins) Audio.playSfx('sfx_coin');
         },
-      }, 1.5);
+      }, 1.8);
     }
 
     // Continue prompt
@@ -123,7 +148,7 @@ export default function DuelResultScreen() {
       tl.to(continueRef.current, {
         opacity: 1, duration: 0.3,
         ease: 'none',
-      }, 2.0);
+      }, 2.5);
     }
 
     // Unlock input after animation
@@ -143,6 +168,15 @@ export default function DuelResultScreen() {
 
   const hasRewards = victory && rewards && ((rewards.coins ?? 0) > 0 || (rewards.cards?.length ?? 0) > 0);
 
+  // Win/loss reason text
+  const reasonKey = stats?.endReason
+    ? victory
+      ? (stats.endReason === 'deck_out' ? 'duelResult.win_reason_deckout' : 'duelResult.win_reason_lp')
+      : (stats.endReason === 'surrender' ? 'duelResult.loss_reason_surrender'
+         : stats.endReason === 'deck_out' ? 'duelResult.loss_reason_deckout'
+         : 'duelResult.loss_reason_lp')
+    : null;
+
   const statRows = stats
     ? [
         { label: t('duelResult.stat_turns'),    value: stats.turns },
@@ -152,6 +186,16 @@ export default function DuelResultScreen() {
         { label: t('duelResult.stat_traps'),    value: stats.trapsActivated },
         { label: t('duelResult.stat_deck'),     value: stats.deckRemaining },
         { label: t('duelResult.stat_lp'),       value: stats.lpRemaining },
+      ]
+    : [];
+
+  const opponentStatRows = stats
+    ? [
+        { label: t('duelResult.opp_stat_lp'),       value: stats.opponentLpRemaining },
+        { label: t('duelResult.opp_stat_monsters'),  value: stats.opponentMonstersPlayed },
+        { label: t('duelResult.opp_stat_fusions'),   value: stats.opponentFusionsPerformed },
+        { label: t('duelResult.opp_stat_spells'),    value: stats.opponentSpellsActivated },
+        { label: t('duelResult.opp_stat_traps'),     value: stats.opponentTrapsActivated },
       ]
     : [];
 
@@ -193,17 +237,40 @@ export default function DuelResultScreen() {
           {victory ? t('duelResult.victory_message') : t('duelResult.defeat_message')}
         </p>
 
-        {/* Duel stats */}
+        {/* Win/loss reason */}
+        {reasonKey && (
+          <p ref={reasonRef} className={styles.winReason}>
+            {t(reasonKey)}
+          </p>
+        )}
+
+        {/* Stats columns: player + opponent */}
         {stats && (
-          <div ref={statsPanelRef} className={styles.statsPanel}>
-            <div className={styles.statsTitle}>{t('duelResult.stats_title')}</div>
-            <div className={styles.statsGrid}>
-              {statRows.map((row) => (
-                <div key={row.label} className={styles.statRow}>
-                  <span className={styles.statLabel}>{row.label}</span>
-                  <span className={styles.statValue}>{row.value}</span>
-                </div>
-              ))}
+          <div className={styles.statsColumns}>
+            {/* Player stats */}
+            <div ref={statsPanelRef} className={styles.statsPanel}>
+              <div className={styles.statsTitle}>{t('duelResult.player_stats_title')}</div>
+              <div className={styles.statsGrid}>
+                {statRows.map((row) => (
+                  <div key={row.label} className={styles.statRow}>
+                    <span className={styles.statLabel}>{row.label}</span>
+                    <span className={styles.statValue}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Opponent stats */}
+            <div ref={oppStatsPanelRef} className={styles.statsPanel}>
+              <div className={styles.statsTitle}>{t('duelResult.opponent_stats_title')}</div>
+              <div className={styles.statsGrid}>
+                {opponentStatRows.map((row) => (
+                  <div key={row.label} className={styles.statRow}>
+                    <span className={styles.statLabel}>{row.label}</span>
+                    <span className={styles.statValue}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

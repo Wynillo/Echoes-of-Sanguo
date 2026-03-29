@@ -369,12 +369,24 @@
     "cards_earned": "+{{count}} Karte(n) erhalten",
     "new_unlock": "Neuer Pfad freigeschaltet!",
     "stats_title": "Duell-Zusammenfassung",
+    "player_stats_title": "Deine Statistik",
+    "opponent_stats_title": "Gegner-Statistik",
     "stat_turns": "Runden",
     "stat_monsters": "Monster beschworen",
     "stat_fusions": "Fusionen",
     "stat_spells": "Zauber eingesetzt",
     "stat_traps": "Fallen eingesetzt",
     "stat_deck": "Karten im Deck",
-    "stat_lp": "LP verbleibend"
+    "stat_lp": "LP verbleibend",
+    "opp_stat_lp": "LP verbleibend",
+    "opp_stat_monsters": "Monster beschworen",
+    "opp_stat_fusions": "Fusionen",
+    "opp_stat_spells": "Zauber eingesetzt",
+    "opp_stat_traps": "Fallen eingesetzt",
+    "win_reason_lp": "Gegners Lebenspunkte wurden auf 0 reduziert.",
+    "win_reason_deckout": "Gegners Deck hatte keine Karten mehr.",
+    "loss_reason_lp": "Deine Lebenspunkte wurden auf 0 reduziert.",
+    "loss_reason_deckout": "Dein Deck hatte keine Karten mehr.",
+    "loss_reason_surrender": "Du hast aufgegeben."
   }
 }
