@@ -326,6 +326,7 @@ export default function PackOpeningScreen() {
   // Phase 3: Summary
   return (
     <div className={styles.screen}>
+      <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('shop')}>{t('pack_opening.back_shop')}</button>
       <div className={styles.summaryPhase}>
         <div className={styles.header}>
           <h2 className={styles.title}>{t('pack_opening.title')}</h2>
@@ -348,7 +349,6 @@ export default function PackOpeningScreen() {
         </div>
 
         <div className={styles.buttons}>
-          <button className="btn-secondary" onClick={() => navigateTo('shop')}>{t('pack_opening.back_shop')}</button>
           <button className="btn-primary" onClick={() => navigateTo('save-point')}>{t('pack_opening.home')}</button>
         </div>
       </div>

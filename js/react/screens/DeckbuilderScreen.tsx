@@ -240,7 +240,7 @@ export default function DeckbuilderScreen() {
             style={{ opacity: deckFull ? 1 : 0.4, cursor: deckFull ? 'pointer' : 'not-allowed' }}
             onClick={saveDeck}
           >{t('deckbuilder.save_btn')}</button>
-          <button id="btn-db-back" className="btn-secondary" onClick={() => navigateTo('save-point')}>{t('deckbuilder.back')}</button>
+          <button id="btn-db-back" className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('deckbuilder.back')}</button>
         </div>
         <div className={`${styles.tabs} ml-auto`}>
           <button
