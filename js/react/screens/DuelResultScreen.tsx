@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { useScreen } from '../contexts/ScreenContext.js';
 import { Audio } from '../../audio.js';
+import { CARD_DB } from '../../cards.js';
+import { getRarityById, getCardTypeById } from '../../type-metadata.js';
 import type { DuelStats } from '../../types.js';
 import type { BattleBadges } from '../../battle-badges.js';
 import styles from './DuelResultScreen.module.css';
@@ -25,6 +27,8 @@ export default function DuelResultScreen() {
   const rewards = screenData?.rewards as Rewards | undefined;
   const mode = screenData?.mode as 'campaign' | 'free' | undefined;
   const badges = screenData?.badges as BattleBadges | undefined;
+  const newCardIds = screenData?.newCardIds as string[] | undefined;
+  const newCardSet = useMemo(() => new Set(newCardIds ?? []), [newCardIds]);
 
   const [locked, setLocked] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -337,8 +341,30 @@ export default function DuelResultScreen() {
               </div>
             )}
             {(rewards.cards?.length ?? 0) > 0 && (
-              <div className={`${styles.rewardItem} ${styles.rewardCards}`}>
-                {t('duelResult.cards_earned', { count: rewards.cards!.length })}
+              <div className={styles.rewardCardList}>
+                {rewards.cards!.map((cardId, i) => {
+                  const card = CARD_DB[cardId];
+                  if (!card) return null;
+                  const rarityMeta = getRarityById(card.rarity ?? 0);
+                  const typeMeta = getCardTypeById(card.type);
+                  const isNew = newCardSet.has(cardId);
+                  return (
+                    <div key={`${cardId}-${i}`} className={styles.rewardCardRow}>
+                      {rarityMeta && (
+                        <span className={styles.rewardCardRarity} style={{ color: rarityMeta.color }}>
+                          {rarityMeta.value}
+                        </span>
+                      )}
+                      {typeMeta && (
+                        <span className={styles.rewardCardType} style={{ color: typeMeta.color }}>
+                          {typeMeta.value}
+                        </span>
+                      )}
+                      <span className={styles.rewardCardName}>{card.name}</span>
+                      {isNew && <span className={styles.rewardNewBadge}>{t('pack_opening.new_badge')}</span>}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
