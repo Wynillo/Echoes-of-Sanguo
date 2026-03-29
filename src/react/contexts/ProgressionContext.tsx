@@ -3,19 +3,21 @@ import { Progression } from '../../progression.js';
 import { CARD_DB } from '../../cards.js';
 import { GAME_RULES } from '../../rules.js';
 import type { CollectionEntry, OpponentRecord } from '../../types.js';
+import type { SlotId } from '../../progression.js';
 
 interface ProgressionCtx {
   coins: number;
   collection: CollectionEntry[];
   opponents: Record<number, OpponentRecord>;
   currentDeck: string[];
+  activeSlot: SlotId | null;
   refresh: () => void;
   setCurrentDeck: (ids: string[]) => void;
   loadDeck: () => void;
 }
 
 const ProgressionContext = createContext<ProgressionCtx>({
-  coins: 0, collection: [], opponents: {}, currentDeck: [],
+  coins: 0, collection: [], opponents: {}, currentDeck: [], activeSlot: null,
   refresh: () => {}, setCurrentDeck: () => {}, loadDeck: () => {},
 });
 
@@ -24,17 +26,21 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
   const [collection, setCollection] = useState<CollectionEntry[]>([]);
   const [opponents, setOpponents]   = useState<Record<number, OpponentRecord>>({});
   const [currentDeck, setCurrentDeck] = useState<string[]>([]);
+  const [activeSlot, setActiveSlot] = useState<SlotId | null>(null);
 
   const refresh = useCallback(() => {
+    const slot = Progression.getActiveSlot();
+    setActiveSlot(slot);
+    if (slot === null) return;
     setCoins(Progression.getCoins());
     setCollection(Progression.getCollection());
     setOpponents(Progression.getOpponents());
   }, []);
 
   const loadDeck = useCallback(() => {
+    if (Progression.getActiveSlot() === null) return;
     const saved = Progression.getDeck();
     if (saved && saved.length > 0) {
-      // Validate: strip unknown IDs, enforce copy limits, enforce max deck size
       const copyCounts: Record<string, number> = {};
       const sanitized = saved.filter(id => {
         if (!CARD_DB[id]) {
@@ -51,7 +57,6 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
       setCurrentDeck(sanitized);
       return;
     }
-    // Fallback: import PLAYER_DECK_IDS lazily to avoid circular dep
     import('../../cards.js').then(m => setCurrentDeck([...m.PLAYER_DECK_IDS]));
   }, []);
 
@@ -64,8 +69,8 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const value = useMemo(
-    () => ({ coins, collection, opponents, currentDeck, refresh, setCurrentDeck, loadDeck }),
-    [coins, collection, opponents, currentDeck, refresh, setCurrentDeck, loadDeck],
+    () => ({ coins, collection, opponents, currentDeck, activeSlot, refresh, setCurrentDeck, loadDeck }),
+    [coins, collection, opponents, currentDeck, activeSlot, refresh, setCurrentDeck, loadDeck],
   );
 
   return (

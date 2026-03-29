@@ -1,24 +1,67 @@
 import type { CollectionEntry, OpponentRecord } from './types.js';
 import type { CampaignProgress } from './campaign-types.js';
 
+export type SlotId = 1 | 2 | 3;
+
+export interface SlotMeta {
+  slot: SlotId;
+  empty: boolean;
+  starterRace: string | null;
+  coins: number;
+  currentChapter: string;
+  lastSaved: string | null;  // ISO date string
+}
+
 export const Progression = (() => {
 
-  const KEYS = {
-    initialized:    'tcg_initialized',
-    starterChosen:  'tcg_starter_chosen',
-    starterRace:    'tcg_starter_race',
-    collection:     'tcg_collection',
-    deck:           'tcg_deck',
-    coins:          'eos_jade_coins',
-    opponents:      'tcg_opponents',
-    version:        'tcg_save_version',
-    settings:       'tcg_settings',
-    seenCards:        'tcg_seen_cards',
-    campaignProgress: 'tcg_campaign_progress',
-  };
+  // ── Slot-aware key mapping ───────────────────────────────
 
-  const SAVE_VERSION   = 2;   // increment when save format changes incompatibly
+  /** Logical key names for per-slot data */
+  const SLOT_KEY_NAMES = {
+    initialized:      'initialized',
+    starterChosen:    'starter_chosen',
+    starterRace:      'starter_race',
+    collection:       'collection',
+    deck:             'deck',
+    coins:            'jade_coins',
+    opponents:        'opponents',
+    version:          'save_version',
+    seenCards:        'seen_cards',
+    campaignProgress: 'campaign_progress',
+  } as const;
+
+  /** Global keys (not per-slot) */
+  const GLOBAL_KEYS = {
+    settings:   'tcg_settings',
+    slotMeta:   'tcg_slot_meta',
+    activeSlot: 'tcg_active_slot',
+  } as const;
+
+  const DUEL_CHECKPOINT_SUFFIX = 'duel_checkpoint';
+
+  const SAVE_VERSION   = 2;
   const OPPONENT_COUNT = 10;
+  const SLOT_IDS: SlotId[] = [1, 2, 3];
+
+  let activeSlot: SlotId | null = null;
+
+  /** Build a localStorage key for a given slot and logical key name */
+  function _slotKey(slot: SlotId, name: string): string {
+    return `tcg_s${slot}_${name}`;
+  }
+
+  /** Get the localStorage key for the active slot. Throws if no slot is active. */
+  function _key(name: string): string {
+    if (activeSlot === null) throw new Error('[Progression] No active save slot. Call selectSlot() first.');
+    return _slotKey(activeSlot, name);
+  }
+
+  /** Duel checkpoint key for a slot */
+  function _checkpointKey(slot?: SlotId): string {
+    const s = slot ?? activeSlot;
+    if (s === null) throw new Error('[Progression] No active save slot.');
+    return _slotKey(s, DUEL_CHECKPOINT_SUFFIX);
+  }
 
   function _load<T>(key: string, fallback: T, validator?: (v: unknown) => boolean): T {
     try {
@@ -54,43 +97,181 @@ export const Progression = (() => {
     return ops;
   }
 
-  function init() {
-    if (!localStorage.getItem(KEYS.initialized)) {
-      _save(KEYS.coins, 0);
-      _save(KEYS.collection, []);
-      _save(KEYS.opponents, _defaultOpponents());
-      const legacyDeck = localStorage.getItem('aetherialClash_deck');
-      if (legacyDeck) {
-        localStorage.setItem(KEYS.deck, legacyDeck);
-      }
-      localStorage.setItem(KEYS.initialized, '1');
-      _save(KEYS.version, SAVE_VERSION);
-    } else {
-      if (!localStorage.getItem(KEYS.coins)) {
-        const legacyCoins = localStorage.getItem('ac_aether_coins');
-        _save(KEYS.coins, legacyCoins !== null ? JSON.parse(legacyCoins) : 0);
-      }
-      if (!localStorage.getItem(KEYS.collection)) _save(KEYS.collection, []);
-      if (!localStorage.getItem(KEYS.opponents)) _save(KEYS.opponents, _defaultOpponents());
-      if (!localStorage.getItem(KEYS.version)) _save(KEYS.version, 1);
+  // ── Slot Management ──────────────────────────────────────
 
-      // v1 → v2: reset collection and deck if old-format IDs are detected.
-      const savedVersion = _load(KEYS.version, 0, v => typeof v === 'number');
+  /** Read the persisted active slot (or null if none) */
+  function _readActiveSlot(): SlotId | null {
+    const raw = localStorage.getItem(GLOBAL_KEYS.activeSlot);
+    if (raw === null) return null;
+    const num = parseInt(raw, 10);
+    if (num >= 1 && num <= 3) return num as SlotId;
+    return null;
+  }
+
+  /** Set the active slot for all subsequent Progression calls */
+  function selectSlot(slot: SlotId): void {
+    activeSlot = slot;
+    localStorage.setItem(GLOBAL_KEYS.activeSlot, String(slot));
+  }
+
+  function getActiveSlot(): SlotId | null {
+    return activeSlot;
+  }
+
+  /** Check if a slot has save data */
+  function isSlotEmpty(slot: SlotId): boolean {
+    return localStorage.getItem(_slotKey(slot, SLOT_KEY_NAMES.initialized)) === null;
+  }
+
+  /** Get display metadata for all 3 slots */
+  function getSlotMeta(): SlotMeta[] {
+    const stored = _load<Record<number, Omit<SlotMeta, 'slot' | 'empty'>>>(GLOBAL_KEYS.slotMeta, {});
+    return SLOT_IDS.map(slot => {
+      const empty = isSlotEmpty(slot);
+      const meta = stored[slot];
+      return {
+        slot,
+        empty,
+        starterRace: empty ? null : (meta?.starterRace ?? localStorage.getItem(_slotKey(slot, SLOT_KEY_NAMES.starterRace)) ?? null),
+        coins: empty ? 0 : (meta?.coins ?? _load(_slotKey(slot, SLOT_KEY_NAMES.coins), 0)),
+        currentChapter: empty ? 'ch1' : (meta?.currentChapter ?? 'ch1'),
+        lastSaved: empty ? null : (meta?.lastSaved ?? null),
+      };
+    });
+  }
+
+  /** Update metadata for the active slot (call after significant saves) */
+  function updateSlotMeta(): void {
+    if (activeSlot === null) return;
+    const stored = _load<Record<number, unknown>>(GLOBAL_KEYS.slotMeta, {});
+    const progress = getCampaignProgress();
+    stored[activeSlot] = {
+      starterRace: localStorage.getItem(_key(SLOT_KEY_NAMES.starterRace)) ?? null,
+      coins: getCoins(),
+      currentChapter: progress.currentChapter,
+      lastSaved: new Date().toISOString(),
+    };
+    _save(GLOBAL_KEYS.slotMeta, stored);
+  }
+
+  /** Delete all data for a specific slot */
+  function deleteSlot(slot: SlotId): void {
+    Object.values(SLOT_KEY_NAMES).forEach(name => {
+      localStorage.removeItem(_slotKey(slot, name));
+    });
+    localStorage.removeItem(_slotKey(slot, DUEL_CHECKPOINT_SUFFIX));
+    const stored = _load<Record<number, unknown>>(GLOBAL_KEYS.slotMeta, {});
+    delete stored[slot];
+    _save(GLOBAL_KEYS.slotMeta, stored);
+    if (activeSlot === slot) {
+      activeSlot = null;
+      localStorage.removeItem(GLOBAL_KEYS.activeSlot);
+    }
+  }
+
+  /** Check if any slot has data (for showing Load Game button) */
+  function hasAnySave(): boolean {
+    return SLOT_IDS.some(slot => !isSlotEmpty(slot));
+  }
+
+  // ── Migration ────────────────────────────────────────────
+
+  /** Migrate old flat-key saves into slot 1 */
+  function _migrateFromFlatKeys(): void {
+    if (localStorage.getItem(GLOBAL_KEYS.activeSlot) !== null) return;
+
+    const oldInitialized = localStorage.getItem('tcg_initialized');
+    if (!oldInitialized) return;
+
+    console.info('[Progression] Migrating flat-key save data to slot 1...');
+    const slot: SlotId = 1;
+
+    const migrations: [string, string][] = [
+      ['tcg_initialized',        _slotKey(slot, SLOT_KEY_NAMES.initialized)],
+      ['tcg_starter_chosen',     _slotKey(slot, SLOT_KEY_NAMES.starterChosen)],
+      ['tcg_starter_race',       _slotKey(slot, SLOT_KEY_NAMES.starterRace)],
+      ['tcg_collection',         _slotKey(slot, SLOT_KEY_NAMES.collection)],
+      ['tcg_deck',               _slotKey(slot, SLOT_KEY_NAMES.deck)],
+      ['eos_jade_coins',         _slotKey(slot, SLOT_KEY_NAMES.coins)],
+      ['tcg_opponents',          _slotKey(slot, SLOT_KEY_NAMES.opponents)],
+      ['tcg_save_version',       _slotKey(slot, SLOT_KEY_NAMES.version)],
+      ['tcg_seen_cards',         _slotKey(slot, SLOT_KEY_NAMES.seenCards)],
+      ['tcg_campaign_progress',  _slotKey(slot, SLOT_KEY_NAMES.campaignProgress)],
+      ['tcg_duel_checkpoint',    _slotKey(slot, DUEL_CHECKPOINT_SUFFIX)],
+    ];
+
+    for (const [oldKey, newKey] of migrations) {
+      const val = localStorage.getItem(oldKey);
+      if (val !== null) {
+        localStorage.setItem(newKey, val);
+        localStorage.removeItem(oldKey);
+      }
+    }
+
+    selectSlot(slot);
+
+    const starterRace = localStorage.getItem(_slotKey(slot, SLOT_KEY_NAMES.starterRace)) ?? null;
+    const coins = _load(_slotKey(slot, SLOT_KEY_NAMES.coins), 0);
+    const progress = _load(_slotKey(slot, SLOT_KEY_NAMES.campaignProgress),
+      { completedNodes: [], currentChapter: 'ch1' },
+      v => v !== null && typeof v === 'object' && Array.isArray((v as Record<string, unknown>).completedNodes));
+    _save(GLOBAL_KEYS.slotMeta, {
+      [slot]: {
+        starterRace,
+        coins,
+        currentChapter: (progress as CampaignProgress).currentChapter,
+        lastSaved: new Date().toISOString(),
+      },
+    });
+
+    console.info('[Progression] Migration to slot 1 complete.');
+  }
+
+  // ── Initialization ───────────────────────────────────────
+
+  function init() {
+    _migrateFromFlatKeys();
+
+    if (activeSlot === null) {
+      activeSlot = _readActiveSlot();
+    }
+
+    if (activeSlot === null) return;
+
+    const initKey = _key(SLOT_KEY_NAMES.initialized);
+    const coinsKey = _key(SLOT_KEY_NAMES.coins);
+    const collectionKey = _key(SLOT_KEY_NAMES.collection);
+    const opponentsKey = _key(SLOT_KEY_NAMES.opponents);
+    const versionKey = _key(SLOT_KEY_NAMES.version);
+
+    if (!localStorage.getItem(initKey)) {
+      _save(coinsKey, 0);
+      _save(collectionKey, []);
+      _save(opponentsKey, _defaultOpponents());
+      localStorage.setItem(initKey, '1');
+      _save(versionKey, SAVE_VERSION);
+    } else {
+      if (!localStorage.getItem(coinsKey)) _save(coinsKey, 0);
+      if (!localStorage.getItem(collectionKey)) _save(collectionKey, []);
+      if (!localStorage.getItem(opponentsKey)) _save(opponentsKey, _defaultOpponents());
+      if (!localStorage.getItem(versionKey)) _save(versionKey, 1);
+
+      const savedVersion = _load(versionKey, 0, v => typeof v === 'number');
       if (savedVersion < 2) {
-        const col = _load(KEYS.collection, [], v => Array.isArray(v)) as Array<{ id: string }>;
+        const col = _load(collectionKey, [], v => Array.isArray(v)) as Array<{ id: string }>;
         const hasOldIds = col.some(e => /^[A-Z]/.test(e.id));
         if (hasOldIds) {
-          console.info('[Progression] Migrating save data to v2: clearing collection and deck (card ID format changed).');
+          console.info('[Progression] Migrating slot data to v2: clearing collection and deck.');
           try {
-            localStorage.setItem('tcg_collection_v1_backup', JSON.stringify(col));
-            const oldDeck = localStorage.getItem(KEYS.deck);
-            if (oldDeck) localStorage.setItem('tcg_deck_v1_backup', oldDeck);
+            localStorage.setItem(`tcg_s${activeSlot}_collection_v1_backup`, JSON.stringify(col));
+            const oldDeck = localStorage.getItem(_key(SLOT_KEY_NAMES.deck));
+            if (oldDeck) localStorage.setItem(`tcg_s${activeSlot}_deck_v1_backup`, oldDeck);
           } catch { /* backup is best-effort */ }
-          _save(KEYS.collection, []);
-          localStorage.removeItem(KEYS.deck);
+          _save(collectionKey, []);
+          localStorage.removeItem(_key(SLOT_KEY_NAMES.deck));
           localStorage.setItem('tcg_migration_pending', '1');
         }
-        _save(KEYS.version, SAVE_VERSION);
+        _save(versionKey, SAVE_VERSION);
       }
     }
   }
@@ -103,59 +284,45 @@ export const Progression = (() => {
     localStorage.removeItem('tcg_migration_pending');
   }
 
-  function hasV1Backup(): boolean {
-    return localStorage.getItem('tcg_collection_v1_backup') !== null;
-  }
-
-  function restoreV1Backup(): boolean {
-    try {
-      const raw = localStorage.getItem('tcg_collection_v1_backup');
-      if (!raw) return false;
-      const col = JSON.parse(raw);
-      if (!Array.isArray(col)) return false;
-      _save(KEYS.collection, col);
-      const deckRaw = localStorage.getItem('tcg_deck_v1_backup');
-      if (deckRaw) localStorage.setItem(KEYS.deck, deckRaw);
-      console.info('[Progression] Restored v1 backup successfully.');
-      return true;
-    } catch {
-      console.warn('[Progression] Failed to restore v1 backup.');
-      return false;
-    }
-  }
-
   function isFirstLaunch() {
-    return !localStorage.getItem(KEYS.starterChosen);
+    if (activeSlot === null) return true;
+    return !localStorage.getItem(_key(SLOT_KEY_NAMES.starterChosen));
   }
 
   function markStarterChosen(race: string) {
-    localStorage.setItem(KEYS.starterChosen, '1');
-    localStorage.setItem(KEYS.starterRace, race);
+    localStorage.setItem(_key(SLOT_KEY_NAMES.starterChosen), '1');
+    localStorage.setItem(_key(SLOT_KEY_NAMES.starterRace), race);
+    updateSlotMeta();
   }
 
   function getStarterRace() {
-    return localStorage.getItem(KEYS.starterRace) || null;
+    if (activeSlot === null) return null;
+    return localStorage.getItem(_key(SLOT_KEY_NAMES.starterRace)) || null;
   }
 
+  // ── Coins ────────────────────────────────────────────────
+
   function getCoins(): number {
-    return _load(KEYS.coins, 0, v => typeof v === 'number' && v >= 0);
+    return _load(_key(SLOT_KEY_NAMES.coins), 0, v => typeof v === 'number' && v >= 0);
   }
 
   function addCoins(amount: number): number {
     const current = getCoins();
-    _save(KEYS.coins, current + Math.max(0, amount));
+    _save(_key(SLOT_KEY_NAMES.coins), current + Math.max(0, amount));
     return getCoins();
   }
 
   function spendCoins(amount: number): boolean {
     const current = getCoins();
     if (current < amount) return false;
-    _save(KEYS.coins, current - amount);
+    _save(_key(SLOT_KEY_NAMES.coins), current - amount);
     return true;
   }
 
+  // ── Collection ───────────────────────────────────────────
+
   function getCollection(): CollectionEntry[] {
-    return _load(KEYS.collection, [], v => Array.isArray(v));
+    return _load(_key(SLOT_KEY_NAMES.collection), [], v => Array.isArray(v));
   }
 
   function addCardsToCollection(cards: (string | { id: string })[]): void {
@@ -169,7 +336,7 @@ export const Progression = (() => {
     });
 
     const newCol = Object.entries(map).map(([id, count]) => ({ id, count }));
-    _save(KEYS.collection, newCol);
+    _save(_key(SLOT_KEY_NAMES.collection), newCol);
   }
 
   function ownsCard(cardId: string): boolean {
@@ -185,25 +352,15 @@ export const Progression = (() => {
   }
 
   function getDeck(): string[] | null {
-    const deck = _load(KEYS.deck, null, v => Array.isArray(v) && v.every(id => typeof id === 'string'));
-    if (deck) return deck;
-    try {
-      const legacy = localStorage.getItem('aetherialClash_deck');
-      if (legacy) return JSON.parse(legacy);
-    } catch (e) { console.warn('[Progression] Legacy deck migration failed:', e); }
-    return null;
+    return _load(_key(SLOT_KEY_NAMES.deck), null, v => Array.isArray(v) && v.every(id => typeof id === 'string'));
   }
 
   function saveDeck(deckIds: string[]): boolean {
-    const ok = _save(KEYS.deck, deckIds);
-    if (ok) {
-      try { localStorage.setItem('echoesOfSanguo_deck', JSON.stringify(deckIds)); } catch { /* ignore */ }
-    }
-    return ok;
+    return _save(_key(SLOT_KEY_NAMES.deck), deckIds);
   }
 
   function getOpponents(): Record<number, OpponentRecord> {
-    return _load(KEYS.opponents, _defaultOpponents(),
+    return _load(_key(SLOT_KEY_NAMES.opponents), _defaultOpponents(),
       v => v !== null && typeof v === 'object' && !Array.isArray(v));
   }
 
@@ -220,7 +377,7 @@ export const Progression = (() => {
     } else {
       ops[id].losses++;
     }
-    _save(KEYS.opponents, ops);
+    _save(_key(SLOT_KEY_NAMES.opponents), ops);
   }
 
   function isOpponentUnlocked(opponentId: number | string): boolean {
@@ -234,15 +391,15 @@ export const Progression = (() => {
   const SETTINGS_DEFAULTS: Settings = { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, refillHand: true };
 
   function getSettings(): Settings {
-    return { ...SETTINGS_DEFAULTS, ..._load(KEYS.settings, SETTINGS_DEFAULTS) };
+    return { ...SETTINGS_DEFAULTS, ..._load(GLOBAL_KEYS.settings, SETTINGS_DEFAULTS) };
   }
 
   function saveSettings(s: Settings): void {
-    _save(KEYS.settings, s);
+    _save(GLOBAL_KEYS.settings, s);
   }
 
   function getSeenCards(): Set<string> {
-    const arr = _load(KEYS.seenCards, [], v => Array.isArray(v));
+    const arr = _load(_key(SLOT_KEY_NAMES.seenCards), [], v => Array.isArray(v));
     return new Set(arr);
   }
 
@@ -250,16 +407,16 @@ export const Progression = (() => {
     if (ids.length === 0) return;
     const seen = getSeenCards();
     ids.forEach(id => seen.add(id));
-    _save(KEYS.seenCards, [...seen]);
+    _save(_key(SLOT_KEY_NAMES.seenCards), [...seen]);
   }
 
   function getCampaignProgress(): CampaignProgress {
-    return _load(KEYS.campaignProgress, { completedNodes: [], currentChapter: 'ch1' },
+    return _load(_key(SLOT_KEY_NAMES.campaignProgress), { completedNodes: [], currentChapter: 'ch1' },
       v => v !== null && typeof v === 'object' && Array.isArray((v as Record<string, unknown>).completedNodes));
   }
 
   function saveCampaignProgress(progress: CampaignProgress): void {
-    _save(KEYS.campaignProgress, progress);
+    _save(_key(SLOT_KEY_NAMES.campaignProgress), progress);
   }
 
   function markNodeComplete(nodeId: string): CampaignProgress {
@@ -280,29 +437,66 @@ export const Progression = (() => {
     return progress.completedNodes.includes(nodeId);
   }
 
-  const DUEL_CHECKPOINT_KEY = 'tcg_duel_checkpoint';
-
   function saveDuelCheckpoint(data: unknown): void {
-    _save(DUEL_CHECKPOINT_KEY, data);
+    _save(_checkpointKey(), data);
   }
 
   function loadDuelCheckpoint<T>(): T | null {
-    return _load(DUEL_CHECKPOINT_KEY, null);
+    return _load(_checkpointKey(), null);
   }
 
   function clearDuelCheckpoint(): void {
-    localStorage.removeItem(DUEL_CHECKPOINT_KEY);
+    localStorage.removeItem(_checkpointKey());
   }
+
+  // ── v1 Migration Recovery ────────────────────────────────
+
+  function hasV1Backup(): boolean {
+    if (activeSlot === null) return false;
+    return localStorage.getItem(`tcg_s${activeSlot}_collection_v1_backup`) !== null;
+  }
+
+  function restoreV1Backup(): boolean {
+    if (activeSlot === null) return false;
+    try {
+      const raw = localStorage.getItem(`tcg_s${activeSlot}_collection_v1_backup`);
+      if (!raw) return false;
+      const col = JSON.parse(raw);
+      if (!Array.isArray(col)) return false;
+      _save(_key(SLOT_KEY_NAMES.collection), col);
+      const deckRaw = localStorage.getItem(`tcg_s${activeSlot}_deck_v1_backup`);
+      if (deckRaw) localStorage.setItem(_key(SLOT_KEY_NAMES.deck), deckRaw);
+      console.info('[Progression] Restored v1 backup successfully.');
+      return true;
+    } catch {
+      console.warn('[Progression] Failed to restore v1 backup.');
+      return false;
+    }
+  }
+
+  // ── Debug / Reset ────────────────────────────────────────
 
   function resetAll() {
-    Object.values(KEYS).forEach(k => localStorage.removeItem(k));
-    localStorage.removeItem(DUEL_CHECKPOINT_KEY);
-    console.warn('[Progression] All data reset.');
+    if (activeSlot === null) return;
+    Object.values(SLOT_KEY_NAMES).forEach(name => {
+      localStorage.removeItem(_key(name));
+    });
+    localStorage.removeItem(_checkpointKey());
+    console.warn(`[Progression] Slot ${activeSlot} data reset.`);
   }
 
+  // ── Soft-Reset / Backup ──────────────────────────────────
+
   function backupToSession(): void {
+    if (activeSlot === null) return;
     const backup: Record<string, string | null> = {};
-    Object.values(KEYS).forEach(k => { backup[k] = localStorage.getItem(k); });
+    Object.values(SLOT_KEY_NAMES).forEach(name => {
+      const k = _key(name);
+      backup[k] = localStorage.getItem(k);
+    });
+    const ckKey = _checkpointKey();
+    backup[ckKey] = localStorage.getItem(ckKey);
+    backup['__slot'] = String(activeSlot);
     sessionStorage.setItem('tcg_save_backup', JSON.stringify(backup));
   }
 
@@ -314,10 +508,13 @@ export const Progression = (() => {
     const raw = sessionStorage.getItem('tcg_save_backup');
     if (!raw) return;
     const backup = JSON.parse(raw) as Record<string, string | null>;
+    const backupSlot = backup['__slot'] ? parseInt(backup['__slot'], 10) as SlotId : activeSlot;
     Object.entries(backup).forEach(([k, v]) => {
+      if (k === '__slot') return;
       if (v === null) localStorage.removeItem(k);
       else localStorage.setItem(k, v);
     });
+    if (backupSlot) selectSlot(backupSlot);
     sessionStorage.removeItem('tcg_save_backup');
   }
 
@@ -325,40 +522,63 @@ export const Progression = (() => {
     sessionStorage.removeItem('tcg_save_backup');
   }
 
+  // ── Public API ───────────────────────────────────────────
+
   return {
+    // Slot management
+    selectSlot,
+    getActiveSlot,
+    isSlotEmpty,
+    getSlotMeta,
+    updateSlotMeta,
+    deleteSlot,
+    hasAnySave,
+    // Init
     init,
     isFirstLaunch,
     markStarterChosen,
     getStarterRace,
+    // Coins
     getCoins,
     addCoins,
     spendCoins,
+    // Collection
     getCollection,
     addCardsToCollection,
     ownsCard,
     cardCount,
+    // Deck
     getDeck,
     saveDeck,
+    // Opponents
     getOpponents,
     recordDuelResult,
     isOpponentUnlocked,
+    // Settings (global)
     getSettings,
     saveSettings,
+    // Seen cards
     getSeenCards,
     markCardsAsSeen,
+    // Campaign
     getCampaignProgress,
     saveCampaignProgress,
     markNodeComplete,
     isNodeComplete,
+    // Migration
     hasMigrationPending,
     clearMigrationPending,
+    // v1 Migration Recovery
     hasV1Backup,
     restoreV1Backup,
+    // Debug
     resetAll,
+    // Soft-Reset
     backupToSession,
     hasBackup,
     restoreFromBackup,
     clearBackup,
+    // Duel Checkpoint
     saveDuelCheckpoint,
     loadDuelCheckpoint,
     clearDuelCheckpoint,

@@ -5,6 +5,7 @@ import { Progression } from '../src/progression.ts';
 beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
+  Progression.selectSlot(1);
   Progression.init();
 });
 
@@ -16,7 +17,7 @@ describe('resetAll', () => {
     Progression.addCardsToCollection(['1']);
     Progression.saveDeck(['1']);
     Progression.markStarterChosen('Dragon');
-    Progression.saveSettings({ lang: 'de', volMaster: 80, volMusic: 60, volSfx: 40 });
+    Progression.saveSettings({ lang: 'de', volMaster: 80, volMusic: 60, volSfx: 40, refillHand: true });
     Progression.markCardsAsSeen(['1', '2']);
 
     Progression.resetAll();
@@ -170,17 +171,17 @@ describe('coins edge cases', () => {
   });
 
   it('getCoins falls back to 0 when localStorage has invalid data', () => {
-    localStorage.setItem('eos_jade_coins', '"not_a_number"');
+    localStorage.setItem('tcg_s1_jade_coins', '"not_a_number"');
     expect(Progression.getCoins()).toBe(0);
   });
 
   it('getCoins falls back to 0 when localStorage has negative number', () => {
-    localStorage.setItem('eos_jade_coins', '-50');
+    localStorage.setItem('tcg_s1_jade_coins', '-50');
     expect(Progression.getCoins()).toBe(0);
   });
 
   it('getCoins falls back to 0 for unparseable JSON', () => {
-    localStorage.setItem('eos_jade_coins', '{broken');
+    localStorage.setItem('tcg_s1_jade_coins', '{broken');
     expect(Progression.getCoins()).toBe(0);
   });
 });
@@ -215,12 +216,12 @@ describe('collection edge cases', () => {
   });
 
   it('getCollection falls back to empty array for corrupted data', () => {
-    localStorage.setItem('tcg_collection', '"not_an_array"');
+    localStorage.setItem('tcg_s1_collection', '"not_an_array"');
     expect(Progression.getCollection()).toEqual([]);
   });
 
   it('getCollection falls back to empty array for unparseable JSON', () => {
-    localStorage.setItem('tcg_collection', '{{{bad');
+    localStorage.setItem('tcg_s1_collection', '{{{bad');
     expect(Progression.getCollection()).toEqual([]);
   });
 });
@@ -228,30 +229,24 @@ describe('collection edge cases', () => {
 // ── Deck edge cases ──────────────────────────────────────────
 
 describe('deck edge cases', () => {
-  it('saveDeck also writes legacy echoesOfSanguo key', () => {
+  it('saveDeck persists deck to slot key', () => {
     Progression.saveDeck(['1', '2']);
-    const legacy = JSON.parse(localStorage.getItem('echoesOfSanguo_deck'));
-    expect(legacy).toEqual(['1', '2']);
+    const stored = JSON.parse(localStorage.getItem('tcg_s1_deck'));
+    expect(stored).toEqual(['1', '2']);
   });
 
-  it('getDeck reads legacy aetherialClash_deck when main key missing', () => {
-    localStorage.removeItem('tcg_deck');
-    localStorage.setItem('aetherialClash_deck', JSON.stringify(['L001', 'L002']));
-    expect(Progression.getDeck()).toEqual(['L001', 'L002']);
-  });
-
-  it('getDeck returns null when both keys are missing', () => {
-    localStorage.removeItem('tcg_deck');
+  it('getDeck returns null when key is missing', () => {
+    localStorage.removeItem('tcg_s1_deck');
     expect(Progression.getDeck()).toBeNull();
   });
 
   it('getDeck falls back when main key has invalid format (not array)', () => {
-    localStorage.setItem('tcg_deck', '"just_a_string"');
+    localStorage.setItem('tcg_s1_deck', '"just_a_string"');
     expect(Progression.getDeck()).toBeNull();
   });
 
   it('getDeck falls back when main key has non-string items', () => {
-    localStorage.setItem('tcg_deck', '[1, 2, 3]');
+    localStorage.setItem('tcg_s1_deck', '[1, 2, 3]');
     // Validator rejects because items are not strings
     expect(Progression.getDeck()).toBeNull();
   });
@@ -337,7 +332,7 @@ describe('opponents edge cases', () => {
   });
 
   it('getOpponents falls back to defaults when data is corrupted', () => {
-    localStorage.setItem('tcg_opponents', '[1,2,3]');
+    localStorage.setItem('tcg_s1_opponents', '[1,2,3]');
     const ops = Progression.getOpponents();
     expect(ops[1].unlocked).toBe(true);
     expect(ops[2].unlocked).toBe(false);
@@ -426,7 +421,7 @@ describe('seen cards', () => {
   });
 
   it('getSeenCards falls back to empty set for corrupted data', () => {
-    localStorage.setItem('tcg_seen_cards', '"not_array"');
+    localStorage.setItem('tcg_s1_seen_cards', '"not_array"');
     const seen = Progression.getSeenCards();
     expect(seen.size).toBe(0);
   });
@@ -435,34 +430,10 @@ describe('seen cards', () => {
 // ── init edge cases ──────────────────────────────────────────
 
 describe('init edge cases', () => {
-  it('init migrates legacy aetherialClash_deck on first launch', () => {
-    localStorage.clear();
-    localStorage.setItem('aetherialClash_deck', JSON.stringify(['L001', 'L002']));
-    Progression.init();
-    // The legacy deck should be migrated to the new key
-    const raw = localStorage.getItem('tcg_deck');
-    expect(raw).toBe(JSON.stringify(['L001', 'L002']));
-  });
-
-  it('init migrates legacy ac_aether_coins on existing save missing coins', () => {
-    localStorage.clear();
-    // Simulate existing save (initialized flag set) but coins key missing
-    localStorage.setItem('tcg_initialized', '1');
-    localStorage.setItem('ac_aether_coins', '250');
-    Progression.init();
-    expect(Progression.getCoins()).toBe(250);
-  });
-
-  it('init sets coins to 0 when neither new nor legacy coin key exists', () => {
-    localStorage.clear();
-    localStorage.setItem('tcg_initialized', '1');
-    Progression.init();
-    expect(Progression.getCoins()).toBe(0);
-  });
-
   it('init fills missing fields on existing saves', () => {
     localStorage.clear();
-    localStorage.setItem('tcg_initialized', '1');
+    Progression.selectSlot(1);
+    localStorage.setItem('tcg_s1_initialized', '1');
     // All other keys missing — init should fill them
     Progression.init();
     expect(Progression.getCoins()).toBe(0);
@@ -480,15 +451,34 @@ describe('init edge cases', () => {
   });
 
   it('init sets save version stamp', () => {
-    const ver = JSON.parse(localStorage.getItem('tcg_save_version'));
+    const ver = JSON.parse(localStorage.getItem('tcg_s1_save_version'));
     expect(ver).toBe(2);
   });
 
   it('init adds version stamp to existing saves missing it', () => {
     localStorage.clear();
-    localStorage.setItem('tcg_initialized', '1');
+    Progression.selectSlot(1);
+    localStorage.setItem('tcg_s1_initialized', '1');
     Progression.init();
-    const ver = JSON.parse(localStorage.getItem('tcg_save_version'));
+    const ver = JSON.parse(localStorage.getItem('tcg_s1_save_version'));
     expect(ver).toBe(2);
+  });
+
+  it('migrates old flat keys into slot 1', () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    // Simulate old flat-key save (no tcg_active_slot set)
+    localStorage.setItem('tcg_initialized', '1');
+    localStorage.setItem('eos_jade_coins', '999');
+    localStorage.setItem('tcg_collection', JSON.stringify([{ id: '1', count: 2 }]));
+    // Call init without selectSlot — migration should auto-detect flat keys
+    Progression.init();
+    // Old keys should be migrated to slot 1
+    expect(Progression.getActiveSlot()).toBe(1);
+    expect(Progression.getCoins()).toBe(999);
+    expect(Progression.cardCount('1')).toBe(2);
+    // Old flat keys should be removed
+    expect(localStorage.getItem('tcg_initialized')).toBeNull();
+    expect(localStorage.getItem('eos_jade_coins')).toBeNull();
   });
 });

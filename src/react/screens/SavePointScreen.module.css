@@ -47,6 +47,19 @@
   align-items: center; gap: 10px;
 }
 
+.slotBadge {
+  display: inline-block;
+  font-size: 0.625rem;
+  letter-spacing: 2px;
+  color: #b0d0b8;
+  background: rgba(14, 28, 20, 0.6);
+  border: 1px solid rgba(48, 160, 96, 0.3);
+  border-radius: 3px;
+  padding: 2px 8px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
 .menu :global(.btn-menu) {
   width: 260px; text-align: center;
 }
