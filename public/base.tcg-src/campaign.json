@@ -740,6 +740,20 @@
                 "portrait": null,
                 "side": "left",
                 "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_35_post_2",
+                "speaker": "Zhang Jue",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_35_post_3",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
               }
             ]
           }
@@ -756,6 +770,27 @@
             "dialogue": [
               {
                 "textKey": "campaign.story_alliance_1",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_alliance_2",
+                "speaker": "Cao Pi",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_alliance_3",
+                "speaker": "Cao Pi",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_alliance_4",
                 "speaker": "Narrator",
                 "portrait": null,
                 "side": "left",
@@ -795,6 +830,13 @@
                 "portrait": null,
                 "side": "left",
                 "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_37_post_2",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
               }
             ]
           }
@@ -817,6 +859,20 @@
                 "speaker": "Narrator",
                 "portrait": null,
                 "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_38_post_2",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_38_post_3",
+                "speaker": "Cao Cao",
+                "portrait": null,
+                "side": "right",
                 "foregrounds": null
               }
             ]
@@ -843,6 +899,27 @@
             "dialogue": [
               {
                 "textKey": "campaign.duel_39_post_1",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_39_post_2",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_39_post_3",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_39_post_4",
                 "speaker": "Narrator",
                 "portrait": null,
                 "side": "left",
