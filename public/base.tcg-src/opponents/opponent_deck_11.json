@@ -6,6 +6,6 @@
   "flavor": "Aus Asche geboren, unzerstörbar und wunderschön.",
   "coinsWin": 250,
   "coinsLoss": 0,
-  "deckIds": [137, 137, 138, 138, 139, 139, 140, 140, 141, 141, 142, 142, 143, 144, 144, 272, 275, 295],
+  "deckIds": [140, 141, 141, 142, 142, 143, 143, 144, 144, 145, 145, 146, 146, 147, 147, 272, 276, 295, 297],
   "behavior": "smart"
 }

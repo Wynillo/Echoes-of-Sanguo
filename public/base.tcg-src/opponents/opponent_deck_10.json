@@ -6,6 +6,6 @@
   "flavor": "Ihre Kreaturen verwandeln sich vor deinen Augen.",
   "coinsWin": 200,
   "coinsLoss": 0,
-  "deckIds": [190, 190, 191, 191, 192, 192, 193, 193, 194, 195, 195, 196, 267, 274, 277, 296],
-  "behavior": "default"
+  "deckIds": [193, 194, 195, 195, 196, 196, 197, 197, 198, 198, 199, 199, 200, 200, 268, 274, 277, 296],
+  "behavior": "smart"
 }

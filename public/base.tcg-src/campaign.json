@@ -358,6 +358,27 @@
                 "portrait": null,
                 "side": "left",
                 "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_return_2",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_return_3",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_return_4",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
               }
             ]
           }
@@ -533,12 +554,44 @@
           "rewards": { "coins": 500, "cards": null, "unlocks": null },
           "opponentId": 31,
           "isBoss": true,
-          "preDialogue": null,
+          "preDialogue": {
+            "background": "bg_default",
+            "dialogue": [
+              {
+                "textKey": "campaign.duel_31_pre_1",
+                "speaker": "Mi Hun",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_31_pre_2",
+                "speaker": "Mi Hun",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_31_pre_3",
+                "speaker": "Mi Hun",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              }
+            ]
+          },
           "postDialogue": {
             "background": "bg_default",
             "dialogue": [
               {
                 "textKey": "campaign.duel_31_post_1",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_31_post_2",
                 "speaker": "Narrator",
                 "portrait": null,
                 "side": "left",
@@ -569,6 +622,34 @@
                 "portrait": null,
                 "side": "left",
                 "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_betrayal_2",
+                "speaker": "Cao Pi",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_betrayal_3",
+                "speaker": "Cao Pi",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_betrayal_4",
+                "speaker": "Cao Pi",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_betrayal_5",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
               }
             ]
           }
@@ -588,6 +669,20 @@
             "dialogue": [
               {
                 "textKey": "campaign.duel_32_post_1",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_32_post_2",
+                "speaker": "Cao Pi",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_32_post_3",
                 "speaker": "Narrator",
                 "portrait": null,
                 "side": "left",
