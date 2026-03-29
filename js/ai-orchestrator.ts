@@ -159,9 +159,13 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
           .reduce((max, fc) => Math.max(max, aiEffectiveATK(fc!)), 0);
         const playerHasMonsters = plr.field.monsters.some(Boolean);
         const summonPos = decideSummonPosition(cardATK, cardDEF, plrMaxATK, playerHasMonsters, bh.positionStrategy);
-        EchoesOfSanguo.log('SUMMON', `Summoning ${card.name} (ATK:${cardATK}/DEF:${cardDEF}) to zone ${zone} as ${summonPos.toUpperCase()}`);
+        EchoesOfSanguo.log('SUMMON', `${summonPos === 'def' ? 'Setting' : 'Summoning'} ${card.name} (ATK:${cardATK}/DEF:${cardDEF}) to zone ${zone} as ${summonPos === 'def' ? 'face-down DEF' : 'ATK'}`);
         await _delay(350);
-        await engine.summonMonster('opponent', bestIdx, zone, summonPos);
+        if (summonPos === 'def') {
+          await engine.setMonster('opponent', bestIdx, zone);
+        } else {
+          await engine.summonMonster('opponent', bestIdx, zone, summonPos);
+        }
         const summonedFC = ai.field.monsters[zone];
         if(summonedFC){
           const trapResult = await engine._promptPlayerTraps('onOpponentSummon', summonedFC);
