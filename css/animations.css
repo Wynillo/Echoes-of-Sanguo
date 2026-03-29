@@ -257,6 +257,60 @@
 .vfx-damage:nth-child(5)  { --vfx-fire-ox:  40px; --vfx-fire-oy: -80px; }
 .vfx-damage:nth-child(6)  { --vfx-fire-ox: -50px; --vfx-fire-oy:  30px; }
 
+/* ── Pack Opening ────────────────────────────────────────── */
+
+/* Holographic shimmer sweep across booster pack */
+@keyframes packShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* White flash burst when pack tears open */
+@keyframes packFlash {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Golden sparkle particles radiate outward (for SR/UR cards) */
+@keyframes sparkleParticle {
+  0% {
+    transform: translate(-50%, -50%) rotate(var(--sparkle-angle)) translateY(0) scale(0.3);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(var(--sparkle-angle)) translateY(-50px) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(var(--sparkle-angle)) translateY(-90px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* Golden burst flash behind rare card on reveal */
+@keyframes sparkleBurst {
+  0%   { transform: translate(-50%, -50%) scale(0.1); opacity: 1; }
+  40%  { transform: translate(-50%, -50%) scale(1.5);  opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(2.5);  opacity: 0; }
+}
+
+/* Shimmer glow pulse on rare card border */
+@keyframes rareBorderGlow {
+  0%, 100% { box-shadow: 0 0 8px var(--rarity-color, #c8a84b), 0 0 16px transparent; }
+  50%      { box-shadow: 0 0 12px var(--rarity-color, #c8a84b), 0 0 28px var(--rarity-color, #c8a84b); }
+}
+
+/* Pack wobble before tear */
+@keyframes packWobble {
+  0%, 100% { transform: rotate(0deg); }
+  25%  { transform: rotate(-3deg); }
+  75%  { transform: rotate(3deg); }
+}
+
 /* ── Reduced Motion ─────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

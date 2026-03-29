@@ -113,7 +113,8 @@
     "type_fusion": "Fusion",
     "type_spell": "Spell",
     "type_trap": "Trap",
-    "type_equipment": "Equipment"
+    "type_equipment": "Equipment",
+    "skip_hint": "Tap to skip"
   },
   "collection": {
     "title": "📚 MY COLLECTION",

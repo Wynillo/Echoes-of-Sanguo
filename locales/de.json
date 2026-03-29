@@ -113,7 +113,8 @@
     "type_fusion": "Fusion",
     "type_spell": "Zauber",
     "type_trap": "Falle",
-    "type_equipment": "Ausrüstung"
+    "type_equipment": "Ausrüstung",
+    "skip_hint": "Tippen zum Überspringen"
   },
   "collection": {
     "title": "📚 MEINE SAMMLUNG",
