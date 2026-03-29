@@ -25,4 +25,13 @@ try {
 await import('./progression.js');
 await import('./i18n.js');          // must come after progression.js (reads saved language)
 await import('./engine.js');
+
+// Fade out loading screen and wait for fonts before mounting React
+const loadingScreen = document.querySelector('.loading-screen') as HTMLElement | null;
+if (loadingScreen) {
+  loadingScreen.style.transition = 'opacity 0.3s ease';
+  loadingScreen.style.opacity = '0';
+  await new Promise(r => setTimeout(r, 300));
+}
+await document.fonts.ready;
 await import('./react/index.js');
