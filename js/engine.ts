@@ -571,6 +571,7 @@ export class GameEngine {
 
   /** Remove all equipment attached to a monster at the given zone/owner, sending them to graveyard. */
   _removeEquipmentForMonster(monsterOwner: Owner, monsterZone: number): void {
+    const targetFC = this.state[monsterOwner].field.monsters[monsterZone];
     // Equipment can be owned by either player — scan both sides
     for (const side of ['player', 'opponent'] as Owner[]) {
       const st = this.state[side];
@@ -578,6 +579,12 @@ export class GameEngine {
         const fst = st.field.spellTraps[z];
         if (!fst || fst.card.type !== CardType.Equipment) continue;
         if (fst.equippedOwner === monsterOwner && fst.equippedMonsterZone === monsterZone) {
+          // Reverse bonuses applied by equipCard()
+          if (targetFC) {
+            targetFC.permATKBonus -= (fst.card.atkBonus ?? 0);
+            targetFC.permDEFBonus -= (fst.card.defBonus ?? 0);
+            targetFC.equippedCards = targetFC.equippedCards.filter(eq => eq.zone !== z);
+          }
           this.addLog(`${fst.card.name} was destroyed (equipped monster left the field).`);
           st.graveyard.push(fst.card);
           st.field.spellTraps[z] = null;
