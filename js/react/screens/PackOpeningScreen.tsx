@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { useScreen }   from '../contexts/ScreenContext.js';
 import { getRarityById } from '../../type-metadata.js';
-import { cardTypeCss, ATTR_CSS } from '../components/Card.js';
+import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { Audio }        from '../../audio.js';
 import { CardType, Rarity } from '../../types.js';
 import type { CardData }          from '../../types.js';
@@ -334,36 +334,14 @@ export default function PackOpeningScreen() {
         <div className={styles.grid}>
           {sortedCards.map((card, i) => {
             const isNew = !ownedBefore.has(card.id);
-            const rarColor = getRarityById((card as any).rarity)?.color ?? '#aaa';
             return (
               <div
                 key={i}
                 className={styles.cardWrapper}
                 style={{ animationDelay: `${i * 0.08}s` }}
               >
-                <div
-                  className={`${styles.cardInner} card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
-                  style={{ '--rarity-color': rarColor } as React.CSSProperties}
-                >
-                  {isNew && <div className={styles.newBadge}>{t('pack_opening.new_badge')}</div>}
-                  <div className={styles.rarityBar} style={{ background: rarColor }} />
-                  <div className="card-header">
-                    <span className="card-name">{card.name}</span>
-                    <span className="card-level">
-                      {card.level ? '★'.repeat(Math.min(card.level, 5)) : ''}
-                    </span>
-                  </div>
-                  <div className="card-body">
-                    <div className="card-type-line">{getTypeLabel(card, t)}</div>
-                    <div className="card-desc">{card.description || ''}</div>
-                  </div>
-                  {card.atk !== undefined && (
-                    <div className="card-footer">
-                      <span>ATK {card.atk}</span>
-                      <span>DEF {card.def}</span>
-                    </div>
-                  )}
-                </div>
+                {isNew && <div className={styles.newBadge}>{t('pack_opening.new_badge')}</div>}
+                <Card card={card} />
               </div>
             );
           })}
