@@ -33,6 +33,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
   function isPlayerMonsterInteractive(zone: number) {
     if (!player.field.monsters[zone]) return false;
     if (!isMyTurn || phase === 'battle') return false;
+    if (selMode === 'spell-target' || selMode === 'field-spell-target' || selMode === 'equip-target') return false;
     return phase === 'main';
   }
 

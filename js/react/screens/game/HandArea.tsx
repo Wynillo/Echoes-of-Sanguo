@@ -5,7 +5,7 @@ import { useModal }     from '../../contexts/ModalContext.js';
 import { useSelection } from '../../contexts/SelectionContext.js';
 import { HandCard }     from '../../components/HandCard.js';
 import { checkFusion, resolveFusionChain, CARD_DB } from '../../../cards.js';
-import { isMonsterType } from '../../../types.js';
+import { isMonsterType, CardType, meetsEquipRequirement } from '../../../types.js';
 import type { CardData } from '../../../types.js';
 import type { FieldCard } from '../../../field.js';
 
@@ -18,6 +18,7 @@ export function HandArea() {
   if (!gameState) return null;
 
   const player   = gameState.player;
+  const opponent = gameState.opponent;
   const phase    = gameState.phase;
   const isMyTurn = gameState.activePlayer === 'player';
   const selMode  = sel.mode;
@@ -126,10 +127,15 @@ export function HandArea() {
         {player.hand.map((card, i) => {
           const isNewlyDrawn = i >= newDrawBase;
           const isMon        = isMonsterType(card.type);
+          const isEquip      = card.type === CardType.Equipment;
           const playable     = isMyTurn && phase === 'main' && (
             isMon
               ? !player.normalSummonUsed && player.field.monsters.some(z => z === null)
-              : player.field.spellTraps.some(z => z === null)
+              : isEquip
+                ? player.field.spellTraps.some(z => z === null)
+                  && (player.field.monsters.some(m => m && !m.faceDown && meetsEquipRequirement(card, m.card))
+                   || opponent.field.monsters.some(m => m && !m.faceDown && meetsEquipRequirement(card, m.card)))
+                : player.field.spellTraps.some(z => z === null)
           );
           const inFusion     = fusionGroup.includes(i);
           const fusionIdx    = inFusion ? fusionGroup.indexOf(i) : undefined;
