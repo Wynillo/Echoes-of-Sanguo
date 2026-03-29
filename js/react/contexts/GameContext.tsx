@@ -281,22 +281,25 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Standard (non-campaign) duel flow
-      let coinsEarned = 0;
       if (opponentId) {
         import('../../cards.js').then(({ OPPONENT_CONFIGS }) =>
           import('../../progression.js').then(({ Progression }) => {
             Progression.recordDuelResult(opponentId, result === 'victory');
             const cfg = OPPONENT_CONFIGS.find((o) => o.id === opponentId);
+            let coinsEarned = 0;
             if (cfg) {
               coinsEarned = result === 'victory' ? cfg.coinsWin : 0;
               Progression.addCoins(coinsEarned);
             }
             refreshRef.current();
-            openModalRef.current({ type: 'result', resultType: result, coinsEarned });
+            navigateToRef.current('duel-result', resultData(result, {
+              rewards: coinsEarned > 0 ? { coins: coinsEarned } : undefined,
+              mode: 'free',
+            }));
           })
         ).catch(e => console.error('[GameContext] Failed to apply standard duel result:', e));
       } else {
-        openModalRef.current({ type: 'result', resultType: result, coinsEarned: 0 });
+        navigateToRef.current('duel-result', resultData(result, { mode: 'free' }));
       }
     },
   }), []); // stable — uses refs internally

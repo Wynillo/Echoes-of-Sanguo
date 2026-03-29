@@ -74,9 +74,34 @@
   opacity: 0;
 }
 
+/* ── Win/loss reason ─────────────────────────────────────── */
+.winReason {
+  font-size: 0.5rem;
+  letter-spacing: 1px;
+  color: #c0b090;
+  text-shadow: 1px 1px 4px #000;
+  font-style: italic;
+  margin: 0;
+  opacity: 0;
+}
+
+/* ── Stats columns (player + opponent side by side) ──────── */
+.statsColumns {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+@media (max-width: 520px) {
+  .statsColumns {
+    flex-direction: column;
+  }
+}
+
 /* ── Stats panel ─────────────────────────────────────────── */
 .statsPanel {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   border: 1px solid var(--accent-dim, rgba(212,160,23,0.3));
   border-radius: 4px;
   background: rgba(0,0,0,0.4);
@@ -95,8 +120,8 @@
 
 .statsGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 16px;
+  grid-template-columns: 1fr;
+  gap: 4px 0;
 }
 
 .statRow {

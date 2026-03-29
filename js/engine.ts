@@ -88,6 +88,10 @@ export class GameEngine {
       turns: 0, monstersPlayed: 0, fusionsPerformed: 0,
       spellsActivated: 0, trapsActivated: 0, cardsDrawn: 0,
       lpRemaining: 0, opponentLpRemaining: 0, deckRemaining: 0, graveyardSize: 0,
+      opponentMonstersPlayed: 0, opponentFusionsPerformed: 0,
+      opponentSpellsActivated: 0, opponentTrapsActivated: 0,
+      opponentDeckRemaining: 0, opponentGraveyardSize: 0,
+      endReason: 'lp_zero',
     };
   }
 
@@ -290,21 +294,25 @@ export class GameEngine {
   checkWin(){
     if(this.state.player.lp <= 0){
       this.addLog('=== DEFEAT ===');
+      this._stats.endReason = 'lp_zero';
       this._endDuel('defeat');
       return true;
     }
     if(this.state.opponent.lp <= 0){
       this.addLog('=== VICTORY ===');
+      this._stats.endReason = 'lp_zero';
       this._endDuel('victory');
       return true;
     }
     if(this.state.player.deck.length === 0 && this.state.phase === 'draw'){
       this.addLog('=== DEFEAT (Deck empty) ===');
+      this._stats.endReason = 'deck_out';
       this._endDuel('defeat');
       return true;
     }
     if(this.state.opponent.deck.length === 0){
       this.addLog('=== VICTORY (Opponent deck empty) ===');
+      this._stats.endReason = 'deck_out';
       this._endDuel('victory');
       return true;
     }
@@ -318,6 +326,8 @@ export class GameEngine {
     this._stats.opponentLpRemaining = this.state.opponent.lp;
     this._stats.deckRemaining = this.state.player.deck.length;
     this._stats.graveyardSize = this.state.player.graveyard.length;
+    this._stats.opponentDeckRemaining = this.state.opponent.deck.length;
+    this._stats.opponentGraveyardSize = this.state.opponent.graveyard.length;
 
     // onDuelEnd allows progression evaluation in the UI layer
     if(typeof this.ui.onDuelEnd === 'function'){
@@ -329,6 +339,7 @@ export class GameEngine {
 
   surrender(): void {
     this.addLog('=== SURRENDER ===');
+    this._stats.endReason = 'surrender';
     this._endDuel('defeat');
   }
 
@@ -369,7 +380,7 @@ export class GameEngine {
     const fc = new FieldCard(card, position, faceDown);
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
-    if (owner === 'player') this._stats.monstersPlayed++;
+    if (owner === 'player') this._stats.monstersPlayed++; else this._stats.opponentMonstersPlayed++;
     const posStr = faceDown ? 'face-down DEF' : position.toUpperCase();
     this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
     this.ui.playSfx?.('sfx_card_play');
@@ -407,7 +418,7 @@ export class GameEngine {
     const fc = new FieldCard(card, 'atk');
     fc.summonedThisTurn = false; // special summons can usually attack (or keep true for balance)
     st.field.monsters[zone] = fc;
-    if (owner === 'player') this._stats.monstersPlayed++;
+    if (owner === 'player') this._stats.monstersPlayed++; else this._stats.opponentMonstersPlayed++;
     this.addLog(`${ownerLabel(owner)}: ${card.name} Special Summon!`);
     this.ui.playSfx?.('sfx_card_play');
     this._recalcFieldSpellBonuses(fc);
@@ -427,7 +438,7 @@ export class GameEngine {
     const fc = new FieldCard(c, 'atk');
     fc.summonedThisTurn = false;
     st.field.monsters[zone] = fc;
-    if (owner === 'player') this._stats.monstersPlayed++;
+    if (owner === 'player') this._stats.monstersPlayed++; else this._stats.opponentMonstersPlayed++;
     this.addLog(`${ownerLabel(owner)}: ${c.name} summoned from graveyard!`);
     this.ui.playSfx?.('sfx_card_play');
     this._recalcFieldSpellBonuses(fc);
@@ -456,7 +467,7 @@ export class GameEngine {
     const card = st.hand[handIndex];
     if(!card || card.type !== CardType.Spell){ this.addLog('Not a spell card!'); return false; }
     st.hand.splice(handIndex, 1);
-    if (owner === 'player') this._stats.spellsActivated++;
+    if (owner === 'player') this._stats.spellsActivated++; else this._stats.opponentSpellsActivated++;
     this.addLog(`${ownerLabel(owner)}: ${card.name} activated!`);
     this.ui.playSfx?.('sfx_spell');
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
@@ -474,7 +485,7 @@ export class GameEngine {
     const fst = st.field.spellTraps[zone];
     if(!fst || fst.card.type !== CardType.Spell) return false;
     fst.faceDown = false;
-    if (owner === 'player') this._stats.spellsActivated++;
+    if (owner === 'player') this._stats.spellsActivated++; else this._stats.opponentSpellsActivated++;
     this.addLog(`${ownerLabel(owner)}: ${fst.card.name} activated!`);
     if(this.ui.showActivation) await this.ui.showActivation(fst.card, fst.card.description);
     if(fst.card.effect) {
@@ -493,7 +504,7 @@ export class GameEngine {
     if(!fst || fst.card.type !== CardType.Trap || fst.used) return null;
     fst.used = true;
     fst.faceDown = false;
-    if (owner === 'player') this._stats.trapsActivated++;
+    if (owner === 'player') this._stats.trapsActivated++; else this._stats.opponentTrapsActivated++;
     this.addLog(`${ownerLabel(owner)}: Trap ${fst.card.name} activated!`);
     this.ui.playSfx?.('sfx_trap');
     if(this.ui.showActivation) await this.ui.showActivation(fst.card, fst.card.description);
@@ -591,7 +602,7 @@ export class GameEngine {
     }
 
     st.field.fieldSpell = new FieldSpellTrap(card, false);
-    if (owner === 'player') this._stats.spellsActivated++;
+    if (owner === 'player') this._stats.spellsActivated++; else this._stats.opponentSpellsActivated++;
     this.addLog(`${ownerLabel(owner)}: Field Spell ${card.name} activated!`);
     this.ui.playSfx?.('sfx_spell');
     if (this.ui.showActivation) await this.ui.showActivation(card, card.description);
@@ -686,7 +697,7 @@ export class GameEngine {
     const fusionCardData = CARD_DB[recipe.result];
     if (!fusionCardData) { this.addLog('Fusion result card not found!'); return false; }
 
-    if (owner === 'player') this._stats.fusionsPerformed++;
+    if (owner === 'player') this._stats.fusionsPerformed++; else this._stats.opponentFusionsPerformed++;
     this.addLog(`${ownerLabel(owner)}: FUSION! ${card1.name} + ${card2.name} = ${fusionCardData.name}!`);
     this.ui.playSfx?.('sfx_fusion');
 
@@ -746,7 +757,7 @@ export class GameEngine {
 
     // Build log message showing the chain
     const cardNames = handIndices.map(i => hand[i].name);
-    if (owner === 'player') this._stats.fusionsPerformed++;
+    if (owner === 'player') this._stats.fusionsPerformed++; else this._stats.opponentFusionsPerformed++;
     this.addLog(`${ownerLabel(owner)}: FUSION! ${cardNames.join(' + ')} = ${finalCard.name}!`);
     this.ui.playSfx?.('sfx_fusion');
 

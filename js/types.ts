@@ -330,6 +330,13 @@ export interface DuelStats {
   opponentLpRemaining: number;
   deckRemaining:    number;
   graveyardSize:    number;
+  opponentMonstersPlayed:   number;
+  opponentFusionsPerformed: number;
+  opponentSpellsActivated:  number;
+  opponentTrapsActivated:   number;
+  opponentDeckRemaining:    number;
+  opponentGraveyardSize:    number;
+  endReason: 'lp_zero' | 'deck_out' | 'surrender';
 }
 
 // ── UI callbacks ─────────────────────────────────────────────
