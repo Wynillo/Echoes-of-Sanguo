@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CARD_DB } from '../js/cards.js';
 import { Rarity, Race, CardType } from '../js/types.js';
-import { PACK_TYPES, openPack } from '../js/react/utils/pack-logic.js';
+import { PACK_TYPES, openPack, RARITY_DROP_RATES } from '../js/react/utils/pack-logic.js';
 import { Progression } from '../js/progression.js';
 
 // ── Helpers ────────────────────────────────────────────────
@@ -47,6 +47,21 @@ describe('PACK_TYPES', () => {
   it('pack prices are ordered: aether < race < rarity', () => {
     expect(PACK_TYPES.aether.price).toBeLessThan(PACK_TYPES.race.price);
     expect(PACK_TYPES.race.price).toBeLessThan(PACK_TYPES.rarity.price);
+  });
+});
+
+// ── RARITY_DROP_RATES ────────────────────────────────────
+
+describe('RARITY_DROP_RATES', () => {
+  it('probabilities sum to 1.0', () => {
+    const sum = Object.values(RARITY_DROP_RATES).reduce((a, b) => a + b, 0);
+    expect(sum).toBeCloseTo(1.0, 5);
+  });
+
+  it('contains all five rarities', () => {
+    expect(Object.keys(RARITY_DROP_RATES).map(Number).sort((a, b) => a - b)).toEqual([
+      Rarity.Common, Rarity.Uncommon, Rarity.Rare, Rarity.SuperRare, Rarity.UltraRare,
+    ]);
   });
 });
 
@@ -134,10 +149,10 @@ describe('openPack rarity distribution', () => {
     localStorage.clear();
   });
 
-  it('standard packs (aether): slots 1-5 are Common, 6-7 Uncommon, 8 Rare', () => {
-    // We can't directly test slot assignment, but we can verify that
-    // over many packs the distribution roughly matches expectations.
-    // Standard pack: 5 Common + 2 Uncommon + 1 Rare + 1 (Rare/SR/UR) = 9
+  it('standard packs (aether): global rarity distribution with pity guarantee', () => {
+    // 8 slots use global distribution (60% C, 30% U, 8.9% R, 1% SR, 0.1% UR)
+    // + 1 guaranteed rare+ slot (75% R, 20% SR, 5% UR)
+    // Pity: if no card >= Rare, one card is upgraded to Rare
     const iterations = 200;
     const counts = { common: 0, uncommon: 0, rare: 0, superRare: 0, ultraRare: 0 };
     for (let i = 0; i < iterations; i++) {
@@ -153,14 +168,23 @@ describe('openPack rarity distribution', () => {
       }
     }
     const total = iterations * 9;
-    // Expected: ~55.5% Common, ~22.2% Uncommon, ~17-22% Rare, some SR/UR
-    expect(counts.common / total).toBeGreaterThan(0.40);
-    expect(counts.common / total).toBeLessThan(0.70);
+    // Expected: ~53% Common, ~27% Uncommon, ~16% Rare (including pity + guaranteed slot)
+    expect(counts.common / total).toBeGreaterThan(0.35);
+    expect(counts.common / total).toBeLessThan(0.75);
     expect(counts.uncommon / total).toBeGreaterThan(0.10);
-    expect(counts.uncommon / total).toBeLessThan(0.35);
+    expect(counts.uncommon / total).toBeLessThan(0.40);
     expect(counts.rare / total).toBeGreaterThan(0.05);
     // SR + UR should appear but be relatively rare
     expect(counts.superRare + counts.ultraRare).toBeGreaterThan(0);
+  });
+
+  it('pity system: every pack contains at least one Rare-or-better card', () => {
+    const iterations = 500;
+    for (let i = 0; i < iterations; i++) {
+      const cards = openPack('aether');
+      const hasRareOrBetter = cards.some(c => c.rarity >= Rarity.Rare);
+      expect(hasRareOrBetter).toBe(true);
+    }
   });
 
   it('rarity packs: all cards are at least Rare', () => {

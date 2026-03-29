@@ -1,6 +1,7 @@
 import type { DuelStats } from './types.js';
 import { Rarity } from './types.js';
 import { CARD_DB } from './cards.js';
+import { RARITY_DROP_RATES } from './react/utils/pack-logic.js';
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -159,14 +160,6 @@ export function calculateBattleBadges(stats: DuelStats): BattleBadges {
 
 // ── S-rank card drops ────────────────────────────────────────
 
-const DROP_WEIGHTS: [Rarity, number][] = [
-  [Rarity.Common, 0.50],
-  [Rarity.Uncommon, 0.30],
-  [Rarity.Rare, 0.149],
-  [Rarity.SuperRare, 0.05],
-  [Rarity.UltraRare, 0.001],
-];
-
 const RARITY_FALLBACK: Rarity[] = [
   Rarity.UltraRare, Rarity.SuperRare, Rarity.Rare, Rarity.Uncommon, Rarity.Common,
 ];
@@ -174,9 +167,12 @@ const RARITY_FALLBACK: Rarity[] = [
 function rollRarity(): Rarity {
   const r = Math.random();
   let cumulative = 0;
-  for (const [rarity, weight] of DROP_WEIGHTS) {
-    cumulative += weight;
-    if (r < cumulative) return rarity;
+  const entries = Object.entries(RARITY_DROP_RATES)
+    .map(([k, v]) => [Number(k), v] as [number, number])
+    .sort((a, b) => a[1] - b[1]);
+  for (const [rarity, prob] of entries) {
+    cumulative += prob;
+    if (r < cumulative) return rarity as Rarity;
   }
   return Rarity.Common;
 }

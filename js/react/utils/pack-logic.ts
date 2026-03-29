@@ -29,25 +29,34 @@ export const PACK_TYPES: Record<string, PackTypeInfo> = new Proxy({} as Record<s
   },
 });
 
+// ── Global rarity drop rates ────────────────────────────────
+
+/** Default drop-chance distribution used for any slot without an explicit rarity or distribution. */
+export const RARITY_DROP_RATES: Record<string, number> = {
+  [Rarity.Common]:    0.60,
+  [Rarity.Uncommon]:  0.30,
+  [Rarity.Rare]:      0.089,
+  [Rarity.SuperRare]: 0.01,
+  [Rarity.UltraRare]: 0.001,
+};
+
 // ── Data-driven rarity picker ───────────────────────────────
 
 function _pickRarityFromSlot(slot: PackSlotDef): Rarity {
-  if (slot.distribution) {
+  const dist = slot.distribution ?? (slot.rarity == null ? RARITY_DROP_RATES : undefined);
+  if (dist) {
     const r = Math.random();
     let cumulative = 0;
-    const entries = Object.entries(slot.distribution)
+    const entries = Object.entries(dist)
       .map(([k, v]) => [Number(k), v] as [number, number])
-      .sort((a, b) => b[1] - a[1]); // sort by probability desc for stable iteration
-    // iterate from lowest probability to highest to match cumulative check
-    entries.sort((a, b) => a[1] - b[1]);
+      .sort((a, b) => a[1] - b[1]);
     for (const [rarity, prob] of entries) {
       cumulative += prob;
       if (r < cumulative) return rarity as Rarity;
     }
-    // fallback to last entry
     return entries[entries.length - 1][0] as Rarity;
   }
-  return (slot.rarity ?? Rarity.Common) as Rarity;
+  return slot.rarity as Rarity;
 }
 
 // ── Card pool helpers ───────────────────────────────────────
@@ -82,6 +91,27 @@ function _expandSlots(packDef: PackDef): Rarity[] {
       rarities.push(_pickRarityFromSlot(slot));
     }
   }
+  return rarities;
+}
+
+// ── Pity system ────────────────────────────────────────────
+
+/**
+ * If no card in the array is Rare or better, replace one card with Rare.
+ * Prefers replacing Uncommon over Common (highest rarity below Rare first).
+ */
+function _applyPity(rarities: Rarity[]): Rarity[] {
+  if (rarities.some(r => r >= Rarity.Rare)) return rarities;
+
+  let replaceIdx = 0;
+  let bestRarity = -1;
+  for (let i = 0; i < rarities.length; i++) {
+    if (rarities[i] > bestRarity) {
+      bestRarity = rarities[i];
+      replaceIdx = i;
+    }
+  }
+  rarities[replaceIdx] = Rarity.Rare;
   return rarities;
 }
 
@@ -175,7 +205,7 @@ export function openPack(packType: string, race: Race | null = null): CardData[]
     packDef.filter === 'byRace' ? race
     : null;
 
-  const rarities = _expandSlots(packDef);
+  const rarities = _applyPity(_expandSlots(packDef));
 
   if (packDef.cardPool) {
     let pool = buildCardPool(packDef.cardPool);
@@ -209,7 +239,7 @@ export function openPackage(packageId: string): CardData[] {
   if (!pkg) return [];
 
   const pool = buildCardPool(pkg.cardPool);
-  const rarities = _expandSlots(pkg);
+  const rarities = _applyPity(_expandSlots(pkg));
 
   return rarities.map(rarity => {
     let candidates = pool.filter(c => (c.rarity ?? Rarity.Common) === rarity);

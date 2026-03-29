@@ -76,9 +76,7 @@ export interface ShopData {
 // ── Slot templates ──────────────────────────────────────────
 
 const STANDARD_SLOTS: PackSlotDef[] = [
-  { count: 5, rarity: 1 },                                              // slots 1-5: Common
-  { count: 2, rarity: 2 },                                              // slots 6-7: Uncommon
-  { count: 1, rarity: 4 },                                              // slot 8: Rare
+  { count: 8 },                                                         // slots 1-8: global rarity distribution
   { count: 1, pool: 'guaranteed_rare_plus', distribution: { '4': 0.75, '6': 0.20, '8': 0.05 } }, // slot 9
 ];
 
