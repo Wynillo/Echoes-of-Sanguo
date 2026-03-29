@@ -89,9 +89,9 @@ export default function GameScreen() {
         >☰</button>
 
         <div className="portrait-hud">
-          <span className="phud-lp phud-opp">♥ {opp.lp}</span>
+          <span className="phud-lp phud-opp">♥ {opp.lp} <span className="phud-deck">🂠{opp.deck?.length ?? 0}</span></span>
           <span className="phud-phase">{PHASE_LABEL[phase] ?? phase}</span>
-          <span className="phud-lp phud-player">♥ {player.lp}</span>
+          <span className="phud-lp phud-player">♥ {player.lp} <span className="phud-deck">🂠{player.deck?.length ?? 0}</span></span>
         </div>
 
         <button

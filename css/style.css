@@ -1198,6 +1198,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   }
   .phud-opp    { color: #ff8080; }
   .phud-player { color: #80ff80; }
+  .phud-deck   { opacity: 0.7; font-size: 8px; margin-left: 2px; }
   .phud-phase {
     font-family: var(--font-stats);
     font-size: 6px;
