@@ -85,7 +85,15 @@
     "packages_title": "◈ Card Packages",
     "tab_standard": "Standard Packs",
     "tab_packages": "Card Packages",
-    "locked": "🔒 Locked"
+    "locked": "🔒 Locked",
+    "info_title": "Pack Contents",
+    "info_cards_in_pool": "{{count}} cards in pool",
+    "info_guaranteed": "{{count}} guaranteed",
+    "info_chance": "{{percent}}% chance",
+    "info_per_pack": "{{count}} cards per pack",
+    "info_race_note": "Filtered by chosen race",
+    "info_close": "Close",
+    "cards_count": "{{count}} Cards"
   },
   "pack": {
     "race_name": "Race Pack",

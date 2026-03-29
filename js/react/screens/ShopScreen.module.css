@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 16px 40px;
+  padding: 12px 12px 24px;
   overflow-y: auto;
 }
 
@@ -26,15 +26,15 @@
   justify-content: space-between;
   width: 100%;
   max-width: 900px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   position: relative;
   z-index: 1;
 }
 
 .shopTitle {
-  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-size: clamp(1.1rem, 3vw, 1.6rem);
   letter-spacing: 3px;
   color: #c8a84b;
   text-shadow: 2px 2px 0 #000;
@@ -56,14 +56,14 @@
 
 .backBtn { font-size: 0.85rem; }
 
-/* ── Tabs ── */
+/* -- Tabs -- */
 
 .tabs {
   display: flex;
   gap: 0;
   max-width: 900px;
   width: 100%;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   position: relative;
   z-index: 1;
 }
@@ -91,127 +91,172 @@
   border-color: #c8a84b;
 }
 
-/* ── Carousel ── */
+/* -- Pack Grid -- */
 
-.carousel {
+.packGrid {
   position: relative;
   z-index: 1;
   width: 100%;
   max-width: 900px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
   flex: 1;
   min-height: 0;
+  align-content: start;
 }
 
-.carouselTrack {
-  display: flex;
-  gap: 14px;
-  flex: 1;
-  justify-content: center;
-  min-height: 0;
+@media (min-width: 480px) {
+  .packGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
 }
 
-.arrowBtn {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  background: #111828;
-  border: 2px solid #334;
-  border-radius: 0;
-  color: #c8a84b;
-  font-size: 1.4rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, color 0.15s;
-  z-index: 2;
+@media (min-width: 720px) {
+  .packGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
 }
 
-.arrowBtn:hover:not(:disabled) {
-  background: #1a2840;
-  color: #f0d080;
-}
-
-.arrowBtn:disabled {
-  opacity: 0.25;
-  cursor: not-allowed;
-}
-
-/* ── Dots ── */
-
-.dots {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  margin-top: 14px;
-  position: relative;
-  z-index: 1;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 1px solid #556;
-  background: #334;
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.dot:hover { border-color: #c8a84b; }
-
-.dotActive {
-  background: #c8a84b;
-  border-color: #c8a84b;
-}
-
-/* ── Pack Tile ── */
+/* -- Pack Tile (Booster Pack Style) -- */
 
 .packTile {
-  background: #111828;
-  border: 2px solid #334;
-  border-radius: 0;
-  padding: 16px 12px;
+  aspect-ratio: 2 / 3;
+  background: linear-gradient(
+    170deg,
+    color-mix(in srgb, var(--pack-color, #4060c0) 18%, #111828) 0%,
+    #0c1220 50%,
+    color-mix(in srgb, var(--pack-color, #4060c0) 12%, #0a0e1a) 100%
+  );
+  border: 2px solid color-mix(in srgb, var(--pack-color, #4060c0) 40%, #334);
+  border-radius: 4px;
+  padding: 8px 6px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
   position: relative;
   overflow: hidden;
-  width: 100%;
-  max-width: 280px;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .packTile::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--pack-color, #4060c0);
-  opacity: 0.06;
+  background: radial-gradient(
+    ellipse at 50% 20%,
+    color-mix(in srgb, var(--pack-color, #4060c0) 20%, transparent) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
 }
-
-.packTile:hover::before { opacity: 0.12; }
 
 .packTile:hover {
   border-color: var(--pack-color, #4060c0);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--pack-color, #4060c0) 30%, transparent);
 }
 
 .packDisabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  opacity: 0.45;
+  pointer-events: none;
 }
 
-.packIcon { font-size: 2.5rem; position: relative; }
-.packName { font-size: 0.9rem; font-weight: bold; color: #c0d0e0; position: relative; }
-.packDesc { font-size: 0.72rem; color: #606880; position: relative; }
-.packPrice { font-size: 1rem; color: #c8a84b; font-weight: bold; position: relative; font-family: var(--font-stats); }
+/* -- Info (?) Button -- */
 
-.raceSelectWrap { width: 100%; position: relative; }
+.infoBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--pack-color, #4060c0) 60%, #667);
+  background: rgba(0, 0, 0, 0.5);
+  color: #c0d0e0;
+  font-size: 0.65rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  transition: background 0.15s, color 0.15s;
+  padding: 0;
+  line-height: 1;
+  pointer-events: auto;
+}
+
+.infoBtn:hover {
+  background: var(--pack-color, #4060c0);
+  color: #fff;
+}
+
+/* -- Pack Content Area -- */
+
+.packTop {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  position: relative;
+  min-height: 0;
+}
+
+.packIcon {
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  position: relative;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.packName {
+  font-size: clamp(0.55rem, 1.8vw, 0.8rem);
+  font-weight: bold;
+  color: #c0d0e0;
+  position: relative;
+  line-height: 1.2;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.packCardCount {
+  font-size: clamp(0.45rem, 1.4vw, 0.65rem);
+  color: #606880;
+  position: relative;
+}
+
+.packDesc {
+  font-size: clamp(0.45rem, 1.4vw, 0.65rem);
+  color: #606880;
+  position: relative;
+}
+
+/* -- Pack Bottom Area -- */
+
+.packBottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  position: relative;
+}
+
+.packPrice {
+  font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+  color: #c8a84b;
+  font-weight: bold;
+  font-family: var(--font-stats);
+}
+
+.raceSelectWrap {
+  width: 100%;
+  position: relative;
+}
 
 .raceSelect {
   width: 100%;
@@ -219,8 +264,8 @@
   border: 1px solid #334;
   color: #c0d0e0;
   border-radius: 0;
-  padding: 4px 6px;
-  font-size: 0.8rem;
+  padding: 2px 4px;
+  font-size: clamp(0.5rem, 1.4vw, 0.7rem);
   cursor: pointer;
 }
 
@@ -229,9 +274,9 @@
   border: 2px solid;
   border-color: #30a060 #0a2c18 #0a2c18 #30a060;
   color: var(--pack-color, #90b0e0);
-  padding: 7px 16px;
+  padding: 4px 8px;
   border-radius: 0;
-  font-size: 0.85rem;
+  font-size: clamp(0.55rem, 1.6vw, 0.75rem);
   cursor: pointer;
   position: relative;
   width: 100%;
@@ -245,12 +290,151 @@
 .buyBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .packLocked {
-  font-size: 0.75rem;
+  font-size: clamp(0.5rem, 1.4vw, 0.7rem);
   color: #e06040;
   position: relative;
 }
 
-/* ── Section title (kept for potential fallback) ── */
+/* -- Info Modal Overlay -- */
+
+.infoOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.infoModal {
+  background: #111828;
+  border: 2px solid #c8a84b;
+  border-radius: 4px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 16px;
+  position: relative;
+}
+
+.infoModalHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #334;
+}
+
+.infoModalIcon {
+  font-size: 1.8rem;
+}
+
+.infoModalTitle {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #c0d0e0;
+  margin: 0;
+}
+
+.infoModalDesc {
+  font-size: 0.7rem;
+  color: #606880;
+  margin-top: 2px;
+}
+
+.infoSection {
+  margin-bottom: 14px;
+}
+
+.infoSectionTitle {
+  font-size: 0.72rem;
+  color: #c8a84b;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.rarityRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid #1a2030;
+  font-size: 0.72rem;
+}
+
+.rarityLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #c0d0e0;
+}
+
+.rarityDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rarityInfo {
+  color: #8090a0;
+  font-family: var(--font-stats);
+  text-align: right;
+}
+
+.poolSection {
+  margin-top: 8px;
+}
+
+.poolRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 0.68rem;
+}
+
+.poolLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #8090a0;
+}
+
+.poolCount {
+  color: #c0d0e0;
+  font-family: var(--font-stats);
+}
+
+.raceNote {
+  font-size: 0.65rem;
+  color: #a06020;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+.infoCloseBtn {
+  width: 100%;
+  background: #0d1830;
+  border: 2px solid;
+  border-color: #c8a84b #504020 #504020 #c8a84b;
+  color: #c8a84b;
+  padding: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.infoCloseBtn:hover {
+  background: #1a2840;
+}
+
+/* -- Legacy compat (kept for potential reuse) -- */
 
 .sectionTitle {
   font-size: clamp(1rem, 2.5vw, 1.4rem);

@@ -85,7 +85,15 @@
     "packages_title": "◈ Kartenpakete",
     "tab_standard": "Standardpacks",
     "tab_packages": "Kartenpakete",
-    "locked": "🔒 Gesperrt"
+    "locked": "🔒 Gesperrt",
+    "info_title": "Pack-Inhalt",
+    "info_cards_in_pool": "{{count}} Karten im Pool",
+    "info_guaranteed": "{{count}} garantiert",
+    "info_chance": "{{percent}}% Chance",
+    "info_per_pack": "{{count}} Karten pro Pack",
+    "info_race_note": "Gefiltert nach gewählter Rasse",
+    "info_close": "Schließen",
+    "cards_count": "{{count}} Karten"
   },
   "pack": {
     "race_name": "Rassen-Pack",
