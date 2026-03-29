@@ -974,6 +974,16 @@ export class GameEngine {
     st.field.monsters[zone] = null;
     this._removeEquipmentForMonster(owner, zone);
     this.ui.render(this.state);
+
+    // Phoenix Revival: revive once after destruction
+    if (fc.phoenixRevival && !fc.phoenixRevivalUsed) {
+      this.addLog(`${fc.card.name} rises from the graveyard!`);
+      const revived = await this.specialSummonFromGrave(owner, fc.card);
+      if (revived) {
+        const revivedFC = st.field.monsters.find(m => m !== null && m.card.id === fc.card.id);
+        if (revivedFC) revivedFC.phoenixRevivalUsed = true;
+      }
+    }
   }
 
   _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): EffectContext {
