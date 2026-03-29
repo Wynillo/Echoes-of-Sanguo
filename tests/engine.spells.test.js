@@ -468,3 +468,47 @@ describe('activateFieldSpell', () => {
   });
 });
 
+// ── Phoenix Revival (passive: revive from grave on destroy) ──
+
+describe('phoenixRevival passive', () => {
+  it('revives monster to field after battle destruction', async () => {
+    const { engine } = makeEngine();
+    engine.state.phase = 'battle';
+    // Place phoenix (ATK 1200) for player and a stronger opponent monster
+    placeMonster(engine, 'player', { ...CARD.phoenix_monster }, 0);
+    placeMonster(engine, 'opponent', { ...CARD.monsterB }, 0); // ATK 1500
+
+    // Opponent attacks player's phoenix — phoenix loses and is destroyed
+    await engine.attack('opponent', 0, 0);
+
+    // Phoenix should have been revived from graveyard
+    const revived = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_PHOENIX');
+    expect(revived).not.toBeNull();
+    // Graveyard should not contain the phoenix anymore
+    expect(engine.state.player.graveyard.find(c => c.id === 'TST_PHOENIX')).toBeUndefined();
+  });
+
+  it('marks phoenixRevivalUsed so it only revives once', async () => {
+    const { engine } = makeEngine();
+    engine.state.phase = 'battle';
+    placeMonster(engine, 'player', { ...CARD.phoenix_monster }, 0);
+    placeMonster(engine, 'opponent', { ...CARD.monsterB }, 0);
+
+    // First destruction — should revive
+    await engine.attack('opponent', 0, 0);
+    const revived = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_PHOENIX');
+    expect(revived).not.toBeNull();
+    expect(revived.phoenixRevivalUsed).toBe(true);
+
+    // Second destruction — should NOT revive
+    engine.state.opponent.field.monsters[0].hasAttacked = false;
+    const revivedZone = engine.state.player.field.monsters.indexOf(revived);
+    await engine.attack('opponent', 0, revivedZone);
+
+    // Phoenix should now be in the graveyard, not on the field
+    const revivedAgain = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_PHOENIX');
+    expect(revivedAgain).toBeUndefined();
+    expect(engine.state.player.graveyard.find(c => c.id === 'TST_PHOENIX')).toBeDefined();
+  });
+});
+
