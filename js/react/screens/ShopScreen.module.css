@@ -56,7 +56,7 @@
 
 .backBtn { font-size: 0.85rem; }
 
-/* -- Tabs -- */
+/* ── Tabs ── */
 
 .tabs {
   display: flex;
@@ -91,39 +91,89 @@
   border-color: #c8a84b;
 }
 
-/* -- Pack Grid -- */
+/* ── Carousel ── */
 
-.packGrid {
+.carousel {
   position: relative;
   z-index: 1;
   width: 100%;
   max-width: 900px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex: 1;
   min-height: 0;
-  align-content: start;
 }
 
-@media (min-width: 480px) {
-  .packGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
+.carouselTrack {
+  display: grid;
+  grid-template-columns: repeat(var(--items-per-page, 3), 1fr);
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  align-items: start;
 }
 
-@media (min-width: 720px) {
-  .packGrid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
+.arrowBtn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: #111828;
+  border: 2px solid #334;
+  border-radius: 0;
+  color: #c8a84b;
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  z-index: 2;
 }
 
-/* -- Pack Tile (Booster Pack Style) -- */
+.arrowBtn:hover:not(:disabled) {
+  background: #1a2840;
+  color: #f0d080;
+}
+
+.arrowBtn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* ── Dots ── */
+
+.dots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid #556;
+  background: #334;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.dot:hover { border-color: #c8a84b; }
+
+.dotActive {
+  background: #c8a84b;
+  border-color: #c8a84b;
+}
+
+/* ── Pack Tile (Booster Pack Style) ── */
 
 .packTile {
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 3 / 4;
   background: linear-gradient(
     170deg,
     color-mix(in srgb, var(--pack-color, #4060c0) 18%, #111828) 0%,
@@ -160,24 +210,19 @@
   box-shadow: 0 0 12px color-mix(in srgb, var(--pack-color, #4060c0) 30%, transparent);
 }
 
-.packDisabled {
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-/* -- Info (?) Button -- */
+/* ── Info (?) Button ── */
 
 .infoBtn {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 1.5px solid color-mix(in srgb, var(--pack-color, #4060c0) 60%, #667);
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
   color: #c0d0e0;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -187,7 +232,6 @@
   transition: background 0.15s, color 0.15s;
   padding: 0;
   line-height: 1;
-  pointer-events: auto;
 }
 
 .infoBtn:hover {
@@ -195,7 +239,7 @@
   color: #fff;
 }
 
-/* -- Pack Content Area -- */
+/* ── Pack Content Area ── */
 
 .packTop {
   flex: 1;
@@ -209,13 +253,13 @@
 }
 
 .packIcon {
-  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-size: clamp(1.6rem, 5vw, 2.6rem);
   position: relative;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
 .packName {
-  font-size: clamp(0.55rem, 1.8vw, 0.8rem);
+  font-size: clamp(0.5rem, 1.6vw, 0.8rem);
   font-weight: bold;
   color: #c0d0e0;
   position: relative;
@@ -224,30 +268,30 @@
 }
 
 .packCardCount {
-  font-size: clamp(0.45rem, 1.4vw, 0.65rem);
+  font-size: clamp(0.4rem, 1.2vw, 0.6rem);
   color: #606880;
   position: relative;
 }
 
 .packDesc {
-  font-size: clamp(0.45rem, 1.4vw, 0.65rem);
+  font-size: clamp(0.4rem, 1.2vw, 0.6rem);
   color: #606880;
   position: relative;
 }
 
-/* -- Pack Bottom Area -- */
+/* ── Pack Bottom Area ── */
 
 .packBottom {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   width: 100%;
   position: relative;
 }
 
 .packPrice {
-  font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+  font-size: clamp(0.55rem, 1.6vw, 0.8rem);
   color: #c8a84b;
   font-weight: bold;
   font-family: var(--font-stats);
@@ -265,7 +309,7 @@
   color: #c0d0e0;
   border-radius: 0;
   padding: 2px 4px;
-  font-size: clamp(0.5rem, 1.4vw, 0.7rem);
+  font-size: clamp(0.45rem, 1.2vw, 0.65rem);
   cursor: pointer;
 }
 
@@ -274,9 +318,9 @@
   border: 2px solid;
   border-color: #30a060 #0a2c18 #0a2c18 #30a060;
   color: var(--pack-color, #90b0e0);
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 0;
-  font-size: clamp(0.55rem, 1.6vw, 0.75rem);
+  font-size: clamp(0.5rem, 1.4vw, 0.72rem);
   cursor: pointer;
   position: relative;
   width: 100%;
@@ -289,13 +333,7 @@
 
 .buyBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.packLocked {
-  font-size: clamp(0.5rem, 1.4vw, 0.7rem);
-  color: #e06040;
-  position: relative;
-}
-
-/* -- Info Modal Overlay -- */
+/* ── Info Modal Overlay ── */
 
 .infoOverlay {
   position: fixed;
@@ -434,7 +472,7 @@
   background: #1a2840;
 }
 
-/* -- Legacy compat (kept for potential reuse) -- */
+/* ── Legacy compat ── */
 
 .sectionTitle {
   font-size: clamp(1rem, 2.5vw, 1.4rem);

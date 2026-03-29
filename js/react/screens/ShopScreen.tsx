@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
@@ -24,20 +24,16 @@ function totalCards(slots: PackSlotDef[]): number {
 /**
  * Compute rarity distribution summary from pack slots.
  * `guaranteed` = number of fixed slots for that rarity.
- * `chancePct` = combined probability (0-100) of getting that rarity
- *               from all distribution-based bonus slots.
+ * `chancePct` = probability (0-100) of getting that rarity from a bonus slot.
  */
 function computeDistribution(slots: PackSlotDef[]): { rarity: number; guaranteed: number; chancePct: number }[] {
   const map = new Map<number, { guaranteed: number; chancePct: number }>();
 
   for (const slot of slots) {
     if (slot.distribution) {
-      // Each distribution slot picks one rarity per card.
-      // Show per-card probability (all distribution slots share the same distribution).
       for (const [rarityStr, prob] of Object.entries(slot.distribution)) {
         const r = Number(rarityStr);
         const entry = map.get(r) ?? { guaranteed: 0, chancePct: 0 };
-        // prob is per-card; show it as percentage
         entry.chancePct = Math.round(prob * 100);
         map.set(r, entry);
       }
@@ -66,6 +62,17 @@ function countByRarity(cards: CardData[]): { rarity: number; count: number }[] {
     .sort((a, b) => a.rarity - b.rarity);
 }
 
+function useItemsPerPage() {
+  const [ipp, setIpp] = useState(() => window.matchMedia('(min-width: 700px)').matches ? 4 : 3);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 700px)');
+    const handler = (e: MediaQueryListEvent) => setIpp(e.matches ? 4 : 3);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return ipp;
+}
+
 export default function ShopScreen() {
   const { navigateTo } = useScreen();
   const { coins, refresh } = useProgression();
@@ -75,10 +82,39 @@ export default function ShopScreen() {
 
   const hasPackages = SHOP_DATA.packages.length > 0;
   const [activeTab, setActiveTab] = useState<Tab>('standard');
+  const [page, setPage] = useState(0);
+  const itemsPerPage = useItemsPerPage();
   const [infoTarget, setInfoTarget] = useState<{ pack: PackDef; type: 'pack' } | { pack: PackageDef; type: 'package' } | null>(null);
 
+  // Touch swipe tracking
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+
   const packs = Object.values(PACK_TYPES);
-  const packages = SHOP_DATA.packages;
+  const unlockedPackages = SHOP_DATA.packages.filter(pkg => isPackageUnlocked(pkg));
+  const items = activeTab === 'standard' ? packs : unlockedPackages;
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+
+  // Reset page when switching tabs or when items per page changes
+  useEffect(() => { setPage(0); }, [activeTab, itemsPerPage]);
+
+  const goPage = useCallback((p: number) => {
+    setPage(Math.max(0, Math.min(p, totalPages - 1)));
+  }, [totalPages]);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) goPage(page + 1);
+      else goPage(page - 1);
+    }
+  }, [goPage, page]);
 
   function buyPackage(packageId: string) {
     const pkg = SHOP_DATA.packages.find(p => p.id === packageId);
@@ -107,6 +143,10 @@ export default function ShopScreen() {
   function showInfo(pack: PackDef | PackageDef, type: 'pack' | 'package') {
     setInfoTarget({ pack: pack as any, type });
   }
+
+  // Slice items for current page
+  const startIdx = page * itemsPerPage;
+  const visibleItems = items.slice(startIdx, startIdx + itemsPerPage);
 
   return (
     <div className={styles.screen}>
@@ -137,39 +177,76 @@ export default function ShopScreen() {
         </div>
       )}
 
-      {/* Pack Grid */}
-      <div className={styles.packGrid}>
-        {activeTab === 'standard'
-          ? packs.map(pt => {
-              const packDef = SHOP_DATA.packs.find(p => p.id === pt.id)!;
-              const affordable = coins >= pt.price;
-              return (
-                <PackTile
-                  key={pt.id}
-                  pt={pt}
-                  packDef={packDef}
-                  affordable={affordable}
-                  onBuy={buy}
-                  onInfo={() => showInfo(packDef, 'pack')}
-                />
-              );
-            })
-          : packages.map(pkg => {
-              const unlocked = isPackageUnlocked(pkg);
-              const affordable = coins >= pkg.price;
-              return (
-                <PackageTile
-                  key={pkg.id}
-                  pkg={pkg}
-                  unlocked={unlocked}
-                  affordable={affordable}
-                  onBuy={buyPackage}
-                  onInfo={() => showInfo(pkg, 'package')}
-                />
-              );
-            })
-        }
+      {/* Carousel */}
+      <div className={styles.carousel} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {/* Arrow left */}
+        {totalPages > 1 && (
+          <button
+            className={`${styles.arrowBtn} ${styles.arrowLeft}`}
+            disabled={page === 0}
+            onClick={() => goPage(page - 1)}
+            aria-label="Previous"
+          >‹</button>
+        )}
+
+        <div
+          className={styles.carouselTrack}
+          style={{ '--items-per-page': itemsPerPage } as React.CSSProperties}
+        >
+          {activeTab === 'standard'
+            ? (visibleItems as PackTypeInfo[]).map(pt => {
+                const packDef = SHOP_DATA.packs.find(p => p.id === pt.id)!;
+                const affordable = coins >= pt.price;
+                return (
+                  <PackTile
+                    key={pt.id}
+                    pt={pt}
+                    packDef={packDef}
+                    affordable={affordable}
+                    onBuy={buy}
+                    onInfo={() => showInfo(packDef, 'pack')}
+                  />
+                );
+              })
+            : (visibleItems as PackageDef[]).map(pkg => {
+                const affordable = coins >= pkg.price;
+                return (
+                  <PackageTile
+                    key={pkg.id}
+                    pkg={pkg}
+                    affordable={affordable}
+                    onBuy={buyPackage}
+                    onInfo={() => showInfo(pkg, 'package')}
+                  />
+                );
+              })
+          }
+        </div>
+
+        {/* Arrow right */}
+        {totalPages > 1 && (
+          <button
+            className={`${styles.arrowBtn} ${styles.arrowRight}`}
+            disabled={page >= totalPages - 1}
+            onClick={() => goPage(page + 1)}
+            aria-label="Next"
+          >›</button>
+        )}
       </div>
+
+      {/* Dots */}
+      {totalPages > 1 && (
+        <div className={styles.dots}>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              className={`${styles.dot}${i === page ? ` ${styles.dotActive}` : ''}`}
+              onClick={() => goPage(i)}
+              aria-label={`Page ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Info Modal */}
       {infoTarget && (
@@ -209,7 +286,7 @@ function PackTile({ pt, packDef, affordable, onBuy, onInfo }: PackTileProps) {
 
   return (
     <div
-      className={`${styles.packTile}${affordable ? '' : ` ${styles.packDisabled}`}`}
+      className={styles.packTile}
       style={{ '--pack-color': pt.color } as React.CSSProperties}
     >
       <button className={styles.infoBtn} onClick={(e) => { e.stopPropagation(); onInfo(); }} aria-label="Pack info">?</button>
@@ -241,19 +318,17 @@ function PackTile({ pt, packDef, affordable, onBuy, onInfo }: PackTileProps) {
 
 interface PackageTileProps {
   pkg: PackageDef;
-  unlocked: boolean;
   affordable: boolean;
   onBuy: (packageId: string) => void;
   onInfo: () => void;
 }
 
-function PackageTile({ pkg, unlocked, affordable, onBuy, onInfo }: PackageTileProps) {
+function PackageTile({ pkg, affordable, onBuy, onInfo }: PackageTileProps) {
   const { t } = useTranslation();
-  const canBuy = unlocked && affordable;
 
   return (
     <div
-      className={`${styles.packTile}${canBuy ? '' : ` ${styles.packDisabled}`}`}
+      className={styles.packTile}
       style={{ '--pack-color': pkg.color } as React.CSSProperties}
     >
       <button className={styles.infoBtn} onClick={(e) => { e.stopPropagation(); onInfo(); }} aria-label="Pack info">?</button>
@@ -266,10 +341,7 @@ function PackageTile({ pkg, unlocked, affordable, onBuy, onInfo }: PackageTilePr
 
       <div className={styles.packBottom}>
         <div className={styles.packPrice}>◈ {pkg.price.toLocaleString()}</div>
-        {!unlocked && (
-          <div className={styles.packLocked}>{t('shop.locked')}</div>
-        )}
-        <button className={styles.buyBtn} disabled={!canBuy} onClick={() => onBuy(pkg.id)}>
+        <button className={styles.buyBtn} disabled={!affordable} onClick={() => onBuy(pkg.id)}>
           {t('shop.buy_btn')}
         </button>
       </div>
