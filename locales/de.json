@@ -246,7 +246,9 @@
     "type_spell": "Zauberkarte",
     "type_trap": "Fallenkarte",
     "type_equipment": "Ausrüstung",
-    "atk_bonus": " (+Bonus)"
+    "atk_bonus": " (+Bonus)",
+    "fusion_hint_label": "Fusion:",
+    "fusion_hint_combo": "{{a}} + {{b}}"
   },
   "card_list": {
     "title": "Alle Karten — Echoes of Sanguo",

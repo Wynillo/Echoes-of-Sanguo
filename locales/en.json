@@ -246,7 +246,9 @@
     "type_spell": "Spell Card",
     "type_trap": "Trap Card",
     "type_equipment": "Equipment",
-    "atk_bonus": " (+Bonus)"
+    "atk_bonus": " (+Bonus)",
+    "fusion_hint_label": "Fusion:",
+    "fusion_hint_combo": "{{a}} + {{b}}"
   },
   "card_list": {
     "title": "All Cards — Echoes of Sanguo",

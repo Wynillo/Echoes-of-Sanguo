@@ -2,10 +2,10 @@
 // ECHOES OF SANGUO - Kartendatenbank
 // Runtime data store — populated at startup by loading base.tcg
 // ============================================================
-import type { CardData, FusionRecipe, FusionFormula, OpponentConfig } from './types.js';
+import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
 import { CardType, Rarity, isMonsterType } from './types.js';
 import {
-  getRaceByKey, getAttrByKey, getRarityById,
+  getRaceByKey, getAttrByKey, getRarityById, getRaceById, getAttrById,
   TYPE_META,
 } from './type-metadata.js';
 
@@ -214,4 +214,68 @@ export function resolveFusionChain(cardIds: string[]): FusionChainResult {
   }
 
   return { finalCardId: currentId, steps, consumedIds };
+}
+
+// ── Fusion Hints (reverse lookup for card detail) ───────
+
+export interface FusionHint {
+  type: 'formula' | 'recipe';
+  comboType?: FusionComboType;
+  operand1Label?: string;
+  operand2Label?: string;
+  material1?: CardData;
+  material2?: CardData;
+}
+
+/** Return all fusion hints for a given card (how to obtain it). */
+export function getFusionHints(cardId: string): FusionHint[] {
+  const hints: FusionHint[] = [];
+  const seen = new Set<string>();
+
+  // Formula-based hints
+  for (const formula of FUSION_FORMULAS) {
+    if (!formula.resultPool.includes(cardId)) continue;
+
+    let label1: string | undefined;
+    let label2: string | undefined;
+
+    switch (formula.comboType) {
+      case 'race+race':
+        label1 = getRaceById(formula.operand1)?.value;
+        label2 = getRaceById(formula.operand2)?.value;
+        break;
+      case 'race+attr':
+        label1 = getRaceById(formula.operand1)?.value;
+        label2 = getAttrById(formula.operand2)?.value;
+        break;
+      case 'attr+attr':
+        label1 = getAttrById(formula.operand1)?.value;
+        label2 = getAttrById(formula.operand2)?.value;
+        break;
+    }
+
+    if (label1 && label2) {
+      const key = `${formula.comboType}:${label1}+${label2}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        hints.push({ type: 'formula', comboType: formula.comboType, operand1Label: label1, operand2Label: label2 });
+      }
+    }
+  }
+
+  // Explicit recipe hints
+  for (const recipe of FUSION_RECIPES) {
+    if (recipe.result !== cardId) continue;
+    const m1 = CARD_DB[recipe.materials[0]];
+    const m2 = CARD_DB[recipe.materials[1]];
+    if (m1 && m2) {
+      const key = `recipe:${m1.id}+${m2.id}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        hints.push({ type: 'recipe', material1: m1, material2: m2 });
+      }
+    }
+  }
+
+  return hints;
 }

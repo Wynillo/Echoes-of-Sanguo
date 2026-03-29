@@ -802,6 +802,9 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .detail-info h2 { color: var(--gold-light); font-size: 1.125rem; margin-bottom: 6px; text-align: left; }
 .detail-type  { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; }
 .detail-desc  { font-size: 0.75rem; color: var(--text); line-height: 1.5; margin-bottom: 8px; }
+.detail-fusion-hints { font-size: 0.75rem; margin-bottom: 8px; }
+.fusion-hint-label { color: var(--gold-light); font-weight: bold; display: block; margin-bottom: 4px; }
+.fusion-hint-row { color: #cc88ff; margin-left: 8px; line-height: 1.6; }
 .detail-stats { font-size: 0.875rem; font-weight: bold; color: var(--gold); font-family: var(--font-stats); }
 
 /* ── Card description keyword highlights ──────────────────── */
