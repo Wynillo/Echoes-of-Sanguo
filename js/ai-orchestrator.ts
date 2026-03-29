@@ -25,6 +25,9 @@ import {
   pickDebuffTarget,
   pickBestGraveyardMonster,
   pickSpellBuffTarget,
+  aiCombatValue,
+  aiEffectiveATK,
+  aiEffectiveDEF,
   type AttackPlan,
 } from './ai-behaviors.js';
 
@@ -153,7 +156,7 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
       } else {
         const plrMaxATK = plr.field.monsters
           .filter(Boolean)
-          .reduce((max, fc) => Math.max(max, fc!.effectiveATK()), 0);
+          .reduce((max, fc) => Math.max(max, aiEffectiveATK(fc!)), 0);
         const playerHasMonsters = plr.field.monsters.some(Boolean);
         const summonPos = decideSummonPosition(cardATK, cardDEF, plrMaxATK, playerHasMonsters, bh.positionStrategy);
         EchoesOfSanguo.log('SUMMON', `Summoning ${card.name} (ATK:${cardATK}/DEF:${cardDEF}) to zone ${zone} as ${summonPos.toUpperCase()}`);
@@ -432,7 +435,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
       const def = plrMonsters[dz];
       if (!def || def.cantBeAttacked) continue;
-      const defVal = def.combatValue();
+      const defVal = aiCombatValue(def);
       if (atk.effectiveATK() > defVal) {
         // Prefer destroying effect monsters and high-ATK threats
         let score = defVal;
@@ -446,7 +449,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
       const def = plrMonsters[dz];
       if (!def || def.cantBeAttacked) continue;
-      const defVal = def.combatValue();
+      const defVal = aiCombatValue(def);
       if (defVal < weakVal) { weakVal = defVal; weakest = dz; }
     }
     return weakest;
@@ -457,7 +460,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
   for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
     const def = plrMonsters[dz];
     if (!def || def.cantBeAttacked) continue;
-    const defVal = def.combatValue();
+    const defVal = aiCombatValue(def);
     if (atk.effectiveATK() > defVal) {
       let score = defVal;
       // Prioritize effect monsters — they're dangerous
@@ -478,7 +481,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
   for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
     const def = plrMonsters[dz];
     if (!def || def.cantBeAttacked || def.position !== 'def') continue;
-    const defVal = def.effectiveDEF();
+    const defVal = aiEffectiveDEF(def);
     if (atk.effectiveATK() >= defVal) {
       let score = 1000 - defVal; // prefer weaker DEF (easier kill)
       // Face-down monsters are worth revealing
@@ -499,7 +502,7 @@ function _findSmartFusionChain(
   // Calculate player's strongest monster to know what we need to beat
   const plrMaxATK = plrMonsters
     .filter((fc): fc is FieldCard => fc !== null)
-    .reduce((max, fc) => Math.max(max, fc.effectiveATK()), 0);
+    .reduce((max, fc) => Math.max(max, aiEffectiveATK(fc)), 0);
 
   let bestChain: number[] | null = null;
   let bestScore = -Infinity;

@@ -31,6 +31,8 @@ export const AI_SCORE = {
   BUFF_KILL_THRESHOLD:    1000,
   /** Bonus for surviving when AI is low LP */
   LOW_LP_SURVIVAL:        300,
+  /** Estimated DEF for face-down monsters (AI can't see real stats) */
+  FACEDOWN_DEF_ESTIMATE:  1200,
 } as const;
 
 export const AI_LP_THRESHOLD = {
@@ -39,6 +41,23 @@ export const AI_LP_THRESHOLD = {
   /** LP below which AI activates defensive spells */
   DEFENSIVE: 5000,
 } as const;
+
+// ── Face-Down Stat Helpers (AI cannot see hidden stats) ─
+
+/** Returns estimated combat value for face-down cards, real value otherwise. */
+export function aiCombatValue(fc: FieldCard): number {
+  return fc.faceDown ? AI_SCORE.FACEDOWN_DEF_ESTIMATE : fc.combatValue();
+}
+
+/** Returns 0 for face-down cards (they can't attack), real ATK otherwise. */
+export function aiEffectiveATK(fc: FieldCard): number {
+  return fc.faceDown ? 0 : fc.effectiveATK();
+}
+
+/** Returns estimated DEF for face-down cards, real DEF otherwise. */
+export function aiEffectiveDEF(fc: FieldCard): number {
+  return fc.faceDown ? AI_SCORE.FACEDOWN_DEF_ESTIMATE : fc.effectiveDEF();
+}
 
 // ── Behavior Profiles ───────────────────────────────────────
 
@@ -220,9 +239,9 @@ export interface BoardContext {
 export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): number {
   const playerMonsters = ctx.playerField.filter((fc): fc is FieldCard => fc !== null);
   const playerMaxATK = playerMonsters.reduce((max, fc) =>
-    Math.max(max, fc.position === 'atk' ? fc.effectiveATK() : 0), 0);
+    Math.max(max, fc.position === 'atk' ? aiEffectiveATK(fc) : 0), 0);
   const playerMaxThreat = playerMonsters.reduce((max, fc) =>
-    Math.max(max, fc.effectiveATK()), 0);
+    Math.max(max, aiEffectiveATK(fc)), 0);
 
   let bestIdx = -1;
   let bestScore = -Infinity;
@@ -240,7 +259,7 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
 
     // Can this monster beat any player monster? Big bonus
     for (const pfc of playerMonsters) {
-      const pVal = pfc.combatValue();
+      const pVal = aiCombatValue(pfc);
       if (atk > pVal) score += 300; // can destroy a target
     }
 
@@ -298,7 +317,7 @@ export function findLethal(
     if (!fc) continue;
     defenders.push({
       zone: z,
-      val: fc.combatValue(),
+      val: aiCombatValue(fc),
       inAtk: fc.position === 'atk',
       cantBeAttacked: fc.cantBeAttacked,
     });
@@ -451,7 +470,7 @@ export function planAttacks(
   for (const a of attackers) {
     if (usedAttackers.has(a.zone)) continue;
     for (const d of defenders) {
-      const dVal = d.fc.combatValue();
+      const dVal = aiCombatValue(d.fc);
       const aAtk = a.fc.effectiveATK();
       let score = 0;
 
@@ -463,7 +482,7 @@ export function planAttacks(
         // Prioritize destroying effect monsters (they're dangerous)
         if (d.fc.card.effect) score += 500;
         // Prioritize destroying high-ATK threats
-        score += d.fc.effectiveATK() * 0.5;
+        score += aiEffectiveATK(d.fc) * 0.5;
         // Prefer efficient attacks (don't waste a 3000ATK monster on a 100DEF target)
         score -= (aAtk - dVal) * 0.1;
         // Indestructible monsters can't be destroyed
@@ -506,6 +525,16 @@ export function planAttacks(
     usedDefenders.add(opt.dZone);
   }
 
+  // Remaining attackers go direct if all defenders are covered by the plan
+  const allDefendersCovered = defenders.every(d => usedDefenders.has(d.zone));
+  if (allDefendersCovered) {
+    for (const a of attackers) {
+      if (usedAttackers.has(a.zone)) continue;
+      plans.push({ attackerZone: a.zone, targetZone: -1 });
+      usedAttackers.add(a.zone);
+    }
+  }
+
   // Aggressive: remaining unused attackers attack weakest remaining defender
   if (strategy === 'aggressive') {
     for (const a of attackers) {
@@ -514,7 +543,7 @@ export function planAttacks(
       let weakest: { zone: number; val: number } | null = null;
       for (const d of defenders) {
         if (usedDefenders.has(d.zone)) continue;
-        const dVal = d.fc.combatValue();
+        const dVal = aiCombatValue(d.fc);
         if (!weakest || dVal < weakest.val) weakest = { zone: d.zone, val: dVal };
       }
       if (weakest) {
