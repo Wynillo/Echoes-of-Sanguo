@@ -73,53 +73,12 @@ export interface ShopData {
   backgrounds: Record<string, string>;  // chapter key -> resolved URL
 }
 
-// ── Slot templates ──────────────────────────────────────────
-
-const STANDARD_SLOTS: PackSlotDef[] = [
-  { count: 8 },                                                         // slots 1-8: global rarity distribution
-  { count: 1, pool: 'guaranteed_rare_plus', distribution: { '4': 0.75, '6': 0.20, '8': 0.05 } }, // slot 9
-];
-
-const RARITY_SLOTS: PackSlotDef[] = [
-  { count: 7, rarity: 4 },                                              // slots 1-7: Rare
-  { count: 2, pool: 'guaranteed_sr_plus', distribution: { '4': 0.55, '6': 0.30, '8': 0.15 } }, // slots 8-9
-];
-
-// ── Default shop data (matches original hardcoded values) ───
+// ── Default shop data ───────────────────────────────────────
 
 export const SHOP_DATA: ShopData = {
   backgrounds: {},
   packages: [],
-  packs: [
-    {
-      id: 'race',
-      name: 'Race Pack',
-      desc: '9 cards \u00b7 Chosen race \u00b7 Standard',
-      price: 350,
-      icon: '\u2694',
-      color: '#a06020',
-      slots: STANDARD_SLOTS,
-      filter: 'byRace',
-    },
-    {
-      id: 'aether',
-      name: 'Jade Pack',
-      desc: '9 cards \u00b7 All races \u00b7 Standard',
-      price: 500,
-      icon: '\u25c8',
-      color: '#2a7848',
-      slots: STANDARD_SLOTS,
-    },
-    {
-      id: 'rarity',
-      name: 'Rarity Pack',
-      desc: '9 cards \u00b7 Min. Rare \u00b7 Increased SR/UR chance',
-      price: 600,
-      icon: '\u2605',
-      color: '#c0a020',
-      slots: RARITY_SLOTS,
-    },
-  ],
+  packs: [],
   currency: { nameKey: 'common.coins', icon: '\u25c8' },
 };
 
