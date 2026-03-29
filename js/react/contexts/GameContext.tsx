@@ -428,6 +428,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       loadDeck();
       // Read deck from Progression to ensure it's fresh
       import('../../progression.js').then(({ Progression }) => {
+        // Clear NEW badges when a duel starts
+        const col = Progression.getCollection();
+        Progression.markCardsAsSeen(col.map(e => e.id));
         const saved = Progression.getDeck();
         const rawIds = (saved && saved.length > 0) ? saved : [...PLAYER_DECK_IDS];
         // Strip stale or invalid card IDs so makeDeck() never crashes

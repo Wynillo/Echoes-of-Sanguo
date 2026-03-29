@@ -186,7 +186,16 @@
   background: #f97316; color: #fff;
   font-size: 9px; font-weight: bold;
   padding: 1px 5px; border-radius: 0;
-  margin-left: 5px; vertical-align: middle;
+  vertical-align: middle;
+}
+
+.newBadgeGrid {
+  position: absolute; top: 2px; left: 2px;
+  background: #f97316; color: #fff;
+  font-size: 8px; font-weight: bold;
+  padding: 1px 4px; border-radius: 0;
+  pointer-events: none; z-index: 5;
+  line-height: 1.2;
 }
 
 /* ── Card wrap ── */

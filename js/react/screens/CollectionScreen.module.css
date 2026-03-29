@@ -124,6 +124,15 @@
   pointer-events: none; z-index: 5;
 }
 
+.newBadge {
+  position: absolute; top: 2px; left: 2px;
+  background: #f97316; color: #fff;
+  font-size: 8px; font-weight: bold;
+  padding: 1px 4px; border-radius: 0;
+  pointer-events: none; z-index: 5;
+  line-height: 1.2;
+}
+
 .cardMeta { font-size: 0.65rem; color: #506080; margin-top: 2px; }
 
 .unknownLabel {
