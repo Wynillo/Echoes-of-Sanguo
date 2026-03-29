@@ -114,7 +114,8 @@
     "type_spell": "Spell",
     "type_trap": "Trap",
     "type_equipment": "Equipment",
-    "skip_hint": "Tap to skip"
+    "skip_hint": "Tap to skip",
+    "tap_hint": "Tap to open!"
   },
   "collection": {
     "title": "📚 MY COLLECTION",

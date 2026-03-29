@@ -114,7 +114,8 @@
     "type_spell": "Zauber",
     "type_trap": "Falle",
     "type_equipment": "Ausrüstung",
-    "skip_hint": "Tippen zum Überspringen"
+    "skip_hint": "Tippen zum Überspringen",
+    "tap_hint": "Tippen zum Öffnen!"
   },
   "collection": {
     "title": "📚 MEINE SAMMLUNG",
