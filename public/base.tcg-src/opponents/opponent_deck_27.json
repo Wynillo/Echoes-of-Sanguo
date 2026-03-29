@@ -6,6 +6,6 @@
   "flavor": "Die geschmiedete Klinge sucht ihr Ziel.",
   "coinsWin": 300,
   "coinsLoss": 0,
-  "deckIds": [208, 208, 209, 209, 210, 210, 211, 211, 212, 212, 213, 213, 214, 214, 215, 273, 276, 295],
-  "behavior": "aggressive"
+  "deckIds": [214, 215, 215, 216, 216, 217, 217, 218, 218, 219, 219, 220, 220, 221, 222, 223, 273, 276, 295, 297],
+  "behavior": "smart"
 }

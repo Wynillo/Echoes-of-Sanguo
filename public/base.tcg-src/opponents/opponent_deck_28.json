@@ -6,6 +6,6 @@
   "flavor": "Weißes Gold — unbrechbar und ewig.",
   "coinsWin": 400,
   "coinsLoss": 0,
-  "deckIds": [213, 214, 215, 216, 216, 217, 217, 218, 218, 219, 219, 220, 221, 222, 223, 224, 225, 283, 286, 300],
-  "behavior": "smart"
+  "deckIds": [219, 220, 221, 221, 222, 222, 223, 223, 224, 224, 225, 225, 226, 227, 283, 286, 300, 301, 302],
+  "behavior": "aggressive"
 }
