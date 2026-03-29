@@ -1,5 +1,7 @@
 # Echoes of Sanguo — `.tcg` File Format
 
+> **Implementation**: The format library is maintained in the [`@wynillo/tcg-format`](https://github.com/Wynillo/Echoes-of-Sanguo-TCG) package. It handles loading, validation, and packing of `.tcg` archives independently of the game engine.
+
 A `.tcg` file is a **ZIP archive** renamed to `.tcg`. It contains all data needed to run a card set: card definitions, images, localizations, opponents, shop configuration, and an optional campaign graph.
 
 ---
@@ -715,10 +717,12 @@ Everything else is optional and loaded when present.
 
 ## Validation
 
-The engine validates the archive on load and reports errors and warnings to the browser console. Fatal errors (e.g. missing `cards.json`, cards without descriptions) prevent the archive from loading. Warnings (e.g. missing images, unknown fields) are logged but do not block loading.
+Validation logic lives in the [`@wynillo/tcg-format`](https://github.com/Wynillo/Echoes-of-Sanguo-TCG) package. The engine validates the archive on load and reports errors and warnings to the browser console. Fatal errors (e.g. missing `cards.json`, cards without descriptions) prevent the archive from loading. Warnings (e.g. missing images, unknown fields) are logged but do not block loading.
 
 To validate locally before shipping, run:
 
 ```bash
 npm run generate:tcg    # rebuilds public/base.tcg and prints any warnings
 ```
+
+This command calls the package's `packTcgArchive()` function via a thin wrapper (`js/generate-base-tcg.ts`).

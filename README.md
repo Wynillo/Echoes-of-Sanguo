@@ -142,6 +142,7 @@ The campaign spans **7 chapters** with **39 duels**, story nodes, and gauntlet e
 | **Capacitor 8** | Android app bridge |
 | **Vitest 4** | Unit and integration tests (jsdom) |
 | **Playwright 1.58** | End-to-end tests |
+| **@wynillo/tcg-format** | Card format library (external package) |
 
 **No backend** — all data is stored client-side via `localStorage`.
 
@@ -181,18 +182,12 @@ ECHOES-OF-SANGUO/
 │   ├── i18n.ts                 – i18next setup
 │   ├── mod-api.ts              – Modding API (window.EchoesOfSanguoMod)
 │   ├── debug-logger.ts         – Debug utility
-│   ├── tcg-format/             – Custom card format (.tcg = ZIP archive with JSON)
-│   │   ├── index.ts            – Export barrel
-│   │   ├── types.ts            – TCG format types
-│   │   ├── enums.ts            – TCG format enums
-│   │   ├── tcg-builder.ts      – Packs base.tcg-src/ → base.tcg (ZIP)
-│   │   ├── tcg-loader.ts       – Loads .tcg ZIP → CARD_DB, FUSION_RECIPES, etc.
-│   │   ├── tcg-validator.ts    – Validation logic for TCG archives
-│   │   ├── card-validator.ts   – Card-level validation
-│   │   ├── def-validator.ts    – Definition validator
-│   │   ├── opp-desc-validator.ts – Opponent description validator
-│   │   ├── effect-serializer.ts – Effect string codec
-│   │   └── generate-base-tcg.ts – CLI: validate & pack base.tcg-src/
+│   ├── tcg-bridge.ts           – Bridge: @wynillo/tcg-format → game stores
+│   ├── tcg-builder.ts          – Converts CardData → TcgCard for packing
+│   ├── enums.ts                – Bidirectional enum converters (int ↔ game enums)
+│   ├── effect-serializer.ts    – Effect string codec (serialize/deserialize)
+│   ├── generate-base-tcg.ts    – CLI wrapper → @wynillo/tcg-format packTcgArchive()
+│   ├── trigger-bus.ts          – Event emitter for extensible trigger hooks
 │   └── react/
 │       ├── App.tsx             – Root component (provider tree + screen router)
 │       ├── index.tsx           – React entry point
@@ -229,7 +224,7 @@ ECHOES-OF-SANGUO/
 │   └── en.json                 – English translations
 ├── tests/                      – Unit/integration tests (Vitest, 18 test files)
 ├── tests-e2e/                  – End-to-end tests (Playwright)
-├── docs/                       – Documentation (tcg-format.md)
+├── docs/                       – Documentation (tcg-format.md, plan-outsource-tcg-package.md)
 └── android/                    – Capacitor Android project
 ```
 
@@ -237,15 +232,16 @@ ECHOES-OF-SANGUO/
 
 ## Card Format (.tcg)
 
-`base.tcg` is a **ZIP archive** (renamed to `.tcg`) containing JSON files and card artwork. It is loaded on startup:
+`base.tcg` is a **ZIP archive** (renamed to `.tcg`) containing JSON files and card artwork. It is loaded on startup.
 
-- **tcg-builder.ts** — packs `public/base.tcg-src/` → `public/base.tcg` (ZIP)
-- **tcg-loader.ts** — unpacks the ZIP and populates CARD_DB, FUSION_RECIPES, etc.
-- **tcg-validator.ts** — checks completeness and consistency of the archive
-- **card-validator.ts** — validates individual card definitions
-- **def-validator.ts** — validates metadata definitions
-- **opp-desc-validator.ts** — validates opponent descriptions
-- **effect-serializer.ts** — parses and serializes effect strings
+The core TCG format library has been extracted to the [`@wynillo/tcg-format`](https://github.com/Wynillo/Echoes-of-Sanguo-TCG) package. It handles loading, validation, and packing of `.tcg` archives with zero game-engine dependencies.
+
+**In this repo** (game-specific glue):
+- **tcg-bridge.ts** — connects `@wynillo/tcg-format` output to game stores (CARD_DB, FUSION_RECIPES, etc.)
+- **tcg-builder.ts** — converts `CardData` → `TcgCard` for packing
+- **effect-serializer.ts** — parses and serializes effect strings (the package treats effects as opaque)
+- **enums.ts** — bidirectional converters between TCG integer IDs and game enums
+- **generate-base-tcg.ts** — thin CLI wrapper calling the package's `packTcgArchive()`
 
 Generate via `npm run generate:tcg` — validates `public/base.tcg-src/` and repacks it.
 
@@ -291,6 +287,7 @@ npm install              # Install dependencies
 npm run dev              # Start dev server (http://localhost:5173)
 npm run build            # Production build → dist/
 npm run generate:tcg     # Generate base.tcg from card source data
+npm run generate:engine-dts  # Generate eos-engine.d.ts for modders
 
 npm test                 # Run tests once
 npm run test:watch       # Run tests in watch mode
@@ -300,4 +297,9 @@ npm run test:e2e         # End-to-end tests (Playwright)
 npm run build:android    # Build + Capacitor sync for Android
 npm run cap:sync         # Sync Capacitor changes
 npm run cap:open         # Open Android Studio
+
+# Local development with @wynillo/tcg-format:
+git clone https://github.com/Wynillo/Echoes-of-Sanguo-TCG.git /tmp/tcg-format
+cd /tmp/tcg-format && npm ci && npm run build && npm link
+cd <this-repo> && npm link @wynillo/tcg-format
 ```

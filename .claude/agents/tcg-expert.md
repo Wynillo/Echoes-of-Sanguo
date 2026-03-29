@@ -31,16 +31,12 @@ serialization grammar by heart.
 
 | File | Purpose |
 |------|---------|
-| `js/tcg-format/types.ts` | All TCG type definitions and interfaces |
-| `js/tcg-format/enums.ts` | Bidirectional enum converters (int <-> internal) |
-| `js/tcg-format/effect-serializer.ts` | Effect string codec (serialize/deserialize) |
-| `js/tcg-format/card-validator.ts` | Card-level validation rules |
-| `js/tcg-format/tcg-validator.ts` | Full archive validation |
-| `js/tcg-format/def-validator.ts` | Card definition (name/desc) validation |
-| `js/tcg-format/opp-desc-validator.ts` | Opponent description validation |
-| `js/tcg-format/tcg-loader.ts` | Load .tcg ZIP -> game data |
-| `js/tcg-format/tcg-builder.ts` | Export internal data -> TCG format |
-| `js/tcg-format/generate-base-tcg.ts` | CLI script for `npm run generate:tcg` |
+| `@wynillo/tcg-format` (external) | TCG types, loader, validators, packer (zero game imports) |
+| `js/tcg-bridge.ts` | Bridge: connects package output → game stores (CARD_DB, etc.) |
+| `js/tcg-builder.ts` | Converts CardData → TcgCard for packing |
+| `js/enums.ts` | Bidirectional enum converters (int ↔ game enums) |
+| `js/effect-serializer.ts` | Effect string codec (serialize/deserialize) |
+| `js/generate-base-tcg.ts` | Thin CLI wrapper → `@wynillo/tcg-format` packTcgArchive() |
 
 ## TCG Source Location
 
@@ -663,4 +659,4 @@ When asked to work with TCG data:
 4. **Use the next available ID** — check the highest existing ID and increment
 5. **Follow existing patterns** — look at nearby cards/opponents for style reference
 6. **Run validation** after changes: `npm run generate:tcg` checks format validity
-7. **Reference implementation files** when unsure — read `js/tcg-format/` source code for definitive rules
+7. **Reference implementation files** when unsure — the format library lives in the `@wynillo/tcg-format` package ([Wynillo/Echoes-of-Sanguo-TCG](https://github.com/Wynillo/Echoes-of-Sanguo-TCG)); game-side glue is in `js/tcg-bridge.ts`, `js/enums.ts`, and `js/effect-serializer.ts`

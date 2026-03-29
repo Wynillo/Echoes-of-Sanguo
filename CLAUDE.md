@@ -12,6 +12,7 @@ npm run test:watch     # Vitest in watch mode
 npm run test:coverage  # Coverage report (v8)
 npm run test:e2e       # Playwright E2E tests (launches dev server)
 npm run generate:tcg   # Validate public/base.tcg-src/ folder and pack into public/base.tcg
+npm run generate:engine-dts # Generate eos-engine.d.ts for modders
 npm run build:android  # Build + Capacitor sync for Android
 npm run cap:sync       # Sync Capacitor changes
 npm run cap:open       # Open Android Studio
@@ -22,7 +23,7 @@ npm run cap:open       # Open Android Studio
 Three-layer design with strict separation:
 
 1. **Engine Layer** (pure TypeScript, no React) — `js/engine.ts`, `js/effect-registry.ts`, `js/ai-behaviors.ts`, `js/ai-orchestrator.ts`, `js/field.ts`, `js/rules.ts`
-2. **Data Layer** — `js/types.ts`, `js/cards.ts`, `js/progression.ts`, `js/campaign.ts`, `js/campaign-types.ts`, `js/campaign-store.ts`, `js/shop-data.ts`, `js/tcg-format/`
+2. **Data Layer** — `js/types.ts`, `js/cards.ts`, `js/progression.ts`, `js/campaign.ts`, `js/campaign-types.ts`, `js/campaign-store.ts`, `js/shop-data.ts`, `@wynillo/tcg-format` (external package), `js/tcg-bridge.ts`, `js/enums.ts`
 3. **UI Layer** (React) — `js/react/` with Context-based state management
 
 The engine communicates with the UI through the `UICallbacks` interface (render, log, prompt, showResult, playAttackAnimation, etc.). The engine never imports React.
@@ -50,18 +51,12 @@ js/
 ├── mod-api.ts             # window.EchoesOfSanguoMod API for community mods
 ├── i18n.ts                # i18next setup (de + en)
 ├── debug-logger.ts        # Debug utility
-├── tcg-format/            # ZIP-based card format (.tcg) — pack, load, validate
-│   ├── index.ts           # Export barrel
-│   ├── types.ts           # TCG format types
-│   ├── enums.ts           # TCG format enums
-│   ├── tcg-loader.ts      # Load .tcg ZIP → CARD_DB, FUSION_RECIPES, etc.
-│   ├── tcg-builder.ts     # Pack base.tcg-src/ → base.tcg (ZIP)
-│   ├── tcg-validator.ts   # Format validation
-│   ├── card-validator.ts  # Card-level validation
-│   ├── def-validator.ts   # Definition validator
-│   ├── opp-desc-validator.ts # Opponent description validator
-│   ├── effect-serializer.ts  # Effect string codec
-│   └── generate-base-tcg.ts  # CLI script for npm run generate:tcg
+├── tcg-bridge.ts          # Bridge: @wynillo/tcg-format → game stores (CARD_DB, etc.)
+├── tcg-builder.ts         # Converts CardData → TcgCard for packing
+├── enums.ts               # Bidirectional enum converters (int ↔ game enums)
+├── effect-serializer.ts   # Effect string codec (serialize/deserialize)
+├── generate-base-tcg.ts   # Thin CLI wrapper → @wynillo/tcg-format packTcgArchive()
+├── trigger-bus.ts         # Event emitter for extensible trigger hooks
 └── react/
     ├── App.tsx             # Root component, screen router
     ├── index.tsx           # React entry point
@@ -102,7 +97,7 @@ public/
 │   └── sfx/               # attack, button, card-play, coin, damage, destroy, draw, fusion, etc.
 └── title-bg.png
 android/                   # Capacitor Android project
-docs/                      # Documentation (tcg-format.md)
+docs/                      # Documentation (tcg-format.md, plan-outsource-tcg-package.md)
 ```
 
 ## Key Conventions
@@ -116,6 +111,7 @@ docs/                      # Documentation (tcg-format.md)
 ### Imports
 - ES modules throughout; use `.js` extension in import paths (TypeScript with bundler resolution)
 - Example: `import { CardType, Attribute } from './types.js';`
+- External package: `import { loadTcgFile } from '@wynillo/tcg-format';`
 
 ### State Management
 - React Context API only (no Redux/Zustand)
@@ -181,10 +177,21 @@ the distributed archive in sync — changes to one must be reflected in the othe
 - Auto-starts dev server on port 5173
 - Run: `npm run test:e2e`
 
+## External Package: @wynillo/tcg-format
+
+The TCG format library has been extracted to a separate repository: [Wynillo/Echoes-of-Sanguo-TCG](https://github.com/Wynillo/Echoes-of-Sanguo-TCG). It handles loading, validation, and packing of `.tcg` archives with zero game imports.
+
+- **Not in `package.json`** — linked dynamically via `git clone` + `npm link` in CI/CD workflows
+- **Local dev**: Clone the TCG repo, `npm ci && npm run build && npm link`, then `npm link @wynillo/tcg-format` in this repo
+- **Bridge layer**: `js/tcg-bridge.ts` connects the package's pure data output to game stores (`CARD_DB`, `FUSION_RECIPES`, etc.)
+- **Effect strings are opaque** in the package — parsed only by `js/effect-serializer.ts` in this repo
+
 ## CI/CD
 
 GitHub Actions (`.github/workflows/`):
-- `deploy.yml` — Triggers on push to `main`: `npm ci` → `npm test` → `npm run build` → deploy to GitHub Pages (Node.js 20)
+- `deploy.yml` — Triggers on push to `main`: `npm ci` → link `@wynillo/tcg-format` → `npm test` → `npm run generate:tcg` → E2E tests → `npm run build` → deploy to GitHub Pages (Node.js 22)
+- `release.yml` — Triggers on version tags (`v*`): build, generate `eos-engine.d.ts`, create GitHub Release
+- `deploy-hetzner.yml` — Hetzner deployment workflow
 - `summary.yml` — AI issue summarization workflow
 
 ## Tech Stack
