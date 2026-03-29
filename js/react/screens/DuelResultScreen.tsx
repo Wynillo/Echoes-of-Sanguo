@@ -213,11 +213,11 @@ export default function DuelResultScreen() {
 
   const opponentStatRows = stats
     ? [
-        { label: t('duelResult.opp_stat_lp'),       value: stats.opponentLpRemaining },
         { label: t('duelResult.opp_stat_monsters'),  value: stats.opponentMonstersPlayed },
         { label: t('duelResult.opp_stat_fusions'),   value: stats.opponentFusionsPerformed },
         { label: t('duelResult.opp_stat_spells'),    value: stats.opponentSpellsActivated },
         { label: t('duelResult.opp_stat_traps'),     value: stats.opponentTrapsActivated },
+        { label: t('duelResult.opp_stat_lp'),        value: stats.opponentLpRemaining },
       ]
     : [];
 
