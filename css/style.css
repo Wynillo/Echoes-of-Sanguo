@@ -561,6 +561,12 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   background: rgba(0,0,0,0.3);
 }
 .own-facedown { filter: brightness(0.7); }
+.facedown-spell { background: #002018 !important; border-color: rgba(40,160,120,0.6) !important; }
+.facedown-trap  { background: #200810 !important; border-color: rgba(180,40,80,0.6) !important; }
+.facedown-equip { background: #1a1008 !important; border-color: rgba(224,128,48,0.6) !important; }
+.facedown-spell .facedown-overlay { color: rgba(50,160,100,0.8); }
+.facedown-trap  .facedown-overlay { color: rgba(200,60,80,0.8); }
+.facedown-equip .facedown-overlay { color: rgba(224,148,68,0.8); }
 
 /* Equipment badge on equipped monsters */
 .equip-badge {

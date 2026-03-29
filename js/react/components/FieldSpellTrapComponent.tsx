@@ -24,7 +24,8 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
   if (fst.faceDown && !isPlayer) {
     cls = 'card field-card face-down st-facedown';
   } else if (fst.faceDown && isPlayer) {
-    cls = 'card field-card face-down own-facedown attr-spell';
+    const fdType = card.type === CardType.Trap ? 'facedown-trap' : card.type === CardType.Equipment ? 'facedown-equip' : 'facedown-spell';
+    cls = `card field-card face-down own-facedown ${fdType}`;
   } else {
     cls = `card field-card ${cardTypeCss(card)}-card attr-spell`;
   }
@@ -53,7 +54,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
            onClick={interactive ? onClick : undefined}
            onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
         <div className="facedown-overlay">
-          {card.type === CardType.Trap ? t('game.facedown_trap') : card.type === CardType.Equipment ? t('game.facedown_equip') : t('game.facedown_spell')}
+          {card.type === CardType.Trap ? t('card_action.facedown_trap') : card.type === CardType.Equipment ? t('card_action.facedown_equip') : t('card_action.facedown_spell')}
         </div>
       </div>
     );
