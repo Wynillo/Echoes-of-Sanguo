@@ -5,8 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        pixel: ['"Pixelify Sans"', 'monospace'],
-        title: ['"Press Start 2P"', 'monospace'],
+        pixel: ['var(--font-stats)'],
+        title: ['var(--font-stats)'],
       },
       borderRadius: {
         DEFAULT: '0',

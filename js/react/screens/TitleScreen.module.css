@@ -22,7 +22,7 @@
   letter-spacing: 2px;
   color: var(--gold-light);
   text-shadow: 2px 2px 8px #000, 0 0 20px rgba(0,0,0,0.9);
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   line-height: 1.1;
   margin: 10px 0;
   white-space: nowrap;
