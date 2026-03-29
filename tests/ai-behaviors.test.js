@@ -671,6 +671,38 @@ describe('planAttacks', () => {
     expect(plans.length).toBe(1);
     expect(plans[0].targetZone).toBe(-1); // direct attack for lethal
   });
+
+  it('remaining attackers go direct after all defenders are assigned (face-down bug)', () => {
+    // Bug scenario: AI has 4x 2200 ATK monsters, player has 1 face-down 800 DEF monster.
+    // AI should destroy the face-down card AND direct attack with the remaining 3 monsters.
+    const ai0 = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2200 } });
+    const ai1 = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2200 } });
+    const ai2 = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2200 } });
+    const ai3 = mockFieldCard({ card: { ...mockFieldCard().card, atk: 2200 } });
+    const faceDownDef = mockFieldCard({
+      card: { ...mockFieldCard().card, atk: 800, def: 800 },
+      position: 'def',
+      faceDown: true,
+    });
+
+    const plans = planAttacks(
+      [ai0, ai1, ai2, ai3, null],
+      [faceDownDef, null, null, null, null],
+      8000,
+      smartBehavior,
+    );
+
+    // One attack should target the face-down defender (zone 0)
+    const targetedAttacks = plans.filter(p => p.targetZone === 0);
+    expect(targetedAttacks.length).toBe(1);
+
+    // The remaining 3 attackers should go direct (targetZone -1)
+    const directAttacks = plans.filter(p => p.targetZone === -1);
+    expect(directAttacks.length).toBe(3);
+
+    // Total: 4 attacks planned
+    expect(plans.length).toBe(4);
+  });
 });
 
 // ── pickEquipTarget ─────────────────────────────────────
