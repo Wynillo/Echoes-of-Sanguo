@@ -46,7 +46,7 @@
   letter-spacing: 6px;
   color: var(--accent, #d4a017);
   text-shadow: 0 0 20px var(--glow, rgba(212,160,23,0.6)), 2px 2px 8px #000;
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   margin: 0;
   opacity: 0;
 }
@@ -114,7 +114,7 @@
   letter-spacing: 2px;
   color: var(--accent, #d4a017);
   text-shadow: 0 0 8px var(--glow, rgba(212,160,23,0.4));
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   margin: 0 0 8px 0;
 }
 
@@ -139,7 +139,7 @@
 
 .statValue {
   color: var(--accent, #d4a017);
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   font-size: 0.5rem;
 }
 
@@ -167,12 +167,12 @@
   font-size: 0.45rem;
   letter-spacing: 2px;
   color: #908070;
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
 }
 
 .badgeRank {
   font-size: 1rem;
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   text-shadow: 0 0 12px currentColor;
 }
 
@@ -183,7 +183,7 @@
 .badgeMultiplier {
   font-size: 0.45rem;
   letter-spacing: 1px;
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   margin-top: 4px;
   opacity: 0;
 }
@@ -206,7 +206,7 @@
   letter-spacing: 1px;
   color: #d4a017;
   text-shadow: 0 0 10px rgba(212,160,23,0.5);
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
 }
 
 .rewardCards {
@@ -220,7 +220,7 @@
   letter-spacing: 2px;
   color: #50e880;
   text-shadow: 0 0 12px rgba(80,232,128,0.6);
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   opacity: 0;
 }
 

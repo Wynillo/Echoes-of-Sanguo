@@ -51,12 +51,12 @@ html {
 html, body {
   width: 100%; height: 100%;
   overflow: hidden;
-  font-family: 'Pixelify Sans', monospace;
+  font-family: var(--font-stats);
   background: var(--bg);
   color: var(--text);
   user-select: none;
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: unset;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   image-rendering: pixelated;
 }
 
@@ -617,7 +617,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   border-radius: 50%;
   pointer-events: none;
   z-index: 10;
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
 }
 
 /* Floating fusion bar (long-press fusion group) */
@@ -630,7 +630,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   background: rgba(0, 0, 0, 0.85);
   border: 2px solid #ffd700;
   border-radius: 8px;
-  font-family: 'Pixelify Sans', 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   font-size: 10px;
   color: #eee;
   position: absolute;
@@ -843,7 +843,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   padding: 8px 12px;
   margin: 8px 0 4px;
   text-align: center;
-  font-family: 'Pixelify Sans', monospace;
+  font-family: var(--font-stats);
   font-size: 0.75rem;
   color: #ffcccc;
   line-height: 1.5;
@@ -1186,14 +1186,14 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
     overflow: hidden;
   }
   .phud-lp {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--font-stats);
     font-size: 9px;
     white-space: nowrap;
   }
   .phud-opp    { color: #ff8080; }
   .phud-player { color: #80ff80; }
   .phud-phase {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--font-stats);
     font-size: 6px;
     color: #d0c090;
     text-align: center;
@@ -1275,7 +1275,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
     height: 48px;
     padding: 0 14px;
     border-radius: 8px;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--font-stats);
     font-size: 0.6rem;
     letter-spacing: 0.5px;
     cursor: pointer;
