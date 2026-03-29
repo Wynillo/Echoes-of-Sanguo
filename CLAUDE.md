@@ -181,15 +181,15 @@ the distributed archive in sync — changes to one must be reflected in the othe
 
 The TCG format library has been extracted to a separate repository: [Wynillo/Echoes-of-Sanguo-TCG](https://github.com/Wynillo/Echoes-of-Sanguo-TCG). It handles loading, validation, and packing of `.tcg` archives with zero game imports.
 
-- **Not in `package.json`** — linked dynamically via `git clone` + `npm link` in CI/CD workflows
-- **Local dev**: Clone the TCG repo, `npm ci && npm run build && npm link`, then `npm link @wynillo/tcg-format` in this repo
+- **In `package.json`** as a GitHub dependency (`"github:Wynillo/Echoes-of-Sanguo-TCG"`) — installed automatically by `npm ci`
+- **Local dev**: Just run `npm install` — the package is fetched from GitHub automatically
 - **Bridge layer**: `js/tcg-bridge.ts` connects the package's pure data output to game stores (`CARD_DB`, `FUSION_RECIPES`, etc.)
 - **Effect strings are opaque** in the package — parsed only by `js/effect-serializer.ts` in this repo
 
 ## CI/CD
 
 GitHub Actions (`.github/workflows/`):
-- `deploy.yml` — Triggers on push to `main`: `npm ci` → link `@wynillo/tcg-format` → `npm test` → `npm run generate:tcg` → E2E tests → `npm run build` → deploy to GitHub Pages (Node.js 22)
+- `deploy.yml` — Triggers on push to `main`: `npm ci` → `npm test` → `npm run generate:tcg` → E2E tests → `npm run build` → deploy to GitHub Pages (Node.js 22)
 - `release.yml` — Triggers on version tags (`v*`): build, generate `eos-engine.d.ts`, create GitHub Release
 - `deploy-hetzner.yml` — Hetzner deployment workflow
 - `summary.yml` — AI issue summarization workflow

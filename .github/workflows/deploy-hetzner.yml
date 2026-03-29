@@ -22,9 +22,6 @@ jobs:
       - name: Install & Build
         run: |
           npm ci
-          git clone https://github.com/Wynillo/Echoes-of-Sanguo-TCG.git /tmp/tcg-format
-          cd /tmp/tcg-format && npm ci && npm run build && npm link
-          cd ${{ github.workspace }} && npm link @wynillo/tcg-format
           npm run build
 
       - name: Deploy via SCP
