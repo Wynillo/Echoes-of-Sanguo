@@ -13,6 +13,7 @@ export type Screen =
   | 'collection'
   | 'deckbuilder'
   | 'save-point'
+  | 'save-slots'
   | 'campaign'
   | 'dialogue'
   | 'duel-result';
@@ -39,6 +40,7 @@ const SCREEN_MUSIC: Partial<Record<Screen, string>> = {
   collection:     'music_shop',
   deckbuilder:    'music_shop',
   'save-point':   'music_shop',
+  'save-slots':   'music_title',
   // duel-result music is set explicitly by GameContext before navigating
 };
 
@@ -54,7 +56,7 @@ const BACK_MAP: Partial<Record<Screen, Screen>> = {
 };
 
 /** Screens where back navigation should be blocked */
-const NO_BACK: Set<Screen> = new Set(['press-start', 'title', 'game', 'starter']);
+const NO_BACK: Set<Screen> = new Set(['press-start', 'title', 'game', 'starter', 'save-slots']);
 
 export function ScreenProvider({ children }: { children: React.ReactNode }) {
   const [screen, setScreen] = useState<Screen>('press-start');

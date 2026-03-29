@@ -4,6 +4,7 @@ import { Progression } from '../js/progression.ts';
 
 beforeEach(() => {
   localStorage.clear();
+  Progression.selectSlot(1);
   Progression.init();
 });
 

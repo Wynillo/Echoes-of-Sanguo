@@ -65,6 +65,21 @@
     "btn_mainmenu": "Zum Hauptmenü",
     "confirm_overwrite": "Das alte Spiel wird überschrieben. Fortfahren?"
   },
+  "slots": {
+    "title": "SPEICHERPLÄTZE",
+    "title_new": "PLATZ WÄHLEN — NEUES SPIEL",
+    "title_load": "PLATZ WÄHLEN — SPIEL LADEN",
+    "slot_label": "Platz {{num}}",
+    "empty": "— Leer —",
+    "coins_label": "Münzen: {{coins}}",
+    "chapter_label": "Kapitel: {{chapter}}",
+    "last_saved": "Zuletzt gespeichert: {{date}}",
+    "race_label": "Rasse: {{race}}",
+    "btn_delete": "Löschen",
+    "confirm_delete": "Diesen Spielstand löschen? Das kann nicht rückgängig gemacht werden.",
+    "confirm_overwrite": "Diesen Spielstand mit einem neuen Spiel überschreiben?",
+    "no_saves": "Keine Speicherdaten gefunden. Starte ein neues Spiel!"
+  },
   "options": {
     "title": "⚙ Optionen",
     "lang": "Sprache",

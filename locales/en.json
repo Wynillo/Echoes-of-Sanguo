@@ -65,6 +65,21 @@
     "btn_mainmenu": "Main Menu",
     "confirm_overwrite": "Old game will be overwritten. Continue?"
   },
+  "slots": {
+    "title": "SAVE SLOTS",
+    "title_new": "SELECT SLOT — NEW GAME",
+    "title_load": "SELECT SLOT — LOAD GAME",
+    "slot_label": "Slot {{num}}",
+    "empty": "— Empty —",
+    "coins_label": "Coins: {{coins}}",
+    "chapter_label": "Chapter: {{chapter}}",
+    "last_saved": "Last Saved: {{date}}",
+    "race_label": "Race: {{race}}",
+    "btn_delete": "Delete",
+    "confirm_delete": "Delete this save? This cannot be undone.",
+    "confirm_overwrite": "Overwrite this save with a new game?",
+    "no_saves": "No save data found. Start a new game!"
+  },
   "options": {
     "title": "⚙ Options",
     "lang": "Language",

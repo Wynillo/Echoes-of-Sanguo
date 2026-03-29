@@ -8,18 +8,14 @@ import styles from './SavePointScreen.module.css';
 
 export default function SavePointScreen() {
   const { navigateTo }     = useScreen();
-  const { coins, refresh } = useProgression();
+  const { coins, activeSlot } = useProgression();
   const { openModal }      = useModal();
   const { t } = useTranslation();
   const [savedMsg, setSavedMsg] = useState(false);
-  const hasBackup = Progression.hasBackup();
 
   function handleSave() {
-    if (hasBackup) {
-      const ok = window.confirm(t('save.confirm_overwrite'));
-      if (!ok) return;
-      Progression.clearBackup();
-    }
+    Progression.updateSlotMeta();
+    Progression.clearBackup();
     setSavedMsg(true);
     setTimeout(() => setSavedMsg(false), 2000);
   }
@@ -27,7 +23,6 @@ export default function SavePointScreen() {
   function handleToMainMenu() {
     if (Progression.hasBackup()) {
       Progression.restoreFromBackup();
-      refresh();
     }
     navigateTo('title');
   }
@@ -45,15 +40,15 @@ export default function SavePointScreen() {
       <div className="title-bg"></div>
       <div className={styles.content}>
         <div className="title-rune">★</div>
-        <h2 className={styles.title}>{t('save.headline')}</h2>
+        <h2 className={styles.title}>
+          {t('save.headline')}
+          {activeSlot !== null && <span className={styles.slotBadge}>{t('slots.slot_label', { num: activeSlot })}</span>}
+        </h2>
         <div className={styles.coinsBar}>
           <span className="coins-icon">◈</span>
           <span className={styles.coinsValue}>{coins.toLocaleString()}</span>
           <span className="coins-label">{t('common.coins')}</span>
         </div>
-        {hasBackup && (
-          <p className={styles.backupWarning}>{t('save.backup_warning')}</p>
-        )}
         <div className={styles.menu}>
           <button className="btn-menu" onClick={() => navigateTo('campaign')}>{t('save.btn_story')}</button>
           <button className="btn-menu" onClick={() => navigateTo('opponent')}>{t('save.btn_duel')}</button>

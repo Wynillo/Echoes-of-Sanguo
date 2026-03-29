@@ -20,6 +20,7 @@ import PackOpeningScreen from './screens/PackOpeningScreen.js';
 import GameScreen       from './screens/GameScreen.js';
 import DeckbuilderScreen  from './screens/DeckbuilderScreen.js';
 import SavePointScreen   from './screens/SavePointScreen.js';
+import SaveSlotScreen    from './screens/SaveSlotScreen.js';
 import DuelResultScreen  from './screens/DuelResultScreen.js';
 
 import { HoverPreview }        from './components/HoverPreview.js';
@@ -48,6 +49,7 @@ function Router() {
       )}
       {screen === 'deckbuilder'  && <DeckbuilderScreen />}
       {screen === 'save-point'   && <SavePointScreen />}
+      {screen === 'save-slots'   && <SaveSlotScreen />}
       {screen === 'duel-result'   && <DuelResultScreen />}
       <HoverPreview />
       <CardActivationOverlay />

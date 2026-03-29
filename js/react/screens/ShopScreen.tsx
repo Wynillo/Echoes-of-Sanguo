@@ -124,6 +124,7 @@ export default function ShopScreen() {
     const preOpen = Progression.getCollection();
     const cards   = openPackage(packageId);
     Progression.addCardsToCollection(cards.map((c: CardData) => c.id));
+    Progression.updateSlotMeta();
     refresh();
     navigateTo('pack-opening', { cards, preOpen });
   }
@@ -136,6 +137,7 @@ export default function ShopScreen() {
     const preOpen = Progression.getCollection();
     const cards   = openPack(packType, race !== null ? Number(race) as Race : null);
     Progression.addCardsToCollection(cards.map((c: CardData) => c.id));
+    Progression.updateSlotMeta();
     refresh();
     navigateTo('pack-opening', { cards, preOpen });
   }
