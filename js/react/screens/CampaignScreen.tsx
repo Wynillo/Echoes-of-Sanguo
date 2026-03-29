@@ -28,12 +28,14 @@ export default function CampaignScreen() {
   const chapters = campaignData.chapters;
   const activeChapter: Chapter | undefined = chapters[activeChapterIdx];
 
-  // Determine which chapters are unlocked (sequential: chapter N needs ≥1 completed node in chapter N-1)
+  // Determine which chapters are unlocked (sequential: chapter N needs ALL duels in chapter N-1 completed)
   const chapterUnlocked = useMemo(() => {
     return chapters.map((_, idx) => {
       if (idx === 0) return true;
       const prev = chapters[idx - 1];
-      return prev.nodes.some(n => progress.completedNodes.includes(n.id));
+      return prev.nodes
+        .filter(n => n.type === 'duel')
+        .every(n => progress.completedNodes.includes(n.id));
     });
   }, [chapters, progress.completedNodes]);
 

@@ -20,6 +20,34 @@
                 "portrait": null,
                 "side": "left",
                 "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_intro_2",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_intro_3",
+                "speaker": "Pang Tong",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_intro_4",
+                "speaker": "Pang Tong",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_intro_5",
+                "speaker": "Pang Tong",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
               }
             ]
           }
@@ -111,6 +139,20 @@
             "dialogue": [
               {
                 "textKey": "campaign.duel_7_post_1",
+                "speaker": "Cao Pi",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_7_post_2",
+                "speaker": "Cao Pi",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_7_post_3",
                 "speaker": "Narrator",
                 "portrait": null,
                 "side": "left",
@@ -135,6 +177,27 @@
             "dialogue": [
               {
                 "textKey": "campaign.duel_8_post_1",
+                "speaker": "Zhang Jue",
+                "portrait": null,
+                "side": "right",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_8_post_2",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_8_post_3",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_8_post_4",
                 "speaker": "Narrator",
                 "portrait": null,
                 "side": "left",
@@ -161,6 +224,34 @@
             "dialogue": [
               {
                 "textKey": "campaign.story_arrival_1",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_arrival_2",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_arrival_3",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_arrival_4",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.story_arrival_5",
                 "speaker": "Narrator",
                 "portrait": null,
                 "side": "left",
@@ -223,6 +314,20 @@
             "dialogue": [
               {
                 "textKey": "campaign.duel_17_post_1",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_17_post_2",
+                "speaker": "Narrator",
+                "portrait": null,
+                "side": "left",
+                "foregrounds": null
+              },
+              {
+                "textKey": "campaign.duel_17_post_3",
                 "speaker": "Narrator",
                 "portrait": null,
                 "side": "left",
