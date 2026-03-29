@@ -298,8 +298,8 @@ npm run build:android    # Build + Capacitor sync for Android
 npm run cap:sync         # Sync Capacitor changes
 npm run cap:open         # Open Android Studio
 
-# Local development with @wynillo/tcg-format:
-git clone https://github.com/Wynillo/Echoes-of-Sanguo-TCG.git /tmp/tcg-format
-cd /tmp/tcg-format && npm ci && npm run build && npm link
-cd <this-repo> && npm link @wynillo/tcg-format
+# @wynillo/tcg-format is installed automatically from GitHub via npm install.
+# To develop against a local clone, use npm link:
+# cd /path/to/Echoes-of-Sanguo-TCG && npm ci && npm run build && npm link
+# cd <this-repo> && npm link @wynillo/tcg-format
 ```
