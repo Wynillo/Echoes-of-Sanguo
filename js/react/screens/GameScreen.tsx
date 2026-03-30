@@ -156,7 +156,12 @@ export default function GameScreen() {
           <PlayerField showDirect={showDirect} setShowDirect={setShowDirect} />
 
           {sel.hint && (
-            <div id="action-hint" role="status" aria-live="polite">{sel.hint}</div>
+            <div id="action-hint" role="status" aria-live="polite">
+              {sel.hint}
+              {(sel.mode === 'place-monster' || sel.mode === 'place-spell') && (
+                <button className="hint-cancel-btn" onClick={() => resetSel()}>{t('card_action.cancel', '✕ Cancel')}</button>
+              )}
+            </div>
           )}
         </div>
 

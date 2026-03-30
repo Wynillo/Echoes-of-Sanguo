@@ -244,7 +244,16 @@
     "equip": "⚔ Ausrüsten",
     "set_equipment": "🔽 Verdeckt setzen",
     "hint_equip": "Wähle ein Monster zum Ausrüsten.",
-    "activate_field_spell": "🌍 Feldzauber aktivieren"
+    "activate_field_spell": "🌍 Feldzauber aktivieren",
+    "hint_choose_zone": "Wähle eine Monsterzone für deine Karte.",
+    "hint_choose_zone_set": "Wähle eine freie Monsterzone.",
+    "hint_choose_spell_zone": "Wähle eine Zauber-/Fallenzone.",
+    "no_fusion": "Diese Karten können nicht fusionieren."
+  },
+  "fusion_confirm": {
+    "title": "Fusionsvorschau",
+    "confirm": "✨ Fusion bestätigen",
+    "cancel": "✕ Abbrechen"
   },
   "fusion_chain": {
     "confirm": "✨ Fusionieren & Spielen",

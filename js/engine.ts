@@ -459,6 +459,26 @@ export class GameEngine {
     return true;
   }
 
+  replaceSpellTrap(owner: Owner, handIndex: number, zone: number) {
+    const st = this.state[owner];
+    const existing = st.field.spellTraps[zone];
+    if (existing) {
+      if (existing.card.type === CardType.Equipment && existing.equippedOwner && existing.equippedMonsterZone !== undefined) {
+        const mOwner = existing.equippedOwner;
+        const mZone = existing.equippedMonsterZone;
+        const target = this.state[mOwner].field.monsters[mZone];
+        if (target) {
+          target.permATKBonus -= (existing.card.atkBonus ?? 0);
+          target.permDEFBonus -= (existing.card.defBonus ?? 0);
+          target.equippedCards = target.equippedCards.filter(eq => eq.zone !== zone);
+        }
+      }
+      st.graveyard.push(existing.card);
+      st.field.spellTraps[zone] = null;
+    }
+    return this.setSpellTrap(owner, handIndex, zone);
+  }
+
   async activateSpell(owner: Owner, handIndex: number, targetInfo: FieldCard | CardData | null = null){
     const st = this.state[owner];
     const card = st.hand[handIndex];
@@ -806,6 +826,39 @@ export class GameEngine {
     this.ui.render(this.state);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    return true;
+  }
+
+  async fuseHandWithField(owner: Owner, handIndex: number, fieldZone: number): Promise<boolean> {
+    const st = this.state[owner];
+    const handCard = st.hand[handIndex];
+    const fieldFC = st.field.monsters[fieldZone];
+    if (!handCard || !fieldFC) { this.addLog('Invalid fusion targets!'); return false; }
+
+    const recipe = checkFusion(handCard.id, fieldFC.card.id);
+    if (!recipe) { this.addLog('No fusion possible!'); return false; }
+
+    const fusionCardData = CARD_DB[recipe.result];
+    if (!fusionCardData) { this.addLog('Fusion result card not found!'); return false; }
+
+    if (owner === 'player') this._stats.fusionsPerformed++; else this._stats.opponentFusionsPerformed++;
+    this.addLog(`${ownerLabel(owner)}: FUSION! ${handCard.name} + ${fieldFC.card.name} = ${fusionCardData.name}!`);
+    this.ui.playSfx?.('sfx_fusion');
+
+    const [removed] = st.hand.splice(handIndex, 1);
+    st.graveyard.push(removed);
+    st.graveyard.push(fieldFC.card);
+    this._removeEquipmentForMonster(owner, fieldZone);
+
+    const fc = new FieldCard(Object.assign({}, fusionCardData), 'atk');
+    fc.summonedThisTurn = false;
+    st.field.monsters[fieldZone] = fc;
+    st.normalSummonUsed = true;
+
+    this._recalcFieldSpellBonuses(fc);
+    this.ui.render(this.state);
+    await this._triggerEffect(fc, owner, 'onSummon', fieldZone);
+    TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone: fieldZone });
     return true;
   }
 

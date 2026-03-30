@@ -6,6 +6,7 @@ import { useSelection } from '../../contexts/SelectionContext.js';
 import { FieldCardComponent }     from '../../components/FieldCardComponent.js';
 import { FieldSpellTrapComponent } from '../../components/FieldSpellTrapComponent.js';
 import { CardType, meetsEquipRequirement } from '../../../types.js';
+import { checkFusion, CARD_DB } from '../../../cards.js';
 import type { FieldCard } from '../../../field.js';
 import type { FieldSpellTrap } from '../../../field.js';
 
@@ -33,7 +34,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
   function isPlayerMonsterInteractive(zone: number) {
     if (!player.field.monsters[zone]) return false;
     if (!isMyTurn || phase === 'battle') return false;
-    if (selMode === 'spell-target' || selMode === 'field-spell-target' || selMode === 'equip-target') return false;
+    if (selMode === 'spell-target' || selMode === 'field-spell-target' || selMode === 'equip-target' || selMode === 'place-monster' || selMode === 'place-spell') return false;
     return phase === 'main';
   }
 
@@ -65,6 +66,74 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     return selMode === 'equip-target' && !!fc && !fc.faceDown
       && meetsEquipRequirement(sel.equipCard!, fc.card);
   }
+
+  function isMonsterZonePlaceable(zone: number) {
+    if (selMode !== 'place-monster') return false;
+    if (sel.placeFaceDown) return !player.field.monsters[zone];
+    return true;
+  }
+
+  function isSpellZonePlaceable(_zone: number) {
+    return selMode === 'place-spell';
+  }
+
+  const onMonsterZoneSelect = useCallback((zone: number) => {
+    const game = gameRef.current;
+    if (!game || selMode !== 'place-monster') return;
+    const handIndex = sel.placeHandIndex;
+    if (handIndex === null || handIndex === undefined) return;
+
+    const fc = player.field.monsters[zone];
+    if (!fc) {
+      if (sel.placeFaceDown) {
+        game.setMonster('player', handIndex, zone);
+      } else {
+        game.summonMonster('player', handIndex, zone, sel.placePosition ?? 'atk');
+      }
+      resetSel();
+      return;
+    }
+
+    if (sel.placeFaceDown) return;
+
+    const handCard = player.hand[handIndex];
+    if (!handCard) { resetSel(); return; }
+
+    const recipe = checkFusion(handCard.id, fc.card.id);
+    if (!recipe) {
+      setSel({ hint: t('card_action.no_fusion', 'These cards cannot fuse.') });
+      return;
+    }
+
+    const resultCard = CARD_DB[recipe.result];
+    if (!resultCard) { resetSel(); return; }
+
+    openModal({
+      type: 'fusion-confirm',
+      handCard,
+      fieldCard: fc.card,
+      resultCard,
+      onConfirm: () => {
+        game.fuseHandWithField('player', handIndex, zone);
+        resetSel();
+      },
+    });
+  }, [gameRef, selMode, sel.placeHandIndex, sel.placeFaceDown, sel.placePosition, player.field.monsters, player.hand, resetSel, setSel, openModal, t]);
+
+  const onSpellZoneSelect = useCallback((zone: number) => {
+    const game = gameRef.current;
+    if (!game || selMode !== 'place-spell') return;
+    const handIndex = sel.placeHandIndex;
+    if (handIndex === null || handIndex === undefined) return;
+
+    const fst = player.field.spellTraps[zone];
+    if (!fst) {
+      game.setSpellTrap('player', handIndex, zone);
+    } else {
+      game.replaceSpellTrap('player', handIndex, zone);
+    }
+    resetSel();
+  }, [gameRef, selMode, sel.placeHandIndex, player.field.spellTraps, resetSel]);
 
   const onOwnFieldCardClick = useCallback((fc: FieldCard, zone: number) => {
     const game = gameRef.current;
@@ -116,10 +185,13 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
           const selected  = selMode === 'attack' && sel.attackerZone === i;
           const canAtk    = playerMonsterCanAttack(i);
           const interact  = isPlayerMonsterInteractive(i);
-          const targetable = isPlayerMonsterSpellTarget(i) || isPlayerMonsterEquipTarget(i);
+          const placeable  = isMonsterZonePlaceable(i);
+          const targetable = isPlayerMonsterSpellTarget(i) || isPlayerMonsterEquipTarget(i) || (placeable && !!fc);
           const viewable   = isPlayerMonsterViewable(i);
           return (
-            <div key={i} className="zone-slot" data-zone={i}>
+            <div key={i} className={`zone-slot${placeable && !fc ? ' placeable' : ''}`} data-zone={i}
+              onClick={placeable && !fc ? () => onMonsterZoneSelect(i) : undefined}
+            >
               {!fc && <div className="zone-label" title="Monster Zone">M</div>}
               {fc && (
                 <FieldCardComponent
@@ -129,7 +201,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
                   viewable={viewable}
                   onOwnClick={() => onOwnFieldCardClick(fc, i)}
                   onAttackerSelect={() => onAttackerSelect(i)}
-                  onDefenderClick={() => onSpellTargetSelect(i)}
+                  onDefenderClick={placeable ? () => onMonsterZoneSelect(i) : () => onSpellTargetSelect(i)}
                   onViewClick={() => openModal({ type: 'card-detail', card: fc.card, fc })}
                   onDetail={() => openModal({ type: 'card-detail', card: fc.card, fc })}
                 />
@@ -143,13 +215,16 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
         {FIELD_ZONES.map(i => {
           const fst      = player.field.spellTraps[i];
           const interact = isPlayerSpellTrapInteractive(i);
+          const placeable = isSpellZonePlaceable(i);
           return (
-            <div key={i} className="zone-slot" data-zone={i}>
+            <div key={i} className={`zone-slot${placeable ? ' placeable' : ''}`} data-zone={i}
+              onClick={placeable && !fst ? () => onSpellZoneSelect(i) : undefined}
+            >
               {!fst && <div className="zone-label" title="Spell/Trap Zone">Z/F</div>}
               {fst && (
                 <FieldSpellTrapComponent
-                  fst={fst} owner="player" zone={i} interactive={interact}
-                  onClick={() => onFieldSpellTrapClick(i, fst)}
+                  fst={fst} owner="player" zone={i} interactive={placeable || interact}
+                  onClick={placeable ? () => onSpellZoneSelect(i) : () => onFieldSpellTrapClick(i, fst)}
                   onDetail={() => openModal({ type: 'card-detail', card: fst.card })}
                 />
               )}
