@@ -71,12 +71,17 @@ export function CardDetailModal({ modal }: Props) {
     } else if (isMon && phase === 'main') {
       if (state.player.normalSummonUsed) {
         actions.push(actionBtn(t('card_action.already_played'), null, true));
-      } else if (freeZone !== -1) {
+      } else {
         actions.push(actionBtn(t('card_action.play'), () => {
-          game.performFusionChain('player', [index]);
+          setSel({ mode: 'place-monster', placeHandIndex: index, placePosition: 'atk', placeFaceDown: false, hint: t('card_action.hint_choose_zone') });
           closeModal();
         }));
-        actions.push(actionBtn(t('card_action.set_def'), () => { game.setMonster('player', index, freeZone); closeModal(); }));
+        if (freeZone !== -1) {
+          actions.push(actionBtn(t('card_action.set_def'), () => {
+            setSel({ mode: 'place-monster', placeHandIndex: index, placePosition: 'def', placeFaceDown: true, hint: t('card_action.hint_choose_zone_set') });
+            closeModal();
+          }));
+        }
       }
     }
 
@@ -106,8 +111,7 @@ export function CardDetailModal({ modal }: Props) {
         }
       }));
       actions.push(actionBtn(t('card_action.set_spell'), () => {
-        const zone = state.player.field.spellTraps.findIndex((z): z is null => z === null);
-        if (zone !== -1) game.setSpellTrap('player', index, zone);
+        setSel({ mode: 'place-spell', placeHandIndex: index, hint: t('card_action.hint_choose_spell_zone') });
         closeModal();
       }));
     }
@@ -124,19 +128,16 @@ export function CardDetailModal({ modal }: Props) {
           closeModal();
         }));
       }
-      if (freeSTZone !== -1) {
-        actions.push(actionBtn(t('card_action.set_equipment', 'Set'), () => {
-          game.setSpellTrap('player', index, freeSTZone);
-          closeModal();
-        }));
-      }
+      actions.push(actionBtn(t('card_action.set_equipment', 'Set'), () => {
+        setSel({ mode: 'place-spell', placeHandIndex: index, hint: t('card_action.hint_choose_spell_zone') });
+        closeModal();
+      }));
     }
 
     if (isTr && (phase === 'main' || phase === 'battle')) {
       if (phase === 'main') {
         actions.push(actionBtn(t('card_action.set_trap'), () => {
-          const zone = state.player.field.spellTraps.findIndex((z): z is null => z === null);
-          if (zone !== -1) game.setSpellTrap('player', index, zone);
+          setSel({ mode: 'place-spell', placeHandIndex: index, hint: t('card_action.hint_choose_spell_zone') });
           closeModal();
         }));
       }

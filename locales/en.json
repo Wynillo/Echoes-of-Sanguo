@@ -244,7 +244,16 @@
     "equip": "⚔ Equip",
     "set_equipment": "🔽 Set",
     "hint_equip": "Select a monster to equip.",
-    "activate_field_spell": "🌍 Activate Field Spell"
+    "activate_field_spell": "🌍 Activate Field Spell",
+    "hint_choose_zone": "Choose a monster zone to place your card.",
+    "hint_choose_zone_set": "Choose an empty monster zone.",
+    "hint_choose_spell_zone": "Choose a spell/trap zone.",
+    "no_fusion": "These cards cannot fuse."
+  },
+  "fusion_confirm": {
+    "title": "Fusion Preview",
+    "confirm": "✨ Confirm Fusion",
+    "cancel": "✕ Cancel"
   },
   "fusion_chain": {
     "confirm": "✨ Fuse & Play",

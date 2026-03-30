@@ -130,12 +130,11 @@ export function HandArea() {
           const isEquip      = card.type === CardType.Equipment;
           const playable     = isMyTurn && phase === 'main' && (
             isMon
-              ? !player.normalSummonUsed && player.field.monsters.some(z => z === null)
+              ? !player.normalSummonUsed
               : isEquip
-                ? player.field.spellTraps.some(z => z === null)
-                  && (player.field.monsters.some(m => m && !m.faceDown && meetsEquipRequirement(card, m.card))
+                ? (player.field.monsters.some(m => m && !m.faceDown && meetsEquipRequirement(card, m.card))
                    || opponent.field.monsters.some(m => m && !m.faceDown && meetsEquipRequirement(card, m.card)))
-                : player.field.spellTraps.some(z => z === null)
+                : true
           );
           const inFusion     = fusionGroup.includes(i);
           const fusionIdx    = inFusion ? fusionGroup.indexOf(i) : undefined;

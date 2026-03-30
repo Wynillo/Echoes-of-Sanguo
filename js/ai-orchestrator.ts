@@ -144,16 +144,25 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
 
   await _activateFieldSpells(engine);
 
-  // Try fusion chain (FM-style: greedy 2-card + extend)
+  // Try fusion chain (FM-style: greedy 2-card + extend, including hand+field fusions)
   EchoesOfSanguo.log('AI', 'Main Phase – checking fusion chain...');
   if(!ai.normalSummonUsed && bh.fusionFirst){
-    const bestChain = _findSmartFusionChain(ai.hand, bh.fusionMinATK, plr.field.monsters, ctx.activeGoal);
-    const zone = ai.field.monsters.findIndex(z => z === null);
-    if(bestChain && zone !== -1){
-      const names = bestChain.indices.map(i => ai.hand[i].name);
-      EchoesOfSanguo.log('AI', `Fusion chain: ${names.join(' + ')} → ${bestChain.resultName} (ATK:${bestChain.resultATK}, Zone ${zone})`);
+    const bestChain = _findSmartFusionChain(ai.hand, bh.fusionMinATK, plr.field.monsters, ctx.activeGoal, ai.field.monsters);
+    if(bestChain && bestChain.fieldZone !== undefined){
+      const handCard = ai.hand[bestChain.indices[0]];
+      EchoesOfSanguo.log('AI', `Field fusion: ${handCard.name} + field zone ${bestChain.fieldZone} → ${bestChain.resultName} (ATK:${bestChain.resultATK})`);
       await _delay(500);
-      await engine.performFusionChain('opponent', bestChain.indices);
+      await engine.fuseHandWithField('opponent', bestChain.indices[0], bestChain.fieldZone);
+    } else if(bestChain){
+      const zone = ai.field.monsters.findIndex(z => z === null);
+      if(zone !== -1){
+        const names = bestChain.indices.map(i => ai.hand[i].name);
+        EchoesOfSanguo.log('AI', `Fusion chain: ${names.join(' + ')} → ${bestChain.resultName} (ATK:${bestChain.resultATK}, Zone ${zone})`);
+        await _delay(500);
+        await engine.performFusionChain('opponent', bestChain.indices);
+      } else {
+        EchoesOfSanguo.log('AI', 'No free zone for hand fusion chain.');
+      }
     } else {
       EchoesOfSanguo.log('AI', 'No fusion chain available.');
     }
@@ -582,7 +591,8 @@ function _findSmartFusionChain(
   minATK: number,
   plrMonsters: Array<FieldCard | null>,
   goal?: AIGoal,
-): { indices: number[]; resultName: string; resultATK: number } | null {
+  aiMonsters?: Array<FieldCard | null>,
+): { indices: number[]; resultName: string; resultATK: number; fieldZone?: number } | null {
   const plrMaxATK = plrMonsters
     .filter((fc): fc is FieldCard => fc !== null)
     .reduce((max, fc) => Math.max(max, aiEffectiveATK(fc)), 0);
@@ -591,7 +601,9 @@ function _findSmartFusionChain(
   let bestScore = -Infinity;
   let bestName = '';
   let bestATK = 0;
+  let bestFieldZone: number | undefined;
 
+  // Hand-only fusion chains
   for (let i = 0; i < hand.length; i++) {
     for (let j = i + 1; j < hand.length; j++) {
       const recipe = checkFusion(hand[i].id, hand[j].id);
@@ -635,16 +647,10 @@ function _findSmartFusionChain(
       }
 
       let score = currentATK;
-      // bonus if the fusion can beat the player's strongest monster
       if (currentATK > plrMaxATK && plrMaxATK > 0) score += AI_SCORE.EQUIP_UNLOCK_KILL;
       const fusionCard = CARD_DB[currentId];
       if (fusionCard?.effect) score += 500;
-
-      // Goal alignment bonus
       score += classifyGoalAlignment('fusion', goal);
-
-      // Slight penalty for using too many cards (card advantage)
-      // fusion_otk: halve the penalty — saving hand for fusion is the whole point
       const chainPenalty = goal?.id === 'fusion_otk' ? 50 : 100;
       score -= (chain.length - 2) * chainPenalty;
 
@@ -653,12 +659,45 @@ function _findSmartFusionChain(
         bestChain = chain;
         bestName = CARD_DB[currentId]?.name ?? '?';
         bestATK = currentATK;
+        bestFieldZone = undefined;
+      }
+    }
+  }
+
+  // Hand + field monster fusions
+  if (aiMonsters) {
+    for (let i = 0; i < hand.length; i++) {
+      if (!isMonsterType(hand[i].type)) continue;
+      for (let z = 0; z < aiMonsters.length; z++) {
+        const fieldFC = aiMonsters[z];
+        if (!fieldFC) continue;
+        const recipe = checkFusion(hand[i].id, fieldFC.card.id);
+        if (!recipe) continue;
+        const resultCard = CARD_DB[recipe.result];
+        if (!resultCard) continue;
+        const resultATK = resultCard.atk ?? 0;
+        const fieldATK = fieldFC.effectiveATK();
+        if (resultATK <= fieldATK) continue;
+
+        let score = resultATK;
+        score -= fieldATK;
+        if (resultATK > plrMaxATK && plrMaxATK > 0) score += AI_SCORE.EQUIP_UNLOCK_KILL;
+        if (resultCard.effect) score += 500;
+        score += classifyGoalAlignment('fusion', goal);
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestChain = [i];
+          bestName = resultCard.name ?? '?';
+          bestATK = resultATK;
+          bestFieldZone = z;
+        }
       }
     }
   }
 
   if (!bestChain || bestATK < minATK) return null;
-  return { indices: bestChain, resultName: bestName, resultATK: bestATK };
+  return { indices: bestChain, resultName: bestName, resultATK: bestATK, fieldZone: bestFieldZone };
 }
 
 function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementATK: number): number {

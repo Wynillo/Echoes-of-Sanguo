@@ -11,8 +11,9 @@ import { BattleLogModal }  from './BattleLogModal.js';
 import { CoinTossModal }   from './CoinTossModal.js';
 import { GauntletTransitionModal } from './GauntletTransitionModal.js';
 import { HowToPlayModal } from './HowToPlayModal.js';
+import { FusionConfirmModal } from './FusionConfirmModal.js';
 
-const NON_DISMISSIBLE = new Set(['trap-prompt', 'grave-select', 'coin-toss', 'gauntlet-transition']);
+const NON_DISMISSIBLE = new Set(['trap-prompt', 'grave-select', 'coin-toss', 'gauntlet-transition', 'fusion-confirm']);
 
 const MODAL_LABELS: Record<string, string> = {
   'card-detail': 'Card Details',
@@ -25,6 +26,7 @@ const MODAL_LABELS: Record<string, string> = {
   'coin-toss': 'Coin Toss',
   'gauntlet-transition': 'Gauntlet',
   'how-to-play': 'How to Play',
+  'fusion-confirm': 'Fusion Preview',
 };
 
 export function ModalOverlay() {
@@ -71,6 +73,7 @@ export function ModalOverlay() {
       {modal.type === 'coin-toss'   && <CoinTossModal   modal={modal} />}
       {modal.type === 'gauntlet-transition' && <GauntletTransitionModal modal={modal} />}
       {modal.type === 'how-to-play' && <HowToPlayModal />}
+      {modal.type === 'fusion-confirm' && <FusionConfirmModal modal={modal} />}
     </div>
   );
 }

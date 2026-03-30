@@ -299,6 +299,21 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   outline: 2px solid #ff4444; outline-offset: -2px;
   animation: targetPulse 0.7s ease-in-out infinite alternate;
 }
+.zone-slot.placeable {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+  outline: 2px solid var(--gold); outline-offset: -2px;
+  animation: placeablePulse 0.8s ease-in-out infinite alternate;
+  cursor: pointer;
+}
+.zone-slot.placeable .zone-label {
+  color: var(--gold) !important;
+  font-weight: bold;
+}
+@keyframes placeablePulse {
+  from { box-shadow: 0 0 4px rgba(255, 215, 0, 0.3); }
+  to   { box-shadow: 0 0 12px rgba(255, 215, 0, 0.7); }
+}
 
 /* Phase display — floating divider between sides */
 #phase-display {
@@ -331,11 +346,19 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 #action-hint {
   position: absolute;
   bottom: 4px; left: 50%; transform: translateX(-50%);
-  z-index: 30; pointer-events: none;
+  z-index: 30; pointer-events: auto;
   font-size: 11px; color: var(--gold);
   white-space: nowrap; text-align: center;
   text-shadow: 1px 1px 0 #000;
+  display: flex; align-items: center; gap: 8px;
 }
+.hint-cancel-btn {
+  font-size: 10px; padding: 2px 8px;
+  background: rgba(100, 20, 20, 0.8); color: #ff8888;
+  border: 1px solid #ff6666; border-radius: 4px;
+  cursor: pointer;
+}
+.hint-cancel-btn:hover { background: rgba(150, 30, 30, 0.9); }
 
 #field-right {
   width: 22%;
@@ -834,6 +857,22 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   text-align: left; transition: all 0.15s;
 }
 .menu-action-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(20,70,40,0.9); transform: translateX(4px); }
+
+#fusion-confirm-modal { max-width: 400px; text-align: center; }
+#fusion-confirm-modal h2 { color: var(--gold-light); font-size: 1rem; margin-bottom: 12px; }
+.fusion-confirm-cards {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.fusion-confirm-material, .fusion-confirm-result {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.fusion-confirm-name { font-size: 0.7rem; color: var(--text); max-width: 80px; text-align: center; }
+.fusion-confirm-stats { font-size: 0.7rem; font-weight: bold; color: var(--gold); font-family: var(--font-stats); }
+.fusion-confirm-plus, .fusion-confirm-arrow {
+  font-size: 1.2rem; font-weight: bold; color: var(--gold); padding: 0 2px;
+}
+.fusion-confirm-result .card { border-color: var(--gold) !important; box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
 
 #card-detail-modal { max-width: 420px; }
 .detail-layout { display: flex; gap: 16px; margin-bottom: 12px; }
