@@ -230,18 +230,16 @@ export default function DeckbuilderScreen() {
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
+        <button id="btn-db-back" className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('deckbuilder.back')}</button>
         <div className={styles.title}>{t('deckbuilder.title')}</div>
         <div className={styles.count}>{t('deckbuilder.cards_count', { current: currentDeck.length, max: MAX_DECK })}</div>
-        <div className="flex gap-2">
-          <button
-            id="btn-db-save"
-            className="btn-primary"
-            disabled={!deckFull}
-            style={{ opacity: deckFull ? 1 : 0.4, cursor: deckFull ? 'pointer' : 'not-allowed' }}
-            onClick={saveDeck}
-          >{t('deckbuilder.save_btn')}</button>
-          <button id="btn-db-back" className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('deckbuilder.back')}</button>
-        </div>
+        <button
+          id="btn-db-save"
+          className="btn-primary"
+          disabled={!deckFull}
+          style={{ opacity: deckFull ? 1 : 0.4, cursor: deckFull ? 'pointer' : 'not-allowed' }}
+          onClick={saveDeck}
+        >{t('deckbuilder.save_btn')}</button>
         <div className={`${styles.tabs} ml-auto`}>
           <button
             className={`${styles.tabBtn}${activeTab === 'collection' ? ` ${styles.activeTab}` : ''}`}

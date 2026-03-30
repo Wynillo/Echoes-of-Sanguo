@@ -42,11 +42,11 @@ export default function CollectionScreen() {
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('collection.back')}</button>
         <h2 className={styles.title}>{t('collection.title')}</h2>
         <div className={styles.stats}>
           <span id="collection-count">{t('collection.cards_count', { owned: ownedCount, total: totalCards })}</span>
         </div>
-        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('collection.back')}</button>
       </div>
 
       <div className={styles.filters}>

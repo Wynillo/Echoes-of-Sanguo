@@ -17,11 +17,9 @@
 }
 
 .backBtn {
-  position: absolute;
-  left: 0;
-  top: 0;
   font-size: 0.8rem;
   padding: 6px 12px;
+  flex-shrink: 0;
 }
 
 .title {
