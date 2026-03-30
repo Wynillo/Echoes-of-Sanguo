@@ -3425,5 +3425,75 @@
     "type": 4,
     "effect": "manual:reviveFromGrave()",
     "trapTrigger": 4
+  },
+  {
+    "id": 349,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:createTokens(sheep_token,4,def)",
+    "spellType": 1
+  },
+  {
+    "id": 350,
+    "level": 3,
+    "rarity": 8,
+    "type": 1,
+    "atk": 700,
+    "def": 1400,
+    "attribute": 1,
+    "race": 5,
+    "effect": "onFlip:gameReset()"
+  },
+  {
+    "id": 351,
+    "level": 3,
+    "rarity": 8,
+    "type": 1,
+    "atk": 900,
+    "def": 900,
+    "attribute": 2,
+    "race": 6,
+    "effect": "onFlip:destroyAll();excavateAndSummon(5,4)"
+  },
+  {
+    "id": 352,
+    "level": 4,
+    "rarity": 6,
+    "type": 1,
+    "atk": 1600,
+    "def": 1000,
+    "attribute": 4,
+    "race": 9,
+    "effect": "onSummon[cost:discard=1]:destroyAllOpp()"
+  },
+  {
+    "id": 353,
+    "level": 2,
+    "rarity": 4,
+    "type": 1,
+    "atk": 100,
+    "def": 100,
+    "attribute": 6,
+    "race": 8,
+    "effect": "onSummon:setFaceDown()",
+    "spirit": true
+  },
+  {
+    "id": 354,
+    "level": 1,
+    "rarity": 4,
+    "type": 1,
+    "atk": 300,
+    "def": 250,
+    "attribute": 4,
+    "race": 9,
+    "effect": "onSentToGrave:salvageFromGrave({ct=1})"
+  },
+  {
+    "id": 355,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:sendTopCardsToGrave(4);draw(self,1)",
+    "spellType": 1
   }
 ]

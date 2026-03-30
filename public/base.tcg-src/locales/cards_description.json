@@ -1738,5 +1738,40 @@
     "id": 348,
     "name": "Call of the Haunted",
     "description": "[Trap] Special Summon 1 monster from your Graveyard."
+  },
+  {
+    "id": 349,
+    "name": "Scapegoat",
+    "description": "Special Summon 4 Sheep Tokens (ATK 0/DEF 0) in Defense Position."
+  },
+  {
+    "id": 350,
+    "name": "Fiber Jar",
+    "description": "[Effect] FLIP: Both players shuffle their hands, fields, and Graveyards into their Decks, then draw 5 cards."
+  },
+  {
+    "id": 351,
+    "name": "Cyber Jar",
+    "description": "[Effect] FLIP: Destroy all monsters on the field. Both players excavate the top 5 cards, Special Summon all Level 4 or lower monsters, and add the rest to their hands."
+  },
+  {
+    "id": 352,
+    "name": "Tribe-Infecting Virus",
+    "description": "[Effect] Discard 1 card: Destroy all opponent's monsters."
+  },
+  {
+    "id": 353,
+    "name": "Tsukuyomi",
+    "description": "[Effect] Spirit. When summoned: Set 1 target monster face-down. Returns to hand at End Phase."
+  },
+  {
+    "id": 354,
+    "name": "Sinister Serpent",
+    "description": "[Effect] When sent to the Graveyard: Add 1 monster from your Graveyard to your hand."
+  },
+  {
+    "id": 355,
+    "name": "Painful Choice",
+    "description": "Send the top 4 cards of your Deck to the Graveyard, then draw 1 card."
   }
 ]

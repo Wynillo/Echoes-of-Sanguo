@@ -160,6 +160,9 @@ export interface EffectDescriptorMap {
   bounceOppHandToDeck:       { count: number };
   tributeSelf:               {};
   preventAttacks:            { turns: number };
+  createTokens:              { tokenId: string; count: number; position: Position };
+  gameReset:                 {};
+  excavateAndSummon:         { count: number; maxLevel: number };
 }
 
 export type EffectDescriptor = {

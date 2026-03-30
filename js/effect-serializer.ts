@@ -189,6 +189,9 @@ function serializeAction(a: EffectDescriptor): string {
     case 'bounceOppHandToDeck':     return `bounceOppHandToDeck(${a.count})`;
     case 'tributeSelf':             return 'tributeSelf()';
     case 'preventAttacks':          return `preventAttacks(${a.turns})`;
+    case 'createTokens':            return `createTokens(${a.tokenId},${a.count},${a.position})`;
+    case 'gameReset':               return 'gameReset()';
+    case 'excavateAndSummon':       return `excavateAndSummon(${a.count},${a.maxLevel})`;
     default:
       throw new Error(`Unknown effect action type: ${(a as any).type}`);
   }
@@ -370,6 +373,9 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     case 'bounceOppHandToDeck':     return { type: 'bounceOppHandToDeck', count: parseInt(args[0]) };
     case 'tributeSelf':             return { type: 'tributeSelf' };
     case 'preventAttacks':          return { type: 'preventAttacks', turns: parseInt(args[0]) };
+    case 'createTokens':            return { type: 'createTokens', tokenId: args[0], count: parseInt(args[1]), position: args[2] as 'atk' | 'def' };
+    case 'gameReset':               return { type: 'gameReset' };
+    case 'excavateAndSummon':       return { type: 'excavateAndSummon', count: parseInt(args[0]), maxLevel: parseInt(args[1]) };
 
     default:
       throw new Error(`Unknown action type: ${type}`);

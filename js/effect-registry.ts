@@ -436,6 +436,77 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
+  createTokens(desc: { tokenId: string; count: number; position: string }, ctx) {
+    const pos = (desc.position ?? 'def') as 'atk' | 'def';
+    let placed = 0;
+    for (let i = 0; i < desc.count; i++) {
+      const tokenCard: CardData = {
+        id: `${desc.tokenId}_${Date.now()}_${i}`,
+        name: 'Sheep Token',
+        type: CardType.Monster,
+        atk: 0,
+        def: 0,
+        description: 'A token monster.',
+      };
+      const result = ctx.engine.specialSummon(ctx.owner, tokenCard, undefined, pos);
+      if (result) placed++;
+    }
+    ctx.engine.addLog(`${placed} token(s) summoned!`);
+    return {};
+  },
+
+  gameReset(_desc: unknown, ctx) {
+    const st = ctx.engine.getState();
+    for (const side of ['player', 'opponent'] as Owner[]) {
+      const ps = st[side];
+      // Collect all cards from hand, field, and graveyard
+      const allCards: CardData[] = [...ps.hand, ...ps.graveyard];
+      for (const fc of ps.field.monsters) {
+        if (fc) allCards.push(fc.card);
+      }
+      for (const fst of ps.field.spellTraps) {
+        if (fst) allCards.push(fst.card);
+      }
+      if (ps.field.fieldSpell) allCards.push(ps.field.fieldSpell.card);
+      // Clear everything
+      ps.hand.length = 0;
+      ps.graveyard.length = 0;
+      ps.field.monsters.fill(null);
+      ps.field.spellTraps.fill(null);
+      ps.field.fieldSpell = null;
+      // Shuffle all back into deck
+      ps.deck.push(...allCards);
+      for (let i = ps.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [ps.deck[i], ps.deck[j]] = [ps.deck[j], ps.deck[i]];
+      }
+      // Draw 5
+      ctx.engine.drawCard(side, 5);
+    }
+    ctx.engine.addLog('All cards shuffled back! Both players draw 5.');
+    return {};
+  },
+
+  excavateAndSummon(desc: { count: number; maxLevel: number }, ctx) {
+    const st = ctx.engine.getState();
+    for (const side of ['player', 'opponent'] as Owner[]) {
+      const ps = st[side];
+      const excavated: CardData[] = [];
+      for (let i = 0; i < desc.count && ps.deck.length > 0; i++) {
+        excavated.push(ps.deck.shift()!);
+      }
+      for (const card of excavated) {
+        if ((card.type === CardType.Monster || card.type === CardType.Fusion) && (card.level ?? 99) <= desc.maxLevel) {
+          ctx.engine.specialSummon(side, card, undefined, 'def', true);
+        } else {
+          ps.hand.push(card);
+        }
+      }
+    }
+    ctx.engine.addLog(`Top ${desc.count} cards excavated! Monsters summoned, rest added to hand.`);
+    return {};
+  },
+
   discardEntireHand(desc: { target: 'self' | 'opponent' | 'both' }, ctx) {
     const state = ctx.engine.getState();
     const discard = (owner: Owner) => {
