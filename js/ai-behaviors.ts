@@ -31,6 +31,15 @@ export const AI_SCORE = {
   BUFF_KILL_THRESHOLD:    1000,
   /** Bonus for surviving when AI is low LP */
   LOW_LP_SURVIVAL:        300,
+  // ── Threat / Future Value weights ──
+  /** Weight for LP ratio contribution to threat score */
+  THREAT_LP_WEIGHT:       0.4,
+  /** Weight for monster power differential in threat score */
+  THREAT_BOARD_WEIGHT:    1.2,
+  /** Per-card hand advantage weight in threat score */
+  THREAT_HAND_WEIGHT:     150,
+  /** Default discount factor for future board value */
+  FUTURE_GAMMA_DEFAULT:   0.7,
 } as const;
 
 export const AI_LP_THRESHOLD = {
@@ -60,6 +69,9 @@ const AGGRESSIVE: AIBehavior = {
   battleStrategy:         'aggressive',
   spellRules:             {},
   defaultSpellActivation: 'always',
+  goal:                   { id: 'swarm_aggro', alignmentBonus: 800 },
+  lookaheadDepth:         1,
+  gamma:                  0.7,
 };
 
 const DEFENSIVE: AIBehavior = {
@@ -70,6 +82,9 @@ const DEFENSIVE: AIBehavior = {
   battleStrategy:         'conservative',
   spellRules:             {},
   defaultSpellActivation: 'smart',
+  goal:                   { id: 'stall_drain', alignmentBonus: 700, switchTurn: 8 },
+  lookaheadDepth:         1,
+  gamma:                  0.6,
 };
 
 const SMART: AIBehavior = {
@@ -80,6 +95,9 @@ const SMART: AIBehavior = {
   battleStrategy:         'smart',
   spellRules:             {},
   defaultSpellActivation: 'always',
+  goal:                   { id: 'control', alignmentBonus: 600 },
+  lookaheadDepth:         1,
+  gamma:                  0.75,
 };
 
 const CHEATING: AIBehavior = {
@@ -90,6 +108,9 @@ const CHEATING: AIBehavior = {
   battleStrategy:         'aggressive',
   spellRules:             {},
   defaultSpellActivation: 'always',
+  goal:                   { id: 'fusion_otk', alignmentBonus: 1200 },
+  lookaheadDepth:         1,
+  gamma:                  0.9,
 };
 
 // ── Registry ────────────────────────────────────────────────
@@ -114,6 +135,9 @@ export function resolveAIBehavior(id?: string): Required<AIBehavior> {
     battleStrategy:         base.battleStrategy         ?? 'smart',
     spellRules:             base.spellRules             ?? {},
     defaultSpellActivation: base.defaultSpellActivation ?? 'smart',
+    goal:                   base.goal                   ?? undefined,
+    lookaheadDepth:         base.lookaheadDepth         ?? 1,
+    gamma:                  base.gamma                  ?? AI_SCORE.FUTURE_GAMMA_DEFAULT,
   };
 }
 

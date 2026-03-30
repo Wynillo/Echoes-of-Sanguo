@@ -259,6 +259,27 @@ export interface AISpellRule {
   threshold?: number;
 }
 
+export type AIGoalId =
+  | 'fusion_otk'   // hunt fusion OTK windows, save hand for materials
+  | 'stall_drain'  // preserve LP, skip battle unless lethal
+  | 'swarm_aggro'  // flood board, attack always
+  | 'control';     // remove threats first, advance slowly
+
+export interface AIGoal {
+  id:             AIGoalId;
+  alignmentBonus: number;  // added to actions matching this goal
+  switchTurn?:    number;  // if set, deactivate goal at this turn number
+}
+
+export interface BoardSnapshot {
+  aiLP:            number;
+  plrLP:           number;
+  aiMonsterPower:  number;  // sum of effectiveATK of AI field monsters
+  plrMonsterPower: number;
+  aiHandSize:      number;
+  plrHandSize:     number;
+}
+
 export interface AIBehavior {
   fusionFirst?:             boolean;
   fusionMinATK?:            number;
@@ -267,6 +288,9 @@ export interface AIBehavior {
   battleStrategy?:          AIBattleStrategy;
   spellRules?:              Record<string, AISpellRule>;
   defaultSpellActivation?:  'always' | 'never' | 'smart';
+  goal?:                    AIGoal;
+  lookaheadDepth?:          number;  // 0 = disabled, 1 = one-step lookahead
+  gamma?:                   number;  // discount factor 0.0–1.0
 }
 
 // ── Opponent ─────────────────────────────────────────────────
