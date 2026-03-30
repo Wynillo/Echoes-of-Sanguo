@@ -60,8 +60,6 @@
   flex-shrink: 0;
 }
 
-/* ── Tabs ── */
-
 .tabs {
   display: flex;
   gap: 0;
@@ -94,8 +92,6 @@
   color: #c8a84b;
   border-color: #c8a84b;
 }
-
-/* ── Carousel ── */
 
 .carousel {
   position: relative;
@@ -145,8 +141,6 @@
   cursor: not-allowed;
 }
 
-/* ── Dots ── */
-
 .dots {
   display: flex;
   gap: 8px;
@@ -173,8 +167,6 @@
   background: #c8a84b;
   border-color: #c8a84b;
 }
-
-/* ── Pack Tile (Booster Pack Style) ── */
 
 .packTile {
   aspect-ratio: 3 / 4;
@@ -214,8 +206,6 @@
   box-shadow: 0 0 12px color-mix(in srgb, var(--pack-color, #4060c0) 30%, transparent);
 }
 
-/* ── Info (?) Button ── */
-
 .infoBtn {
   position: absolute;
   top: 4px;
@@ -242,8 +232,6 @@
   background: var(--pack-color, #4060c0);
   color: #fff;
 }
-
-/* ── Pack Content Area ── */
 
 .packTop {
   flex: 1;
@@ -282,8 +270,6 @@
   color: #606880;
   position: relative;
 }
-
-/* ── Pack Bottom Area ── */
 
 .packBottom {
   display: flex;
@@ -336,8 +322,6 @@
 }
 
 .buyBtn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* ── Info Modal Overlay ── */
 
 .infoOverlay {
   position: fixed;
@@ -475,8 +459,6 @@
 .infoCloseBtn:hover {
   background: #1a2840;
 }
-
-/* ── Legacy compat ── */
 
 .sectionTitle {
   font-size: clamp(1rem, 2.5vw, 1.4rem);

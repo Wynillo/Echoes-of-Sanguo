@@ -1,8 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — Effect Registry & Interpreter
-// Data-driven effect execution: EffectDescriptor → EffectSignal
-// ============================================================
-
 import {
   Attribute, CardType,
   type CardData, type CardFilter,
@@ -10,9 +5,6 @@ import {
   type ValueExpr, type StatTarget, type Owner, type FieldCard,
 } from './types.js';
 
-// ── CardFilter Utilities ─────────────────────────────────────
-
-/** Check if a card matches a CardFilter */
 export function matchesFilter(card: CardData, filter: CardFilter): boolean {
   if (filter.race     !== undefined && card.race      !== filter.race)       return false;
   if (filter.attr     !== undefined && card.attribute  !== filter.attr)       return false;
@@ -26,7 +18,6 @@ export function matchesFilter(card: CardData, filter: CardFilter): boolean {
   return true;
 }
 
-/** Filter FieldCards on a field by CardFilter */
 function filterFieldMonsters(monsters: Array<FieldCard | null>, filter?: CardFilter): FieldCard[] {
   let result = monsters.filter((fm): fm is FieldCard => fm !== null);
   if (filter) result = result.filter(fm => matchesFilter(fm.card, filter));
@@ -38,12 +29,9 @@ function filterFieldMonsters(monsters: Array<FieldCard | null>, filter?: CardFil
 }
 
 
-/** Get opponent Owner */
 function oppOf(owner: Owner): Owner {
   return owner === 'player' ? 'opponent' : 'player';
 }
-
-// ── Value Resolution ────────────────────────────────────────
 
 function resolveValue(expr: ValueExpr, ctx: EffectContext): number {
   if (typeof expr === 'number') return expr;
@@ -63,7 +51,6 @@ function resolveTarget(target: 'opponent' | 'self', owner: Owner): Owner {
   return oppOf(owner);
 }
 
-/** Resolve a StatTarget to the actual FieldCard from context */
 function resolveStatTarget(target: StatTarget, ctx: EffectContext): FieldCard | null {
   if (target === 'attacker')    return ctx.attacker ?? null;
   if (target === 'defender')    return ctx.defender ?? null;
@@ -73,7 +60,6 @@ function resolveStatTarget(target: StatTarget, ctx: EffectContext): FieldCard | 
   return null;
 }
 
-/** Fisher-Yates shuffle in place */
 function shuffleArray<T>(arr: T[]): void {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -81,9 +67,6 @@ function shuffleArray<T>(arr: T[]): void {
   }
 }
 
-// ── VFX Helper ──────────────────────────────────────────────
-
-/** Fire a buff VFX on the zone where a FieldCard sits */
 function _triggerBuffVFX(fc: FieldCard, ctx: EffectContext): void {
   const ui = ctx.engine.ui;
   if (!ui?.playVFX) return;
@@ -97,9 +80,6 @@ function _triggerBuffVFX(fc: FieldCard, ctx: EffectContext): void {
   }
 }
 
-// ── Helpers ─────────────────────────────────────────────────
-
-/** Find the monster zone index with the highest or lowest effective ATK. */
 function findMonsterByATK(
   monsters: Array<FieldCard | null>,
   mode: 'strongest' | 'weakest',
@@ -117,17 +97,12 @@ function findMonsterByATK(
   return idx;
 }
 
-// ── Effect Implementations ──────────────────────────────────
-
-// Public API type — call sites receive EffectDescriptor (no `any`)
 export type EffectImpl = (desc: EffectDescriptor, ctx: EffectContext) => EffectSignal;
 // Internal type — allows handlers to declare specific desc subtypes while still
 // being assignable to the Record annotation (ctx stays typed).
 type InternalImpl = (desc: any, ctx: EffectContext) => EffectSignal;
 
 const IMPL: Record<string, InternalImpl> = {
-
-  // ─── Damage & Healing ─────────────────────────────────────
 
   dealDamage(desc: { target: 'opponent' | 'self'; value: ValueExpr }, ctx) {
     const amount = resolveValue(desc.value, ctx);
@@ -144,15 +119,11 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  // ─── Card Draw ────────────────────────────────────────────
-
   draw(desc: { target: 'self' | 'opponent'; count: number }, ctx) {
     const target = resolveTarget(desc.target, ctx.owner);
     ctx.engine.drawCard(target, desc.count);
     return {};
   },
-
-  // ─── Field-wide Buffs/Debuffs (unified with CardFilter) ──
 
   buffField(desc: { value: number; filter?: CardFilter }, ctx) {
     const st = ctx.engine.getState();
@@ -201,8 +172,6 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  // ─── Bounce ───────────────────────────────────────────────
-
   bounceStrongestOpp(_desc: unknown, ctx) {
     const opp = oppOf(ctx.owner);
     const st = ctx.engine.getState();
@@ -243,8 +212,6 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  // ─── Search ───────────────────────────────────────────────
-
   searchDeckToHand(desc: { filter: CardFilter }, ctx) {
     const st = ctx.engine.getState();
     const deck = st[ctx.owner].deck;
@@ -256,8 +223,6 @@ const IMPL: Record<string, InternalImpl> = {
     }
     return {};
   },
-
-  // ─── Targeted Stat Modification ───────────────────────────
 
   tempAtkBonus(desc: { target: StatTarget; value: number }, ctx) {
     const fc = resolveStatTarget(desc.target, ctx);
@@ -297,14 +262,10 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  // ─── Graveyard ────────────────────────────────────────────
-
   reviveFromGrave(_desc: unknown, ctx) {
     if (ctx.targetCard) ctx.engine.specialSummonFromGrave(ctx.owner, ctx.targetCard);
     return {};
   },
-
-  // ─── Trap Signals ─────────────────────────────────────────
 
   cancelAttack() {
     return { cancelAttack: true };
@@ -321,8 +282,6 @@ const IMPL: Record<string, InternalImpl> = {
     }
     return {};
   },
-
-  // ─── Destruction Effects ──────────────────────────────────
 
   destroyAllOpp(_desc: unknown, ctx) {
     const opp = oppOf(ctx.owner);
@@ -384,8 +343,6 @@ const IMPL: Record<string, InternalImpl> = {
     }
     return {};
   },
-
-  // ─── Graveyard & Deck Manipulation ────────────────────────
 
   sendTopCardsToGrave(desc: { count: number }, ctx) {
     const st = ctx.engine.getState();
@@ -460,8 +417,6 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  // ─── Special Summon ───────────────────────────────────────
-
   specialSummonFromHand(desc: { filter?: CardFilter }, ctx) {
     const st = ctx.engine.getState();
     const hand = st[ctx.owner].hand;
@@ -474,8 +429,6 @@ const IMPL: Record<string, InternalImpl> = {
     }
     return {};
   },
-
-  // ─── Hand Manipulation ────────────────────────────────────
 
   discardFromHand(desc: { count: number }, ctx) {
     const st = ctx.engine.getState();
@@ -504,8 +457,6 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  // ─── Passive Flags (no-op at runtime; read at FieldCard construction) ──
-
   passive_piercing()       { return {}; },
   passive_untargetable()   { return {}; },
   passive_directAttack()   { return {}; },
@@ -516,20 +467,14 @@ const IMPL: Record<string, InternalImpl> = {
   passive_cantBeAttacked() { return {}; },
 };
 
-// ── Public Registry ─────────────────────────────────────────
-
 export const EFFECT_REGISTRY = new Map<string, EffectImpl>(
   Object.entries(IMPL) as [string, EffectImpl][],
 );
 
-/** Register a custom effect type (for mods) */
 export function registerEffect(type: string, impl: EffectImpl): void {
   EFFECT_REGISTRY.set(type, impl);
 }
 
-// ── Interpreter ─────────────────────────────────────────────
-
-/** Execute a CardEffectBlock and return the combined signal */
 export function executeEffectBlock(block: CardEffectBlock, ctx: EffectContext): EffectSignal {
   const signal: EffectSignal = {};
   for (const action of block.actions) {
@@ -543,7 +488,6 @@ export function executeEffectBlock(block: CardEffectBlock, ctx: EffectContext): 
   return signal;
 }
 
-/** Check if a CardEffectBlock contains passive flags and extract them */
 export function extractPassiveFlags(block: CardEffectBlock): {
   piercing: boolean;
   cannotBeTargeted: boolean;

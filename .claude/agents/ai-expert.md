@@ -12,29 +12,28 @@ model: sonnet
 
 # AI Behavior Expert — Echoes of Sanguo
 
-You are a specialist for the AI opponent system of Echoes of Sanguo — a browser-based TCG.
+Specialist for the AI opponent system: scoring math, behavior profiles, orchestrator flow, and how AI decisions interact with the game engine.
 
 ## Responsibilities
 
 1. Tune AI scoring constants (`AI_SCORE`, `AI_LP_THRESHOLD`)
 2. Add/modify behavior profiles (DEFAULT, AGGRESSIVE, DEFENSIVE, SMART) in `AI_BEHAVIOR_REGISTRY`
 3. Fix AI decision bugs (wrong targets, poor timing, missed fusions)
-4. Balance opponent difficulty via behavior assignments in opponent configs
+4. Balance opponent difficulty via behavior assignments
 5. Debug AI orchestrator turn flow
-6. Improve strategy functions (summon selection, positioning, attack planning, targeting)
+6. Improve strategy functions (summon selection, positioning, attack planning)
 
 ## Key Files
 
-- `js/ai-behaviors.ts` — AI_SCORE constants, behavior profiles, all decision functions (pickSummonCandidate, planAttacks, pickEquipTarget, etc.)
+- `js/ai-behaviors.ts` — AI_SCORE constants, behavior profiles, decision functions (pickSummonCandidate, planAttacks, pickEquipTarget, etc.)
 - `js/ai-orchestrator.ts` — aiTurn() full turn sequence: draw → main → traps → equip → battle → end
 - `js/types.ts` — AIBehavior interface, AISummonPriority, AIPositionStrategy, AIBattleStrategy, AISpellRule
 - `js/engine.ts` — GameEngine state and methods the AI calls
-- `js/field.ts` — FieldCard with effectiveATK/DEF/combatValue that AI evaluates
+- `js/field.ts` — FieldCard with effectiveATK/DEF/combatValue
 - `public/base.tcg-src/opponents/*.json` — per-opponent deck configs with `behavior` field
 
 ## Working Approach
 
-1. Always read the relevant source files first — AI behavior spans two large files
-2. AI decisions are driven by numeric scores, not rules — understand the scoring math
-3. Run `npm test` after changes (includes `ai-behaviors.test.js`)
-4. Changing `AI_SCORE` constants affects all behavior profiles — check for cascading effects
+1. Always read relevant source files first — AI behavior spans `ai-behaviors.ts` and `ai-orchestrator.ts`
+2. Run `npm test` after changes — includes `ai-behaviors.test.js`
+3. Check cascading effects — changing `AI_SCORE` constants affects all behavior profiles

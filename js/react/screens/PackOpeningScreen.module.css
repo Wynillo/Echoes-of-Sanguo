@@ -1,4 +1,3 @@
-/* ── Shared screen base ──────────────────────────────────── */
 .screen {
   position: fixed;
   inset: 0;
@@ -13,7 +12,6 @@
   will-change: transform;
 }
 
-/* ── Phase 1: Pack Tear-Open ─────────────────────────────── */
 .packPhase {
   display: flex;
   flex-direction: column;
@@ -82,7 +80,6 @@
   text-transform: uppercase;
 }
 
-/* Tap prompt below pack */
 .tapPrompt {
   margin-top: 24px;
   font-size: 0.7rem;
@@ -93,7 +90,6 @@
   text-shadow: 0 0 8px rgba(200, 168, 75, 0.4);
 }
 
-/* Tap counter dots */
 .tapDots {
   display: flex;
   gap: 8px;
@@ -114,7 +110,6 @@
   box-shadow: 0 0 6px rgba(200, 168, 75, 0.8);
 }
 
-/* Pack halves for tear animation */
 .packHalfLeft,
 .packHalfRight {
   position: absolute;
@@ -148,7 +143,6 @@
 .packHalfLeft .packHalfInner { left: 0; }
 .packHalfRight .packHalfInner { right: 0; }
 
-/* White flash overlay */
 .flash {
   position: fixed;
   inset: 0;
@@ -158,7 +152,6 @@
   animation: packFlash 0.5s ease-out forwards;
 }
 
-/* ── Phase 2: Card Reveal ────────────────────────────────── */
 .revealPhase {
   display: flex;
   flex-direction: column;
@@ -179,7 +172,6 @@
   perspective: 600px;
 }
 
-/* ── Card flip container ─── */
 .revealCard {
   position: absolute;
   width: 160px;
@@ -201,7 +193,6 @@
   will-change: transform;
 }
 
-/* Card back face */
 .revealCardBack {
   position: absolute;
   inset: 0;
@@ -237,7 +228,6 @@
   letter-spacing: -2px;
 }
 
-/* Card front face */
 .revealCardFront {
   position: relative;
   width: 100%;
@@ -257,7 +247,6 @@
   animation: rareBorderGlow 0.8s ease-in-out 3;
 }
 
-/* ── Rarity background FX ─── */
 .bgEffect {
   position: fixed;
   inset: 0;
@@ -285,7 +274,6 @@
   background: radial-gradient(ellipse at center, rgba(200, 100, 255, 0.15) 0%, transparent 60%);
 }
 
-/* Rotating light rays for SR */
 .lightRaysContainer {
   position: fixed;
   left: 50%;
@@ -378,7 +366,6 @@
   animation: lightRays 6s linear infinite;
 }
 
-/* Sparkle particle for SR/UR */
 .sparkle-particle {
   position: absolute;
   width: 10px;
@@ -393,7 +380,6 @@
   animation: sparkleParticle 0.8s ease-out forwards;
 }
 
-/* Smaller variant for Rare tier */
 .sparkle-particle-small {
   composes: sparkle-particle;
   width: 6px;
@@ -401,7 +387,6 @@
   box-shadow: 0 0 3px var(--sparkle-color, rgba(120, 160, 255, 0.6));
 }
 
-/* Sparkle burst behind card */
 .sparkle-burst {
   position: absolute;
   left: 50%;
@@ -415,14 +400,12 @@
   z-index: -1;
 }
 
-/* Large burst for UR */
 .sparkle-burst-large {
   composes: sparkle-burst;
   width: 280px;
   height: 280px;
 }
 
-/* Light beam for SR/UR */
 .lightBeam {
   position: absolute;
   left: 50%;
@@ -442,14 +425,12 @@
   animation: lightBeamFade 1.2s ease-out forwards;
 }
 
-/* Rarity bar on reveal card */
 .revealRarityBar {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
 }
 
-/* Counter e.g. "3 / 9" */
 .revealCounter {
   position: absolute;
   bottom: 24px;
@@ -458,7 +439,6 @@
   letter-spacing: 2px;
 }
 
-/* Mini strip of already-revealed cards at bottom */
 .miniStrip {
   display: flex;
   gap: 6px;
@@ -490,7 +470,6 @@
   line-height: 1;
 }
 
-/* ── Phase 3: Summary Grid ───────────────────────────────── */
 .summaryPhase {
   display: flex;
   flex-direction: column;
@@ -539,7 +518,6 @@
   text-shadow: none;
 }
 
-/* Same styles for reveal card inner text */
 .revealCardFront :global(.card-header) {
   display: flex;
   justify-content: space-between;
@@ -569,7 +547,6 @@
   z-index: 10;
 }
 
-/* Skip hint at bottom of screen */
 .skipHint {
   position: absolute;
   bottom: 16px;

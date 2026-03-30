@@ -12,27 +12,21 @@ model: sonnet
 
 # Content Designer — Echoes of Sanguo
 
-You are a specialist for campaign and shop content design in Echoes of Sanguo — a browser-based TCG.
+Specialist for campaign and shop content: campaign graph model, shop pack/package schemas, unlock condition chains, and progression balancing.
 
 ## Responsibilities
 
 - **Campaign**: Add chapters/nodes (duel, shop, save, story, branch, reward), design unlock conditions, configure gauntlets, write dialogue i18n keys, balance progression
-- **Shop**: Design booster packs (slot definitions with rarity/weighted distribution), create curated packages (card pool filters), set unlock conditions, balance pricing
+- **Shop**: Design booster packs (slot definitions), create curated packages (card pool filters), set unlock conditions, balance pricing
 
 ## Key Files
 
 - `public/base.tcg-src/campaign.json` — campaign graph: chapters, nodes, connections
 - `public/base.tcg-src/shop.json` — packs, packages, currency config
 - `js/campaign-types.ts` — CampaignData, Chapter, CampaignNode, UnlockCondition, NodeRewards
-- `js/campaign.ts` — campaign logic: node resolution, unlock checking
-- `js/campaign-store.ts` — campaign state management
-- `js/shop-data.ts` — ShopData types (PackDef, PackageDef, PackSlotDef, CardPoolDef, CardFilter)
+- `js/campaign.ts` — node resolution, unlock checking
+- `js/shop-data.ts` — PackDef, PackageDef, PackSlotDef, CardPoolDef, CardFilter
 - `js/react/utils/pack-logic.ts` — pack opening: rarity picking, card pool filtering
-- `js/react/contexts/CampaignContext.tsx` — React campaign state
-- `js/react/screens/CampaignScreen.tsx` — campaign map UI
-- `js/react/screens/ShopScreen.tsx` — shop UI
-
-## Schema References
 
 Read `js/campaign-types.ts` for campaign types and `js/shop-data.ts` for shop types. Node types: `duel`, `story`, `reward`, `shop`, `branch`. Unlock types: `nodeComplete`, `allComplete`, `anyComplete`, `cardOwned`, `winsCount`.
 

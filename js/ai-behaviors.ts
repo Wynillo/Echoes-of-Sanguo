@@ -370,7 +370,6 @@ export function planAttacks(
   }
 
   if (defenders.length === 0) {
-    // No defenders — everyone attacks directly
     for (const a of attackers) {
       if (!usedAttackers.has(a.zone)) {
         plans.push({ attackerZone: a.zone, targetZone: -1 });
@@ -379,7 +378,6 @@ export function planAttacks(
     return plans;
   }
 
-  // Score each possible attack assignment
   const attackOptions: { aZone: number; dZone: number; score: number }[] = [];
   for (const a of attackers) {
     if (usedAttackers.has(a.zone)) continue;
@@ -389,28 +387,22 @@ export function planAttacks(
       let score = 0;
 
       if (aAtk > dVal) {
-        // Can destroy — good
         score += AI_SCORE.DESTROY_TARGET;
-        // Bonus for LP damage (only in ATK position)
         if (d.fc.position === 'atk') score += (aAtk - dVal);
         // Prioritize destroying effect monsters (they're dangerous)
         if (d.fc.card.effect) score += 500;
-        // Prioritize destroying high-ATK threats
         score += aiEffectiveATK(d.fc) * 0.5;
         // Prefer efficient attacks (don't waste a 3000ATK monster on a 100DEF target)
         score -= (aAtk - dVal) * 0.1;
-        // Indestructible monsters can't be destroyed
         if (d.fc.indestructible) score = -Infinity;
       } else if (aAtk === dVal && d.fc.position === 'atk') {
-        // Trade — worth it if we're trading up (our monster is weaker overall)
         if (strategy === 'aggressive') score += 100;
-        else score -= 200; // conservative/smart avoid trades
+        else score -= 200;
       } else {
-        // We lose — bad
         if (strategy === 'aggressive') {
           score -= 500;
         } else {
-          score = -Infinity; // never attack into a loss for smart/conservative
+          score = -Infinity;
         }
       }
 
@@ -425,7 +417,6 @@ export function planAttacks(
     }
   }
 
-  // Greedy assignment: pick best attack, remove attacker+defender, repeat
   attackOptions.sort((a, b) => b.score - a.score);
   const usedDefenders = new Set<number>();
 
@@ -439,7 +430,6 @@ export function planAttacks(
     usedDefenders.add(opt.dZone);
   }
 
-  // Remaining attackers go direct if all defenders are covered by the plan
   const allDefendersCovered = defenders.every(d => usedDefenders.has(d.zone));
   if (allDefendersCovered) {
     for (const a of attackers) {
@@ -449,11 +439,9 @@ export function planAttacks(
     }
   }
 
-  // Aggressive: remaining unused attackers attack weakest remaining defender
   if (strategy === 'aggressive') {
     for (const a of attackers) {
       if (usedAttackers.has(a.zone)) continue;
-      // Find weakest remaining defender
       let weakest: { zone: number; val: number } | null = null;
       for (const d of defenders) {
         if (usedDefenders.has(d.zone)) continue;
@@ -471,12 +459,6 @@ export function planAttacks(
   return plans;
 }
 
-// ── Smart Equipment Target Selection ─────────────────────────
-
-/**
- * Pick the best monster to equip a positive buff to.
- * Considers upcoming battles, not just raw strongest.
- */
 export function pickEquipTarget(
   ownMonsters: Array<FieldCard | null>,
   oppMonsters: Array<FieldCard | null>,
@@ -500,18 +482,14 @@ export function pickEquipTarget(
     const boostedATK = curATK + atkBonus;
     let score = 0;
 
-    // Can this equipment enable a new kill?
     if (curATK <= oppMaxVal && boostedATK > oppMaxVal) {
-      score += AI_SCORE.EQUIP_UNLOCK_KILL; // Unlocks a kill — highest priority
+      score += AI_SCORE.EQUIP_UNLOCK_KILL;
     }
 
-    // Higher base ATK benefits more from staying alive to attack
     score += curATK * 0.3;
 
-    // Bonus if monster hasn't attacked yet (will use the buff this turn)
     if (!fc.hasAttacked && fc.position === 'atk') score += 500;
 
-    // Bonus if in DEF and DEF buff helps survival
     if (fc.position === 'def' && defBonus > 0) score += 300;
 
     if (score > bestScore) {
@@ -522,10 +500,6 @@ export function pickEquipTarget(
   return bestZone;
 }
 
-/**
- * Pick the best opponent monster to debuff with negative equipment.
- * Prioritize the biggest threat that could be neutralized.
- */
 export function pickDebuffTarget(
   oppMonsters: Array<FieldCard | null>,
   atkDebuff: number,
@@ -542,13 +516,10 @@ export function pickDebuffTarget(
     let score = 0;
     const curATK = fc.effectiveATK();
 
-    // Prioritize the strongest threat
     score += curATK;
 
-    // Extra value if this makes the monster weak enough for our monsters to kill
     if (curATK + atkDebuff < curATK) score += 300;
 
-    // Effect monsters are higher priority targets
     if (fc.card.effect) score += 500;
 
     if (score > bestScore) {
@@ -559,11 +530,6 @@ export function pickDebuffTarget(
   return bestZone;
 }
 
-// ── Smart Graveyard Monster Selection ───────────────────────
-
-/**
- * Pick the best monster to revive from graveyard, considering board state.
- */
 export function pickBestGraveyardMonster(
   graveyard: CardData[],
   oppMonsters: Array<FieldCard | null>,
@@ -582,10 +548,8 @@ export function pickBestGraveyardMonster(
     const atk = card.atk ?? 0;
     let score = atk;
 
-    // Can it beat the strongest opponent? Big bonus
     if (atk > oppMaxATK && oppMaxATK > 0) score += AI_SCORE.REVIVE_BEATS_STRONGEST;
 
-    // Effect monsters are more valuable
     if (card.effect) score += 500;
 
     // Fusion monsters tend to be stronger and were expensive to create
@@ -599,11 +563,6 @@ export function pickBestGraveyardMonster(
   return best;
 }
 
-// ── Smart Spell Targeting ───────────────────────────────────
-
-/**
- * Pick the best own monster to target with a buff spell.
- */
 export function pickSpellBuffTarget(
   ownMonsters: Array<FieldCard | null>,
   oppMonsters: Array<FieldCard | null>,
@@ -619,10 +578,8 @@ export function pickSpellBuffTarget(
     if (!fc || fc.faceDown) continue;
     let score = fc.effectiveATK();
 
-    // Prioritize monsters that haven't attacked yet
     if (!fc.hasAttacked && fc.position === 'atk') score += 500;
 
-    // Bonus if close to being able to beat opponent's strongest
     const diff = oppMaxATK - fc.effectiveATK();
     if (diff > 0 && diff < AI_SCORE.BUFF_KILL_THRESHOLD) score += AI_SCORE.BUFF_UNLOCK_KILL;
 

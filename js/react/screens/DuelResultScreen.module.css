@@ -7,7 +7,6 @@
   overflow: hidden;
 }
 
-/* ── Floating particles ─────────────────────────────────── */
 .particleLayer {
   position: absolute; inset: 0;
   pointer-events: none;
@@ -30,7 +29,6 @@
   100% { opacity: 0; transform: rotate(45deg) translateY(-100vh) scale(0.2); }
 }
 
-/* ── Main content ────────────────────────────────────────── */
 .content {
   position: relative;
   z-index: 1;
@@ -54,7 +52,6 @@
 .titleVictory { animation: pulseGold 2s ease-in-out infinite; }
 .titleDefeat  { animation: pulseRed 2s ease-in-out infinite; }
 
-/* ── Separator ───────────────────────────────────────────── */
 .separator {
   width: 200px;
   height: 2px;
@@ -62,7 +59,6 @@
   opacity: 0;
 }
 
-/* ── Message ─────────────────────────────────────────────── */
 .message {
   font-size: 0.6rem;
   letter-spacing: 1px;
@@ -74,7 +70,6 @@
   opacity: 0;
 }
 
-/* ── Win/loss reason ─────────────────────────────────────── */
 .winReason {
   font-size: 0.5rem;
   letter-spacing: 1px;
@@ -85,7 +80,6 @@
   opacity: 0;
 }
 
-/* ── Stats columns (player + opponent side by side) ──────── */
 .statsColumns {
   display: flex;
   gap: 10px;
@@ -98,7 +92,6 @@
   }
 }
 
-/* ── Stats panel ─────────────────────────────────────────── */
 .statsPanel {
   flex: 1;
   min-width: 0;
@@ -143,7 +136,6 @@
   font-size: 0.5rem;
 }
 
-/* ── Badges ──────────────────────────────────────────────── */
 .badges {
   display: flex;
   gap: 16px;
@@ -192,7 +184,6 @@
 .multiplierA { color: #b0a090; }
 .multiplierB { color: #cd7f32; }
 
-/* ── Rewards ─────────────────────────────────────────────── */
 .rewards {
   display: flex;
   flex-direction: column;
@@ -253,7 +244,6 @@
   font-size: 0.45rem;
 }
 
-/* ── Unlock notification ─────────────────────────────────── */
 .unlockText {
   font-size: 0.55rem;
   letter-spacing: 2px;
@@ -263,7 +253,6 @@
   opacity: 0;
 }
 
-/* ── Continue prompt ─────────────────────────────────────── */
 .pressStart {
   font-size: 0.55rem;
   letter-spacing: 3px;
@@ -277,7 +266,6 @@
   animation: blink 1.2s step-start infinite;
 }
 
-/* ── Keyframes ───────────────────────────────────────────── */
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }

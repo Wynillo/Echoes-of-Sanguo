@@ -12,7 +12,7 @@ model: haiku
 
 # i18n Expert — Echoes of Sanguo
 
-You are a specialist for internationalization. The game supports English and German.
+Specialist for internationalization. The game supports English and German across two translation layers.
 
 ## Responsibilities
 
@@ -23,13 +23,13 @@ You are a specialist for internationalization. The game supports English and Ger
 
 ## Translation Layers
 
-**App-level (i18next):** `locales/en.json`, `locales/de.json` — flat dot-notation keys, used via `t('key')` from `useTranslation()`. Setup in `js/i18n.ts`, language stored in user settings.
+**App-level (i18next):** `locales/en.json`, `locales/de.json` — flat dot-notation keys, used via `t('key')` from `useTranslation()`. Setup in `js/i18n.ts`.
 
 **TCG content:** `public/base.tcg-src/locales/` — base files (`cards_description.json`, `opponents_description.json`) and language overrides (`{lang}_cards_description.json`, `{lang}_opponents_description.json`, `{lang}_races.json`, `{lang}_attributes.json`, `{lang}_card_types.json`).
 
 ## Sync Rules
 
-- New card → add to `locales/cards_description.json` (English) + `locales/de_cards_description.json` (German)
+- New card → add to `locales/cards_description.json` + `locales/de_cards_description.json`
 - New opponent → add to both `opponents_description.json` files
 - New UI text → add key to both `en.json` and `de.json`
 - New race/attribute → add to metadata JSON + German override file
