@@ -71,6 +71,7 @@ const SMART: AIBehavior = {
   battleStrategy:         'smart',
   spellRules:             {},
   defaultSpellActivation: 'always',
+  holdFusionPiece:        true,
 };
 
 const CHEATING: AIBehavior = {
@@ -81,6 +82,10 @@ const CHEATING: AIBehavior = {
   battleStrategy:         'aggressive',
   spellRules:             {},
   defaultSpellActivation: 'always',
+  peekDeckCards:          5,
+  knowsPlayerHand:        true,
+  peekPlayerDeck:         1,
+  holdFusionPiece:        true,
 };
 
 export const AI_BEHAVIOR_REGISTRY = new Map<string, AIBehavior>([
@@ -101,6 +106,10 @@ export function resolveAIBehavior(id?: string): Required<AIBehavior> {
     battleStrategy:         base.battleStrategy         ?? 'smart',
     spellRules:             base.spellRules             ?? {},
     defaultSpellActivation: base.defaultSpellActivation ?? 'smart',
+    peekDeckCards:          base.peekDeckCards          ?? 0,
+    knowsPlayerHand:        base.knowsPlayerHand        ?? false,
+    peekPlayerDeck:         base.peekPlayerDeck         ?? 0,
+    holdFusionPiece:        base.holdFusionPiece        ?? false,
   };
 }
 

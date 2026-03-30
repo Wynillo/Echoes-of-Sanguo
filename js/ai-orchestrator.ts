@@ -3,7 +3,7 @@ import { GAME_RULES } from './rules.js';
 import { CardType, Attribute, isMonsterType } from './types.js';
 import type { AIBehavior, CardData } from './types.js';
 import type { FieldCard } from './field.js';
-import { checkFusion, CARD_DB } from './cards.js';
+import { checkFusion, CARD_DB, FUSION_RECIPES } from './cards.js';
 import { AI_SCORE, AI_LP_THRESHOLD } from './ai-behaviors.js';
 import type { GameEngine } from './engine.js';
 import {
@@ -22,6 +22,40 @@ import {
 } from './ai-behaviors.js';
 
 function _delay(ms: number){ return new Promise<void>(r => setTimeout(r, ms)); }
+
+function _isPartOfUnfulfilledRecipe(cardId: string, hand: CardData[]): boolean {
+  return FUSION_RECIPES.some(recipe => {
+    const [m1, m2] = recipe.materials;
+    if (m1 !== cardId && m2 !== cardId) return false;
+    const partnerNeeded = m1 === cardId ? m2 : m1;
+    return !hand.some(c => c.id === partnerNeeded);
+  });
+}
+
+function _peekDrawForFusion(engine: GameEngine, maxPeek: number): void {
+  const ai = engine.state.opponent;
+  const peeked = ai.deck.slice(0, maxPeek);
+  for (let pi = 0; pi < peeked.length; pi++) {
+    const peekedCard = peeked[pi];
+    for (const handCard of ai.hand) {
+      const recipe = checkFusion(peekedCard.id, handCard.id);
+      if (recipe) {
+        const result = CARD_DB[recipe.result];
+        if (result && (result.atk ?? 0) > (handCard.atk ?? 0)) {
+          engine.drawCard('opponent', pi + 1);
+          EchoesOfSanguo.log('AI', `CHEAT-PEEK: Drew ${peekedCard.name} for fusion → ${result.name}`);
+          return;
+        }
+      }
+    }
+  }
+}
+
+function _assessPlayerComposition(plr: { hand: CardData[] }, knowsHand: boolean) {
+  if (!knowsHand) return { spellHeavy: false };
+  const spellCount = plr.hand.filter(c => c.type === CardType.Spell || c.type === CardType.Trap).length;
+  return { spellHeavy: spellCount >= 2 };
+}
 
 export async function aiTurn(engine: GameEngine): Promise<void> {
   const ai = engine.state.opponent;
@@ -63,11 +97,16 @@ export async function aiTurn(engine: GameEngine): Promise<void> {
 
 async function aiDrawPhase(engine: GameEngine): Promise<void> {
   const ai = engine.state.opponent;
+  const bh = engine._aiBehavior;
   engine.state.phase = 'draw';
   engine.ui.render(engine.state);
   await _delay(300);
   engine.refillHand('opponent');
   engine.addLog('Opponent draws cards.');
+  if (bh.peekDeckCards && bh.peekDeckCards > 0) {
+    _peekDrawForFusion(engine, bh.peekDeckCards);
+    engine.ui.render(engine.state);
+  }
   EchoesOfSanguo.log('PHASE', 'Draw Phase – Hand:', ai.hand.map(c => c.name));
   engine.ui.render(engine.state);
   await _delay(400);
@@ -103,7 +142,7 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
 
   EchoesOfSanguo.log('AI', 'Considering summon:', ai.hand.filter(c => c.type === CardType.Monster).map(c => `${c.name}(${c.atk})`));
   if(!ai.normalSummonUsed){
-    const bestIdx = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
+    let bestIdx = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
       ? pickSmartSummonCandidate(ai.hand, {
           aiField: ai.field.monsters,
           playerField: plr.field.monsters,
@@ -111,6 +150,16 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
           aiLP: ai.lp,
         })
       : pickSummonCandidate(ai.hand, bh.summonPriority);
+
+    if (bh.holdFusionPiece && bestIdx !== -1 && ai.field.monsters.some(Boolean)) {
+      const candidate = ai.hand[bestIdx];
+      if (_isPartOfUnfulfilledRecipe(candidate.id, ai.hand)) {
+        EchoesOfSanguo.log('AI', `Holding ${candidate.name} — awaiting fusion partner.`);
+        const altHand = ai.hand.filter((_, i) => i !== bestIdx);
+        const altRelIdx = pickSummonCandidate(altHand, bh.summonPriority);
+        bestIdx = altRelIdx !== -1 ? ai.hand.indexOf(altHand[altRelIdx]) : -1;
+      }
+    }
 
     if(bestIdx !== -1){
       const card = ai.hand[bestIdx];
@@ -214,6 +263,13 @@ async function _activateSpells(engine: GameEngine): Promise<void> {
           should = ai.field.monsters.some(fc => fc !== null);
         } else if (destroys) {
           should = plr.field.monsters.some(fc => fc !== null);
+          if (!should && bh.knowsPlayerHand) {
+            const plrHasMonsters = plr.hand.some(c => c.type === CardType.Monster || c.type === CardType.Fusion);
+            if (plrHasMonsters) {
+              EchoesOfSanguo.log('AI', `CHEAT-INSIGHT: Player hand has monsters — pre-emptively activating ${card.name}`);
+              should = true;
+            }
+          }
         } else {
           should = true;
         }
@@ -254,17 +310,35 @@ async function _activateSpells(engine: GameEngine): Promise<void> {
 }
 
 async function aiPlaceTraps(engine: GameEngine): Promise<void> {
-  const ai = engine.state.opponent;
+  const ai  = engine.state.opponent;
+  const bh  = engine._aiBehavior;
+  const plr = engine.state.player;
   EchoesOfSanguo.log('AI', 'Placing traps...');
-  const hand = ai.hand;
-  for(let i = hand.length - 1; i >= 0; i--){
-    const card = hand[i];
-    if(card.type !== CardType.Trap) continue;
+
+  const { spellHeavy } = _assessPlayerComposition(plr, bh.knowsPlayerHand);
+
+  const trapPriority: Record<string, number> = spellHeavy
+    ? { onOpponentSpell: 0, onAttack: 1, onOwnMonsterAttacked: 2, onOpponentSummon: 3, manual: 4 }
+    : { onAttack: 0, onOwnMonsterAttacked: 1, onOpponentSummon: 2, onOpponentSpell: 3, manual: 4 };
+
+  const trapsInHand = ai.hand
+    .map((card, idx) => ({ card, idx }))
+    .filter(({ card }) => card.type === CardType.Trap)
+    .sort((a, b) =>
+      (trapPriority[a.card.trapTrigger ?? 'manual'] ?? 4)
+      - (trapPriority[b.card.trapTrigger ?? 'manual'] ?? 4)
+    );
+
+  let placed = 0;
+  for (const { idx } of trapsInHand) {
     const zone = ai.field.spellTraps.findIndex(z => z === null);
-    if(zone === -1) break;
-    EchoesOfSanguo.log('TRAP', `Placing ${card.name} face-down in zone ${zone}`);
+    if (zone === -1) break;
+    const handIdxAfterRemovals = idx - placed;
+    if (handIdxAfterRemovals < 0 || handIdxAfterRemovals >= ai.hand.length) continue;
+    EchoesOfSanguo.log('TRAP', `Placing ${ai.hand[handIdxAfterRemovals].name} face-down in zone ${zone}${spellHeavy && ai.hand[handIdxAfterRemovals].trapTrigger === 'onOpponentSpell' ? ' (countering player spells)' : ''}`);
     await _delay(300);
-    engine.setSpellTrap('opponent', i, zone);
+    engine.setSpellTrap('opponent', handIdxAfterRemovals, zone);
+    placed++;
   }
 }
 
@@ -321,6 +395,12 @@ async function aiBattlePhase(engine: GameEngine): Promise<boolean> {
   EchoesOfSanguo.log('PHASE', `Player field: [${plr.field.monsters.filter((fc): fc is FieldCard => fc !== null).map(fc=>`${fc.card.name}(${fc.position==='atk'?'ATK:'+fc.effectiveATK():'DEF:'+fc.effectiveDEF()})`).join(', ')}] LP:${plr.lp}`);
   engine.ui.render(engine.state);
   await _delay(500);
+
+  const bh = engine._aiBehavior;
+  if (bh.peekPlayerDeck && bh.peekPlayerDeck > 0 && plr.deck.length > 0) {
+    const nextDraw = plr.deck[0];
+    EchoesOfSanguo.log('AI', `CHEAT-PEEK: Player draws ${nextDraw.name} next turn (ATK:${nextDraw.atk ?? '?'})`);
+  }
 
   const attackPlan = planAttacks(ai.field.monsters, plr.field.monsters, plr.lp, engine._aiBehavior);
 

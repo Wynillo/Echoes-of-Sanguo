@@ -261,6 +261,7 @@ export class GameEngine {
     this.state[target].lp = Math.max(0, this.state[target].lp - amount);
     this.addLog(`${ownerLabel(target)} takes ${amount} damage. (LP: ${this.state[target].lp})`);
     this.ui.playSfx?.('sfx_damage');
+    this.ui.showDamageNumber?.(amount, target);
     this.ui.render(this.state);
     if(this.checkWin()) return;
   }
@@ -367,6 +368,17 @@ export class GameEngine {
     this._recalcFieldSpellBonuses(fc);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    if (owner === 'player') {
+      const placedFC = this.state[owner].field.monsters[zone];
+      if (placedFC) {
+        const result = await this._autoActivateOpponentTraps('onOpponentSummon', placedFC);
+        if (result?.destroySummoned) {
+          this.state[owner].graveyard.push(placedFC.card);
+          this.state[owner].field.monsters[zone] = null;
+          this._removeEquipmentForMonster(owner, zone);
+        }
+      }
+    }
     this.ui.render(this.state);
     return true;
   }
@@ -449,6 +461,18 @@ export class GameEngine {
     this.addLog(`${ownerLabel(owner)}: ${card.name} activated!`);
     this.ui.playSfx?.('sfx_spell');
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
+    if (owner === 'opponent') {
+      const trapResult = await this._promptPlayerTraps('onOpponentSpell');
+      if (trapResult?.cancelEffect) {
+        this.addLog(`${card.name}'s effect was negated!`);
+        st.graveyard.push(card);
+        this.ui.render(this.state);
+        return true;
+      }
+    }
+    if (owner === 'player') {
+      await this._autoActivateOpponentTraps('onOpponentSpell');
+    }
     if(card.effect) {
       const ctx = this._buildSpellContext(owner, targetInfo);
       this._safeExecuteEffect(card.effect, ctx, card.id, 'spell effect');
@@ -466,6 +490,19 @@ export class GameEngine {
     if (owner === 'player') this._stats.spellsActivated++; else this._stats.opponentSpellsActivated++;
     this.addLog(`${ownerLabel(owner)}: ${fst.card.name} activated!`);
     if(this.ui.showActivation) await this.ui.showActivation(fst.card, fst.card.description);
+    if (owner === 'opponent') {
+      const trapResult = await this._promptPlayerTraps('onOpponentSpell');
+      if (trapResult?.cancelEffect) {
+        this.addLog(`${fst.card.name}'s effect was negated!`);
+        st.graveyard.push(fst.card);
+        st.field.spellTraps[zone] = null;
+        this.ui.render(this.state);
+        return true;
+      }
+    }
+    if (owner === 'player') {
+      await this._autoActivateOpponentTraps('onOpponentSpell');
+    }
     if(fst.card.effect) {
       const ctx = this._buildSpellContext(owner, targetInfo);
       this._safeExecuteEffect(fst.card.effect, ctx, fst.card.id, 'spell field effect');
@@ -796,6 +833,15 @@ export class GameEngine {
       }
     }
 
+    if(attackerOwner === 'player'){
+      const oppTrap = await this._autoActivateOpponentTraps('onAttack', attFC);
+      if(oppTrap?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(defFC){
+        const oppTrap2 = await this._autoActivateOpponentTraps('onOwnMonsterAttacked', attFC, defFC);
+        if(oppTrap2?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      }
+    }
+
     attFC.hasAttacked = true;
 
     if(!defFC){
@@ -831,6 +877,11 @@ export class GameEngine {
     if(attackerOwner === 'opponent'){
       const trapResult = await this._promptPlayerTraps('onAttack', attFC);
       if(trapResult && trapResult.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+    }
+
+    if(attackerOwner === 'player'){
+      const oppTrap = await this._autoActivateOpponentTraps('onAttack', attFC);
+      if(oppTrap?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
     }
 
     attFC.hasAttacked = true;
@@ -1017,6 +1068,18 @@ export class GameEngine {
         if(activate){
           return await this.activateTrapFromField('player', i, ...args);
         }
+      }
+    }
+    return null;
+  }
+
+  async _autoActivateOpponentTraps(triggerType: string, ...args: FieldCard[]): Promise<EffectSignal | null> {
+    const traps = this.state.opponent.field.spellTraps;
+    for (let i = 0; i < traps.length; i++) {
+      const fst = traps[i];
+      if (fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used
+          && fst.card.trapTrigger === triggerType) {
+        return await this.activateTrapFromField('opponent', i, ...args);
       }
     }
     return null;

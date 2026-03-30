@@ -1,7 +1,7 @@
 # Early Access Readiness Review — Echoes of Sanguo
 
 **Target audience:** Hardcore Yu-Gi-Oh! Forbidden Memories mod players
-**Assessment date:** 2026-03-30
+**Assessment date:** 2026-03-30 (updated 2026-03-30)
 **Verdict:** CONDITIONALLY READY — solid foundation, but gameplay depth and content gaps will limit retention
 
 ---
@@ -14,11 +14,11 @@
 | UI & Visual Polish | 8/10 | 12 screens, 10 modals, 90+ CSS animations, responsive. Impressive. |
 | Audio | 7/10 | 5 music tracks, 12 SFX. Functional but no damage popups or ambient loops. |
 | Test Coverage | 7/10 | 6,300+ lines unit tests. E2E is 50 lines (1 spec). Zero React component tests. |
-| Mod API | 7/10 | Powerful (cards, effects, triggers, .tcg loading). Zero documentation/examples. |
+| Mod API | 8/10 | Powerful (cards, effects, triggers, .tcg loading). Full documentation + examples added. |
 | Shop & Economy | 6/10 | 6 tiered packs with rarity system and pity mechanic. Could use more variety. |
-| Gameplay Depth | 5/10 | Core FM loop works. Missing chain system and deeper card interactions. |
+| Gameplay Depth | 6/10 | Chain/response system added (onOpponentSpell). AI trap bug fixed. Deeper interactions now. |
 | Card/Content Volume | 4/10 | 312 cards with only 85 unique effects. 12 traps. 7 equipment. Thin. |
-| AI Challenge | 4/10 | 5 behavior presets, predictable. "Cheating" is just aggressive+fusionFirst. |
+| AI Challenge | 6/10 | Cheating AI now has foreknowledge: reads player hand, peeks own deck, reactive trap placement. |
 | Campaign & Progression | 4/10 | 39 duels but strictly linear. 1 postgame duel. Weak endgame. |
 | Fun Factor (target audience) | 5/10 | Familiar FM feel, but experienced players will exhaust content in hours. |
 
@@ -26,12 +26,18 @@
 
 ## CRITICAL FINDINGS — Gameplay Mechanics
 
-### 1. No Chain/Response System
-**File:** `js/engine.ts` — zero references to "chain", "response", or "counter"
+### 1. No Chain/Response System ✅ PARTIALLY ADDRESSED
+**File:** `js/engine.ts`
 
-Traps and spells cannot be chained. When a trap triggers, it just resolves. No spell-speed system, no counter-traps, no interrupt windows. This removes interaction during the opponent's turn and limits strategic depth.
+~~Traps and spells cannot be chained.~~ A basic chain/response layer has been added:
+- New `onOpponentSpell` trap trigger fires when the opponent activates a spell — the player is now prompted to respond with face-down traps
+- AI's face-down traps now auto-fire symmetrically (bug fix: they previously never activated when the player was the attacker/summoner)
+- New `cancelEffect` action allows traps to negate spells entirely
+- AI with `knowsPlayerHand` analyzes the player's hand composition and places `onOpponentSpell` traps first when the player is spell-heavy
 
-**Impact:** Duels feel non-interactive on the opponent's turn. Trap timing is automatic, not strategic.
+Full spell-speed chain (multi-card chains, counter-traps) remains a P2 item.
+
+**Impact:** Duels are more interactive on both turns. Trap placement is now strategically meaningful.
 
 ### 2. Fusion System is Shallow
 **File:** `public/base.tcg-src/fusion_formulas.json` — only 20 formulas (24 lines)
@@ -40,24 +46,29 @@ FM had hundreds of fusion combinations including attribute combos, specific card
 
 **Impact:** Fusions are predictable and free. The discovery element — one of FM's most exciting aspects — is minimal.
 
-### 3. "Cheating" AI Doesn't Actually Cheat
-**File:** `js/ai-behaviors.ts:104-112`
+### 3. "Cheating" AI Doesn't Actually Cheat ✅ ADDRESSED
+**File:** `js/ai-behaviors.ts`
 
-```
-CHEATING = { fusionFirst: true, fusionMinATK: 0, summonPriority: 'highestATK',
-             positionStrategy: 'aggressive', battleStrategy: 'aggressive' }
-```
+~~It's functionally identical to AGGRESSIVE but prioritizes fusions.~~ The CHEATING profile now has genuine foreknowledge mechanics:
+- `peekDeckCards: 5` — AI sees its own top 5 deck cards and will draw early if a fusion partner is found
+- `knowsPlayerHand: true` — AI reads the player's full hand when planning attacks, spell activation, and trap placement
+- `peekPlayerDeck: 1` — AI knows the player's next draw, enabling counter-planning
+- `holdFusionPiece: true` — AI withholds specific fusion materials from the field when the partner card isn't in hand yet
 
-It's functionally identical to AGGRESSIVE but prioritizes fusions. No extra draws, no rule-breaking, no stat inflation, no starting field advantage. Late-game opponents won't feel meaningfully harder.
+These mechanics are subtle and feel like the AI "knows too much" — which is exactly how cheating should feel.
 
-**Impact:** No real difficulty spike in endgame. Hardcore players expect to hit a wall.
+**Impact:** Endgame opponents are meaningfully harder. The AI won't run out of steam from over-drawing.
 
-### 4. AI Has No Multi-Turn Planning
+### 4. AI Has No Multi-Turn Planning ✅ PARTIALLY ADDRESSED
 **File:** `js/ai-orchestrator.ts`
 
-AI uses greedy single-turn optimization: best fusion now, strongest summon now, best attack now. No hand management, no saving cards for future fusions, no bluffing with face-down ATK monsters, no trap activation strategy (places all traps blindly).
+~~AI uses greedy single-turn optimization with no hand management.~~ Two multi-turn planning behaviors have been added:
+- **Fusion-piece holding** (`holdFusionPiece`, enabled for SMART and CHEATING): AI skips summoning a card that is a specific fusion material when the partner isn't in hand — waits for the fusion payoff instead of wasting the piece
+- **Reactive threat response** (`knowsPlayerHand`): AI assesses the player's hand each turn; if the player is spell-heavy, AI prioritizes setting `onOpponentSpell` traps; if the player has high-ATK monsters in hand but none on field, AI pre-emptively activates destroy/debuff spells; if the player has fusion potential, AI plays more conservatively in battle
 
-**Impact:** Experienced players will read the AI within 2-3 duels and rarely lose again.
+Bluffing (face-down ATK) and full multi-turn lookahead remain future work.
+
+**Impact:** Experienced players can no longer trivially read the AI — it responds to what they're holding.
 
 ### 5. Effect Variety is Too Low
 **File:** `js/effect-registry.ts` — 41 registered effect types
@@ -128,7 +139,7 @@ However: duel rewards (100-1000 coins) vs pack prices (250-800 coins) means play
 - `window.EchoesOfSanguoMod` exposes: CARD_DB, FUSION_RECIPES, EFFECT_REGISTRY, registerEffect(), loadModTcg(), TriggerBus
 - Runtime .tcg archive loading without restart
 - Custom effects registerable without touching engine code
-- **Right architecture for the FM modding community** — just needs documentation
+- **Right architecture for the FM modding community** — now fully documented in `docs/modding-guide.md`
 
 ### Effect System Architecture
 - 41 data-driven effect types in EFFECT_REGISTRY
@@ -169,10 +180,10 @@ However: duel rewards (100-1000 coins) vs pack prices (250-800 coins) means play
 ## RECOMMENDATIONS — Priority Order
 
 ### P0 — Required Before Early Access Launch
-1. **Make "cheating" AI actually threatening** — extra draws, stat inflation, starting field advantage, or ignore hand limits
+1. ~~**Make "cheating" AI actually threatening**~~ ✅ **DONE** — Foreknowledge mechanics: reads player hand, peeks deck, reactive trap/spell activation
 2. **Expand fusion formulas to 50+** — add attribute combos, specific card recipes, more result variety
 3. **Add 5-10 postgame challenge duels/gauntlets** — endgame content for hardcore grinders
-4. **Write basic modding documentation** — API reference, card format spec, example mod
+4. ~~**Write basic modding documentation**~~ ✅ **DONE** — Full API reference, card format spec, complete example mod in `docs/modding-guide.md`
 
 ### P1 — First Month Post-Launch
 5. Add 30+ new trap cards with diverse triggers
@@ -180,17 +191,17 @@ However: duel rewards (100-1000 coins) vs pack prices (250-800 coins) means play
 7. Create unique effect strings for more cards (target: 150+ unique effects)
 8. Add 3 distinct starter deck strategies (aggro/control/combo)
 9. Tighten coin economy (reduce duel rewards or increase pack prices)
-10. Improve AI multi-turn planning (save cards for future fusions, bluffing)
+10. ~~Improve AI multi-turn planning (save cards for future fusions, bluffing)~~ ✅ **DONE** — Fusion-piece holding + reactive hand-aware decisions added; bluffing still outstanding
 
 ### P2 — Short-Term Roadmap
-11. Basic chain/response system (at least for traps interrupting spells)
+11. ~~Basic chain/response system (at least for traps interrupting spells)~~ ✅ **DONE** — `onOpponentSpell` trigger + `cancelEffect` action; AI trap bug fixed; full spell-speed chain still P2
 12. Expand E2E test coverage (50 → 500+ lines)
 13. Card archetype synergies (mono-race/attribute deck rewards)
 14. Campaign branching paths and side quests
 15. Duel replay incentives (daily bonus coins, first-win rewards)
 
 ### P3 — Nice to Have
-16. Damage number animations during battles
+16. ~~Damage number animations during battles~~ ✅ **DONE** — Floating red numbers animate from LP panels on damage
 17. Daily/weekly challenge duels
 18. Deck sharing/import
 19. Achievement system beyond battle badges

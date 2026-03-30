@@ -28,6 +28,7 @@ import { HoverPreview }        from './components/HoverPreview.js';
 import { CardActivationOverlay } from './components/CardActivationOverlay.js';
 import { AnimSkipOverlay }      from './components/AnimSkipOverlay.js';
 import { VFXOverlay }           from './components/VFXOverlay.js';
+import { DamageNumberOverlay }  from './components/DamageNumberOverlay.js';
 import { ModalOverlay }         from './modals/ModalOverlay.js';
 
 function SaveErrorToast() {
@@ -88,6 +89,7 @@ function Router() {
       <CardActivationOverlay />
       <AnimSkipOverlay />
       <VFXOverlay />
+      <DamageNumberOverlay />
       <ModalOverlay />
       <SaveErrorToast />
       <MigrationWarning />

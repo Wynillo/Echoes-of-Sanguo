@@ -135,6 +135,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     playSfx: (sfxId: string) => {
       Audio.playSfx(sfxId);
     },
+    showDamageNumber: (amount, owner) => {
+      import('../components/damageNumberApi.js').then(m => m.showDamageNumber(amount, owner));
+    },
     onDraw: (owner, count) => {
       if (owner === 'player') setPendingDraw(prev => prev + count);
     },

@@ -107,6 +107,7 @@ All enum fields in the format use integers, not strings.
 | 2 | onOwnMonsterAttacked |
 | 3 | onOpponentSummon |
 | 4 | manual |
+| 5 | onOpponentSpell |
 
 ---
 
@@ -578,6 +579,7 @@ trigger:action(args);action(args)
 | `onAttack` | traps |
 | `onOwnMonsterAttacked` | traps |
 | `onOpponentSummon` | traps |
+| `onOpponentSpell` | traps — fires when opponent activates a spell; use with `cancelEffect()` to negate |
 | `manual` | spells, traps |
 
 ### Actions
@@ -612,6 +614,7 @@ trigger:action(args);action(args)
 | `discardFromHand(count)` | discard N cards from hand | |
 | `discardOppHand(count)` | force opponent to discard N cards | |
 | `cancelAttack()` | cancel the current attack (trap) | |
+| `cancelEffect()` | negate the opponent's spell effect (use with `onOpponentSpell` traps) | |
 | `destroyAttacker()` | destroy the attacking monster (trap) | |
 | `destroySummonedIf(minAtk)` | destroy the summoned monster if ATK >= minAtk (trap) | |
 | `passive_piercing()` | damage carries through to DEF monsters | |

@@ -271,6 +271,10 @@ const IMPL: Record<string, InternalImpl> = {
     return { cancelAttack: true };
   },
 
+  cancelEffect() {
+    return { cancelEffect: true };
+  },
+
   destroyAttacker() {
     return { cancelAttack: true, destroyAttacker: true };
   },

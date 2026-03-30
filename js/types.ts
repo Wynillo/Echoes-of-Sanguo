@@ -1,7 +1,7 @@
 export type Owner        = 'player' | 'opponent';
 export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
-export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual';
+export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell';
 export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip';
 export type SpellType    = 'normal' | 'targeted' | 'fromGrave' | 'field';
 
@@ -108,6 +108,7 @@ export interface EffectDescriptorMap {
   permDefBonus:         { target: StatTarget; value: number };
   reviveFromGrave:      {};
   cancelAttack:         {};
+  cancelEffect:         {};
   destroyAttacker:      {};
   destroySummonedIf:    { minAtk: number };
   destroyAllOpp:        {};
@@ -152,6 +153,7 @@ export interface EffectSignal {
   cancelAttack?:     boolean;
   destroySummoned?:  boolean;
   destroyAttacker?:  boolean;
+  cancelEffect?:     boolean;
 }
 
 export interface CardEffectBlock {
@@ -225,6 +227,10 @@ export interface AIBehavior {
   battleStrategy?:          AIBattleStrategy;
   spellRules?:              Record<string, AISpellRule>;
   defaultSpellActivation?:  'always' | 'never' | 'smart';
+  peekDeckCards?:           number;
+  knowsPlayerHand?:         boolean;
+  peekPlayerDeck?:          number;
+  holdFusionPiece?:         boolean;
 }
 
 export interface OpponentConfig {
@@ -314,6 +320,7 @@ export interface UICallbacks {
   playFusionChainAnimation?: (owner: Owner, handIndices: number[], resultZone: number) => Promise<void>;
   playVFX?:             (type: 'buff' | 'heal' | 'damage', owner: Owner, zone?: number) => Promise<void>;
   playSfx?:             (sfxId: string) => void;
+  showDamageNumber?:    (amount: number, owner: Owner) => void;
   onDraw?:              (owner: Owner, count: number) => void;
   onDuelEnd?:           (result: 'victory' | 'defeat', oppId: number | null, stats: DuelStats) => void;
   showCoinToss?:        (playerGoesFirst: boolean) => Promise<void>;
