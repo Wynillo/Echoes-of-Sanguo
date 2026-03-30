@@ -10,7 +10,7 @@
 //   "onAttack:dealDamage(opponent,attacker.effectiveATK*0.5f);cancelAttack()"
 // ============================================================
 
-import { type CardEffectBlock, type CardFilter, type EffectCost, type EffectDescriptor, type EffectTrigger, type TrapTrigger, type ValueExpr, type StatTarget } from './types.js';
+import { type CardEffectBlock, type CardData, type CardFilter, type EffectCost, type EffectDescriptor, type EffectTrigger, type TrapTrigger, type ValueExpr, type StatTarget } from './types.js';
 import { isValidTrigger, intToAttribute, intToRace, attributeToInt, raceToInt, cardTypeToInt, intToCardType } from './enums.js';
 
 // ── ValueExpr Serialization ──────────────────────────────────
@@ -121,6 +121,7 @@ function serializeAction(a: EffectDescriptor): string {
     case 'reviveFromGrave':         return 'reviveFromGrave()';
     // Trap signals
     case 'cancelAttack':            return 'cancelAttack()';
+    case 'cancelEffect':            return 'cancelEffect()';
     case 'destroyAttacker':         return 'destroyAttacker()';
     case 'destroySummonedIf':       return `destroySummonedIf(${a.minAtk})`;
     // Destruction
@@ -166,10 +167,31 @@ function serializeAction(a: EffectDescriptor): string {
     case 'doubleAtk':               return `doubleAtk(${a.target})`;
     case 'swapAtkDef':              return `swapAtkDef(${a.side})`;
     // Special summon from deck
-    case 'specialSummonFromDeck':   return `specialSummonFromDeck(${serializeCardFilter(a.filter)})`;
+    case 'specialSummonFromDeck': {
+      let s = `specialSummonFromDeck(${serializeCardFilter(a.filter)}`;
+      if (a.faceDown) s += ',faceDown';
+      if (a.position && a.position !== 'atk') s += `,${a.position}`;
+      return s + ')';
+    }
     // Phase 2: Reflect & Steal
     case 'reflectBattleDamage':     return 'reflectBattleDamage()';
     case 'stealMonster':            return 'stealMonster()';
+    case 'skipOppDraw':             return 'skipOppDraw()';
+    case 'discardEntireHand':       return `discardEntireHand(${a.target})`;
+    case 'destroyAndDamageBoth':    return `destroyAndDamageBoth(${a.side})`;
+    case 'preventBattleDamage':     return 'preventBattleDamage()';
+    case 'passive_negateTraps':     return 'passive_negateTraps()';
+    case 'passive_negateSpells':    return 'passive_negateSpells()';
+    case 'passive_negateMonsterEffects': return 'passive_negateMonsterEffects()';
+    case 'stealMonsterTemp':        return 'stealMonsterTemp()';
+    case 'reviveFromEitherGrave':   return 'reviveFromEitherGrave()';
+    case 'drawThenDiscard':         return `drawThenDiscard(${a.drawCount},${a.discardCount})`;
+    case 'bounceOppHandToDeck':     return `bounceOppHandToDeck(${a.count})`;
+    case 'tributeSelf':             return 'tributeSelf()';
+    case 'preventAttacks':          return `preventAttacks(${a.turns})`;
+    case 'createTokens':            return `createTokens(${a.tokenId},${a.count},${a.position})`;
+    case 'gameReset':               return 'gameReset()';
+    case 'excavateAndSummon':       return `excavateAndSummon(${a.count},${a.maxLevel})`;
     default:
       throw new Error(`Unknown effect action type: ${(a as any).type}`);
   }
@@ -259,6 +281,7 @@ function deserializeAction(actionStr: string): EffectDescriptor {
 
     // Trap signals
     case 'cancelAttack':            return { type: 'cancelAttack' };
+    case 'cancelEffect':            return { type: 'cancelEffect' };
     case 'destroyAttacker':         return { type: 'destroyAttacker' };
     case 'destroySummonedIf':       return { type: 'destroySummonedIf', minAtk: parseInt(args[0]) };
 
@@ -325,11 +348,34 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     case 'swapAtkDef':              return { type: 'swapAtkDef', side: args[0] as 'self' | 'opponent' | 'all' };
 
     // Special summon from deck
-    case 'specialSummonFromDeck':   return { type: 'specialSummonFromDeck', filter: deserializeCardFilter(args[0]) };
+    case 'specialSummonFromDeck': {
+      const desc: any = { type: 'specialSummonFromDeck', filter: deserializeCardFilter(args[0]) };
+      for (let i = 1; i < args.length; i++) {
+        if (args[i] === 'faceDown') desc.faceDown = true;
+        else if (args[i] === 'def' || args[i] === 'atk') desc.position = args[i];
+      }
+      return desc;
+    }
 
     // Phase 2: Reflect & Steal
     case 'reflectBattleDamage':     return { type: 'reflectBattleDamage' };
     case 'stealMonster':            return { type: 'stealMonster' };
+    case 'skipOppDraw':             return { type: 'skipOppDraw' };
+    case 'discardEntireHand':       return { type: 'discardEntireHand', target: args[0] as 'self' | 'opponent' | 'both' };
+    case 'destroyAndDamageBoth':    return { type: 'destroyAndDamageBoth', side: args[0] as 'opponent' | 'self' };
+    case 'preventBattleDamage':     return { type: 'preventBattleDamage' };
+    case 'passive_negateTraps':     return { type: 'passive_negateTraps' };
+    case 'passive_negateSpells':    return { type: 'passive_negateSpells' };
+    case 'passive_negateMonsterEffects': return { type: 'passive_negateMonsterEffects' };
+    case 'stealMonsterTemp':        return { type: 'stealMonsterTemp' };
+    case 'reviveFromEitherGrave':   return { type: 'reviveFromEitherGrave' };
+    case 'drawThenDiscard':         return { type: 'drawThenDiscard', drawCount: parseInt(args[0]), discardCount: parseInt(args[1]) };
+    case 'bounceOppHandToDeck':     return { type: 'bounceOppHandToDeck', count: parseInt(args[0]) };
+    case 'tributeSelf':             return { type: 'tributeSelf' };
+    case 'preventAttacks':          return { type: 'preventAttacks', turns: parseInt(args[0]) };
+    case 'createTokens':            return { type: 'createTokens', tokenId: args[0], count: parseInt(args[1]), position: args[2] as 'atk' | 'def' };
+    case 'gameReset':               return { type: 'gameReset' };
+    case 'excavateAndSummon':       return { type: 'excavateAndSummon', count: parseInt(args[0]), maxLevel: parseInt(args[1]) };
 
     default:
       throw new Error(`Unknown action type: ${type}`);
@@ -342,6 +388,8 @@ function serializeCost(cost: EffectCost): string {
   const parts: string[] = [];
   if (cost.lp !== undefined) parts.push(`lp=${cost.lp}`);
   if (cost.discard !== undefined) parts.push(`discard=${cost.discard}`);
+  if (cost.tributeSelf) parts.push('tributeSelf');
+  if (cost.lpHalf) parts.push('lpHalf');
   return `[cost:${parts.join(',')}]`;
 }
 
@@ -351,8 +399,10 @@ function deserializeCost(costStr: string): EffectCost {
   for (const pair of inner.split(',')) {
     const [key, val] = pair.split('=');
     switch (key.trim()) {
-      case 'lp':      cost.lp = parseInt(val); break;
-      case 'discard': cost.discard = parseInt(val); break;
+      case 'lp':          cost.lp = parseInt(val); break;
+      case 'discard':     cost.discard = parseInt(val); break;
+      case 'tributeSelf': cost.tributeSelf = true; break;
+      case 'lpHalf':      cost.lpHalf = true; break;
     }
   }
   return cost;
@@ -365,7 +415,14 @@ export function serializeEffect(block: CardEffectBlock): string {
 }
 
 export function deserializeEffect(str: string): CardEffectBlock {
-  const colonIdx = str.indexOf(':');
+  // Find the trigger:actions separator colon, skipping any colons inside [cost:...] brackets
+  let colonIdx = -1;
+  let bracketDepth = 0;
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === '[') bracketDepth++;
+    else if (str[i] === ']') bracketDepth--;
+    else if (str[i] === ':' && bracketDepth === 0) { colonIdx = i; break; }
+  }
   if (colonIdx === -1) throw new Error(`Invalid effect string (no trigger separator): ${str}`);
 
   let triggerStr = str.substring(0, colonIdx);
@@ -405,10 +462,44 @@ function splitActions(s: string): string[] {
   return parts.filter(p => p.length > 0);
 }
 
+/** Deserialize a pipe-delimited multi-block effect string (e.g. "passive:...|onDealBattleDamage:...") */
+export function deserializeEffects(str: string): CardEffectBlock[] {
+  return str.split('|').map(s => deserializeEffect(s.trim()));
+}
+
+/** Serialize multiple effect blocks into pipe-delimited format */
+export function serializeEffects(blocks: CardEffectBlock[]): string {
+  return blocks.map(serializeEffect).join('|');
+}
+
+/** Check if an effect string contains multiple blocks (pipe-delimited) */
+export function isMultiBlockEffect(str: string): boolean {
+  return str.includes('|');
+}
+
+/**
+ * Parse an effect string and populate card.effect and card.effects.
+ * Single-block strings set card.effect only (backward compat).
+ * Multi-block strings set card.effects (array) and card.effect to the first block.
+ */
+export function parseEffectString(str: string, card: Partial<Pick<CardData, 'effect' | 'effects'>>): void {
+  if (isMultiBlockEffect(str)) {
+    const blocks = deserializeEffects(str);
+    card.effects = blocks;
+    card.effect = blocks[0];
+  } else {
+    card.effect = deserializeEffect(str);
+  }
+}
+
 /** Validate effect string syntax without full deserialization */
 export function isValidEffectString(str: string): boolean {
   try {
-    deserializeEffect(str);
+    if (str.includes('|')) {
+      deserializeEffects(str);
+    } else {
+      deserializeEffect(str);
+    }
     return true;
   } catch {
     return false;

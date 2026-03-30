@@ -349,7 +349,29 @@ export class GameEngine {
   }
 
   /** Refill hand up to handRefillSize (Forbidden Memories style) or draw 1. */
+  _tickTurnCounters(owner: Owner){
+    const tc = this.state[owner].turnCounters;
+    if (!tc) return;
+    for (let i = tc.length - 1; i >= 0; i--) {
+      tc[i].turnsRemaining--;
+      if (tc[i].turnsRemaining <= 0) {
+        this.addLog(`Turn counter expired: ${tc[i].effect}`);
+        tc.splice(i, 1);
+      }
+    }
+  }
+
+  hasPreventAttacks(owner: Owner): boolean {
+    const tc = this.state[owner].turnCounters;
+    return !!tc && tc.some(c => c.effect === 'preventAttacks');
+  }
+
   refillHand(owner: Owner){
+    if(this.state.skipNextDraw === owner){
+      this.state.skipNextDraw = undefined;
+      this.addLog(`${owner === 'player' ? 'Your' : "Opponent's"} draw phase was skipped!`);
+      return;
+    }
     if(GAME_RULES.refillHandEnabled){
       const st = this.state[owner];
       const need = GAME_RULES.handRefillSize - st.hand.length;
@@ -386,6 +408,7 @@ export class GameEngine {
         }
       }
     }
+    await this._checkAnySummonTraps(owner, zone);
     this.ui.render(this.state);
     return true;
   }
@@ -406,14 +429,14 @@ export class GameEngine {
     return true;
   }
 
-  async specialSummon(owner: Owner, card: CardData, zone?: number){
+  async specialSummon(owner: Owner, card: CardData, zone?: number, position: Position = 'atk', faceDown = false){
     const st = this.state[owner];
     if(zone === undefined){
       zone = st.field.monsters.findIndex(z => z === null);
       if(zone === -1){ this.addLog('No free monster zone!'); return false; }
     }
     if(st.field.monsters[zone]){ this.addLog('Zone occupied!'); return false; }
-    const fc = new FieldCard(card, 'atk');
+    const fc = new FieldCard(card, position, faceDown);
     fc.summonedThisTurn = false; // special summons can usually attack (or keep true for balance)
     st.field.monsters[zone] = fc;
     if (owner === 'player') this._stats.monstersPlayed++; else this._stats.opponentMonstersPlayed++;
@@ -422,6 +445,7 @@ export class GameEngine {
     this._recalcFieldSpellBonuses(fc);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    await this._checkAnySummonTraps(owner, zone);
     this.ui.render(this.state);
     return true;
   }
@@ -501,8 +525,12 @@ export class GameEngine {
       await this._autoActivateOpponentTraps('onOpponentSpell');
     }
     if(card.effect) {
-      const ctx = this._buildSpellContext(owner, targetInfo);
-      this._safeExecuteEffect(card.effect, ctx, card.id, 'spell effect');
+      if (this.state.player.fieldFlags?.negateSpells || this.state.opponent.fieldFlags?.negateSpells) {
+        this.addLog(`${card.name}'s effect was negated!`);
+      } else {
+        const ctx = this._buildSpellContext(owner, targetInfo);
+        this._safeExecuteEffect(card.effect, ctx, card.id, 'spell effect');
+      }
     }
     st.graveyard.push(card);
     this.ui.render(this.state);
@@ -863,6 +891,7 @@ export class GameEngine {
   }
 
   async attack(attackerOwner: Owner, attackerZone: number, defenderZone: number){
+    if(this.hasPreventAttacks(attackerOwner)){ this.addLog('Attacks are prevented!'); return; }
     const atkSt  = this.state[attackerOwner];
     const defOwn = attackerOwner === 'player' ? 'opponent' : 'player';
     const defSt  = this.state[defOwn];
@@ -914,8 +943,14 @@ export class GameEngine {
 
     if(!defFC){
       this.addLog(`${attFC.card.name} attacks directly!`);
-      if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
-      this.dealDamage(defOwn, attFC.effectiveATK());
+      if(this.state[defOwn].battleProtection){
+        this.addLog('Battle damage prevented!');
+      } else {
+        if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
+        this.dealDamage(defOwn, attFC.effectiveATK());
+        if(this._duelEnded) return;
+        await this._triggerEffect(attFC, attackerOwner, 'onDealBattleDamage', null);
+      }
     } else {
       if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, defenderZone);
       await this._resolveBattle(attackerOwner, attackerZone, defOwn, defenderZone, attFC, defFC);
@@ -925,6 +960,7 @@ export class GameEngine {
   }
 
   async attackDirect(attackerOwner: Owner, attackerZone: number){
+    if(this.hasPreventAttacks(attackerOwner)){ this.addLog('Attacks are prevented!'); return; }
     const defOwn  = attackerOwner === 'player' ? 'opponent' : 'player';
     const defMons = this.state[defOwn].field.monsters;
     const attFC   = this.state[attackerOwner].field.monsters[attackerZone];
@@ -961,6 +997,8 @@ export class GameEngine {
     if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
     this.dealDamage(defOwn, attFC.effectiveATK());
     if(this._duelEnded) return;
+    await this._triggerEffect(attFC, attackerOwner, 'onDealBattleDamage', null);
+    if(this._duelEnded) return;
     this.ui.render(this.state);
   }
 
@@ -986,6 +1024,11 @@ export class GameEngine {
 
     this.addLog(`${attFC.card.name} (ATK ${effATK}) vs ${defFC.card.name} (${modeStr} ${defVal})`);
 
+    if(this.state[defOwner].battleProtection){
+      this.addLog('Battle damage and destruction prevented!');
+      return;
+    }
+
     if(defFC.position === 'atk'){
       if(effATK > defVal){
         const dmg = effATK - defVal;
@@ -995,6 +1038,7 @@ export class GameEngine {
         if(this._duelEnded) return;
         await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
         TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
+        await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
       } else if(effATK === defVal){
         this.addLog('Tie! Both monsters destroyed!');
         await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
@@ -1018,6 +1062,8 @@ export class GameEngine {
           const pierceDmg = effATK - defVal;
           this.addLog(`Piercing attack! -${pierceDmg} LP`);
           this.dealDamage(defOwner, pierceDmg);
+          if(this._duelEnded) return;
+          await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
         }
       } else if(effATK === defVal){
         this.addLog('Monster held its ground!');
@@ -1048,6 +1094,9 @@ export class GameEngine {
     this._removeEquipmentForMonster(owner, zone);
     this.ui.render(this.state);
 
+    await this._triggerSentToGrave(fc.card, owner);
+    this._recalcFieldFlags();
+
     if (fc.phoenixRevival && !fc.phoenixRevivalUsed) {
       this.addLog(`${fc.card.name} rises from the graveyard!`);
       const revived = await this.specialSummonFromGrave(owner, fc.card);
@@ -1058,13 +1107,15 @@ export class GameEngine {
     }
   }
 
-  _destroyMonsterBySignal(owner: Owner, zone: number, fc: FieldCard): void {
+  async _destroyMonsterBySignal(owner: Owner, zone: number, fc: FieldCard): Promise<void> {
     const st = this.state[owner];
     this.addLog(`${fc.card.name} was destroyed by trap!`);
     this.ui.playSfx?.('sfx_destroy');
     st.graveyard.push(fc.card);
     st.field.monsters[zone] = null;
     this._removeEquipmentForMonster(owner, zone);
+    await this._triggerSentToGrave(fc.card, owner);
+    this._recalcFieldFlags();
   }
 
   _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): EffectContext {
@@ -1089,7 +1140,7 @@ export class GameEngine {
     } else if(trapTrigger === 'onOwnMonsterAttacked'){
       ctx.attacker = args[0];
       ctx.defender = args[1];
-    } else if(trapTrigger === 'onOpponentSummon'){
+    } else if(trapTrigger === 'onOpponentSummon' || trapTrigger === 'onAnySummon'){
       ctx.summonedFC = args[0];
     }
     return ctx;
@@ -1097,25 +1148,69 @@ export class GameEngine {
 
   async _triggerEffect(fc: FieldCard, owner: Owner, trigger: string, zone: number | null){
     const card = fc.card;
-    if(!card.effect || card.effect.trigger !== trigger) return;
-    EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: ${trigger}`);
-    if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
-    const ctx: EffectContext = { engine: this, owner };
-    this._safeExecuteEffect(card.effect, ctx, card.id, `effect trigger=${trigger}`);
+    if (trigger !== 'passive' && (this.state.player.fieldFlags?.negateMonsterEffects || this.state.opponent.fieldFlags?.negateMonsterEffects)) {
+      return;
+    }
+    const blocks = this._getEffectBlocks(card, trigger);
+    for (const block of blocks) {
+      EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: ${trigger}`);
+      if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
+      const ctx: EffectContext = { engine: this, owner };
+      this._safeExecuteEffect(block, ctx, card.id, `effect trigger=${trigger}`);
+    }
+  }
+
+  _getEffectBlocks(card: CardData, trigger: string): CardEffectBlock[] {
+    const blocks: CardEffectBlock[] = [];
+    if (card.effects) {
+      for (const b of card.effects) {
+        if (b.trigger === trigger) blocks.push(b);
+      }
+    } else if (card.effect && card.effect.trigger === trigger) {
+      blocks.push(card.effect);
+    }
+    return blocks;
+  }
+
+  async _checkAnySummonTraps(summonerOwner: Owner, zone: number): Promise<void> {
+    const fc = this.state[summonerOwner].field.monsters[zone];
+    if (!fc) return;
+    const trapResult = summonerOwner === 'player'
+      ? await this._autoActivateOpponentTraps('onAnySummon', fc)
+      : await this._promptPlayerTraps('onAnySummon', fc);
+    if (trapResult?.destroySummoned || trapResult?.destroyAttacker) {
+      this.state[summonerOwner].graveyard.push(fc.card);
+      this.state[summonerOwner].field.monsters[zone] = null;
+      this._removeEquipmentForMonster(summonerOwner, zone);
+    }
+  }
+
+  async _triggerSentToGrave(card: CardData, owner: Owner): Promise<void> {
+    const blocks = this._getEffectBlocks(card, 'onSentToGrave');
+    for (const block of blocks) {
+      EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: onSentToGrave`);
+      if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
+      const ctx: EffectContext = { engine: this, owner };
+      this._safeExecuteEffect(block, ctx, card.id, 'onSentToGrave');
+    }
   }
 
   async _triggerFlipEffect(fc: FieldCard, owner: Owner, zone: number){
     if(fc.hasFlipped) return;
     fc.hasFlipped = true;
     const card = fc.card;
-    if(!card.effect || card.effect.trigger !== 'onFlip') return;
+    const blocks = this._getEffectBlocks(card, 'onFlip');
+    if (blocks.length === 0) return;
     EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Flip Effect`);
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
     const ctx: EffectContext = { engine: this, owner };
-    this._safeExecuteEffect(card.effect, ctx, card.id, 'flip effect');
+    for (const block of blocks) {
+      this._safeExecuteEffect(block, ctx, card.id, 'flip effect');
+    }
   }
 
   async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]){
+    if (this.state.opponent.fieldFlags?.negateTraps) return null;
     const traps = this.state.player.field.spellTraps;
     for(let i=0;i<traps.length;i++){
       const fst = traps[i];
@@ -1155,6 +1250,7 @@ export class GameEngine {
   }
 
   async _autoActivateOpponentTraps(triggerType: string, ...args: FieldCard[]): Promise<EffectSignal | null> {
+    if (this.state.player.fieldFlags?.negateTraps) return null;
     const traps = this.state.opponent.field.spellTraps;
     for (let i = 0; i < traps.length; i++) {
       const fst = traps[i];
@@ -1189,12 +1285,82 @@ export class GameEngine {
     this.state[owner].field.monsters.forEach(fc => {
       if(fc){ fc.tempATKBonus = 0; fc.tempDEFBonus = 0; fc.hasAttacked = false; fc.summonedThisTurn = false; }
     });
+    this.state[owner].battleProtection = false;
+  }
+
+  _recalcFieldFlags(){
+    for (const side of ['player', 'opponent'] as Owner[]) {
+      const flags = { negateTraps: false, negateSpells: false, negateMonsterEffects: false };
+      const st = this.state[side];
+      for (const fc of st.field.monsters) {
+        if (!fc) continue;
+        const blocks = fc.card.effects ?? (fc.card.effect ? [fc.card.effect] : []);
+        for (const b of blocks) {
+          if (b.trigger !== 'passive') continue;
+          for (const a of b.actions) {
+            if (a.type === 'passive_negateTraps') flags.negateTraps = true;
+            if (a.type === 'passive_negateSpells') flags.negateSpells = true;
+            if (a.type === 'passive_negateMonsterEffects') flags.negateMonsterEffects = true;
+          }
+        }
+      }
+      for (const fst of st.field.spellTraps) {
+        if (!fst || fst.faceDown) continue;
+        const blocks = fst.card.effects ?? (fst.card.effect ? [fst.card.effect] : []);
+        for (const b of blocks) {
+          for (const a of b.actions) {
+            if (a.type === 'passive_negateTraps') flags.negateTraps = true;
+            if (a.type === 'passive_negateSpells') flags.negateSpells = true;
+            if (a.type === 'passive_negateMonsterEffects') flags.negateMonsterEffects = true;
+          }
+        }
+      }
+      st.fieldFlags = flags;
+    }
+  }
+
+  _returnTempStolenMonsters(owner: Owner){
+    const st = this.state[owner];
+    const opp = owner === 'player' ? 'opponent' : 'player' as Owner;
+    for(let i = 0; i < st.field.monsters.length; i++){
+      const fc = st.field.monsters[i];
+      if(fc && fc.originalOwner && fc.originalOwner !== owner){
+        const oppSt = this.state[opp];
+        const freeZone = oppSt.field.monsters.findIndex(z => z === null);
+        if(freeZone !== -1){
+          fc.originalOwner = undefined;
+          fc.hasAttacked = true;
+          oppSt.field.monsters[freeZone] = fc;
+        } else {
+          oppSt.graveyard.push(fc.card);
+        }
+        st.field.monsters[i] = null;
+        this._removeEquipmentForMonster(owner, i);
+        this.addLog(`${fc.card.name} returns to its owner.`);
+      }
+    }
+  }
+
+  _returnSpiritMonsters(owner: Owner){
+    const st = this.state[owner];
+    for(let i = 0; i < st.field.monsters.length; i++){
+      const fc = st.field.monsters[i];
+      if(fc && fc.card.spirit){
+        st.hand.push(fc.card);
+        st.field.monsters[i] = null;
+        this._removeEquipmentForMonster(owner, i);
+        this.addLog(`${fc.card.name} returns to hand (Spirit).`);
+      }
+    }
   }
 
   endTurn(){
     // Clear only the current player's per-turn flags.
     // The opponent's flags are cleared by _aiTurn at the end of the AI's turn.
     this._resetMonsterFlags('player');
+    this._returnTempStolenMonsters('player');
+    this._returnSpiritMonsters('player');
+    this._tickTurnCounters('player');
 
     this.state.player.normalSummonUsed   = false;
     this.state.opponent.normalSummonUsed = false;

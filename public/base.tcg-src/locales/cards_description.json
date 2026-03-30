@@ -1558,5 +1558,220 @@
     "id": 312,
     "name": "Flame Armor",
     "description": "Equip to a Fire monster. ATK +600."
+  },
+  {
+    "id": 313,
+    "name": "Pot of Greed",
+    "description": "Draw 2 cards."
+  },
+  {
+    "id": 314,
+    "name": "Raigeki",
+    "description": "Destroy all of your opponent's monsters."
+  },
+  {
+    "id": 315,
+    "name": "Dark Hole",
+    "description": "Destroy all monsters on the field."
+  },
+  {
+    "id": 316,
+    "name": "Harpie's Feather Duster",
+    "description": "Destroy all of your opponent's Spell and Trap cards."
+  },
+  {
+    "id": 317,
+    "name": "Heavy Storm",
+    "description": "Destroy all Spell and Trap cards on the field."
+  },
+  {
+    "id": 318,
+    "name": "Mystical Space Typhoon",
+    "description": "Destroy 1 Spell or Trap card on the field."
+  },
+  {
+    "id": 319,
+    "name": "Mirror Force",
+    "description": "[Trap] When an opponent's monster attacks: Destroy all of your opponent's monsters."
+  },
+  {
+    "id": 320,
+    "name": "Magic Cylinder",
+    "description": "[Trap] When an opponent's monster attacks: Negate the attack, and deal damage to your opponent equal to that monster's ATK."
+  },
+  {
+    "id": 321,
+    "name": "Airknight Parshath",
+    "description": "[Effect] Piercing. When this card deals battle damage: Draw 1 card."
+  },
+  {
+    "id": 322,
+    "name": "Don Zaloog",
+    "description": "[Effect] When this card deals battle damage to your opponent: Your opponent discards 1 card."
+  },
+  {
+    "id": 323,
+    "name": "Yata-Garasu",
+    "description": "[Effect] Spirit. When this card deals battle damage: Your opponent skips their next Draw Phase. Returns to hand at End Phase."
+  },
+  {
+    "id": 324,
+    "name": "Sangan",
+    "description": "[Effect] When this card is sent to the Graveyard: Add 1 monster with 1500 or less ATK from your Deck to your hand."
+  },
+  {
+    "id": 325,
+    "name": "Witch of the Black Forest",
+    "description": "[Effect] When this card is sent to the Graveyard: Add 1 monster with 1500 or less DEF from your Deck to your hand."
+  },
+  {
+    "id": 326,
+    "name": "Spirit Reaper",
+    "description": "[Passive] Cannot be destroyed by battle. When this card deals battle damage: Your opponent discards 1 card."
+  },
+  {
+    "id": 327,
+    "name": "Magician of Faith",
+    "description": "[Effect] FLIP: Return 1 Spell Card from your Graveyard to your hand."
+  },
+  {
+    "id": 328,
+    "name": "Morphing Jar",
+    "description": "[Effect] FLIP: Both players discard their entire hands, then draw 5 cards."
+  },
+  {
+    "id": 329,
+    "name": "Night Assailant",
+    "description": "[Effect] FLIP: Destroy the strongest opponent monster."
+  },
+  {
+    "id": 330,
+    "name": "Apprentice Magician",
+    "description": "[Effect] When destroyed by battle: Special Summon 1 Level 2 or lower Spellcaster from your Deck in face-down Defense Position."
+  },
+  {
+    "id": 331,
+    "name": "Torrential Tribute",
+    "description": "[Trap] When a monster is Summoned: Destroy all monsters on the field."
+  },
+  {
+    "id": 332,
+    "name": "Ring of Destruction",
+    "description": "[Trap] Destroy 1 opponent monster. Both players take damage equal to its ATK."
+  },
+  {
+    "id": 333,
+    "name": "Waboku",
+    "description": "[Trap] Prevent all battle damage and destruction for this turn."
+  },
+  {
+    "id": 334,
+    "name": "Jinzo",
+    "description": "[Passive] Negate all Trap card activations and effects while this card is on the field."
+  },
+  {
+    "id": 335,
+    "name": "Skill Drain",
+    "description": "[Trap] Pay 1000 LP. Negate the effects of all face-up monsters on the field."
+  },
+  {
+    "id": 336,
+    "name": "Imperial Order",
+    "description": "[Trap] Negate all Spell Card effects on the field."
+  },
+  {
+    "id": 337,
+    "name": "Graceful Charity",
+    "description": "Draw 3 cards, then discard 2 cards."
+  },
+  {
+    "id": 338,
+    "name": "Change of Heart",
+    "description": "Take control of 1 opponent's monster until the End Phase."
+  },
+  {
+    "id": 339,
+    "name": "Monster Reborn",
+    "description": "Special Summon 1 monster from either player's Graveyard."
+  },
+  {
+    "id": 340,
+    "name": "Delinquent Duo",
+    "description": "Pay 1000 LP. Your opponent discards 2 random cards."
+  },
+  {
+    "id": 341,
+    "name": "Confiscation",
+    "description": "Pay 1000 LP. Your opponent discards 1 random card."
+  },
+  {
+    "id": 342,
+    "name": "The Forceful Sentry",
+    "description": "Shuffle 1 random card from your opponent's hand back into their Deck."
+  },
+  {
+    "id": 343,
+    "name": "Exiled Force",
+    "description": "[Effect] Tribute this card: Destroy the strongest opponent monster."
+  },
+  {
+    "id": 344,
+    "name": "Swords of Revealing Light",
+    "description": "Your opponent cannot attack for 3 turns."
+  },
+  {
+    "id": 345,
+    "name": "Solemn Judgment",
+    "description": "[Trap] Pay half your LP. Negate a Summon and destroy the monster."
+  },
+  {
+    "id": 346,
+    "name": "Snatch Steal",
+    "description": "Take permanent control of 1 opponent's monster."
+  },
+  {
+    "id": 347,
+    "name": "Premature Burial",
+    "description": "Pay 800 LP. Special Summon 1 monster from your Graveyard."
+  },
+  {
+    "id": 348,
+    "name": "Call of the Haunted",
+    "description": "[Trap] Special Summon 1 monster from your Graveyard."
+  },
+  {
+    "id": 349,
+    "name": "Scapegoat",
+    "description": "Special Summon 4 Sheep Tokens (ATK 0/DEF 0) in Defense Position."
+  },
+  {
+    "id": 350,
+    "name": "Fiber Jar",
+    "description": "[Effect] FLIP: Both players shuffle their hands, fields, and Graveyards into their Decks, then draw 5 cards."
+  },
+  {
+    "id": 351,
+    "name": "Cyber Jar",
+    "description": "[Effect] FLIP: Destroy all monsters on the field. Both players excavate the top 5 cards, Special Summon all Level 4 or lower monsters, and add the rest to their hands."
+  },
+  {
+    "id": 352,
+    "name": "Tribe-Infecting Virus",
+    "description": "[Effect] Discard 1 card: Destroy all opponent's monsters."
+  },
+  {
+    "id": 353,
+    "name": "Tsukuyomi",
+    "description": "[Effect] Spirit. When summoned: Set 1 target monster face-down. Returns to hand at End Phase."
+  },
+  {
+    "id": 354,
+    "name": "Sinister Serpent",
+    "description": "[Effect] When sent to the Graveyard: Add 1 monster from your Graveyard to your hand."
+  },
+  {
+    "id": 355,
+    "name": "Painful Choice",
+    "description": "Send the top 4 cards of your Deck to the Graveyard, then draw 1 card."
   }
 ]

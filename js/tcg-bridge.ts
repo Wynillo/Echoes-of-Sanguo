@@ -10,7 +10,7 @@ import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentCo
 import { CardType, Rarity } from './types.js';
 import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from './cards.js';
 import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger } from './enums.js';
-import { deserializeEffect, isValidEffectString } from './effect-serializer.js';
+import { deserializeEffect, isValidEffectString, parseEffectString } from './effect-serializer.js';
 import { applyRules } from './rules.js';
 import { applyTypeMeta } from './type-metadata.js';
 import { applyShopData, SHOP_DATA } from './shop-data.js';
@@ -37,13 +37,13 @@ const loadedMods: LoadedMod[] = [];
 // but string-based types (SpellType, TrapTrigger) in CardData.
 
 function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
-  let effect = undefined;
+  let parsedEffect: { effect?: any; effects?: any[] } = {};
   if (p.effect) {
     if (!isValidEffectString(p.effect)) {
       warnings.push(`Card #${p.id}: effect string may contain unknown actions: "${p.effect}"`);
     }
     try {
-      effect = deserializeEffect(p.effect);
+      parseEffectString(p.effect, parsedEffect);
     } catch (e) {
       warnings.push(`Card #${p.id} (${p.name}): failed to deserialize effect — effect disabled. ${e instanceof Error ? e.message : e}`);
     }
@@ -76,7 +76,9 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
     try { card.race = intToRace(p.race); }
     catch { warnings.push(`Card #${p.id}: invalid race ${p.race}`); }
   }
-  if (effect)       card.effect      = effect;
+  if (parsedEffect.effect)   card.effect  = parsedEffect.effect;
+  if (parsedEffect.effects)  card.effects = parsedEffect.effects;
+  if ((p as any).spirit)     card.spirit  = true;
   if (p.spellType) {
     try { card.spellType = intToSpellType(p.spellType); }
     catch { warnings.push(`Card #${p.id}: invalid spellType int ${p.spellType}`); }

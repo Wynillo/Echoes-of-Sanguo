@@ -3124,5 +3124,376 @@
     "type": 5,
     "atkBonus": 600,
     "equipReqAttr": 3
+  },
+  {
+    "id": 313,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:draw(self,2)",
+    "spellType": 1
+  },
+  {
+    "id": 314,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:destroyAllOpp()",
+    "spellType": 1
+  },
+  {
+    "id": 315,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:destroyAll()",
+    "spellType": 1
+  },
+  {
+    "id": 316,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:destroyAllOppSpellTraps()",
+    "spellType": 1
+  },
+  {
+    "id": 317,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:destroyAllSpellTraps()",
+    "spellType": 1
+  },
+  {
+    "id": 318,
+    "rarity": 4,
+    "type": 3,
+    "effect": "onSummon:destroyOppSpellTrap()",
+    "spellType": 1
+  },
+  {
+    "id": 319,
+    "rarity": 6,
+    "type": 4,
+    "effect": "onAttack:destroyAllOpp()",
+    "trapTrigger": 1
+  },
+  {
+    "id": 320,
+    "rarity": 6,
+    "type": 4,
+    "effect": "onAttack:reflectBattleDamage()",
+    "trapTrigger": 1
+  },
+  {
+    "id": 321,
+    "level": 5,
+    "rarity": 6,
+    "type": 1,
+    "atk": 1900,
+    "def": 1400,
+    "attribute": 1,
+    "race": 3,
+    "effect": "passive:passive_piercing()|onDealBattleDamage:draw(self,1)"
+  },
+  {
+    "id": 322,
+    "level": 4,
+    "rarity": 6,
+    "type": 1,
+    "atk": 1400,
+    "def": 1500,
+    "attribute": 2,
+    "race": 3,
+    "effect": "onDealBattleDamage:discardOppHand(1)"
+  },
+  {
+    "id": 323,
+    "level": 2,
+    "rarity": 8,
+    "type": 1,
+    "atk": 200,
+    "def": 100,
+    "attribute": 2,
+    "race": 8,
+    "effect": "onDealBattleDamage:skipOppDraw()",
+    "spirit": true
+  },
+  {
+    "id": 324,
+    "level": 3,
+    "rarity": 6,
+    "type": 1,
+    "atk": 1000,
+    "def": 600,
+    "attribute": 2,
+    "race": 8,
+    "effect": "onSentToGrave:searchDeckToHand({maxAtk=1500,ct=1})"
+  },
+  {
+    "id": 325,
+    "level": 4,
+    "rarity": 6,
+    "type": 1,
+    "atk": 1100,
+    "def": 1200,
+    "attribute": 2,
+    "race": 2,
+    "effect": "onSentToGrave:searchDeckToHand({maxDef=1500,ct=1})"
+  },
+  {
+    "id": 326,
+    "level": 3,
+    "rarity": 8,
+    "type": 1,
+    "atk": 300,
+    "def": 200,
+    "attribute": 2,
+    "race": 8,
+    "effect": "passive:passive_indestructible()|onDealBattleDamage:discardOppHand(1)"
+  },
+  {
+    "id": 327,
+    "level": 1,
+    "rarity": 4,
+    "type": 1,
+    "atk": 300,
+    "def": 400,
+    "attribute": 1,
+    "race": 2,
+    "effect": "onFlip:salvageFromGrave({ct=3})"
+  },
+  {
+    "id": 328,
+    "level": 2,
+    "rarity": 6,
+    "type": 1,
+    "atk": 700,
+    "def": 600,
+    "attribute": 2,
+    "race": 6,
+    "effect": "onFlip:discardEntireHand(both);draw(self,5);draw(opponent,5)"
+  },
+  {
+    "id": 329,
+    "level": 3,
+    "rarity": 4,
+    "type": 1,
+    "atk": 200,
+    "def": 500,
+    "attribute": 2,
+    "race": 3,
+    "effect": "onFlip:destroyStrongestOpp()"
+  },
+  {
+    "id": 330,
+    "level": 2,
+    "rarity": 4,
+    "type": 1,
+    "atk": 400,
+    "def": 800,
+    "attribute": 2,
+    "race": 2,
+    "effect": "onDestroyByBattle:specialSummonFromDeck({maxLevel=2,r=2},faceDown,def)"
+  },
+  {
+    "id": 331,
+    "rarity": 6,
+    "type": 4,
+    "effect": "onAnySummon:destroyAll()",
+    "trapTrigger": 6
+  },
+  {
+    "id": 332,
+    "rarity": 6,
+    "type": 4,
+    "effect": "manual:destroyAndDamageBoth(opponent)",
+    "trapTrigger": 4
+  },
+  {
+    "id": 333,
+    "rarity": 4,
+    "type": 4,
+    "effect": "onAttack:preventBattleDamage()",
+    "trapTrigger": 1
+  },
+  {
+    "id": 334,
+    "level": 6,
+    "rarity": 8,
+    "type": 1,
+    "atk": 2400,
+    "def": 1500,
+    "attribute": 2,
+    "race": 11,
+    "effect": "passive:passive_negateTraps()"
+  },
+  {
+    "id": 335,
+    "rarity": 8,
+    "type": 4,
+    "effect": "manual[cost:lp=1000]:passive_negateMonsterEffects()",
+    "trapTrigger": 4
+  },
+  {
+    "id": 336,
+    "rarity": 8,
+    "type": 4,
+    "effect": "manual:passive_negateSpells()",
+    "trapTrigger": 4
+  },
+  {
+    "id": 337,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:drawThenDiscard(3,2)",
+    "spellType": 1
+  },
+  {
+    "id": 338,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:stealMonsterTemp()",
+    "spellType": 1
+  },
+  {
+    "id": 339,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:reviveFromEitherGrave()",
+    "spellType": 3
+  },
+  {
+    "id": 340,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon[cost:lp=1000]:discardOppHand(2)",
+    "spellType": 1
+  },
+  {
+    "id": 341,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon[cost:lp=1000]:discardOppHand(1)",
+    "spellType": 1
+  },
+  {
+    "id": 342,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:bounceOppHandToDeck(1)",
+    "spellType": 1
+  },
+  {
+    "id": 343,
+    "level": 4,
+    "rarity": 4,
+    "type": 1,
+    "atk": 1000,
+    "def": 400,
+    "attribute": 5,
+    "race": 3,
+    "effect": "onSummon[cost:tributeSelf]:destroyStrongestOpp()"
+  },
+  {
+    "id": 344,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:preventAttacks(3)",
+    "spellType": 1
+  },
+  {
+    "id": 345,
+    "rarity": 8,
+    "type": 4,
+    "effect": "onOpponentSummon[cost:lpHalf]:cancelEffect()",
+    "trapTrigger": 3
+  },
+  {
+    "id": 346,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:stealMonster()",
+    "spellType": 1
+  },
+  {
+    "id": 347,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon[cost:lp=800]:reviveFromGrave()",
+    "spellType": 3
+  },
+  {
+    "id": 348,
+    "rarity": 6,
+    "type": 4,
+    "effect": "manual:reviveFromGrave()",
+    "trapTrigger": 4
+  },
+  {
+    "id": 349,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:createTokens(sheep_token,4,def)",
+    "spellType": 1
+  },
+  {
+    "id": 350,
+    "level": 3,
+    "rarity": 8,
+    "type": 1,
+    "atk": 700,
+    "def": 1400,
+    "attribute": 1,
+    "race": 5,
+    "effect": "onFlip:gameReset()"
+  },
+  {
+    "id": 351,
+    "level": 3,
+    "rarity": 8,
+    "type": 1,
+    "atk": 900,
+    "def": 900,
+    "attribute": 2,
+    "race": 6,
+    "effect": "onFlip:destroyAll();excavateAndSummon(5,4)"
+  },
+  {
+    "id": 352,
+    "level": 4,
+    "rarity": 6,
+    "type": 1,
+    "atk": 1600,
+    "def": 1000,
+    "attribute": 4,
+    "race": 9,
+    "effect": "onSummon[cost:discard=1]:destroyAllOpp()"
+  },
+  {
+    "id": 353,
+    "level": 2,
+    "rarity": 4,
+    "type": 1,
+    "atk": 100,
+    "def": 100,
+    "attribute": 6,
+    "race": 8,
+    "effect": "onSummon:setFaceDown()",
+    "spirit": true
+  },
+  {
+    "id": 354,
+    "level": 1,
+    "rarity": 4,
+    "type": 1,
+    "atk": 300,
+    "def": 250,
+    "attribute": 4,
+    "race": 9,
+    "effect": "onSentToGrave:salvageFromGrave({ct=1})"
+  },
+  {
+    "id": 355,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:sendTopCardsToGrave(4);draw(self,1)",
+    "spellType": 1
   }
 ]

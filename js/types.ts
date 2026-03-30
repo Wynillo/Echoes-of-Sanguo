@@ -1,8 +1,8 @@
 export type Owner        = 'player' | 'opponent';
 export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
-export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell';
-export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip';
+export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell' | 'onAnySummon';
+export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip' | 'onDealBattleDamage' | 'onSentToGrave';
 export type SpellType    = 'normal' | 'targeted' | 'fromGrave' | 'field';
 
 // Monster covers both normal and effect cards; distinction via effect field.
@@ -144,9 +144,25 @@ export interface EffectDescriptorMap {
   halveAtk:                  { target: StatTarget };
   doubleAtk:                 { target: StatTarget };
   swapAtkDef:                { side: 'self' | 'opponent' | 'all' };
-  specialSummonFromDeck:     { filter: CardFilter };
+  specialSummonFromDeck:     { filter: CardFilter; faceDown?: boolean; position?: Position };
   reflectBattleDamage:       {};
   stealMonster:              {};
+  skipOppDraw:               {};
+  discardEntireHand:         { target: 'self' | 'opponent' | 'both' };
+  destroyAndDamageBoth:      { side: 'opponent' | 'self' };
+  preventBattleDamage:       {};
+  passive_negateTraps:       {};
+  passive_negateSpells:      {};
+  passive_negateMonsterEffects: {};
+  stealMonsterTemp:          {};
+  reviveFromEitherGrave:     {};
+  drawThenDiscard:           { drawCount: number; discardCount: number };
+  bounceOppHandToDeck:       { count: number };
+  tributeSelf:               {};
+  preventAttacks:            { turns: number };
+  createTokens:              { tokenId: string; count: number; position: Position };
+  gameReset:                 {};
+  excavateAndSummon:         { count: number; maxLevel: number };
 }
 
 export type EffectDescriptor = {
@@ -172,8 +188,15 @@ export interface EffectSignal {
 }
 
 export interface EffectCost {
-  lp?:      number;
-  discard?: number;
+  lp?:          number;
+  discard?:     number;
+  tributeSelf?: boolean;
+  lpHalf?:      boolean;
+}
+
+export interface TurnCounter {
+  turnsRemaining: number;
+  effect: string;
 }
 
 export interface CardEffectBlock {
@@ -194,6 +217,8 @@ export interface CardData {
   def?:         number;
   description:  string;
   effect?:      CardEffectBlock;
+  effects?:     CardEffectBlock[];
+  spirit?:      boolean;
   spellType?:   SpellType;
   trapTrigger?: TrapTrigger;
   target?:      string;
@@ -301,6 +326,13 @@ export interface PlayerState {
   };
   graveyard:        CardData[];
   normalSummonUsed: boolean;
+  battleProtection?: boolean;
+  turnCounters?: TurnCounter[];
+  fieldFlags?: {
+    negateTraps?: boolean;
+    negateSpells?: boolean;
+    negateMonsterEffects?: boolean;
+  };
 }
 
 export interface GameState {
@@ -311,6 +343,7 @@ export interface GameState {
   opponent:     PlayerState;
   log:          string[];
   firstTurnNoAttack?: boolean;
+  skipNextDraw?: Owner;
 }
 
 export interface DuelStats {
