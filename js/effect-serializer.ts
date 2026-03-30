@@ -166,11 +166,17 @@ function serializeAction(a: EffectDescriptor): string {
     case 'doubleAtk':               return `doubleAtk(${a.target})`;
     case 'swapAtkDef':              return `swapAtkDef(${a.side})`;
     // Special summon from deck
-    case 'specialSummonFromDeck':   return `specialSummonFromDeck(${serializeCardFilter(a.filter)})`;
+    case 'specialSummonFromDeck': {
+      let s = `specialSummonFromDeck(${serializeCardFilter(a.filter)}`;
+      if (a.faceDown) s += ',faceDown';
+      if (a.position && a.position !== 'atk') s += `,${a.position}`;
+      return s + ')';
+    }
     // Phase 2: Reflect & Steal
     case 'reflectBattleDamage':     return 'reflectBattleDamage()';
     case 'stealMonster':            return 'stealMonster()';
     case 'skipOppDraw':             return 'skipOppDraw()';
+    case 'discardEntireHand':       return `discardEntireHand(${a.target})`;
     default:
       throw new Error(`Unknown effect action type: ${(a as any).type}`);
   }
@@ -326,12 +332,20 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     case 'swapAtkDef':              return { type: 'swapAtkDef', side: args[0] as 'self' | 'opponent' | 'all' };
 
     // Special summon from deck
-    case 'specialSummonFromDeck':   return { type: 'specialSummonFromDeck', filter: deserializeCardFilter(args[0]) };
+    case 'specialSummonFromDeck': {
+      const desc: any = { type: 'specialSummonFromDeck', filter: deserializeCardFilter(args[0]) };
+      for (let i = 1; i < args.length; i++) {
+        if (args[i] === 'faceDown') desc.faceDown = true;
+        else if (args[i] === 'def' || args[i] === 'atk') desc.position = args[i];
+      }
+      return desc;
+    }
 
     // Phase 2: Reflect & Steal
     case 'reflectBattleDamage':     return { type: 'reflectBattleDamage' };
     case 'stealMonster':            return { type: 'stealMonster' };
     case 'skipOppDraw':             return { type: 'skipOppDraw' };
+    case 'discardEntireHand':       return { type: 'discardEntireHand', target: args[0] as 'self' | 'opponent' | 'both' };
 
     default:
       throw new Error(`Unknown action type: ${type}`);

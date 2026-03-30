@@ -144,10 +144,11 @@ export interface EffectDescriptorMap {
   halveAtk:                  { target: StatTarget };
   doubleAtk:                 { target: StatTarget };
   swapAtkDef:                { side: 'self' | 'opponent' | 'all' };
-  specialSummonFromDeck:     { filter: CardFilter };
+  specialSummonFromDeck:     { filter: CardFilter; faceDown?: boolean; position?: Position };
   reflectBattleDamage:       {};
   stealMonster:              {};
   skipOppDraw:               {};
+  discardEntireHand:         { target: 'self' | 'opponent' | 'both' };
 }
 
 export type EffectDescriptor = {

@@ -304,6 +304,20 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
+  discardEntireHand(desc: { target: 'self' | 'opponent' | 'both' }, ctx) {
+    const state = ctx.engine.getState();
+    const discard = (owner: Owner) => {
+      const st = state[owner];
+      while (st.hand.length > 0) {
+        st.graveyard.push(st.hand.pop()!);
+      }
+      ctx.engine.addLog(`${owner === 'player' ? 'You' : 'Opponent'} discarded entire hand.`);
+    };
+    if (desc.target === 'self' || desc.target === 'both') discard(ctx.owner);
+    if (desc.target === 'opponent' || desc.target === 'both') discard(oppOf(ctx.owner));
+    return {};
+  },
+
   destroyAttacker() {
     return { cancelAttack: true, destroyAttacker: true };
   },
@@ -657,14 +671,15 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  specialSummonFromDeck(desc: { filter: CardFilter }, ctx) {
+  specialSummonFromDeck(desc: { filter: CardFilter; faceDown?: boolean; position?: string }, ctx) {
     const st = ctx.engine.getState();
     const deck = st[ctx.owner].deck;
     const idx = deck.findIndex(c => matchesFilter(c, desc.filter));
     if (idx !== -1) {
       const [card] = deck.splice(idx, 1);
-      ctx.engine.specialSummon(ctx.owner, card);
-      ctx.engine.addLog(`${card.name} special summoned from deck!`);
+      const pos = (desc.position ?? 'atk') as 'atk' | 'def';
+      ctx.engine.specialSummon(ctx.owner, card, undefined, pos, !!desc.faceDown);
+      ctx.engine.addLog(`${card.name} special summoned from deck${desc.faceDown ? ' face-down' : ''}!`);
     }
     return {};
   },

@@ -3247,5 +3247,49 @@
     "attribute": 2,
     "race": 8,
     "effect": "passive:passive_indestructible()|onDealBattleDamage:discardOppHand(1)"
+  },
+  {
+    "id": 327,
+    "level": 1,
+    "rarity": 4,
+    "type": 1,
+    "atk": 300,
+    "def": 400,
+    "attribute": 1,
+    "race": 2,
+    "effect": "onFlip:salvageFromGrave({ct=3})"
+  },
+  {
+    "id": 328,
+    "level": 2,
+    "rarity": 6,
+    "type": 1,
+    "atk": 700,
+    "def": 600,
+    "attribute": 2,
+    "race": 6,
+    "effect": "onFlip:discardEntireHand(both);draw(self,5);draw(opponent,5)"
+  },
+  {
+    "id": 329,
+    "level": 3,
+    "rarity": 4,
+    "type": 1,
+    "atk": 200,
+    "def": 500,
+    "attribute": 2,
+    "race": 3,
+    "effect": "onFlip:destroyStrongestOpp()"
+  },
+  {
+    "id": 330,
+    "level": 2,
+    "rarity": 4,
+    "type": 1,
+    "atk": 400,
+    "def": 800,
+    "attribute": 2,
+    "race": 2,
+    "effect": "onDestroyByBattle:specialSummonFromDeck({maxLevel=2,r=2},faceDown,def)"
   }
 ]

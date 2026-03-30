@@ -411,14 +411,14 @@ export class GameEngine {
     return true;
   }
 
-  async specialSummon(owner: Owner, card: CardData, zone?: number){
+  async specialSummon(owner: Owner, card: CardData, zone?: number, position: Position = 'atk', faceDown = false){
     const st = this.state[owner];
     if(zone === undefined){
       zone = st.field.monsters.findIndex(z => z === null);
       if(zone === -1){ this.addLog('No free monster zone!'); return false; }
     }
     if(st.field.monsters[zone]){ this.addLog('Zone occupied!'); return false; }
-    const fc = new FieldCard(card, 'atk');
+    const fc = new FieldCard(card, position, faceDown);
     fc.summonedThisTurn = false; // special summons can usually attack (or keep true for balance)
     st.field.monsters[zone] = fc;
     if (owner === 'player') this._stats.monstersPlayed++; else this._stats.opponentMonstersPlayed++;

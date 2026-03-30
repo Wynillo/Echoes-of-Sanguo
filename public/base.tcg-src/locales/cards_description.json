@@ -1628,5 +1628,25 @@
     "id": 326,
     "name": "Spirit Reaper",
     "description": "[Passive] Cannot be destroyed by battle. When this card deals battle damage: Your opponent discards 1 card."
+  },
+  {
+    "id": 327,
+    "name": "Magician of Faith",
+    "description": "[Effect] FLIP: Return 1 Spell Card from your Graveyard to your hand."
+  },
+  {
+    "id": 328,
+    "name": "Morphing Jar",
+    "description": "[Effect] FLIP: Both players discard their entire hands, then draw 5 cards."
+  },
+  {
+    "id": 329,
+    "name": "Night Assailant",
+    "description": "[Effect] FLIP: Destroy the strongest opponent monster."
+  },
+  {
+    "id": 330,
+    "name": "Apprentice Magician",
+    "description": "[Effect] When destroyed by battle: Special Summon 1 Level 2 or lower Spellcaster from your Deck in face-down Defense Position."
   }
 ]
