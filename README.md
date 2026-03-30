@@ -75,7 +75,7 @@ Android support via **Capacitor 8** — the web game runs natively on Android de
 ```
 First launch → Choose starter deck (6 races available)
   → Campaign mode → Progress through 7 chapters → Win duels → Earn Jade Coins
-  → Shop → Buy booster packs & packages → Receive new cards
+  → Shop → Buy tiered card packages → Receive new cards
   → Build collection → Unlock stronger opponents & new shop tiers
 ```
 
@@ -94,15 +94,7 @@ The campaign spans **7 chapters** with **39 duels**, story nodes, and gauntlet e
 
 ### Shop
 
-**Booster Packs:**
-| Pack | Price | Contents |
-|---|---|---|
-| Starter Pack | 200 ◈ | 9 cards, one race, C/U-heavy |
-| Jade Pack | 450 ◈ | 9 cards, all races, standard |
-| Race Pack | 500 ◈ | 9 cards, chosen race, max Rare, max 2500 ATK |
-| Rarity Pack | 600 ◈ | 9 cards, min Rare, increased SR/UR chance |
-
-**Progression Packages** (unlocked via campaign):
+**Tiered Packages** (unlocked via campaign progression):
 | Package | Price | Unlock | Max ATK |
 |---|---|---|---|
 | Recruit's Supply | 250 ◈ | — | 1500 |
@@ -120,7 +112,7 @@ The campaign spans **7 chapters** with **39 duels**, story nodes, and gauntlet e
 [Press Start Screen]
   → [Title Screen]
     → First time: [Starter Deck Selection]  (once, 6 races to choose from)
-    → "Campaign":    [Campaign Map]  → [Dialogue]  → [Opponent Selection]  → [Game Board]  → [Duel Result / Defeated]
+    → "Campaign":    [Campaign Map]  → [Dialogue]  → [Opponent Selection]  → [Game Board]  → [Duel Result]
     → "Shop":        [Shop]  → [Pack Opening]
     → "Collection":  [Collection Binder]  (312 cards, silhouette for missing)
     → "Deckbuilder": [Deck Builder]  (own cards only, 40-card deck)
@@ -136,7 +128,7 @@ The campaign spans **7 chapters** with **39 duels**, story nodes, and gauntlet e
 | **React 19.2.4** | UI framework with Context-based state management |
 | **TypeScript 6.0** | Type safety for game engine & UI |
 | **Vite 8** | Build tool and dev server |
-| **Tailwind CSS 4** | Styling (pixel font theme, dark fantasy design) |
+| **Tailwind CSS 4** | Styling (system fonts, dark fantasy design) |
 | **GSAP 3.14** | Animations (attacks, card effects) |
 | **i18next** | Internationalization (DE/EN) |
 | **Capacitor 8** | Android app bridge |
@@ -193,7 +185,7 @@ ECHOES-OF-SANGUO/
 │       ├── index.tsx           – React entry point
 │       ├── contexts/           – React contexts (Game, Screen, Progression, Modal, Selection, Campaign)
 │       ├── screens/            – Screen components (PressStart, Title, Starter, Campaign, Dialogue,
-│       │                         Opponent, Game, Defeated, Shop, PackOpening, Collection, Deckbuilder, SavePoint)
+│       │                         Opponent, Game, DuelResult, Shop, PackOpening, Collection, Deckbuilder, SavePoint)
 │       │   └── game/           – GameScreen sub-components (HandArea, LPPanel, OpponentField, PlayerField, PhaseControls)
 │       ├── components/         – Reusable UI (Card, HandCard, FieldCard, FieldSpellTrap, HoverPreview,
 │       │                         CardActivationOverlay, VFXOverlay, ErrorBoundary)
@@ -222,9 +214,9 @@ ECHOES-OF-SANGUO/
 ├── locales/
 │   ├── de.json                 – German translations
 │   └── en.json                 – English translations
-├── tests/                      – Unit/integration tests (Vitest, 18 test files)
+├── tests/                      – Unit/integration tests (Vitest, 21 test files)
 ├── tests-e2e/                  – End-to-end tests (Playwright)
-├── docs/                       – Documentation (tcg-format.md, plan-outsource-tcg-package.md)
+├── docs/                       – Documentation (tcg-format.md, card-effects-table.md, ux-audit.md, and more)
 └── android/                    – Capacitor Android project
 ```
 
