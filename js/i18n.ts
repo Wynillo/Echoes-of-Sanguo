@@ -14,6 +14,13 @@ export const i18nReady = i18next
       en: { translation: en },
     },
     interpolation: { escapeValue: false },
+  })
+  .then(() => {
+    document.documentElement.lang = i18next.language;
   });
+
+i18next.on('languageChanged', (lng) => {
+  document.documentElement.lang = lng;
+});
 
 export default i18next;

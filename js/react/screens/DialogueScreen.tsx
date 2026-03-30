@@ -3,7 +3,7 @@ import { useScreen }   from '../contexts/ScreenContext.js';
 import { useGame }     from '../contexts/GameContext.js';
 import { CAMPAIGN_IMAGES, CAMPAIGN_I18N } from '../../campaign.js';
 import { Progression } from '../../progression.js';
-import type { DialogueScene, ForegroundSprite } from '../../tcg-format/types.js';
+import type { DialogueScene, ForegroundSprite } from '@wynillo/tcg-format';
 import type { Screen } from '../contexts/ScreenContext.js';
 import type { OpponentConfig } from '../../types.js';
 

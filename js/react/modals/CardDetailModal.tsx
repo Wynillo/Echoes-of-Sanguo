@@ -9,6 +9,7 @@ import type { CardData, GameState } from '../../types.js';
 import type { FieldCard } from '../../field.js';
 import type { GameEngine } from '../../engine.js';
 import { getAttrById } from '../../type-metadata.js';
+import { getFusionHints } from '../../cards.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 import type { Selection } from '../contexts/SelectionContext.js';
 
@@ -22,6 +23,8 @@ export function CardDetailModal({ modal }: Props) {
   const { t } = useTranslation();
 
   const game = gameRef.current;
+
+  const fusionHints = card.type === CardType.Fusion ? getFusionHints(card.id) : [];
 
   const attrName = card.attribute ? (getAttrById(card.attribute)?.value ?? '') : '';
   const typeLabels: Record<number, string> = {
@@ -167,6 +170,18 @@ export function CardDetailModal({ modal }: Props) {
           <h2 id="detail-card-name">{card.name}</h2>
           <p className="detail-type">{[attrName, typeLabel].filter(Boolean).join(' · ')}{levelStr}</p>
           <p className="detail-desc">{card.description ? highlightCardText(card.description) : ''}</p>
+          {fusionHints.length > 0 && (
+            <div className="detail-fusion-hints">
+              <span className="fusion-hint-label">{t('card_detail.fusion_hint_label')}</span>
+              {fusionHints.map((h, i) => (
+                <div key={i} className="fusion-hint-row">
+                  {h.type === 'formula'
+                    ? t('card_detail.fusion_hint_combo', { a: h.operand1Label, b: h.operand2Label })
+                    : t('card_detail.fusion_hint_combo', { a: h.material1!.name, b: h.material2!.name })}
+                </div>
+              ))}
+            </div>
+          )}
           <p className="detail-stats">{statsText}</p>
         </div>
       </div>

@@ -18,7 +18,7 @@ const MAX_COPIES = GAME_RULES.maxCardCopies;
 
 type ViewMode = 'large' | 'small' | 'table';
 type ActiveTab = 'collection' | 'deck';
-type SortColumn = 'id' | 'rarity' | 'name' | 'atk' | 'def' | 'type' | 'race' | 'collection' | 'inDeck';
+type SortColumn = 'id' | 'rarity' | 'name' | 'atk' | 'def' | 'type' | 'race' | 'collection' | 'inDeck' | 'newest';
 type SortDir = 'asc' | 'desc';
 
 export default function DeckbuilderScreen() {
@@ -133,21 +133,20 @@ export default function DeckbuilderScreen() {
         case 'race':       cmp = ((a.race as number) ?? 0) - ((b.race as number) ?? 0); break;
         case 'collection': cmp = (collectionCount[a.id] || 0) - (collectionCount[b.id] || 0); break;
         case 'inDeck':     cmp = (copyMap[a.id] || 0) - (copyMap[b.id] || 0); break;
+        case 'newest':     cmp = (isNew(a.id) ? 1 : 0) - (isNew(b.id) ? 1 : 0); break;
       }
       return sortDirection === 'asc' ? cmp : -cmp;
     });
     return sorted;
-  }, [displayedCards, sortColumn, sortDirection, collectionCount, copyMap]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayedCards, sortColumn, sortDirection, collectionCount, copyMap, seenCards]);
 
   const visibleCards = sortedCards.slice(0, visibleCount);
 
-  // Mark all visible cards as seen after mount
+  // Refresh seen cards when collection changes (e.g. after returning from a duel)
   useEffect(() => {
-    const ids = collectionCards.map(c => c.id);
-    Progression.markCardsAsSeen(ids);
     setSeenCards(Progression.getSeenCards());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [collection]);
 
   function isNew(id: string) { return !seenCards.has(id); }
 
@@ -170,6 +169,11 @@ export default function DeckbuilderScreen() {
 
   function saveDeck() {
     if (currentDeck.length !== MAX_DECK) return;
+    const existing = Progression.getDeck();
+    if (existing && existing.length > 0) {
+      const ok = window.confirm(t('deckbuilder.confirm_overwrite', 'Overwrite current deck?'));
+      if (!ok) return;
+    }
     Progression.saveDeck(currentDeck);
     setToast(true);
     setTimeout(() => setToast(false), 2000);
@@ -231,18 +235,16 @@ export default function DeckbuilderScreen() {
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
+        <button id="btn-db-back" className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('deckbuilder.back')}</button>
         <div className={styles.title}>{t('deckbuilder.title')}</div>
         <div className={styles.count}>{t('deckbuilder.cards_count', { current: currentDeck.length, max: MAX_DECK })}</div>
-        <div className="flex gap-2">
-          <button
-            id="btn-db-save"
-            className="btn-primary"
-            disabled={!deckFull}
-            style={{ opacity: deckFull ? 1 : 0.4, cursor: deckFull ? 'pointer' : 'not-allowed' }}
-            onClick={saveDeck}
-          >{t('deckbuilder.save_btn')}</button>
-          <button id="btn-db-back" className="btn-secondary" onClick={() => navigateTo('save-point')}>{t('deckbuilder.back')}</button>
-        </div>
+        <button
+          id="btn-db-save"
+          className="btn-primary"
+          disabled={!deckFull}
+          style={{ opacity: deckFull ? 1 : 0.4, cursor: deckFull ? 'pointer' : 'not-allowed' }}
+          onClick={saveDeck}
+        >{t('deckbuilder.save_btn')}</button>
         <div className={`${styles.tabs} ml-auto`}>
           <button
             className={`${styles.tabBtn}${activeTab === 'collection' ? ` ${styles.activeTab}` : ''}`}
@@ -342,6 +344,7 @@ export default function DeckbuilderScreen() {
                       <Card card={card} />
                     </div>
                     {copies > 0 && <div className={styles.copyBadge}>{copies}/{maxCopiesFor(card.id)}</div>}
+                    {isNew(card.id) && <div className={styles.newBadgeGrid}>NEW</div>}
                   </div>
                 );
               })}
@@ -375,11 +378,11 @@ export default function DeckbuilderScreen() {
                     <th className={styles.sortable} onClick={() => toggleSort('race')}>
                       {t('deckbuilder.table_race')}{sortIndicator('race')}
                     </th>
-                    <th className={styles.sortable} onClick={() => toggleSort('collection')}>
-                      {t('deckbuilder.table_collection')}{sortIndicator('collection')}
-                    </th>
                     <th className={styles.sortable} onClick={() => toggleSort('inDeck')}>
                       {t('deckbuilder.table_in_deck')}{sortIndicator('inDeck')}
+                    </th>
+                    <th className={styles.sortable} onClick={() => toggleSort('newest')}>
+                      {t('deckbuilder.table_new')}{sortIndicator('newest')}
                     </th>
                   </tr>
                 </thead>
@@ -408,10 +411,7 @@ export default function DeckbuilderScreen() {
                         onDoubleClick={() => handleCardDoubleClick(card)}
                         ref={el => { if (el) attachHover(el as any, card, null); }}
                       >
-                        <td>
-                          {card.id}
-                          {isNew(card.id) && <span className={styles.newBadge}>NEW</span>}
-                        </td>
+                        <td>{card.id}</td>
                         <td>
                           <span style={{ color: rarColor }}>
                             {rarMeta?.value ?? '\u2014'}
@@ -422,8 +422,8 @@ export default function DeckbuilderScreen() {
                         <td>{card.def !== undefined ? card.def : '\u2014'}</td>
                         <td style={{ color: typeColor }}>{typeLbl}</td>
                         <td>{raceLbl}</td>
-                        <td>{ownedCount}</td>
-                        <td>{copies} / {maxCopiesFor(card.id)}</td>
+                        <td>{copies} / {ownedCount}</td>
+                        <td>{isNew(card.id) && <span className={styles.newBadge}>NEW</span>}</td>
                       </tr>
                     );
                   })}

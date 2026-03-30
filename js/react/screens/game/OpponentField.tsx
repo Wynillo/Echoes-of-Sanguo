@@ -75,7 +75,7 @@ export function OpponentField() {
           const fst = opp.field.spellTraps[i];
           return (
             <div key={i} className="zone-slot" data-zone={i}>
-              {!fst && <div className="zone-label">Z/F</div>}
+              {!fst && <div className="zone-label" title="Spell/Trap Zone">Z/F</div>}
               {fst && (
                 <FieldSpellTrapComponent
                   fst={fst} owner="opponent" zone={i} interactive={false}
@@ -94,7 +94,7 @@ export function OpponentField() {
           const viewable   = isOppMonsterViewable(i);
           return (
             <div key={i} className={`zone-slot${targetable ? ' targetable' : ''}`} data-zone={i}>
-              {!fc && <div className="zone-label">M</div>}
+              {!fc && <div className="zone-label" title="Monster Zone">M</div>}
               {fc && (
                 <FieldCardComponent
                   fc={fc} owner="opponent" zone={i}

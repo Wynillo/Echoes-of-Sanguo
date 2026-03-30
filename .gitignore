@@ -1,5 +1,6 @@
 node_modules/
 dist/
+public/base.tcg
 
 # Android build outputs (keep project files, ignore generated outputs)
 android/.gradle/

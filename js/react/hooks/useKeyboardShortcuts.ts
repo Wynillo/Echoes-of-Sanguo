@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { GameState } from '../../types.js';
 import type { GameEngine } from '../../engine.js';
 
@@ -10,13 +10,19 @@ interface Params {
 }
 
 export function useKeyboardShortcuts({ gameState, gameRef, resetSel, onHideDirect }: Params) {
+  const [showHelp, setShowHelp] = useState(false);
+
   useEffect(() => {
     function handler(e: KeyboardEvent) {
       const game = gameRef.current;
       if (!game || !gameState) return;
-      // Don't capture when user is typing in an input
       if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
 
+      if (e.key === '?') {
+        e.preventDefault();
+        setShowHelp(prev => !prev);
+        return;
+      }
       if (e.key === 'b' || e.key === 'B') {
         e.preventDefault();
         game.advancePhase();
@@ -33,9 +39,12 @@ export function useKeyboardShortcuts({ gameState, gameRef, resetSel, onHideDirec
       } else if (e.key === 'Escape') {
         e.preventDefault();
         resetSel();
+        setShowHelp(false);
       }
     }
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [gameState, gameRef, resetSel, onHideDirect]);
+
+  return { showHelp, setShowHelp };
 }

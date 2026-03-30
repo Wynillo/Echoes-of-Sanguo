@@ -18,6 +18,8 @@ export function OptionsModal() {
   const [volMusic,    setVolMusic]    = useState(saved.volMusic);
   const [volSfx,      setVolSfx]      = useState(saved.volSfx);
   const [refillHand,  setRefillHand]  = useState(saved.refillHand);
+  const [muted,       setMuted]       = useState(saved.volMaster === 0);
+  const [preMuteVol,  setPreMuteVol]  = useState(saved.volMaster || 50);
   const [showConfirm, setShowConfirm] = useState(false);
 
   // Re-sync from persisted settings on mount to guard against stale
@@ -57,12 +59,28 @@ export function OptionsModal() {
       </div>
 
       <div className="options-row">
+        <label>{t('options.mute', 'Mute')}</label>
+        <button className="btn-small" onClick={() => {
+          if (muted) {
+            setVolMaster(preMuteVol);
+            Audio.setVolumes(preMuteVol, volMusic, volSfx);
+            setMuted(false);
+          } else {
+            setPreMuteVol(volMaster || 50);
+            setVolMaster(0);
+            Audio.setVolumes(0, volMusic, volSfx);
+            setMuted(true);
+          }
+        }}>{muted ? t('options.unmute', 'Unmute') : t('options.mute', 'Mute')}</button>
+      </div>
+
+      <div className="options-row">
         <label>
           {t('options.vol_master')}
           <span>{volMaster}%</span>
         </label>
         <input type="range" min="0" max="100" value={volMaster}
-          onChange={e => { const v = +e.target.value; setVolMaster(v); Audio.setVolumes(v, volMusic, volSfx); }} />
+          onChange={e => { const v = +e.target.value; setVolMaster(v); setMuted(v === 0); Audio.setVolumes(v, volMusic, volSfx); }} />
       </div>
 
       <div className="options-row">

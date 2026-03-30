@@ -1,13 +1,20 @@
 @import './animations.css';
 @tailwind utilities;
 
-/* ============================================================
-   ECHOES OF SANGUO - Stylesheet
-   ============================================================ */
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Global Focus Styles ────────────────────────────────── */
+.skip-link {
+  position: absolute; left: -9999px; top: auto;
+  width: 1px; height: 1px; overflow: hidden;
+  z-index: 10000; padding: 8px 16px;
+  background: var(--gold); color: #000; font-weight: bold;
+  text-decoration: none;
+}
+.skip-link:focus {
+  position: fixed; left: 8px; top: 8px;
+  width: auto; height: auto; overflow: visible;
+}
+
 :focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
@@ -32,7 +39,7 @@ button:focus-visible, [role="button"]:focus-visible {
   --gold:        #c8a848;
   --gold-light:  #f0d080;
   --text:        #d0e8d8;
-  --text-dim:    #5a7a60;
+  --text-dim:    #7a9a80;
   --red:         #c83030;
   --green:       #30c860;
   --card-w:      104px;
@@ -42,6 +49,11 @@ button:focus-visible, [role="button"]:focus-visible {
   --card-w-big:  180px;
   --card-h-big:  248px;
   --font-stats:  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-xs:     0.8125rem;
+  --font-sm:     0.875rem;
+  --font-base:   1rem;
+  --font-lg:     1.125rem;
+  --font-xl:     1.25rem;
 }
 
 html {
@@ -51,23 +63,21 @@ html {
 html, body {
   width: 100%; height: 100%;
   overflow: hidden;
-  font-family: 'Pixelify Sans', monospace;
+  font-family: var(--font-stats);
   background: var(--bg);
   color: var(--text);
   user-select: none;
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: unset;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   image-rendering: pixelated;
 }
 
-/* ── Scrollbars ───────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 0; }
 /* Firefox */
 * { scrollbar-width: thin; scrollbar-color: var(--border-glow) var(--bg); }
 
-/* ── Shared title background (TitleScreen + SavePointScreen) ── */
 .title-bg {
   position: absolute; inset: 0;
   background: url('/title-bg.png') center center/cover no-repeat, var(--bg2);
@@ -79,9 +89,6 @@ html, body {
   animation: runeGlow 3s ease-in-out infinite;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   BUTTONS
-   ═══════════════════════════════════════════════════════════ */
 button { cursor: pointer; border: none; font-family: inherit; transition: none; }
 .btn-primary {
   background: #1a6040;
@@ -114,12 +121,12 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   border-radius: 0; font-size: 0.75rem;
 }
 .btn-small:hover { color: var(--gold); border-color: var(--gold); }
+.btn-primary:disabled, .btn-secondary:disabled, .btn-menu:disabled,
+.btn-cancel:disabled, .btn-small:disabled {
+  opacity: 0.5; cursor: not-allowed; pointer-events: none;
+}
 .btn-log { color: #50d890; border-color: #1a5a30; }
 .btn-log:hover { color: #fff; border-color: #50d890; background: #0e3c1e; }
-
-/* ═══════════════════════════════════════════════════════════
-   GAME LAYOUT
-   ═══════════════════════════════════════════════════════════ */
 
 #game-screen {
   /* Card size: dynamic — 4 zone rows + phase bar fill the available height */
@@ -136,7 +143,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   position: relative;
 }
 
-/* ── Opponent hand — 3/4 outside top ──────────────────────── */
 #opp-hand-area {
   grid-row: 1;
   display: flex; justify-content: center; align-items: flex-end;
@@ -151,7 +157,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .opp-hand-card { opacity: 0.85; }
 
-/* ── Field ─────────────────────────────────────────────────── */
 #field {
   grid-row: 2;
   display: flex; flex-direction: row;
@@ -159,7 +164,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   position: relative;
 }
 
-/* ── Left Panel ──────────────────────────────────────────── */
 #field-left {
   width: 15%;
   min-width: 60px;
@@ -187,14 +191,13 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 #btn-options:hover { background: #1a6848; box-shadow: none; border-color: #288050 #0a2418 #0a2418 #288050; }
 /* Desktop: show text, hide burger */
 .btn-options-mobile  { display: none; }
-.btn-options-desktop { display: inline; font-size: 0.6875rem; font-weight: bold; letter-spacing: 1px; }
+.btn-options-desktop { display: inline; font-size: 0.8125rem; font-weight: bold; letter-spacing: 1px; }
 /* Mobile/Tablet: show burger, hide text */
 @media (pointer: coarse), (max-width: 900px) {
   .btn-options-mobile  { display: inline; }
   .btn-options-desktop { display: none; }
   #btn-options { min-width: 44px; padding: 0; font-size: 20px; }
 }
-/* ── Floating options button (reusable across screens) ───── */
 .options-btn-floating {
   position: fixed;
   top: 8px; left: 8px;
@@ -259,7 +262,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .field-spell-opp .field-spell-icon { color: #bc2060; }
 .field-spell-opp .field-spell-name { color: #e8b0c0; }
 
-/* ── Center: Zone Rows ───────────────────────────────────── */
 #field-center {
   flex: 1;
   display: flex; flex-direction: column;
@@ -307,7 +309,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 #phase-name { font-size: 10px; font-weight: bold; color: var(--gold); letter-spacing: 1px; }
 .turn-info  { font-size: 9px; color: var(--text-dim); }
 
-/* ── Direct Attack Button ────────────────────────────────── */
 #btn-direct-attack {
   position: absolute;
   left: 50%; transform: translateX(-50%);
@@ -327,7 +328,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 #btn-direct-attack:hover { background: #9b0000; box-shadow: none; }
 
-/* Action hint overlay */
 #action-hint {
   position: absolute;
   bottom: 4px; left: 50%; transform: translateX(-50%);
@@ -337,7 +337,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   text-shadow: 1px 1px 0 #000;
 }
 
-/* ── Right Panel ─────────────────────────────────────────── */
 #field-right {
   width: 22%;
   min-width: 100px;
@@ -391,12 +390,11 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   line-height: 1; margin-top: 2px;
 }
 
-/* NEXT PHASE button */
 #btn-next-phase {
   font-family: inherit; font-weight: bold;
   padding: 10px 6px; border-radius: 0;
   cursor: pointer; white-space: nowrap;
-  font-size: 0.6875rem; letter-spacing: 0.5px;
+  font-size: 0.8125rem; letter-spacing: 0.5px;
   transition: none;
   flex-shrink: 0;
   text-align: center;
@@ -432,7 +430,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   cursor: default;
 }
 
-/* LP Panel */
 #lp-panel {
   display: flex; flex-direction: column;
   gap: 4px; flex: 1; min-width: 0;
@@ -456,7 +453,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .opp-lp-bar { background: #a82020 !important; }
 .lp-bar { height: 100%; width: 100%; background: #1e6840; border-radius: 0; transition: width 0.3s steps(8); }
 
-/* ── Player hand — 1/4 below viewport ───────────────────── */
 #hand-area {
   grid-row: 3;
   display: flex; align-items: flex-start; justify-content: center;
@@ -472,19 +468,58 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   margin-top: -30px;   /* overlap 30px into the spell-trap zone above */
 }
 
-/* ── Battle Log (hidden, via options later) ──────────────── */
 #battle-log {
   display: none;
 }
+
+.ai-thinking-indicator {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.75); color: var(--gold-light);
+  padding: 8px 20px; border-radius: 4px; border: 1px solid var(--border-glow);
+  font-size: var(--font-sm); letter-spacing: 1px;
+  pointer-events: none; z-index: 50;
+  animation: ai-pulse 1.5s ease-in-out infinite;
+}
+@keyframes ai-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.keyboard-help-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500;
+}
+.keyboard-help-panel {
+  background: var(--panel); border: 1px solid var(--border-glow);
+  padding: 20px 28px; min-width: 240px;
+  color: var(--text); font-family: monospace;
+}
+.keyboard-help-panel h3 {
+  color: var(--gold); margin-bottom: 12px; font-size: 1rem;
+}
+.keyboard-help-panel dl {
+  display: grid; grid-template-columns: auto 1fr; gap: 6px 16px;
+}
+.keyboard-help-panel dt {
+  color: var(--gold-light); font-weight: bold;
+}
+.keyboard-help-panel dd {
+  color: var(--text-dim);
+}
+.keyboard-help-panel button {
+  margin-top: 14px;
+}
 .log-header {
   padding: 6px 8px;
-  font-size: 0.6875rem; color: var(--gold);
+  font-size: 0.8125rem; color: var(--gold);
   border-bottom: 1px solid var(--border);
   text-align: center;
 }
 #log-entries { flex: 1; overflow-y: auto; padding: 4px; }
 .log-entry {
-  font-size: 0.6875rem; color: var(--text-dim);
+  font-size: 0.8125rem; color: var(--text-dim);
   padding: 3px 4px;
   border-bottom: 1px solid rgba(20,60,35,0.4);
   line-height: 1.4;
@@ -492,9 +527,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .log-entry:first-child { color: var(--text); }
 
-/* ═══════════════════════════════════════════════════════════
-   CARDS
-   ═══════════════════════════════════════════════════════════ */
 .card {
   width: var(--card-w);
   height: var(--card-h);
@@ -516,7 +548,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   flex-shrink: 1;
 }
 
-/* Type borders */
 .normal-card { border-color: rgba(220,220,220,0.6); }
 .effect-card  { border-color: rgba(200,120,40,0.8); }
 .fusion-card  { border-color: rgba(160,80,220,0.9); box-shadow: none; outline: 2px solid rgba(160,80,220,0.6); }
@@ -532,7 +563,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .trap-card::before      { content:''; position:absolute; inset:0; background:rgba(180,20,60,0.45);  z-index:0; pointer-events:none; border-radius:0; }
 .equipment-card::before { content:''; position:absolute; inset:0; background:rgba(224,128,48,0.45); z-index:0; pointer-events:none; border-radius:0; }
 
-/* Attribute backgrounds */
 .attr-fire  { background: #451005; }
 .attr-water { background: #002040; }
 .attr-earth { background: #201808; }
@@ -541,7 +571,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .attr-dark  { background: #160830; }
 .attr-spell { background: #002018; }
 
-/* Face down */
 .face-down { background: #081610 !important; border-color: rgba(40,120,70,0.6) !important; }
 .card-back-pattern {
   width: 100%; height: 100%;
@@ -561,8 +590,13 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   background: rgba(0,0,0,0.3);
 }
 .own-facedown { filter: brightness(0.7); }
+.facedown-spell { background: #002018 !important; border-color: rgba(40,160,120,0.6) !important; }
+.facedown-trap  { background: #200810 !important; border-color: rgba(180,40,80,0.6) !important; }
+.facedown-equip { background: #1a1008 !important; border-color: rgba(224,128,48,0.6) !important; }
+.facedown-spell .facedown-overlay { color: rgba(50,160,100,0.8); }
+.facedown-trap  .facedown-overlay { color: rgba(200,60,80,0.8); }
+.facedown-equip .facedown-overlay { color: rgba(224,148,68,0.8); }
 
-/* Equipment badge on equipped monsters */
 .equip-badge {
   position: absolute; top: 1px; right: 1px;
   font-size: 10px; line-height: 1;
@@ -571,7 +605,23 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   z-index: 10; pointer-events: none;
 }
 
-/* Field card states */
+.passive-badges {
+  position: absolute; bottom: 1px; right: 1px;
+  font-size: 9px; line-height: 1;
+  background: rgba(0,0,0,0.7); color: #fff;
+  border-radius: 2px; padding: 1px 3px;
+  z-index: 10; pointer-events: none;
+  letter-spacing: 1px;
+}
+
+.long-press-active {
+  animation: longPressFill 400ms linear forwards;
+}
+@keyframes longPressFill {
+  from { box-shadow: inset 0 0 0 0 rgba(200, 168, 72, 0.3); }
+  to   { box-shadow: inset 0 0 0 40px rgba(200, 168, 72, 0.15); }
+}
+
 .field-card { cursor: default; animation: fieldCardIn 0.32s cubic-bezier(0.34,1.56,0.64,1) both; }
 .interactive { cursor: pointer; }
 .interactive:hover { transform: translateY(-4px); z-index: 20; box-shadow: none; outline: 2px solid #30c060; border-color: #30c060 !important; }
@@ -579,15 +629,13 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .viewable:hover { transform: translateY(-4px); z-index: 20; box-shadow: none; outline: 2px solid #6090d0; border-color: #6090d0 !important; }
 .can-attack { cursor: pointer; }
 .can-attack:hover { transform: translateY(-4px); z-index: 20; box-shadow: none; outline: 2px solid #ff8844; border-color: #ff8844 !important; }
-.selected { border-color: #ffdd44 !important; box-shadow: none !important; outline: 2px solid #ffdd44; z-index: 20; }
+.selected { border-color: var(--gold-light) !important; box-shadow: none !important; outline: 2px solid var(--gold-light); z-index: 20; }
 .exhausted { opacity: 0.6; filter: grayscale(40%); }
 
-/* Defense position */
 .pos-def { transform: rotate(90deg); animation-name: fieldCardInDef; }
 .pos-def:hover { transform: rotate(90deg) translateY(-4px) !important; }
 .pos-def.selected { transform: rotate(90deg); }
 
-/* Hand cards */
 .hand-card { cursor: pointer; transition: none; }
 .hand-card:hover { transform: translateY(-14px) scale(1.08); z-index: 100; box-shadow: none; outline: 2px solid var(--border-glow); }
 .hand-card.playable:hover { box-shadow: none; outline: 2px solid #30c060; }
@@ -617,7 +665,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   border-radius: 50%;
   pointer-events: none;
   z-index: 10;
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
 }
 
 /* Floating fusion bar (long-press fusion group) */
@@ -630,7 +678,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   background: rgba(0, 0, 0, 0.85);
   border: 2px solid #ffd700;
   border-radius: 8px;
-  font-family: 'Pixelify Sans', 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   font-size: 10px;
   color: #eee;
   position: absolute;
@@ -670,7 +718,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .fusion-clear-btn:active { opacity: 0.7; }
 
-/* ── Floating fusion bar: mobile touch-friendly ── */
 @media (pointer: coarse), (max-width: 600px) {
   .floating-fusion-bar {
     padding: 10px 12px;
@@ -696,9 +743,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   flex-shrink: 0;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   CARD HOVER PREVIEW
-   ═══════════════════════════════════════════════════════════ */
 #card-hover-preview {
   position: fixed;
   z-index: 500;
@@ -762,9 +806,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   letter-spacing: 0.03em;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   MODALS
-   ═══════════════════════════════════════════════════════════ */
 #modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,10,0.75);
@@ -784,7 +825,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 
 .modal h2, .modal h3 { color: var(--gold-light); margin-bottom: 14px; text-align: center; }
 
-/* Action Menu */
 #card-action-menu { max-width: 280px; }
 #action-buttons { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 .menu-action-btn {
@@ -795,16 +835,17 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .menu-action-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(20,70,40,0.9); transform: translateX(4px); }
 
-/* Card Detail */
 #card-detail-modal { max-width: 420px; }
 .detail-layout { display: flex; gap: 16px; margin-bottom: 12px; }
 .detail-info { flex: 1; }
 .detail-info h2 { color: var(--gold-light); font-size: 1.125rem; margin-bottom: 6px; text-align: left; }
 .detail-type  { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; }
 .detail-desc  { font-size: 0.75rem; color: var(--text); line-height: 1.5; margin-bottom: 8px; }
+.detail-fusion-hints { font-size: 0.75rem; margin-bottom: 8px; }
+.fusion-hint-label { color: var(--gold-light); font-weight: bold; display: block; margin-bottom: 4px; }
+.fusion-hint-row { color: #cc88ff; margin-left: 8px; line-height: 1.6; }
 .detail-stats { font-size: 0.875rem; font-weight: bold; color: var(--gold); font-family: var(--font-stats); }
 
-/* ── Card description keyword highlights ──────────────────── */
 .kw-effect  { font-weight: bold; color: #ff9955; }
 .kw-passive { font-weight: bold; color: #55aaff; }
 .kw-fusion  { font-weight: bold; color: #cc88ff; }
@@ -815,7 +856,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .kw-race    { font-weight: bold; }
 .kw-attr    { font-weight: bold; }
 
-/* Trap Prompt */
 #trap-prompt-modal { max-width: 380px; text-align: center; }
 #trap-prompt-card { display: flex; justify-content: center; margin: 10px 0; }
 #trap-prompt-msg  { font-size: 0.75rem; color: var(--text); margin: 8px 0; }
@@ -840,17 +880,15 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   padding: 8px 12px;
   margin: 8px 0 4px;
   text-align: center;
-  font-family: 'Pixelify Sans', monospace;
+  font-family: var(--font-stats);
   font-size: 0.75rem;
   color: #ffcccc;
   line-height: 1.5;
 }
 
-/* Grave Selection */
 #grave-select-modal { max-width: 500px; }
 .card-select-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-height: 300px; overflow-y: auto; padding: 8px; }
 
-/* Card List */
 #cardlist-modal {
   max-width: 95vw; max-height: 90vh;
   overflow-y: auto;
@@ -866,18 +904,13 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .recipe-line { font-size: 0.75rem; color: var(--text-dim); padding: 3px 0; border-bottom: 1px solid rgba(20,60,35,0.4); }
 .recipe-line::before { content: '✨ '; color: #aa66ff; }
 
-/* Result Screen */
 #result-modal { text-align: center; padding: 40px; min-width: 300px; }
 .result-content h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); margin-bottom: 16px; }
 .result-content p  { color: var(--text); margin-bottom: 24px; line-height: 1.5; }
 .result-buttons { display: flex; gap: 12px; justify-content: center; }
 
-/* Hidden utility */
 .hidden { display: none !important; }
 
-/* ═══════════════════════════════════════════════════════════
-   KARTEN-AKTIVIERUNGS-ANIMATION
-   ═══════════════════════════════════════════════════════════ */
 #card-activate-overlay {
   position: fixed; inset: 0;
   z-index: 350;
@@ -942,7 +975,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   font-size: 0.8125rem; color: var(--text); line-height: 1.55;
 }
 
-/* ── Angriffs-Animation ─────────────────────────────────── */
 .atk-burst {
   position: fixed;
   width: 110px; height: 110px;
@@ -965,7 +997,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   animation: cardDraw 0.38s cubic-bezier(0.22,1,0.36,1) both;
 }
 
-/* ── Fusion Animation ──────────────────────────────────────── */
 .fusion-burst {
   position: fixed;
   width: 160px; height: 160px;
@@ -987,7 +1018,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   animation: fusionResultPop 0.45s cubic-bezier(0.22,1,0.36,1) both !important;
 }
 
-/* ── Touch / Coarse Pointer ──────────────────────────────── */
 @media (pointer: coarse) {
   .hand-card:hover,
   .hand-card.playable:hover      { transform: none; box-shadow: none; z-index: auto; }
@@ -1010,7 +1040,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   #card-hover-preview { display: none !important; }
 }
 
-/* ── Portrait Smartphone (≤ 480px) ──────────────────────── */
 @media (max-width: 480px) {
   .zone-row { gap: 2px; }
   #field-left  { min-width: 50px; width: 13%; }
@@ -1021,9 +1050,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   #player-hand .hand-card:last-child { margin-right: 0; }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   OPTIONS MODAL
-   ═══════════════════════════════════════════════════════════ */
 #options-modal { min-width: 320px; max-width: 420px; }
 #options-modal h2 { margin-bottom: 20px; }
 
@@ -1057,7 +1083,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .options-buttons .btn-cancel { margin-top: 0; }
 
-/* View Log button */
 .options-log {
   margin-top: 16px;
   padding-top: 16px;
@@ -1065,7 +1090,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .options-log .btn-secondary { width: 100%; }
 
-/* Battle Log Modal */
 #battle-log-modal { min-width: 320px; max-width: 460px; }
 #battle-log-modal h2 { margin-bottom: 14px; }
 .battle-log-entries {
@@ -1082,7 +1106,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   padding: 16px;
 }
 
-/* Surrender section */
 .options-surrender {
   margin-top: 16px;
   padding-top: 16px;
@@ -1127,12 +1150,11 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 /* Floating phase button: hidden on desktop, shown in portrait mobile */
 .floating-phase-btn { display: none; }
 
-/* ── Portrait Smartphone (≤ 540px) — Top-bar layout ──────── */
 /*
-  Strategy: replace side panels with a 48px top control bar.
+  Portrait layout: replace side panels with a 48px top control bar.
   Cards use full viewport width minus tiny 30px graves-only right strip.
-  Formula: (100vw - 30px - 8px padding - 4 gaps×2px) / 5 ≈ (100vw - 46px) / 5
-  At 375px: (375 - 46) / 5 ≈ 65.8px wide cards — nearly double the old 49px.
+  Formula: (100vw - 30px - 8px padding - 4 gaps*2px) / 5 = (100vw - 46px) / 5
+  At 375px: (375 - 46) / 5 = 65.8px wide cards — nearly double the old 49px.
 */
 @media (max-width: 540px) {
   #game-screen {
@@ -1183,14 +1205,15 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
     overflow: hidden;
   }
   .phud-lp {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--font-stats);
     font-size: 9px;
     white-space: nowrap;
   }
   .phud-opp    { color: #ff8080; }
   .phud-player { color: #80ff80; }
+  .phud-deck   { opacity: 0.7; font-size: 8px; margin-left: 2px; }
   .phud-phase {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--font-stats);
     font-size: 6px;
     color: #d0c090;
     text-align: center;
@@ -1232,9 +1255,9 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   #field-right-center { display: none; }
 
   /* Graves: compact for 30px panel */
-  .grave-icon       { width: 26px; height: 26px; }
-  .grave-icon-sym   { font-size: 13px; }
-  .grave-icon-count { font-size: 8px; }
+  .grave-icon       { width: 36px; height: 36px; }
+  .grave-icon-sym   { font-size: 15px; }
+  .grave-icon-count { font-size: 9px; }
 
   /* Center: full field width */
   #field-center {
@@ -1272,7 +1295,7 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
     height: 48px;
     padding: 0 14px;
     border-radius: 8px;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--font-stats);
     font-size: 0.6rem;
     letter-spacing: 0.5px;
     cursor: pointer;
@@ -1291,7 +1314,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   .portrait-phase-btn { opacity: 0.4; }
 }
 
-/* ── Landscape Smartphone (niedrige Höhe) ────────────────── */
 /* In landscape, width is sufficient — revert to height-based sizing.
    This query comes after portrait so it wins on devices matching both.
    Also restores the side panels and 3-row grid that portrait replaced. */

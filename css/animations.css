@@ -1,9 +1,3 @@
-/* ============================================================
-   animations.css — PSX-era stepped @keyframes for Aetherial Clash
-   Imported by style.css and progression.css
-   ============================================================ */
-
-/* ── Title screen ─────────────────────────────────────────── */
 @keyframes titlePulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
@@ -13,7 +7,6 @@
   50% { text-shadow: 2px 2px 0 #000, 0 0 2px #c8a848; color: #f0d080; }
 }
 
-/* ── Deckbuilder ──────────────────────────────────────────── */
 @keyframes toastIn {
   from { opacity: 0; transform: translateX(-50%) translateY(10px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -39,7 +32,6 @@
   100% { transform: scale(1); color: #c8a848; }
 }
 
-/* ── Game field ───────────────────────────────────────────── */
 @keyframes fieldCardIn {
   0%   { opacity: 0; transform: scale(0.7); }
   50%  { opacity: 1; transform: scale(1.08); }
@@ -67,7 +59,6 @@
   to   { opacity: 1; transform: none; }
 }
 
-/* ── Hand cards ───────────────────────────────────────────── */
 @keyframes handGlow {
   from { outline: 2px solid rgba(255,220,60,0.4); }
   to   { outline: 2px solid rgba(255,220,60,0.9); }
@@ -78,13 +69,11 @@
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* ── Modal ────────────────────────────────────────────────── */
 @keyframes modalIn {
   from { opacity: 0; transform: scale(0.92); }
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* ── Attack animation ─────────────────────────────────────── */
 @keyframes atkBurst {
   0%   { transform: translate(-50%,-50%) scale(0.15); opacity: 1; }
   50%  { transform: translate(-50%,-50%) scale(1.5);  opacity: 0.85; }
@@ -102,7 +91,6 @@
   35%      { outline: 3px solid #ff8c00; }
 }
 
-/* ── Fusion animation ────────────────────────────────────── */
 @keyframes fusionBurst {
   0%   { transform: translate(-50%,-50%) scale(0.1); opacity: 1; }
   30%  { transform: translate(-50%,-50%) scale(1.2);  opacity: 1; }
@@ -121,7 +109,6 @@
   100% { transform: scale(1);   opacity: 1; filter: brightness(1); }
 }
 
-/* ── Progression / Shop ───────────────────────────────────── */
 @keyframes spin-coin {
   0%   { transform: rotateY(0deg) scale(1.2); }
   100% { transform: rotateY(360deg) scale(1.2); }
@@ -137,16 +124,12 @@
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* ── VFX Particles ───────────────────────────────────────── */
-
-/* Shared particle base */
 .vfx-particle {
   position: fixed;
   pointer-events: none;
   will-change: transform, opacity;
 }
 
-/* ── Buff: spinning air swirl particles ─────────────────── */
 .vfx-buff {
   width: 10px; height: 10px;
   left: var(--vfx-cx); top: var(--vfx-cy);
@@ -174,7 +157,6 @@
   }
 }
 
-/* ── Heal: green stars floating upward ──────────────────── */
 .vfx-heal {
   width: 14px; height: 14px;
   left: var(--vfx-cx); top: var(--vfx-cy);
@@ -208,14 +190,12 @@
   }
 }
 
-/* Override spread per particle index for horizontal scatter */
 .vfx-heal:nth-child(odd)  { --vfx-spread: -18px; }
 .vfx-heal:nth-child(even) { --vfx-spread: 14px; }
 .vfx-heal:nth-child(3n)   { --vfx-spread: -8px; }
 .vfx-heal:nth-child(3n+1) { --vfx-spread: 22px; }
 .vfx-heal:nth-child(3n+2) { --vfx-spread: -24px; }
 
-/* ── Damage: fireballs flying inward ────────────────────── */
 .vfx-damage {
   width: 16px; height: 16px;
   left: var(--vfx-cx); top: var(--vfx-cy);
@@ -249,7 +229,6 @@
   }
 }
 
-/* Scatter fireball origins around the target */
 .vfx-damage:nth-child(1)  { --vfx-fire-ox:  70px; --vfx-fire-oy: -50px; }
 .vfx-damage:nth-child(2)  { --vfx-fire-ox: -60px; --vfx-fire-oy: -70px; }
 .vfx-damage:nth-child(3)  { --vfx-fire-ox:  80px; --vfx-fire-oy:  40px; }
@@ -257,7 +236,94 @@
 .vfx-damage:nth-child(5)  { --vfx-fire-ox:  40px; --vfx-fire-oy: -80px; }
 .vfx-damage:nth-child(6)  { --vfx-fire-ox: -50px; --vfx-fire-oy:  30px; }
 
-/* ── Reduced Motion ─────────────────────────────────────── */
+.damage-number {
+  position: fixed;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #ff2222;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.8), 1px 1px 2px #000;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: damageFloat 1.2s ease-out forwards;
+  z-index: 501;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+@keyframes damageFloat {
+  0%   { transform: translateX(-50%) translateY(0) scale(1.2); opacity: 1; }
+  20%  { transform: translateX(-50%) translateY(-15px) scale(1.4); opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-70px) scale(0.8); opacity: 0; }
+}
+
+@keyframes packShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes packFlash {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes sparkleParticle {
+  0% {
+    transform: translate(-50%, -50%) rotate(var(--sparkle-angle)) translateY(0) scale(0.3);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(var(--sparkle-angle)) translateY(-50px) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(var(--sparkle-angle)) translateY(-90px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+@keyframes sparkleBurst {
+  0%   { transform: translate(-50%, -50%) scale(0.1); opacity: 1; }
+  40%  { transform: translate(-50%, -50%) scale(1.5);  opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(2.5);  opacity: 0; }
+}
+
+@keyframes rareBorderGlow {
+  0%, 100% { box-shadow: 0 0 8px var(--rarity-color, #c8a84b), 0 0 16px transparent; }
+  50%      { box-shadow: 0 0 12px var(--rarity-color, #c8a84b), 0 0 28px var(--rarity-color, #c8a84b); }
+}
+
+@keyframes packWobble {
+  0%, 100% { transform: rotate(0deg); }
+  25%  { transform: rotate(-3deg); }
+  75%  { transform: rotate(3deg); }
+}
+
+@keyframes lightRays {
+  0%   { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes bgPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50%      { opacity: 0.7; transform: scale(1.05); }
+}
+
+@keyframes lightBeamFade {
+  0%   { opacity: 0; transform: translate(-50%, -50%) rotate(var(--beam-angle, 0deg)) scaleY(0.3); }
+  20%  { opacity: 0.8; transform: translate(-50%, -50%) rotate(var(--beam-angle, 0deg)) scaleY(1); }
+  70%  { opacity: 0.6; transform: translate(-50%, -50%) rotate(calc(var(--beam-angle, 0deg) + 3deg)) scaleY(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(calc(var(--beam-angle, 0deg) + 5deg)) scaleY(0.8); }
+}
+
+@keyframes tapPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.05); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

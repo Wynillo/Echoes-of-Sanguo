@@ -12,7 +12,8 @@
     "build:android": "vite build && cap sync android",
     "cap:sync": "cap sync",
     "cap:open": "cap open android",
-    "generate:tcg": "vite-node js/tcg-format/generate-base-tcg.ts",
+    "generate:tcg": "vite-node js/generate-base-tcg.ts",
+    "generate:engine-dts": "node scripts/generate-engine-dts.js",
     "release:patch": "npm version patch && git push && git push --tags",
     "release:minor": "npm version minor && git push && git push --tags",
     "release:major": "npm version major && git push && git push --tags"
@@ -50,6 +51,7 @@
     "jszip": "^3.10.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-i18next": "^16.6.6"
+    "react-i18next": "^16.6.6",
+    "@wynillo/tcg-format": "github:Wynillo/Echoes-of-Sanguo-TCG"
   }
 }

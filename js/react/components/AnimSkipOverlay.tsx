@@ -11,14 +11,18 @@ export function AnimSkipOverlay() {
   if (!active) return null;
 
   return (
-    <div
+    <button
       id="anim-skip-overlay"
       onClick={fireSkip}
+      aria-label="Skip animation"
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 490,
         cursor: 'pointer',
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
       }}
     />
   );

@@ -1,8 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO - Progression System
-// Manages: coins, collection, deck, opponent unlocks
-// ============================================================
-
 import type { CollectionEntry, OpponentRecord } from './types.js';
 import type { CampaignProgress } from './campaign-types.js';
 
@@ -25,13 +20,6 @@ export const Progression = (() => {
   const SAVE_VERSION   = 2;   // increment when save format changes incompatibly
   const OPPONENT_COUNT = 10;
 
-  // ── Helpers ──────────────────────────────────────────────
-
-  /**
-   * @param {string}    key       localStorage key
-   * @param {*}         fallback  value returned when key is absent, unparseable, or invalid
-   * @param {Function}  [validator]  optional fn(parsed) → boolean; returns fallback when false
-   */
   function _load<T>(key: string, fallback: T, validator?: (v: unknown) => boolean): T {
     try {
       const raw = localStorage.getItem(key);
@@ -52,8 +40,8 @@ export const Progression = (() => {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
     } catch (e) {
-      // QuotaExceededError (storage full) or SecurityError (private browsing blocked)
       console.error(`[Progression] Save failed for "${key}":`, e);
+      window.dispatchEvent(new CustomEvent('eos:save-error', { detail: { key } }));
       return false;
     }
   }
@@ -66,15 +54,11 @@ export const Progression = (() => {
     return ops;
   }
 
-  // ── Initialization ───────────────────────────────────────
-
   function init() {
     if (!localStorage.getItem(KEYS.initialized)) {
-      // First launch – set defaults
       _save(KEYS.coins, 0);
       _save(KEYS.collection, []);
       _save(KEYS.opponents, _defaultOpponents());
-      // Deck: migrate old key if present
       const legacyDeck = localStorage.getItem('aetherialClash_deck');
       if (legacyDeck) {
         localStorage.setItem(KEYS.deck, legacyDeck);
@@ -82,15 +66,12 @@ export const Progression = (() => {
       localStorage.setItem(KEYS.initialized, '1');
       _save(KEYS.version, SAVE_VERSION);
     } else {
-      // Fill in missing fields (after updates)
-      // Legacy migration: move old aether coins to new jade key
       if (!localStorage.getItem(KEYS.coins)) {
         const legacyCoins = localStorage.getItem('ac_aether_coins');
         _save(KEYS.coins, legacyCoins !== null ? JSON.parse(legacyCoins) : 0);
       }
       if (!localStorage.getItem(KEYS.collection)) _save(KEYS.collection, []);
       if (!localStorage.getItem(KEYS.opponents)) _save(KEYS.opponents, _defaultOpponents());
-      // Set version stamp if missing (saves from before v1)
       if (!localStorage.getItem(KEYS.version)) _save(KEYS.version, 1);
 
       // v1 → v2: reset collection and deck if old-format IDs are detected.
@@ -100,7 +81,6 @@ export const Progression = (() => {
         const hasOldIds = col.some(e => /^[A-Z]/.test(e.id));
         if (hasOldIds) {
           console.info('[Progression] Migrating save data to v2: clearing collection and deck (card ID format changed).');
-          // Back up old data before wiping so it can be inspected if migration fails
           try {
             localStorage.setItem('tcg_collection_v1_backup', JSON.stringify(col));
             const oldDeck = localStorage.getItem(KEYS.deck);
@@ -108,18 +88,25 @@ export const Progression = (() => {
           } catch { /* backup is best-effort */ }
           _save(KEYS.collection, []);
           localStorage.removeItem(KEYS.deck);
+          localStorage.setItem('tcg_migration_pending', '1');
         }
         _save(KEYS.version, SAVE_VERSION);
       }
     }
   }
 
-  /** Check if a v1 backup exists and can be restored */
+  function hasMigrationPending(): boolean {
+    return localStorage.getItem('tcg_migration_pending') === '1';
+  }
+
+  function clearMigrationPending(): void {
+    localStorage.removeItem('tcg_migration_pending');
+  }
+
   function hasV1Backup(): boolean {
     return localStorage.getItem('tcg_collection_v1_backup') !== null;
   }
 
-  /** Attempt to restore the backed-up v1 collection (best-effort) */
   function restoreV1Backup(): boolean {
     try {
       const raw = localStorage.getItem('tcg_collection_v1_backup');
@@ -150,8 +137,6 @@ export const Progression = (() => {
     return localStorage.getItem(KEYS.starterRace) || null;
   }
 
-  // ── Coins ────────────────────────────────────────────────
-
   function getCoins(): number {
     return _load(KEYS.coins, 0, v => typeof v === 'number' && v >= 0);
   }
@@ -162,7 +147,6 @@ export const Progression = (() => {
     return getCoins();
   }
 
-  /** Returns false if not enough coins */
   function spendCoins(amount: number): boolean {
     const current = getCoins();
     if (current < amount) return false;
@@ -170,13 +154,10 @@ export const Progression = (() => {
     return true;
   }
 
-  // ── Collection ───────────────────────────────────────────
-
   function getCollection(): CollectionEntry[] {
     return _load(KEYS.collection, [], v => Array.isArray(v));
   }
 
-  /** cards: array of Card objects or ID strings */
   function addCardsToCollection(cards: (string | { id: string })[]): void {
     const col = getCollection();
     const map: Record<string, number> = {};
@@ -191,24 +172,19 @@ export const Progression = (() => {
     _save(KEYS.collection, newCol);
   }
 
-  /** Returns true if the player owns at least 1 copy of the card */
   function ownsCard(cardId: string): boolean {
     const col = getCollection();
     const entry = col.find(e => e.id === cardId);
     return !!entry && entry.count > 0;
   }
 
-  /** Returns the number of owned copies */
   function cardCount(cardId: string): number {
     const col = getCollection();
     const entry = col.find(e => e.id === cardId);
     return entry ? entry.count : 0;
   }
 
-  // ── Deck ─────────────────────────────────────────────────
-
   function getDeck(): string[] | null {
-    // Try new key, then old legacy key
     const deck = _load(KEYS.deck, null, v => Array.isArray(v) && v.every(id => typeof id === 'string'));
     if (deck) return deck;
     try {
@@ -221,13 +197,10 @@ export const Progression = (() => {
   function saveDeck(deckIds: string[]): boolean {
     const ok = _save(KEYS.deck, deckIds);
     if (ok) {
-      // Keep legacy key in sync for backward compatibility
       try { localStorage.setItem('echoesOfSanguo_deck', JSON.stringify(deckIds)); } catch { /* ignore */ }
     }
     return ok;
   }
-
-  // ── Opponents ────────────────────────────────────────────
 
   function getOpponents(): Record<number, OpponentRecord> {
     return _load(KEYS.opponents, _defaultOpponents(),
@@ -241,7 +214,6 @@ export const Progression = (() => {
 
     if (won) {
       ops[id].wins++;
-      // Unlock next opponent
       if (id < OPPONENT_COUNT && ops[id + 1] && !ops[id + 1].unlocked) {
         ops[id + 1].unlocked = true;
       }
@@ -257,8 +229,6 @@ export const Progression = (() => {
     return !!(ops[id] && ops[id].unlocked);
   }
 
-  // ── Settings ─────────────────────────────────────────────
-
   interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; refillHand: boolean; }
 
   const SETTINGS_DEFAULTS: Settings = { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, refillHand: true };
@@ -271,8 +241,6 @@ export const Progression = (() => {
     _save(KEYS.settings, s);
   }
 
-  // ── Seen Cards ───────────────────────────────────────────
-
   function getSeenCards(): Set<string> {
     const arr = _load(KEYS.seenCards, [], v => Array.isArray(v));
     return new Set(arr);
@@ -284,8 +252,6 @@ export const Progression = (() => {
     ids.forEach(id => seen.add(id));
     _save(KEYS.seenCards, [...seen]);
   }
-
-  // ── Campaign Progress ───────────────────────────────────
 
   function getCampaignProgress(): CampaignProgress {
     return _load(KEYS.campaignProgress, { completedNodes: [], currentChapter: 'ch1' },
@@ -314,8 +280,6 @@ export const Progression = (() => {
     return progress.completedNodes.includes(nodeId);
   }
 
-  // ── Duel Checkpoint (anti-save-scum) ─────────────────────
-
   const DUEL_CHECKPOINT_KEY = 'tcg_duel_checkpoint';
 
   function saveDuelCheckpoint(data: unknown): void {
@@ -330,30 +294,22 @@ export const Progression = (() => {
     localStorage.removeItem(DUEL_CHECKPOINT_KEY);
   }
 
-  // ── Debug / Reset ────────────────────────────────────────
-
-  /** Resets all progression data (debug only) */
   function resetAll() {
     Object.values(KEYS).forEach(k => localStorage.removeItem(k));
     localStorage.removeItem(DUEL_CHECKPOINT_KEY);
     console.warn('[Progression] All data reset.');
   }
 
-  // ── Soft-Reset / Backup ──────────────────────────────────
-
-  /** Backs up current state to sessionStorage (for "New Game" flow) */
   function backupToSession(): void {
     const backup: Record<string, string | null> = {};
     Object.values(KEYS).forEach(k => { backup[k] = localStorage.getItem(k); });
     sessionStorage.setItem('tcg_save_backup', JSON.stringify(backup));
   }
 
-  /** Returns true if a backup exists in sessionStorage */
   function hasBackup(): boolean {
     return sessionStorage.getItem('tcg_save_backup') !== null;
   }
 
-  /** Restores the backed-up state and clears the backup */
   function restoreFromBackup(): void {
     const raw = sessionStorage.getItem('tcg_save_backup');
     if (!raw) return;
@@ -365,56 +321,44 @@ export const Progression = (() => {
     sessionStorage.removeItem('tcg_save_backup');
   }
 
-  /** Clears the backup without restoring (new game confirmed) */
   function clearBackup(): void {
     sessionStorage.removeItem('tcg_save_backup');
   }
-
-  // ── Public API ───────────────────────────────────────────
 
   return {
     init,
     isFirstLaunch,
     markStarterChosen,
     getStarterRace,
-    // Coins
     getCoins,
     addCoins,
     spendCoins,
-    // Collection
     getCollection,
     addCardsToCollection,
     ownsCard,
     cardCount,
-    // Deck
     getDeck,
     saveDeck,
-    // Opponents
     getOpponents,
     recordDuelResult,
     isOpponentUnlocked,
-    // Settings
     getSettings,
     saveSettings,
-    // Seen cards
     getSeenCards,
     markCardsAsSeen,
-    // Campaign
     getCampaignProgress,
     saveCampaignProgress,
     markNodeComplete,
     isNodeComplete,
-    // v1 Migration Recovery
+    hasMigrationPending,
+    clearMigrationPending,
     hasV1Backup,
     restoreV1Backup,
-    // Debug
     resetAll,
-    // Soft-Reset
     backupToSession,
     hasBackup,
     restoreFromBackup,
     clearBackup,
-    // Duel Checkpoint
     saveDuelCheckpoint,
     loadDuelCheckpoint,
     clearDuelCheckpoint,

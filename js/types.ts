@@ -1,19 +1,11 @@
-// ============================================================
-// ECHOES OF SANGUO — Central Type Definitions
-// Import with:  import type { Owner, GameState, ... } from './types.js';
-// ============================================================
-
-// ── Primitive Unions (runtime state — stay as strings) ─────
 export type Owner        = 'player' | 'opponent';
 export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
-export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual';
+export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell';
 export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip';
 export type SpellType    = 'normal' | 'targeted' | 'fromGrave' | 'field';
 
-// ── Int-based Enums (card data — stored in .tcg format) ────
 // Monster covers both normal and effect cards; distinction via effect field.
-
 export enum CardType {
   Monster   = 1,
   Fusion    = 2,
@@ -57,40 +49,30 @@ export enum Rarity {
 /** @deprecated Use Rarity enum instead */
 export type RarityLevel = Rarity;
 
-/** Helper: is this monster card an effect monster? */
 export function isEffectMonster(card: CardData): boolean {
   return card.type === CardType.Monster && !!card.effect;
 }
 
-/** Helper: is this a monster type (Monster or Fusion)? */
 export function isMonsterType(type: CardType): boolean {
   return type === CardType.Monster || type === CardType.Fusion;
 }
 
-/** Helper: is this an equipment card type? */
 export function isEquipmentType(type: CardType): boolean {
   return type === CardType.Equipment;
 }
-
-// ── Effect ──────────────────────────────────────────────────
 
 export interface VsAttrBonus {
   attr: Attribute;
   atk:  number;
 }
 
-// ── Data-Driven Effect System ───────────────────────────────
-
-/** Dynamic value expression — allows effects to reference runtime values */
 export type ValueExpr =
   | number
   | { from: 'attacker.effectiveATK'; multiply: number; round: 'floor' | 'ceil' }
   | { from: 'summoned.atk';          multiply: number; round: 'floor' | 'ceil' };
 
-/** Contextual target for stat modifications */
 export type StatTarget = 'ownMonster' | 'oppMonster' | 'attacker' | 'defender' | 'summonedFC';
 
-/** Unified card filter — composable across all effects that target/select cards */
 export interface CardFilter {
   race?:      Race;
   attr?:      Attribute;
@@ -104,93 +86,80 @@ export interface CardFilter {
   random?:    number;
 }
 
-/** Discriminated union of all effect actions */
-export type EffectDescriptor =
-  // Damage & healing
-  | { type: 'dealDamage';          target: 'opponent' | 'self'; value: ValueExpr }
-  | { type: 'gainLP';             target: 'opponent' | 'self'; value: number | ValueExpr }
-  // Card draw
-  | { type: 'draw';               target: 'self' | 'opponent'; count: number }
-  // Field-wide buffs/debuffs (unified with CardFilter)
-  | { type: 'buffField';          value: number; filter?: CardFilter }
-  | { type: 'tempBuffField';      value: number; filter?: CardFilter }
-  | { type: 'debuffField';        atkD: number; defD: number }
-  | { type: 'tempDebuffField';    atkD: number; defD?: number }
-  // Bounce
-  | { type: 'bounceStrongestOpp' }
-  | { type: 'bounceAttacker' }
-  | { type: 'bounceAllOppMonsters' }
-  // Search
-  | { type: 'searchDeckToHand';   filter: CardFilter }
-  // Targeted stat modification (spells + traps)
-  | { type: 'tempAtkBonus';       target: StatTarget; value: number }
-  | { type: 'permAtkBonus';       target: StatTarget; value: number; filter?: CardFilter }
-  | { type: 'tempDefBonus';       target: StatTarget; value: number }
-  | { type: 'permDefBonus';       target: StatTarget; value: number }
-  // Graveyard
-  | { type: 'reviveFromGrave' }
-  // Trap signals
-  | { type: 'cancelAttack' }
-  | { type: 'destroyAttacker' }
-  | { type: 'destroySummonedIf';  minAtk: number }
-  // Destruction
-  | { type: 'destroyAllOpp' }
-  | { type: 'destroyAll' }
-  | { type: 'destroyWeakestOpp' }
-  | { type: 'destroyStrongestOpp' }
-  // Graveyard & Deck manipulation
-  | { type: 'sendTopCardsToGrave';    count: number }
-  | { type: 'sendTopCardsToGraveOpp'; count: number }
-  | { type: 'salvageFromGrave';       filter: CardFilter }
-  | { type: 'recycleFromGraveToDeck'; filter: CardFilter }
-  | { type: 'shuffleGraveIntoDeck' }
-  | { type: 'shuffleDeck' }
-  | { type: 'peekTopCard' }
-  // Special Summon
-  | { type: 'specialSummonFromHand';  filter?: CardFilter }
-  // Hand manipulation
-  | { type: 'discardFromHand';    count: number }
-  | { type: 'discardOppHand';     count: number }
-  // Passive flags
-  | { type: 'passive_piercing' }
-  | { type: 'passive_untargetable' }
-  | { type: 'passive_directAttack' }
-  | { type: 'passive_vsAttrBonus'; attr: Attribute; atk: number }
-  | { type: 'passive_phoenixRevival' }
-  | { type: 'passive_indestructible' }
-  | { type: 'passive_effectImmune' }
-  | { type: 'passive_cantBeAttacked' };
+/**
+ * Open map of effect action types → payloads.
+ * Modders can extend this via declaration merging to add custom effect types.
+ */
+export interface EffectDescriptorMap {
+  dealDamage:            { target: 'opponent' | 'self'; value: ValueExpr };
+  gainLP:               { target: 'opponent' | 'self'; value: number | ValueExpr };
+  draw:                 { target: 'self' | 'opponent'; count: number };
+  buffField:            { value: number; filter?: CardFilter };
+  tempBuffField:        { value: number; filter?: CardFilter };
+  debuffField:          { atkD: number; defD: number };
+  tempDebuffField:      { atkD: number; defD?: number };
+  bounceStrongestOpp:   {};
+  bounceAttacker:       {};
+  bounceAllOppMonsters: {};
+  searchDeckToHand:     { filter: CardFilter };
+  tempAtkBonus:         { target: StatTarget; value: number };
+  permAtkBonus:         { target: StatTarget; value: number; filter?: CardFilter };
+  tempDefBonus:         { target: StatTarget; value: number };
+  permDefBonus:         { target: StatTarget; value: number };
+  reviveFromGrave:      {};
+  cancelAttack:         {};
+  cancelEffect:         {};
+  destroyAttacker:      {};
+  destroySummonedIf:    { minAtk: number };
+  destroyAllOpp:        {};
+  destroyAll:           {};
+  destroyWeakestOpp:    {};
+  destroyStrongestOpp:  {};
+  sendTopCardsToGrave:    { count: number };
+  sendTopCardsToGraveOpp: { count: number };
+  salvageFromGrave:       { filter: CardFilter };
+  recycleFromGraveToDeck: { filter: CardFilter };
+  shuffleGraveIntoDeck:   {};
+  shuffleDeck:            {};
+  peekTopCard:            {};
+  specialSummonFromHand:  { filter?: CardFilter };
+  discardFromHand:      { count: number };
+  discardOppHand:       { count: number };
+  passive_piercing:          {};
+  passive_untargetable:      {};
+  passive_directAttack:      {};
+  passive_vsAttrBonus:  { attr: Attribute; atk: number };
+  passive_phoenixRevival:    {};
+  passive_indestructible:    {};
+  passive_effectImmune:      {};
+  passive_cantBeAttacked:    {};
+}
 
-/** Context passed to effect implementations at runtime */
+export type EffectDescriptor = {
+  [K in keyof EffectDescriptorMap]: { type: K } & EffectDescriptorMap[K]
+}[keyof EffectDescriptorMap];
+
 export interface EffectContext {
   engine:       GameEngine;
   owner:        Owner;
-  /** The targeted FieldCard (for targeted spells/traps) */
-  targetFC?:    FieldCard;
-  /** The targeted CardData (for fromGrave spells) */
-  targetCard?:  CardData;
-  /** The attacking FieldCard (for onAttack traps) */
-  attacker?:    FieldCard;
-  /** The defending FieldCard */
+  targetFC?:    FieldCard;   // targeted FieldCard (targeted spells/traps)
+  targetCard?:  CardData;    // targeted CardData (fromGrave spells)
+  attacker?:    FieldCard;   // attacking FieldCard (onAttack traps)
   defender?:    FieldCard;
-  /** The FieldCard that was just summoned (for onOpponentSummon traps) */
-  summonedFC?:  FieldCard;
+  summonedFC?:  FieldCard;   // FieldCard just summoned (onOpponentSummon traps)
 }
 
-/** Signal returned by effect execution — controls engine flow */
 export interface EffectSignal {
   cancelAttack?:     boolean;
   destroySummoned?:  boolean;
   destroyAttacker?:  boolean;
+  cancelEffect?:     boolean;
 }
 
-/** Data-driven effect block — replaces CardEffect */
 export interface CardEffectBlock {
   trigger:    EffectTrigger | TrapTrigger;
   actions:    EffectDescriptor[];
 }
-
-// ── Card ────────────────────────────────────────────────────
 
 export interface CardData {
   id:           string;
@@ -204,11 +173,9 @@ export interface CardData {
   def?:         number;
   description:  string;
   effect?:      CardEffectBlock;
-  // Spell / Trap extras
   spellType?:   SpellType;
   trapTrigger?: TrapTrigger;
   target?:      string;
-  // Equipment extras
   atkBonus?:    number;
   defBonus?:    number;
   equipRequirement?: EquipRequirement;
@@ -219,7 +186,6 @@ export interface EquipRequirement {
   attr?: Attribute;
 }
 
-/** Check whether an equipment card's requirements are met by a target monster. */
 export function meetsEquipRequirement(equipment: CardData, target: CardData): boolean {
   const req = equipment.equipRequirement;
   if (!req) return true;
@@ -228,14 +194,10 @@ export function meetsEquipRequirement(equipment: CardData, target: CardData): bo
   return true;
 }
 
-// ── Deck recipe ─────────────────────────────────────────────
-
 export interface FusionRecipe {
   materials: [string, string];
   result:    string;
 }
-
-// ── Type-based fusion formulas (Forbidden Memories style) ───
 
 export type FusionComboType = 'race+race' | 'race+attr' | 'attr+attr';
 
@@ -247,8 +209,6 @@ export interface FusionFormula {
   priority:   number;    // Higher = checked first
   resultPool: string[];  // Card IDs (string, post-loader conversion)
 }
-
-// ── AI Behavior ─────────────────────────────────────────────
 
 export type AISummonPriority   = 'highestATK' | 'highestDEF' | 'effectFirst' | 'lowestLevel';
 export type AIPositionStrategy = 'smart' | 'aggressive' | 'defensive';
@@ -291,9 +251,11 @@ export interface AIBehavior {
   goal?:                    AIGoal;
   lookaheadDepth?:          number;  // 0 = disabled, 1 = one-step lookahead
   gamma?:                   number;  // discount factor 0.0–1.0
+  peekDeckCards?:           number;
+  knowsPlayerHand?:         boolean;
+  peekPlayerDeck?:          number;
+  holdFusionPiece?:         boolean;
 }
-
-// ── Opponent ─────────────────────────────────────────────────
 
 export interface OpponentConfig {
   id:          number;
@@ -306,8 +268,6 @@ export interface OpponentConfig {
   deckIds:     string[];
   behaviorId?: string;
 }
-
-// ── Game state ───────────────────────────────────────────────
 
 export interface PlayerState {
   lp:               number;
@@ -332,8 +292,6 @@ export interface GameState {
   firstTurnNoAttack?: boolean;
 }
 
-// ── Duel statistics (tracked by the engine per duel) ────────
-
 export interface DuelStats {
   turns:            number;
   monstersPlayed:   number;
@@ -345,9 +303,14 @@ export interface DuelStats {
   opponentLpRemaining: number;
   deckRemaining:    number;
   graveyardSize:    number;
+  opponentMonstersPlayed:   number;
+  opponentFusionsPerformed: number;
+  opponentSpellsActivated:  number;
+  opponentTrapsActivated:   number;
+  opponentDeckRemaining:    number;
+  opponentGraveyardSize:    number;
+  endReason: 'lp_zero' | 'deck_out' | 'surrender';
 }
-
-// ── UI callbacks ─────────────────────────────────────────────
 
 export interface BattleContext {
   triggerType: string;
@@ -381,12 +344,11 @@ export interface UICallbacks {
   playFusionChainAnimation?: (owner: Owner, handIndices: number[], resultZone: number) => Promise<void>;
   playVFX?:             (type: 'buff' | 'heal' | 'damage', owner: Owner, zone?: number) => Promise<void>;
   playSfx?:             (sfxId: string) => void;
+  showDamageNumber?:    (amount: number, owner: Owner) => void;
   onDraw?:              (owner: Owner, count: number) => void;
   onDuelEnd?:           (result: 'victory' | 'defeat', oppId: number | null, stats: DuelStats) => void;
   showCoinToss?:        (playerGoesFirst: boolean) => Promise<void>;
 }
-
-// ── Progression ──────────────────────────────────────────────
 
 export interface CollectionEntry {
   id:    string;
@@ -399,8 +361,8 @@ export interface OpponentRecord {
   losses:   number;
 }
 
-// ── Forward declarations — implemented in field.ts / engine.ts ──
-// (Used in type signatures above before the class files are loaded)
+// Forward declarations — implemented in field.ts / engine.ts.
+// Used in type signatures above before the class files are loaded.
 
 export declare class FieldCard {
   constructor(card: CardData, position?: Position, faceDown?: boolean);

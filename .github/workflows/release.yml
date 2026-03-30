@@ -27,6 +27,9 @@ jobs:
 
       - run: npm run build
 
+      - name: Generate eos-engine.d.ts
+        run: npm run generate:engine-dts
+
       - name: Generate changelog
         run: |
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
@@ -73,4 +76,5 @@ jobs:
           name: ${{ github.ref_name }}
           body_path: release_notes.md
           prerelease: ${{ steps.prerelease.outputs.is_prerelease }}
+          files: dist/eos-engine.d.ts
           token: ${{ secrets.GITHUB_TOKEN }}

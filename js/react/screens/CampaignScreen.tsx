@@ -7,6 +7,21 @@ import { OPPONENT_CONFIGS }  from '../../cards.js';
 import type { CampaignNode, Chapter } from '../../campaign-types.js';
 import styles from './CampaignScreen.module.css';
 
+function getUnlockHint(node: CampaignNode, t: (key: string, fallback?: string, opts?: Record<string, unknown>) => string): string {
+  const cond = node.unlockCondition;
+  if (!cond) return t('campaign.locked');
+  switch (cond.type) {
+    case 'nodeComplete':
+      return t('campaign.unlock_complete_node', 'Complete "{{node}}" first', { node: t(`campaign.node_${cond.nodeId}`, cond.nodeId) });
+    case 'allComplete':
+      return t('campaign.unlock_complete_all', 'Complete all prerequisite nodes first');
+    case 'anyComplete':
+      return t('campaign.unlock_complete_any', 'Complete any prerequisite node first');
+    default:
+      return t('campaign.locked');
+  }
+}
+
 const NODE_ICONS: Record<CampaignNode['type'], string> = {
   duel:   '\u2694',   // crossed swords
   story:  '\uD83D\uDCD6', // open book
@@ -28,12 +43,14 @@ export default function CampaignScreen() {
   const chapters = campaignData.chapters;
   const activeChapter: Chapter | undefined = chapters[activeChapterIdx];
 
-  // Determine which chapters are unlocked (sequential: chapter N needs ≥1 completed node in chapter N-1)
+  // Determine which chapters are unlocked (sequential: chapter N needs ALL duels in chapter N-1 completed)
   const chapterUnlocked = useMemo(() => {
     return chapters.map((_, idx) => {
       if (idx === 0) return true;
       const prev = chapters[idx - 1];
-      return prev.nodes.some(n => progress.completedNodes.includes(n.id));
+      return prev.nodes
+        .filter(n => n.type === 'duel')
+        .every(n => progress.completedNodes.includes(n.id));
     });
   }, [chapters, progress.completedNodes]);
 
@@ -94,7 +111,10 @@ export default function CampaignScreen() {
     switch (node.type) {
       case 'duel': {
         if (node.gauntlet && node.gauntlet.length > 0) {
-          // Gauntlet: fight all opponents in sequence
+          const ok = window.confirm(
+            t('campaign.gauntlet_warning', 'This is a gauntlet: {{count}} consecutive duels. You cannot save between fights. Continue?', { count: node.gauntlet.length })
+          );
+          if (!ok) return;
           const firstOppId = node.gauntlet[0];
           const firstCfg = (OPPONENT_CONFIGS as import('../../types.js').OpponentConfig[]).find(c => c.id === firstOppId);
           if (firstCfg) {
@@ -214,6 +234,16 @@ export default function CampaignScreen() {
         </div>
       )}
 
+      {activeChapter && (() => {
+        const totalNodes = activeChapter.nodes.filter(n => n.type === 'duel').length;
+        const completedCount = activeChapter.nodes.filter(n => n.type === 'duel' && progress.completedNodes.includes(n.id)).length;
+        return totalNodes > 0 ? (
+          <div className={styles.chapterProgress ?? ''} style={{ textAlign: 'center', padding: '4px 0', fontSize: 'var(--font-sm, 0.875rem)', color: 'var(--text-dim)' }}>
+            {t('campaign.progress', '{{done}}/{{total}} duels completed', { done: completedCount, total: totalNodes })}
+          </div>
+        ) : null;
+      })()}
+
       <div className={styles.mapContainer}>
         {visibleNodes.length === 0 && (
           <p style={{ color: '#6080a0', textAlign: 'center', marginTop: 40 }}>{t('campaign.no_missions')}</p>
@@ -261,12 +291,14 @@ export default function CampaignScreen() {
             ].filter(Boolean).join(' ');
 
             return (
-              <div
+              <button
                 key={node.id}
                 className={nodeClass}
                 style={{ left: `${pos.leftPct}%`, top: pos.topPx }}
                 onClick={() => handleNodeClick(node)}
-                title={state === 'locked' ? t('campaign.locked') : node.id}
+                disabled={state === 'locked'}
+                aria-label={`${t(`campaign.node_${node.id}`, node.id)} — ${t(`campaign.${state}`)}`}
+                title={state === 'locked' ? getUnlockHint(node, t) : `${t(`campaign.node_${node.id}`, node.id)}${node.rewards?.coins ? ` — +${node.rewards.coins} ${t('common.coins')}` : ''}${node.rewards?.cards?.length ? ` — +${node.rewards.cards.length} ${t('common.cards')}` : ''}`}
               >
                 <span className={styles.nodeIcon}>
                   {node.gauntlet && node.gauntlet.length > 0 ? GAUNTLET_ICON : NODE_ICONS[node.type]}
@@ -286,7 +318,7 @@ export default function CampaignScreen() {
                 }`}>
                   {t(`campaign.${state}`)}
                 </span>
-              </div>
+              </button>
             );
           })}
         </div>

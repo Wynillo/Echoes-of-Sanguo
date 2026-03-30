@@ -6,6 +6,8 @@
 // ============================================================
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './cards.js';
 import { EFFECT_REGISTRY, registerEffect } from './effect-registry.js';
+import { loadAndApplyTcg, unloadModCards, getLoadedMods } from './tcg-bridge.js';
+import { TriggerBus } from './trigger-bus.js';
 
 declare global {
   interface Window {
@@ -26,6 +28,16 @@ const modApi = {
   EFFECT_REGISTRY,
   /** Register a custom effect handler (type string → EffectImpl). */
   registerEffect,
+  /** Load a community .tcg archive and merge its cards into the game. */
+  loadModTcg: loadAndApplyTcg,
+  /** Partial unload: removes cards and opponents only. Fusion recipes, shop data, etc. are NOT reverted. */
+  unloadModCards,
+  /** List all currently loaded mods with their card IDs and load order. */
+  getLoadedMods,
+  /** Fire effects with a custom trigger name. */
+  emitTrigger: TriggerBus.emit,
+  /** Subscribe to a trigger event (returns unsubscribe function). */
+  addTriggerHook: TriggerBus.on,
 };
 
 window.EchoesOfSanguoMod = modApi;

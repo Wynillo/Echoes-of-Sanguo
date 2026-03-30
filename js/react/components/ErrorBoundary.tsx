@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import type { ReactNode, ErrorInfo } from 'react';
+import i18n from '../../i18n.js';
 
 interface Props {
   children: ReactNode;
@@ -38,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
           fontFamily: 'monospace', textAlign: 'center',
         }}>
           <div style={{ fontSize: '2rem' }}>⚠</div>
-          <div style={{ color: '#f07070', fontWeight: 'bold' }}>Ein Fehler ist aufgetreten</div>
+          <div style={{ color: '#f07070', fontWeight: 'bold' }}>{i18n.t('error.title')}</div>
           <div style={{ fontSize: '0.8rem', color: '#888', maxWidth: '40rem', wordBreak: 'break-word' }}>
             {this.state.error.message}
           </div>
@@ -50,7 +51,7 @@ export class ErrorBoundary extends Component<Props, State> {
               cursor: 'pointer', fontSize: '0.9rem',
             }}
           >
-            {this.props.onReset ? '← Back to Title' : '⟳ Reload'}
+            {this.props.onReset ? i18n.t('error.back_to_title') : i18n.t('error.reload')}
           </button>
         </div>
       );

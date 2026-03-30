@@ -1,0 +1,43 @@
+# Binary / image assets
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.svg
+public/audio/
+
+# Large data files — read explicitly when needed
+public/base.tcg-src/cards.json
+public/base.tcg-src/campaign.json
+public/base.tcg-src/fusion_formulas.json
+public/base.tcg-src/shop.json
+public/base.tcg-src/locales/
+public/base.tcg-src/opponents/
+public/base.tcg-src/img/
+public/base.tcg-src/ui/
+
+# Locale files (large flat key-value maps)
+locales/en.json
+locales/de.json
+
+# Stylesheets — read explicitly when doing CSS work
+css/
+*.module.css
+
+# Tests — read explicitly when writing/fixing tests
+tests/
+tests-e2e/
+
+# Documentation — read explicitly when needed
+docs/
+
+# CI/CD configuration
+.github/
+
+# Generated / build artifacts
+package-lock.json
+dist/
+android/
+public/base.tcg

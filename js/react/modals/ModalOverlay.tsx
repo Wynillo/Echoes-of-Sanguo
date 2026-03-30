@@ -1,5 +1,6 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useModal } from '../contexts/ModalContext.js';
+import { useFocusTrap } from '../hooks/useFocusTrap.js';
 import { CardDetailModal }  from './CardDetailModal.js';
 import { TrapPromptModal }  from './TrapPromptModal.js';
 import { GraveSelectModal } from './GraveSelectModal.js';
@@ -9,12 +10,26 @@ import { OptionsModal }     from './OptionsModal.js';
 import { BattleLogModal }  from './BattleLogModal.js';
 import { CoinTossModal }   from './CoinTossModal.js';
 import { GauntletTransitionModal } from './GauntletTransitionModal.js';
+import { HowToPlayModal } from './HowToPlayModal.js';
 
 const NON_DISMISSIBLE = new Set(['trap-prompt', 'grave-select', 'coin-toss', 'gauntlet-transition']);
 
+const MODAL_LABELS: Record<string, string> = {
+  'card-detail': 'Card Details',
+  'trap-prompt': 'Trap Activation',
+  'grave-select': 'Graveyard Selection',
+  'card-list': 'Card List',
+  'result': 'Duel Result',
+  'main-options': 'Options',
+  'battle-log': 'Battle Log',
+  'coin-toss': 'Coin Toss',
+  'gauntlet-transition': 'Gauntlet',
+  'how-to-play': 'How to Play',
+};
+
 export function ModalOverlay() {
   const { modal, closeModal } = useModal();
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const trapRef = useFocusTrap(!!modal);
 
   const isDismissible = modal ? !NON_DISMISSIBLE.has(modal.type) : false;
 
@@ -27,8 +42,6 @@ export function ModalOverlay() {
   useEffect(() => {
     if (!modal) return;
     document.addEventListener('keydown', handleKeyDown);
-    // Focus the overlay so screen readers announce it
-    overlayRef.current?.focus();
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [modal, handleKeyDown]);
 
@@ -37,9 +50,10 @@ export function ModalOverlay() {
   return (
     <div
       id="modal-overlay"
-      ref={overlayRef}
+      ref={trapRef}
       role="dialog"
       aria-modal="true"
+      aria-label={MODAL_LABELS[modal.type] ?? 'Dialog'}
       tabIndex={-1}
       onClick={e => {
         if (e.target === e.currentTarget && isDismissible) {
@@ -56,6 +70,7 @@ export function ModalOverlay() {
       {modal.type === 'battle-log'  && <BattleLogModal />}
       {modal.type === 'coin-toss'   && <CoinTossModal   modal={modal} />}
       {modal.type === 'gauntlet-transition' && <GauntletTransitionModal modal={modal} />}
+      {modal.type === 'how-to-play' && <HowToPlayModal />}
     </div>
   );
 }

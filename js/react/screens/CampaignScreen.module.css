@@ -25,7 +25,7 @@
   color: #c8a84b;
   text-shadow: 2px 2px 0 #000;
   margin: 0 0 4px;
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
 }
 
 .backBtn {
@@ -50,7 +50,7 @@
   max-width: 220px;
   padding: 6px 12px;
   font-size: 0.6rem;
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   background: rgba(20, 30, 50, 0.9);
   border: 1px solid #c8a84b;
   border-radius: 2px;
@@ -73,7 +73,7 @@
 .chapterSelect option {
   background: #0c1428;
   color: #c8a84b;
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-stats);
   font-size: 0.6rem;
   padding: 4px 8px;
 }
@@ -160,7 +160,7 @@
   color: #8090a0;
   text-align: center;
   margin-top: 2px;
-  font-family: 'Pixelify Sans', monospace;
+  font-family: var(--font-stats);
   max-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -178,7 +178,7 @@
 .nodeStatus {
   font-size: 0.4rem;
   margin-top: 1px;
-  font-family: 'Pixelify Sans', monospace;
+  font-family: var(--font-stats);
 }
 
 .statusCompleted {
@@ -219,7 +219,7 @@
   font-size: 0.75rem;
   line-height: 1.6;
   margin-bottom: 16px;
-  font-family: 'Pixelify Sans', monospace;
+  font-family: var(--font-stats);
 }
 
 .dialogueClose {

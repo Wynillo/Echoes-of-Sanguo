@@ -1,9 +1,10 @@
-import { useState }      from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }        from '../contexts/ModalContext.js';
 import { CARD_DB } from '../../cards.js';
+import { Progression }     from '../../progression.js';
 import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { Race, Rarity } from '../../types.js';
@@ -25,6 +26,9 @@ export default function CollectionScreen() {
   const countMap: Record<string, number> = {};
   collection.forEach(e => { countMap[e.id] = e.count; });
 
+  const seenCards = useMemo(() => Progression.getSeenCards(), [collection]);
+  const isNew = (id: string) => !seenCards.has(id) && (countMap[id] || 0) > 0;
+
   const totalCards = Object.keys(CARD_DB).length;
   const ownedCount = Object.keys(countMap).length;
 
@@ -38,11 +42,11 @@ export default function CollectionScreen() {
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
+        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('collection.back')}</button>
         <h2 className={styles.title}>{t('collection.title')}</h2>
         <div className={styles.stats}>
           <span id="collection-count">{t('collection.cards_count', { owned: ownedCount, total: totalCards })}</span>
         </div>
-        <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('collection.back')}</button>
       </div>
 
       <div className={styles.filters}>
@@ -94,6 +98,7 @@ export default function CollectionScreen() {
                 </div>
                 {owned > 1 && <div className={styles.cardCount}>×{owned}</div>}
                 <div className={styles.rarityDot} style={{ background: rarColor }} />
+                {isNew(card.id) && <div className={styles.newBadge}>NEW</div>}
               </div>
             );
           }

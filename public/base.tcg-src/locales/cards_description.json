@@ -67,7 +67,7 @@
   {
     "id": 14,
     "name": "Voidfire Dragon",
-    "description": "[Effect] On Summon: Deal 300 damage to opponent."
+    "description": "[Passive] Gains +300 ATK when battling a Light monster."
   },
   {
     "id": 15,
@@ -77,7 +77,7 @@
   {
     "id": 16,
     "name": "Blazescale Wyvern",
-    "description": "[Effect] On Summon: Deal 400 damage to opponent."
+    "description": "[Effect] On Summon: All Dragon allies temporarily gain +200 ATK/DEF."
   },
   {
     "id": 17,
@@ -92,7 +92,7 @@
   {
     "id": 19,
     "name": "Abyssal Dragon",
-    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+    "description": "[Effect] On Summon: Send the top 3 cards of your deck to the graveyard."
   },
   {
     "id": 20,
@@ -107,7 +107,7 @@
   {
     "id": 22,
     "name": "Hellfire Dragon",
-    "description": "[Effect] On Summon: Deal 600 damage to opponent."
+    "description": "[Effect] On Summon: Special Summon 1 monster from your graveyard."
   },
   {
     "id": 23,
@@ -117,7 +117,7 @@
   {
     "id": 24,
     "name": "Chaos Dragon Emperor",
-    "description": "[Effect] On Summon: Deal 800 damage to opponent."
+    "description": "[Effect] On Summon: Special Summon 1 monster (ATK 1500 or less) from your hand."
   },
   {
     "id": 25,
@@ -342,7 +342,7 @@
   {
     "id": 69,
     "name": "Healing Sage",
-    "description": "[Effect] On Summon: Gain 500 LP."
+    "description": "[Effect] On Summon: Gain 800 LP."
   },
   {
     "id": 70,
@@ -437,7 +437,7 @@
   {
     "id": 88,
     "name": "Embertusk Boar",
-    "description": "[Effect] On Summon: Deal 300 damage to opponent."
+    "description": "[Effect] On Summon: Opponent discards 1 card from their hand."
   },
   {
     "id": 89,
@@ -447,7 +447,7 @@
   {
     "id": 90,
     "name": "Scorchfang Panther",
-    "description": "[Effect] On Summon: Deal 400 damage to opponent."
+    "description": "[Passive] Gains +400 ATK when battling a Water monster."
   },
   {
     "id": 91,
@@ -457,12 +457,12 @@
   {
     "id": 92,
     "name": "Ancient Tortoise",
-    "description": "[Effect] When destroyed in battle: Gain 500 LP."
+    "description": "[Effect] When destroyed in battle: Gain 800 LP."
   },
   {
     "id": 93,
     "name": "Thundermaw Bear",
-    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+    "description": "[Effect] On Summon: All opponent's monsters lose 300 ATK and DEF."
   },
   {
     "id": 94,
@@ -472,7 +472,7 @@
   {
     "id": 95,
     "name": "Sacred Qilin",
-    "description": "[Effect] On Summon: Deal 600 damage to opponent."
+    "description": "[Effect] On Summon: Add 1 monster from your graveyard to your hand."
   },
   {
     "id": 96,
@@ -542,12 +542,12 @@
   {
     "id": 109,
     "name": "Ancient Treant",
-    "description": "[Effect] When destroyed in battle: Gain 500 LP."
+    "description": "[Effect] When destroyed in battle: Gain 800 LP."
   },
   {
     "id": 110,
     "name": "Jade Lotus",
-    "description": "[Effect] On Summon: Gain 400 LP."
+    "description": "[Effect] On Summon: Gain 600 LP."
   },
   {
     "id": 111,
@@ -562,12 +562,12 @@
   {
     "id": 113,
     "name": "Sacred Peach Tree",
-    "description": "[Effect] When destroyed in battle: Gain 800 LP."
+    "description": "[Effect] When destroyed in battle: Gain 1200 LP."
   },
   {
     "id": 114,
     "name": "World Tree",
-    "description": "[Effect] On Summon: Gain 800 LP."
+    "description": "[Effect] On Summon: Gain 1200 LP."
   },
   {
     "id": 115,
@@ -577,7 +577,7 @@
   {
     "id": 116,
     "name": "Eternal Banyan",
-    "description": "[Effect] When destroyed in battle: Gain 1200 LP."
+    "description": "[Effect] When destroyed in battle: Gain 1800 LP."
   },
   {
     "id": 117,
@@ -717,7 +717,7 @@
   {
     "id": 144,
     "name": "Solar Hawk",
-    "description": "[Effect] On Summon: Deal 400 damage to opponent."
+    "description": "[Effect] On Summon: Look at the top card of your deck, then draw 1 card."
   },
   {
     "id": 145,
@@ -727,7 +727,7 @@
   {
     "id": 146,
     "name": "Stormfire Heron",
-    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+    "description": "[Passive] This monster can attack the opponent directly."
   },
   {
     "id": 147,
@@ -742,7 +742,7 @@
   {
     "id": 149,
     "name": "Blazewing Sovereign",
-    "description": "[Effect] On Summon: Deal 700 damage to opponent."
+    "description": "[Passive] This monster is immune to opponent's card effects."
   },
   {
     "id": 150,
@@ -807,7 +807,7 @@
   {
     "id": 162,
     "name": "Soul Harvester",
-    "description": "[Effect] When destroyed in battle: Gain 600 LP."
+    "description": "[Effect] When destroyed in battle: Gain 900 LP."
   },
   {
     "id": 163,
@@ -822,7 +822,7 @@
   {
     "id": 165,
     "name": "Soul Devourer",
-    "description": "[Effect] On Summon: Gain 600 LP."
+    "description": "[Effect] On Summon: Gain 900 LP."
   },
   {
     "id": 166,
@@ -832,7 +832,7 @@
   {
     "id": 167,
     "name": "Lord of the Dead",
-    "description": "[Effect] When destroyed in battle: Gain 1000 LP."
+    "description": "[Effect] When destroyed in battle: Gain 1500 LP."
   },
   {
     "id": 168,
@@ -1102,7 +1102,7 @@
   {
     "id": 221,
     "name": "Cannon Golem",
-    "description": "[Effect] On Summon: Deal 400 damage to opponent."
+    "description": "[Effect] On Summon: Destroy opponent's weakest monster."
   },
   {
     "id": 222,
@@ -1182,17 +1182,17 @@
   {
     "id": 237,
     "name": "Volcanic Giant",
-    "description": "[Effect] On Summon: Deal 400 damage to opponent."
+    "description": "[Effect] On Summon: Return 1 monster from your graveyard to your deck."
   },
   {
     "id": 238,
     "name": "Fire Lord",
-    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+    "description": "[Passive] This monster cannot be destroyed by battle or card effects."
   },
   {
     "id": 239,
     "name": "Solar Titan",
-    "description": "[Effect] On Summon: Deal 600 damage to opponent."
+    "description": "[Passive] This monster cannot be targeted for attacks."
   },
   {
     "id": 240,
@@ -1202,12 +1202,12 @@
   {
     "id": 241,
     "name": "Hellfire Knight",
-    "description": "[Effect] On Summon: Deal 700 damage to opponent."
+    "description": "[Effect] On Summon: Discard 1 card from your hand, then draw 2 cards."
   },
   {
     "id": 242,
     "name": "Inferno Colossus",
-    "description": "[Effect] On Summon: Deal 800 damage to opponent."
+    "description": "[Effect] On Summon: Shuffle your graveyard into your deck, then draw 1 card."
   },
   {
     "id": 243,
@@ -1227,7 +1227,7 @@
   {
     "id": 246,
     "name": "Dragonflame Fury",
-    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+    "description": "[Effect] On Summon: All your monsters temporarily gain +300 ATK/DEF."
   },
   {
     "id": 247,
@@ -1262,12 +1262,12 @@
   {
     "id": 253,
     "name": "Sacred Beast Emperor",
-    "description": "[Effect] On Summon: Deal 600 damage to opponent."
+    "description": "[Effect] On Summon: Shuffle your deck, then add 1 monster from your deck to your hand."
   },
   {
     "id": 254,
     "name": "Lotus Treeguard",
-    "description": "[Effect] On Summon: Gain 800 LP."
+    "description": "[Effect] On Summon: Gain 1200 LP."
   },
   {
     "id": 255,
@@ -1287,7 +1287,7 @@
   {
     "id": 258,
     "name": "Blazewing Wyvern",
-    "description": "[Effect] On Summon: Deal 500 damage to opponent."
+    "description": "[Effect] On Summon: Send the top 2 cards of opponent's deck to the graveyard."
   },
   {
     "id": 259,
@@ -1307,7 +1307,7 @@
   {
     "id": 262,
     "name": "Tidal Dragon",
-    "description": "[Effect] On Summon: Gain 600 LP."
+    "description": "[Effect] On Summon: Gain 900 LP."
   },
   {
     "id": 263,
@@ -1332,7 +1332,7 @@
   {
     "id": 267,
     "name": "Fireball",
-    "description": "Deal 400 damage to opponent."
+    "description": "Destroy opponent's weakest monster."
   },
   {
     "id": 268,
@@ -1342,27 +1342,27 @@
   {
     "id": 269,
     "name": "Herbal Remedy",
-    "description": "Gain 300 LP."
+    "description": "Gain 600 LP."
   },
   {
     "id": 270,
     "name": "Jade Elixir",
-    "description": "Gain 500 LP."
+    "description": "Gain 800 LP."
   },
   {
     "id": 271,
     "name": "Heavenly Blessing",
-    "description": "Gain 800 LP."
+    "description": "Gain 1500 LP."
   },
   {
     "id": 272,
     "name": "Dragon's Breath",
-    "description": "Deal 600 damage to opponent."
+    "description": "Destroy opponent's strongest monster."
   },
   {
     "id": 273,
     "name": "Thunder Strike",
-    "description": "Deal 800 damage to opponent."
+    "description": "Send the top 3 cards of opponent's deck to the graveyard."
   },
   {
     "id": 274,
@@ -1397,22 +1397,22 @@
   {
     "id": 280,
     "name": "Mystic Restoration",
-    "description": "Gain 600 LP."
+    "description": "Gain 1000 LP."
   },
   {
     "id": 281,
     "name": "Cataclysm",
-    "description": "Deal 1000 damage to opponent."
+    "description": "Destroy all opponent's monsters."
   },
   {
     "id": 282,
     "name": "Annihilation Wave",
-    "description": "Deal 1200 damage to opponent."
+    "description": "Destroy all monsters on both sides of the field."
   },
   {
     "id": 283,
     "name": "Void Collapse",
-    "description": "Deal 1500 damage to opponent."
+    "description": "Opponent discards 2 cards from their hand."
   },
   {
     "id": 284,
@@ -1477,7 +1477,7 @@
   {
     "id": 296,
     "name": "Curse of Darkness",
-    "description": "Activate when your monster is attacked: Negate the attack."
+    "description": "Activate when your monster is attacked: Return the attacking monster to its owner's hand."
   },
   {
     "id": 297,

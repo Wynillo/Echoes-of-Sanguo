@@ -6,6 +6,6 @@
   "flavor": "Sein feuchter Strom ist erst der Anfang.",
   "coinsWin": 300,
   "coinsLoss": 0,
-  "deckIds": [170, 170, 171, 171, 172, 172, 173, 173, 174, 174, 175, 175, 176, 176, 177, 271, 279, 296],
-  "behavior": "defensive"
+  "deckIds": [175, 176, 177, 178, 178, 179, 179, 180, 180, 181, 181, 182, 182, 183, 184, 185, 271, 279, 296, 297],
+  "behavior": "smart"
 }

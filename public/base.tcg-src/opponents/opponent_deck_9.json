@@ -6,6 +6,6 @@
   "flavor": "Sein Deck ist so wild wie ein Tiger auf der Jagd.",
   "coinsWin": 200,
   "coinsLoss": 0,
-  "deckIds": [79, 79, 80, 80, 81, 81, 82, 82, 83, 84, 84, 85, 86, 268, 274, 295],
-  "behavior": "aggressive"
+  "deckIds": [81, 82, 82, 83, 83, 84, 84, 85, 85, 86, 86, 87, 87, 88, 268, 275, 295, 296],
+  "behavior": "smart"
 }

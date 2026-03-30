@@ -1,5 +1,7 @@
 # Echoes of Sanguo — `.tcg` File Format
 
+> **Implementation**: The format library is maintained in the [`@wynillo/tcg-format`](https://github.com/Wynillo/Echoes-of-Sanguo-TCG) package. It handles loading, validation, and packing of `.tcg` archives independently of the game engine.
+
 A `.tcg` file is a **ZIP archive** renamed to `.tcg`. It contains all data needed to run a card set: card definitions, images, localizations, opponents, shop configuration, and an optional campaign graph.
 
 ---
@@ -105,6 +107,7 @@ All enum fields in the format use integers, not strings.
 | 2 | onOwnMonsterAttacked |
 | 3 | onOpponentSummon |
 | 4 | manual |
+| 5 | onOpponentSpell |
 
 ---
 
@@ -576,6 +579,7 @@ trigger:action(args);action(args)
 | `onAttack` | traps |
 | `onOwnMonsterAttacked` | traps |
 | `onOpponentSummon` | traps |
+| `onOpponentSpell` | traps — fires when opponent activates a spell; use with `cancelEffect()` to negate |
 | `manual` | spells, traps |
 
 ### Actions
@@ -610,6 +614,7 @@ trigger:action(args);action(args)
 | `discardFromHand(count)` | discard N cards from hand | |
 | `discardOppHand(count)` | force opponent to discard N cards | |
 | `cancelAttack()` | cancel the current attack (trap) | |
+| `cancelEffect()` | negate the opponent's spell effect (use with `onOpponentSpell` traps) | |
 | `destroyAttacker()` | destroy the attacking monster (trap) | |
 | `destroySummonedIf(minAtk)` | destroy the summoned monster if ATK >= minAtk (trap) | |
 | `passive_piercing()` | damage carries through to DEF monsters | |
@@ -715,10 +720,12 @@ Everything else is optional and loaded when present.
 
 ## Validation
 
-The engine validates the archive on load and reports errors and warnings to the browser console. Fatal errors (e.g. missing `cards.json`, cards without descriptions) prevent the archive from loading. Warnings (e.g. missing images, unknown fields) are logged but do not block loading.
+Validation logic lives in the [`@wynillo/tcg-format`](https://github.com/Wynillo/Echoes-of-Sanguo-TCG) package. The engine validates the archive on load and reports errors and warnings to the browser console. Fatal errors (e.g. missing `cards.json`, cards without descriptions) prevent the archive from loading. Warnings (e.g. missing images, unknown fields) are logged but do not block loading.
 
 To validate locally before shipping, run:
 
 ```bash
 npm run generate:tcg    # rebuilds public/base.tcg and prints any warnings
 ```
+
+This command calls the package's `packTcgArchive()` function via a thin wrapper (`js/generate-base-tcg.ts`).

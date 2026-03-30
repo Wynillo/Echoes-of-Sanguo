@@ -27,10 +27,13 @@ export function useLongPress({
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     firedRef.current = false;
     startPos.current = { x: e.clientX, y: e.clientY };
+    const target = e.currentTarget as HTMLElement;
+    target.classList.add('long-press-active');
     clear();
     timerRef.current = setTimeout(() => {
       firedRef.current = true;
       timerRef.current = null;
+      target.classList.remove('long-press-active');
       onLongPress();
     }, threshold);
   }, [onLongPress, threshold, clear]);
@@ -44,13 +47,15 @@ export function useLongPress({
     }
   }, [moveThreshold, clear]);
 
-  const onPointerUp = useCallback(() => {
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
     clear();
+    (e.currentTarget as HTMLElement).classList.remove('long-press-active');
     startPos.current = null;
   }, [clear]);
 
-  const onPointerCancel = useCallback(() => {
+  const onPointerCancel = useCallback((e: React.PointerEvent) => {
     clear();
+    (e.currentTarget as HTMLElement).classList.remove('long-press-active');
     startPos.current = null;
   }, [clear]);
 

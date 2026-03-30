@@ -23,7 +23,10 @@ export function CardListModal() {
 
   return (
     <div id="cardlist-modal" className="modal" role="dialog" aria-modal="true">
-      <h2>{t('card_list.title')}</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+        <button className="btn-secondary" style={{ fontSize: '0.8rem', padding: '6px 12px', flexShrink: 0 }} onClick={closeModal}>{t('card_list.close')}</button>
+        <h2 style={{ margin: 0 }}>{t('card_list.title')}</h2>
+      </div>
       <div id="cardlist-content">
         {Object.entries(groups).map(([groupName, cards]) => cards.length === 0 ? null : (
           <div key={groupName}>
@@ -57,7 +60,7 @@ export function CardListModal() {
           </div>
         ))}
       </div>
-      <button className="btn-cancel" onClick={closeModal}>{t('card_list.close')}</button>
+      <button className="btn-secondary" style={{ fontSize: '0.8rem', padding: '6px 12px', marginTop: '10px' }} onClick={closeModal}>{t('card_list.close')}</button>
     </div>
   );
 }
