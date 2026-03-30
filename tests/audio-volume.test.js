@@ -56,7 +56,7 @@ describe('Audio.setVolumes', () => {
       return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) };
     });
 
-    const mod = await import('../js/audio.ts');
+    const mod = await import('../src/audio.ts');
     Audio = mod.Audio;
   });
 
@@ -109,7 +109,7 @@ describe('Audio.setVolumes', () => {
       return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) };
     });
 
-    const mod2 = await import('../js/audio.ts');
+    const mod2 = await import('../src/audio.ts');
     await mod2.Audio.playSfx('sfx_button');
 
     // _ensureContext applies saved volumes on first init

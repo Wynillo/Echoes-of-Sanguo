@@ -12,7 +12,7 @@
     "build:android": "vite build && cap sync android",
     "cap:sync": "cap sync",
     "cap:open": "cap open android",
-    "generate:tcg": "vite-node js/generate-base-tcg.ts",
+    "generate:tcg": "vite-node src/generate-base-tcg.ts",
     "generate:engine-dts": "node scripts/generate-engine-dts.js",
     "release:patch": "npm version patch && git push && git push --tags",
     "release:minor": "npm version minor && git push && git push --tags",

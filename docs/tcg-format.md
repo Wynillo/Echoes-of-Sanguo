@@ -728,4 +728,4 @@ To validate locally before shipping, run:
 npm run generate:tcg    # rebuilds public/base.tcg and prints any warnings
 ```
 
-This command calls the package's `packTcgArchive()` function via a thin wrapper (`js/generate-base-tcg.ts`).
+This command calls the package's `packTcgArchive()` function via a thin wrapper (`src/generate-base-tcg.ts`).

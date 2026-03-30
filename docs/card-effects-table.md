@@ -1,6 +1,6 @@
 # Card Effects Table
 
-Overview of all 41 implemented effects in `EFFECT_REGISTRY` (`js/effect-registry.ts`), their usage across the 312-card pool, and estimated competitive strength.
+Overview of all 41 implemented effects in `EFFECT_REGISTRY` (`src/effect-registry.ts`), their usage across the 312-card pool, and estimated competitive strength.
 
 ## All 41 Implemented Effects
 

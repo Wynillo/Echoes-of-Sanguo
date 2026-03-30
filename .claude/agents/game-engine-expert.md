@@ -25,14 +25,14 @@ Specialist for the runtime game engine: phase flow, battle resolution, effect ex
 
 ## Key Files
 
-- `js/engine.ts` — GameEngine: phases, summoning, battle, fusion, win checks, checkpoints
-- `js/effect-registry.ts` — EFFECT_REGISTRY: data-driven effect executor, CardFilter, value resolution
-- `js/field.ts` — FieldCard (runtime monster with bonuses/flags) and FieldSpellTrap
-- `js/rules.ts` — GAME_RULES constants
-- `js/types.ts` — CardData, GameState, PlayerState, EffectDescriptorMap, CardEffectBlock
-- `js/trigger-bus.ts` — TriggerBus event emitter
-- `js/cards.ts` — CARD_DB, FUSION_RECIPES, checkFusion(), makeDeck()
-- `js/effect-serializer.ts` — effect string ↔ CardEffectBlock codec
+- `src/engine.ts` — GameEngine: phases, summoning, battle, fusion, win checks, checkpoints
+- `src/effect-registry.ts` — EFFECT_REGISTRY: data-driven effect executor, CardFilter, value resolution
+- `src/field.ts` — FieldCard (runtime monster with bonuses/flags) and FieldSpellTrap
+- `src/rules.ts` — GAME_RULES constants
+- `src/types.ts` — CardData, GameState, PlayerState, EffectDescriptorMap, CardEffectBlock
+- `src/trigger-bus.ts` — TriggerBus event emitter
+- `src/cards.ts` — CARD_DB, FUSION_RECIPES, checkFusion(), makeDeck()
+- `src/effect-serializer.ts` — effect string ↔ CardEffectBlock codec
 
 ## Working Approach
 

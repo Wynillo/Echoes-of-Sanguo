@@ -6,18 +6,18 @@ import {
   attributeToInt, intToAttribute,
   raceToInt, intToRace,
   rarityToInt, intToRarity,
-} from '../js/enums.js';
+} from '../src/enums.js';
 // Effect serializer (engine-specific)
-import { serializeEffect, deserializeEffect, isValidEffectString } from '../js/effect-serializer.js';
+import { serializeEffect, deserializeEffect, isValidEffectString } from '../src/effect-serializer.js';
 // Builder (engine-specific)
-import { cardDataToTcgCard, cardDataToTcgDef } from '../js/tcg-builder.js';
+import { cardDataToTcgCard, cardDataToTcgDef } from '../src/tcg-builder.js';
 // Validators & constants (from package)
 import {
   validateTcgCards, validateTcgDefinitions,
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP,
   TCG_RARITY_COMMON, TCG_RARITY_ULTRA_RARE,
 } from '@wynillo/tcg-format';
-import { CardType, Attribute, Race, Rarity } from '../js/types.js';
+import { CardType, Attribute, Race, Rarity } from '../src/types.js';
 
 // ── Enum Converter Tests ────────────────────────────────────
 

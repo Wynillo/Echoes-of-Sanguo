@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Progression } from '../js/progression.ts';
+import { Progression } from '../src/progression.ts';
 
 beforeEach(() => {
   localStorage.clear();

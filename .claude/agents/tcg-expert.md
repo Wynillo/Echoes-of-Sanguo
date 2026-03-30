@@ -25,12 +25,12 @@ Specialist for the ZIP-based `.tcg` card format: schemas, validation, effect ser
 ## Key Files
 
 - `@wynillo/tcg-format` (external) — TCG types, loader, validators, packer
-- `js/tcg-bridge.ts` — connects package output → game stores
-- `js/effect-serializer.ts` — effect string ↔ CardEffectBlock codec
-- `js/enums.ts` — bidirectional enum converters
+- `src/tcg-bridge.ts` — connects package output → game stores
+- `src/effect-serializer.ts` — effect string ↔ CardEffectBlock codec
+- `src/enums.ts` — bidirectional enum converters
 - `public/base.tcg-src/` — all source data
 
-Read `docs/tcg-format.md` at the start of any task requiring format details. For effect work, also read `js/effect-serializer.ts`. Do NOT guess enum values — verify against reference files.
+Read `docs/tcg-format.md` at the start of any task requiring format details. For effect work, also read `src/effect-serializer.ts`. Do NOT guess enum values — verify against reference files.
 
 ## Working Approach
 

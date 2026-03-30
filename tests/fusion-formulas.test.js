@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { CARD_DB, FUSION_FORMULAS, FUSION_RECIPES, checkFusion } from '../js/cards.js';
-import { CardType } from '../js/types.js';
+import { CARD_DB, FUSION_FORMULAS, FUSION_RECIPES, checkFusion } from '../src/cards.js';
+import { CardType } from '../src/types.js';
 
 // ── Helpers ────────────────────────────────────────────────
 

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { GameEngine, FieldCard } from '../js/engine.ts';
-import { CardType, Race, Attribute, meetsEquipRequirement } from '../js/types.ts';
-import { CARD_DB, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../js/cards.js';
-import { pickEquipTarget, pickDebuffTarget } from '../js/ai-behaviors.ts';
+import { GameEngine, FieldCard } from '../src/engine.ts';
+import { CardType, Race, Attribute, meetsEquipRequirement } from '../src/types.ts';
+import { CARD_DB, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../src/cards.js';
+import { pickEquipTarget, pickDebuffTarget } from '../src/ai-behaviors.ts';
 
 // ── Helpers ────────────────────────────────────────────────
 

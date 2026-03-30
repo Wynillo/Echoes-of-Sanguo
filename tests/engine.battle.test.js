@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { GameEngine } from '../js/engine.ts';
-import { PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../js/cards.js';
+import { GameEngine } from '../src/engine.ts';
+import { PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../src/cards.js';
 
 function makeEngine() {
   const cb = { render: vi.fn(), log: vi.fn(), showResult: vi.fn(), onDuelEnd: vi.fn() };
