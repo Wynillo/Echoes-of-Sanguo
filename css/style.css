@@ -1,13 +1,8 @@
 @import './animations.css';
 @tailwind utilities;
 
-/* ============================================================
-   ECHOES OF SANGUO - Stylesheet
-   ============================================================ */
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Global Focus Styles ────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
@@ -60,14 +55,12 @@ html, body {
   image-rendering: pixelated;
 }
 
-/* ── Scrollbars ───────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 0; }
 /* Firefox */
 * { scrollbar-width: thin; scrollbar-color: var(--border-glow) var(--bg); }
 
-/* ── Shared title background (TitleScreen + SavePointScreen) ── */
 .title-bg {
   position: absolute; inset: 0;
   background: url('/title-bg.png') center center/cover no-repeat, var(--bg2);
@@ -79,9 +72,6 @@ html, body {
   animation: runeGlow 3s ease-in-out infinite;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   BUTTONS
-   ═══════════════════════════════════════════════════════════ */
 button { cursor: pointer; border: none; font-family: inherit; transition: none; }
 .btn-primary {
   background: #1a6040;
@@ -117,10 +107,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .btn-log { color: #50d890; border-color: #1a5a30; }
 .btn-log:hover { color: #fff; border-color: #50d890; background: #0e3c1e; }
 
-/* ═══════════════════════════════════════════════════════════
-   GAME LAYOUT
-   ═══════════════════════════════════════════════════════════ */
-
 #game-screen {
   /* Card size: dynamic — 4 zone rows + phase bar fill the available height */
   --card-h: calc((100vh - 40px) / 5);
@@ -136,7 +122,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   position: relative;
 }
 
-/* ── Opponent hand — 3/4 outside top ──────────────────────── */
 #opp-hand-area {
   grid-row: 1;
   display: flex; justify-content: center; align-items: flex-end;
@@ -151,7 +136,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .opp-hand-card { opacity: 0.85; }
 
-/* ── Field ─────────────────────────────────────────────────── */
 #field {
   grid-row: 2;
   display: flex; flex-direction: row;
@@ -159,7 +143,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   position: relative;
 }
 
-/* ── Left Panel ──────────────────────────────────────────── */
 #field-left {
   width: 15%;
   min-width: 60px;
@@ -194,7 +177,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   .btn-options-desktop { display: none; }
   #btn-options { min-width: 44px; padding: 0; font-size: 20px; }
 }
-/* ── Floating options button (reusable across screens) ───── */
 .options-btn-floating {
   position: fixed;
   top: 8px; left: 8px;
@@ -259,7 +241,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .field-spell-opp .field-spell-icon { color: #bc2060; }
 .field-spell-opp .field-spell-name { color: #e8b0c0; }
 
-/* ── Center: Zone Rows ───────────────────────────────────── */
 #field-center {
   flex: 1;
   display: flex; flex-direction: column;
@@ -307,7 +288,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 #phase-name { font-size: 10px; font-weight: bold; color: var(--gold); letter-spacing: 1px; }
 .turn-info  { font-size: 9px; color: var(--text-dim); }
 
-/* ── Direct Attack Button ────────────────────────────────── */
 #btn-direct-attack {
   position: absolute;
   left: 50%; transform: translateX(-50%);
@@ -337,7 +317,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   text-shadow: 1px 1px 0 #000;
 }
 
-/* ── Right Panel ─────────────────────────────────────────── */
 #field-right {
   width: 22%;
   min-width: 100px;
@@ -456,7 +435,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .opp-lp-bar { background: #a82020 !important; }
 .lp-bar { height: 100%; width: 100%; background: #1e6840; border-radius: 0; transition: width 0.3s steps(8); }
 
-/* ── Player hand — 1/4 below viewport ───────────────────── */
 #hand-area {
   grid-row: 3;
   display: flex; align-items: flex-start; justify-content: center;
@@ -472,7 +450,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   margin-top: -30px;   /* overlap 30px into the spell-trap zone above */
 }
 
-/* ── Battle Log (hidden, via options later) ──────────────── */
 #battle-log {
   display: none;
 }
@@ -492,9 +469,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 }
 .log-entry:first-child { color: var(--text); }
 
-/* ═══════════════════════════════════════════════════════════
-   CARDS
-   ═══════════════════════════════════════════════════════════ */
 .card {
   width: var(--card-w);
   height: var(--card-h);
@@ -702,9 +676,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   flex-shrink: 0;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   CARD HOVER PREVIEW
-   ═══════════════════════════════════════════════════════════ */
 #card-hover-preview {
   position: fixed;
   z-index: 500;
@@ -768,9 +739,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   letter-spacing: 0.03em;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   MODALS
-   ═══════════════════════════════════════════════════════════ */
 #modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,10,0.75);
@@ -813,7 +781,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .fusion-hint-row { color: #cc88ff; margin-left: 8px; line-height: 1.6; }
 .detail-stats { font-size: 0.875rem; font-weight: bold; color: var(--gold); font-family: var(--font-stats); }
 
-/* ── Card description keyword highlights ──────────────────── */
 .kw-effect  { font-weight: bold; color: #ff9955; }
 .kw-passive { font-weight: bold; color: #55aaff; }
 .kw-fusion  { font-weight: bold; color: #cc88ff; }
@@ -884,9 +851,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 /* Hidden utility */
 .hidden { display: none !important; }
 
-/* ═══════════════════════════════════════════════════════════
-   KARTEN-AKTIVIERUNGS-ANIMATION
-   ═══════════════════════════════════════════════════════════ */
 #card-activate-overlay {
   position: fixed; inset: 0;
   z-index: 350;
@@ -951,7 +915,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   font-size: 0.8125rem; color: var(--text); line-height: 1.55;
 }
 
-/* ── Angriffs-Animation ─────────────────────────────────── */
 .atk-burst {
   position: fixed;
   width: 110px; height: 110px;
@@ -974,7 +937,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   animation: cardDraw 0.38s cubic-bezier(0.22,1,0.36,1) both;
 }
 
-/* ── Fusion Animation ──────────────────────────────────────── */
 .fusion-burst {
   position: fixed;
   width: 160px; height: 160px;
@@ -996,7 +958,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   animation: fusionResultPop 0.45s cubic-bezier(0.22,1,0.36,1) both !important;
 }
 
-/* ── Touch / Coarse Pointer ──────────────────────────────── */
 @media (pointer: coarse) {
   .hand-card:hover,
   .hand-card.playable:hover      { transform: none; box-shadow: none; z-index: auto; }
@@ -1019,7 +980,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   #card-hover-preview { display: none !important; }
 }
 
-/* ── Portrait Smartphone (≤ 480px) ──────────────────────── */
 @media (max-width: 480px) {
   .zone-row { gap: 2px; }
   #field-left  { min-width: 50px; width: 13%; }
@@ -1030,9 +990,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   #player-hand .hand-card:last-child { margin-right: 0; }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   OPTIONS MODAL
-   ═══════════════════════════════════════════════════════════ */
 #options-modal { min-width: 320px; max-width: 420px; }
 #options-modal h2 { margin-bottom: 20px; }
 
@@ -1136,12 +1093,11 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 /* Floating phase button: hidden on desktop, shown in portrait mobile */
 .floating-phase-btn { display: none; }
 
-/* ── Portrait Smartphone (≤ 540px) — Top-bar layout ──────── */
 /*
-  Strategy: replace side panels with a 48px top control bar.
+  Portrait layout: replace side panels with a 48px top control bar.
   Cards use full viewport width minus tiny 30px graves-only right strip.
-  Formula: (100vw - 30px - 8px padding - 4 gaps×2px) / 5 ≈ (100vw - 46px) / 5
-  At 375px: (375 - 46) / 5 ≈ 65.8px wide cards — nearly double the old 49px.
+  Formula: (100vw - 30px - 8px padding - 4 gaps*2px) / 5 = (100vw - 46px) / 5
+  At 375px: (375 - 46) / 5 = 65.8px wide cards — nearly double the old 49px.
 */
 @media (max-width: 540px) {
   #game-screen {
@@ -1301,7 +1257,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   .portrait-phase-btn { opacity: 0.4; }
 }
 
-/* ── Landscape Smartphone (niedrige Höhe) ────────────────── */
 /* In landscape, width is sufficient — revert to height-based sizing.
    This query comes after portrait so it wins on devices matching both.
    Also restores the side panels and 3-row grid that portrait replaced. */

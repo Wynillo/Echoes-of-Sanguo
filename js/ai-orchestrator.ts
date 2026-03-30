@@ -1,12 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — AI Turn Orchestrator
-// ============================================================
-//
-// Coordinates the full AI turn sequence (draw → main → traps → battle).
-// All strategic decisions are delegated to ai-behaviors.ts.
-// Engine methods are called via the passed GameEngine instance.
-//
-
 import { EchoesOfSanguo } from './debug-logger.js';
 import { GAME_RULES } from './rules.js';
 import { CardType, Attribute, isMonsterType } from './types.js';
@@ -14,7 +5,6 @@ import type { AIBehavior, CardData } from './types.js';
 import type { FieldCard } from './field.js';
 import { checkFusion, CARD_DB } from './cards.js';
 import { AI_SCORE, AI_LP_THRESHOLD } from './ai-behaviors.js';
-// Use import type to avoid circular dependency (engine.ts → ai-orchestrator.ts → engine.ts)
 import type { GameEngine } from './engine.js';
 import {
   pickSummonCandidate,
@@ -32,8 +22,6 @@ import {
 } from './ai-behaviors.js';
 
 function _delay(ms: number){ return new Promise<void>(r => setTimeout(r, ms)); }
-
-// ── Main AI turn entry point ─────────────────────────────────
 
 export async function aiTurn(engine: GameEngine): Promise<void> {
   const ai = engine.state.opponent;
@@ -53,7 +41,6 @@ export async function aiTurn(engine: GameEngine): Promise<void> {
     if (await aiBattlePhase(engine)) return;
   }
 
-  // End Phase
   EchoesOfSanguo.log('PHASE', 'End Phase – AI cleanup.');
   engine.state.phase = 'end';
   engine.ui.render(engine.state);
@@ -74,8 +61,6 @@ export async function aiTurn(engine: GameEngine): Promise<void> {
   if(engine.checkWin()) return;
 }
 
-// ── Draw Phase ───────────────────────────────────────────────
-
 async function aiDrawPhase(engine: GameEngine): Promise<void> {
   const ai = engine.state.opponent;
   engine.state.phase = 'draw';
@@ -88,8 +73,6 @@ async function aiDrawPhase(engine: GameEngine): Promise<void> {
   await _delay(400);
 }
 
-// ── Main Phase ───────────────────────────────────────────────
-
 async function aiMainPhase(engine: GameEngine): Promise<void> {
   const ai  = engine.state.opponent;
   const plr = engine.state.player;
@@ -101,7 +84,6 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
 
   const bh = engine._aiBehavior;
 
-  // Activate field spell first (benefits subsequent summons)
   await _activateFieldSpells(engine);
 
   // Try fusion chain (FM-style: greedy 2-card + extend)
@@ -119,10 +101,8 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
     }
   }
 
-  // Summon one monster from hand (max. 1 per turn)
   EchoesOfSanguo.log('AI', 'Considering summon:', ai.hand.filter(c => c.type === CardType.Monster).map(c => `${c.name}(${c.atk})`));
   if(!ai.normalSummonUsed){
-    // Use smart summoning for 'smart' behavior, basic for others
     const bestIdx = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
       ? pickSmartSummonCandidate(ai.hand, {
           aiField: ai.field.monsters,
@@ -138,7 +118,6 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
       const cardDEF = card.def ?? 0;
       let zone = ai.field.monsters.findIndex(z => z === null);
 
-      // Smart: if all zones full, consider replacing weakest monster with a stronger one
       if(zone === -1 && (bh.positionStrategy === 'smart' || bh.battleStrategy === 'smart')){
         const replaceZone = _findWeakestMonsterZone(ai.field.monsters, cardATK);
         if(replaceZone !== -1){

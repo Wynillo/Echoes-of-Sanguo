@@ -1,65 +1,37 @@
-// ============================================================
-// ECHOES OF SANGUO — AI Behavior Registry
-// Data-driven opponent behavior profiles.
-// Usage: In opponent JSON, set "behavior": "aggressive" etc.
-// ============================================================
-
 import type { AIBehavior, AISpellRule, CardData, PlayerState } from './types.js';
 import { CardType, meetsEquipRequirement } from './types.js';
 import type { FieldCard } from './field.js';
 
-// ── AI Scoring Constants ────────────────────────────────────
-
 export const AI_SCORE = {
-  /** Bonus for effect monsters during summon priority evaluation */
   EFFECT_CARD_BONUS:      10000,
-  /** Base bonus when an attacker can destroy a target */
   DESTROY_TARGET:         1000,
-  /** Bonus for strong attackers probing face-down monsters */
   STRONG_PROBE:           200,
-  /** ATK threshold for safely probing face-down monsters */
   PROBE_ATK_THRESHOLD:    1800,
-  /** Penalty for weak attackers vs face-down monsters */
   FACEDOWN_RISK:          300,
-  /** Bonus when equipment unlocks a kill */
   EQUIP_UNLOCK_KILL:      2000,
-  /** Bonus when revived monster beats strongest opponent */
   REVIVE_BEATS_STRONGEST: 1000,
-  /** Bonus when buff spell could unlock a kill */
   BUFF_UNLOCK_KILL:       800,
-  /** Max gap between ATK and opponent for buff to matter */
   BUFF_KILL_THRESHOLD:    1000,
-  /** Bonus for surviving when AI is low LP */
   LOW_LP_SURVIVAL:        300,
-  /** Estimated DEF for face-down monsters (AI can't see real stats) */
   FACEDOWN_DEF_ESTIMATE:  1200,
 } as const;
 
 export const AI_LP_THRESHOLD = {
-  /** LP below which AI is considered dangerously low */
   LOW:       3000,
-  /** LP below which AI activates defensive spells */
   DEFENSIVE: 5000,
 } as const;
 
-// ── Face-Down Stat Helpers (AI cannot see hidden stats) ─
-
-/** Returns estimated combat value for face-down cards, real value otherwise. */
 export function aiCombatValue(fc: FieldCard): number {
   return fc.faceDown ? AI_SCORE.FACEDOWN_DEF_ESTIMATE : fc.combatValue();
 }
 
-/** Returns 0 for face-down cards (they can't attack), real ATK otherwise. */
 export function aiEffectiveATK(fc: FieldCard): number {
   return fc.faceDown ? 0 : fc.effectiveATK();
 }
 
-/** Returns estimated DEF for face-down cards, real DEF otherwise. */
 export function aiEffectiveDEF(fc: FieldCard): number {
   return fc.faceDown ? AI_SCORE.FACEDOWN_DEF_ESTIMATE : fc.effectiveDEF();
 }
-
-// ── Behavior Profiles ───────────────────────────────────────
 
 const DEFAULT: AIBehavior = {
   fusionFirst:            true,
@@ -111,8 +83,6 @@ const CHEATING: AIBehavior = {
   defaultSpellActivation: 'always',
 };
 
-// ── Registry ────────────────────────────────────────────────
-
 export const AI_BEHAVIOR_REGISTRY = new Map<string, AIBehavior>([
   ['default',      DEFAULT],
   ['aggressive',   AGGRESSIVE],
@@ -120,8 +90,6 @@ export const AI_BEHAVIOR_REGISTRY = new Map<string, AIBehavior>([
   ['smart',        SMART],
   ['cheating',     CHEATING],
 ]);
-
-// ── Resolver ────────────────────────────────────────────────
 
 export function resolveAIBehavior(id?: string): Required<AIBehavior> {
   const base: AIBehavior = (id ? AI_BEHAVIOR_REGISTRY.get(id) : undefined) ?? DEFAULT;
@@ -135,8 +103,6 @@ export function resolveAIBehavior(id?: string): Required<AIBehavior> {
     defaultSpellActivation: base.defaultSpellActivation ?? 'smart',
   };
 }
-
-// ── Helper: Spell activation decision ───────────────────────
 
 export function shouldActivateNormalSpell(
   cardId: string,
@@ -164,8 +130,6 @@ function evaluateSpellRule(rule: AISpellRule, playerLP: number, aiLP: number): b
   }
 }
 
-// ── Helper: Pick monster to summon from hand ────────────────
-
 export function pickSummonCandidate(hand: CardData[], priority: Required<AIBehavior>['summonPriority']): number {
   let bestIdx = -1;
   let bestScore = -1;
@@ -183,7 +147,6 @@ export function pickSummonCandidate(hand: CardData[], priority: Required<AIBehav
         score = card.def ?? 0;
         break;
       case 'effectFirst':
-        // Effect monsters get a large bonus, then sort by ATK
         score = (card.effect ? AI_SCORE.EFFECT_CARD_BONUS : 0) + (card.atk ?? 0);
         break;
       case 'lowestLevel':
@@ -200,8 +163,6 @@ export function pickSummonCandidate(hand: CardData[], priority: Required<AIBehav
   return bestIdx;
 }
 
-// ── Helper: Decide summon position ──────────────────────────
-
 export function decideSummonPosition(
   monsterATK: number,
   monsterDEF: number,
@@ -215,15 +176,12 @@ export function decideSummonPosition(
     case 'defensive':
       return 'def';
     case 'smart':
-      // If player has monsters that can destroy us in ATK, go DEF to avoid LP damage
       if (playerHasMonsters && monsterATK < playerFieldMaxATK) {
         return 'def';
       }
       return 'atk';
   }
 }
-
-// ── Smart Summon Candidate (board-aware) ────────────────────
 
 export interface BoardContext {
   aiField: Array<FieldCard | null>;
@@ -232,10 +190,6 @@ export interface BoardContext {
   aiLP: number;
 }
 
-/**
- * Smart monster summoning that considers the board state.
- * Scores each monster based on how useful it would be RIGHT NOW.
- */
 export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): number {
   const playerMonsters = ctx.playerField.filter((fc): fc is FieldCard => fc !== null);
   const playerMaxATK = playerMonsters.reduce((max, fc) =>
@@ -254,26 +208,20 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
     const def = card.def ?? 0;
     let score = 0;
 
-    // Base: raw stats matter
     score += atk * 0.5;
 
-    // Can this monster beat any player monster? Big bonus
     for (const pfc of playerMonsters) {
       const pVal = aiCombatValue(pfc);
-      if (atk > pVal) score += 300; // can destroy a target
+      if (atk > pVal) score += 300;
     }
 
-    // Can it survive the player's strongest ATK? Defensive viability
     if (atk > playerMaxATK) score += 200;
-    else if (def > playerMaxThreat) score += 100; // DEF wall potential
+    else if (def > playerMaxThreat) score += 100;
 
-    // No player monsters? Prefer high ATK for direct damage
     if (playerMonsters.length === 0) score += atk;
 
-    // Effect monsters get a bonus
     if (card.effect) score += 400;
 
-    // If we're low on LP, prefer monsters that can survive
     if (ctx.aiLP < AI_LP_THRESHOLD.LOW && def > playerMaxThreat) score += AI_SCORE.LOW_LP_SURVIVAL;
 
     if (score > bestScore) {
@@ -284,23 +232,16 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
   return bestIdx;
 }
 
-// ── Lethal Detection ────────────────────────────────────────
-
 export interface AttackPlan {
   attackerZone: number;
   targetZone: number; // -1 = direct attack
 }
 
-/**
- * Check if the AI can kill the player this turn.
- * Returns an ordered list of attacks for the kill, or null if no lethal.
- */
 export function findLethal(
   aiMonsters: Array<FieldCard | null>,
   plrMonsters: Array<FieldCard | null>,
   playerLP: number,
 ): AttackPlan[] | null {
-  // Collect available attackers
   const attackers: { zone: number; atk: number; canDirect: boolean }[] = [];
   for (let z = 0; z < aiMonsters.length; z++) {
     const fc = aiMonsters[z];
@@ -310,7 +251,6 @@ export function findLethal(
 
   if (attackers.length === 0) return null;
 
-  // Collect player defenders
   const defenders: { zone: number; val: number; inAtk: boolean; cantBeAttacked: boolean }[] = [];
   for (let z = 0; z < plrMonsters.length; z++) {
     const fc = plrMonsters[z];
@@ -325,44 +265,33 @@ export function findLethal(
 
   const attackableDefenders = defenders.filter(d => !d.cantBeAttacked);
 
-  // Case 1: No defenders or all have canDirectAttack — sum ATK vs LP
   const directAttackers = attackers.filter(a => a.canDirect);
   if (attackableDefenders.length === 0) {
     const totalDmg = attackers.reduce((s, a) => s + a.atk, 0);
     if (totalDmg >= playerLP) {
-      // Sort strongest first for style points & to guarantee overkill
       const sorted = [...attackers].sort((a, b) => b.atk - a.atk);
       return sorted.map(a => ({ attackerZone: a.zone, targetZone: -1 }));
     }
     return null;
   }
 
-  // Case 2: Try to clear the board and then deal lethal direct damage
-  // Use a greedy simulation — try all permutations for small counts
   const plan = _simulateLethal(attackers, attackableDefenders, playerLP);
   return plan;
 }
 
-/**
- * Greedy lethal simulation. Tries to find an attack sequence that kills the player.
- * For performance, uses a smart greedy approach rather than full permutation.
- */
 function _simulateLethal(
   attackers: { zone: number; atk: number; canDirect: boolean }[],
   defenders: { zone: number; val: number; inAtk: boolean }[],
   playerLP: number,
 ): AttackPlan[] | null {
-  // Sort attackers strongest first
   const sorted = [...attackers].sort((a, b) => b.atk - a.atk);
   const remainingDefs = defenders.map(d => ({ ...d, alive: true }));
   const plan: AttackPlan[] = [];
   let dmgToLP = 0;
   const usedAttackers = new Set<number>();
 
-  // Phase 1: Clear ATK-position defenders first (they deal LP damage when destroyed)
   const atkDefs = remainingDefs.filter(d => d.inAtk).sort((a, b) => a.val - b.val);
   for (const def of atkDefs) {
-    // Find weakest attacker that can beat this defender (efficient resource use)
     const attacker = sorted
       .filter(a => !usedAttackers.has(a.zone) && a.atk > def.val)
       .sort((a, b) => a.atk - b.atk)[0];
@@ -374,7 +303,6 @@ function _simulateLethal(
     }
   }
 
-  // Phase 2: Clear DEF-position defenders (no LP damage but clears the way)
   const defDefs = remainingDefs.filter(d => !d.inAtk && d.alive).sort((a, b) => a.val - b.val);
   for (const def of defDefs) {
     const attacker = sorted
@@ -387,10 +315,7 @@ function _simulateLethal(
     }
   }
 
-  // Check if all defenders are cleared
   const allCleared = remainingDefs.every(d => !d.alive);
-
-  // Phase 3: Remaining attackers go direct (or canDirectAttack ones skip to direct)
   const remainingAttackers = sorted.filter(a => !usedAttackers.has(a.zone));
   if (allCleared) {
     for (const a of remainingAttackers) {
@@ -398,7 +323,6 @@ function _simulateLethal(
       dmgToLP += a.atk;
     }
   } else {
-    // Some defenders still alive — only canDirectAttack monsters can go direct
     for (const a of remainingAttackers) {
       if (a.canDirect) {
         plan.push({ attackerZone: a.zone, targetZone: -1 });
@@ -410,20 +334,12 @@ function _simulateLethal(
   return dmgToLP >= playerLP ? plan : null;
 }
 
-// ── Optimal Attack Ordering ─────────────────────────────────
-
-/**
- * Plan the optimal sequence of attacks to maximize damage/kills.
- * Returns ordered list of (attackerZone, targetZone) pairs.
- * targetZone -1 means direct attack.
- */
 export function planAttacks(
   aiMonsters: Array<FieldCard | null>,
   plrMonsters: Array<FieldCard | null>,
   playerLP: number,
   behavior: Required<AIBehavior>,
 ): AttackPlan[] {
-  // Step 1: Check for lethal — if we can win, just do the kill sequence
   const lethal = findLethal(aiMonsters, plrMonsters, playerLP);
   if (lethal) return lethal;
 
@@ -431,7 +347,6 @@ export function planAttacks(
   const plans: AttackPlan[] = [];
   const usedAttackers = new Set<number>();
 
-  // Collect attackers
   const attackers: { zone: number; fc: FieldCard }[] = [];
   for (let z = 0; z < aiMonsters.length; z++) {
     const fc = aiMonsters[z];
@@ -439,7 +354,6 @@ export function planAttacks(
     attackers.push({ zone: z, fc });
   }
 
-  // Collect live defenders
   const defenders: { zone: number; fc: FieldCard }[] = [];
   for (let z = 0; z < plrMonsters.length; z++) {
     const fc = plrMonsters[z];

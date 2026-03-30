@@ -1,7 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO - Game Engine
-// ============================================================
-
 import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, resolveFusionChain } from './cards.js';
 import { executeEffectBlock, matchesFilter } from './effect-registry.js';
 import { CardType } from './types.js';
@@ -11,7 +7,6 @@ import { TriggerBus } from './trigger-bus.js';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types.js';
 
-// ── Serialized checkpoint types (for save/restore) ───────
 export interface SerializedFieldCardData {
   cardId: string;
   position: Position;
@@ -68,7 +63,6 @@ import { aiTurn } from './ai-orchestrator.js';
 export { EchoesOfSanguo } from './debug-logger.js';
 export { FieldCard, FieldSpellTrap } from './field.js';
 
-// ── GameEngine ─────────────────────────────────────────────
 export class GameEngine {
   state!: GameState; // initialized in initGame() before any gameplay method is called
   ui: UICallbacks;
@@ -79,7 +73,7 @@ export class GameEngine {
   _duelEnded = false;
 
   constructor(uiCallbacks: UICallbacks){
-    this.ui = uiCallbacks; // { render, log, prompt, showResult, onDuelEnd }
+    this.ui = uiCallbacks;
     this._trapResolve = null;
     this._currentOpponentId = null;
   }
@@ -96,11 +90,6 @@ export class GameEngine {
     };
   }
 
-  // ───────── Init ─────────────────────────────────────────
-  /**
-   * @param {string[]} playerDeckIds  - Player card IDs
-   * @param {object}   opponentConfig - { id, deckIds } from OPPONENT_CONFIGS
-   */
   async initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null){
     EchoesOfSanguo.startSession();
     this._initStats();
@@ -109,11 +98,10 @@ export class GameEngine {
     this._currentOpponentId = (opponentConfig && opponentConfig.id) ? opponentConfig.id : null;
     this._aiBehavior = resolveAIBehavior(opponentConfig?.behaviorId);
 
-    // Coin toss: determine who goes first
     const playerGoesFirst = Math.random() < 0.5;
 
     this.state = {
-      phase: 'main',        // 'draw'|'main'|'battle'|'end'
+      phase: 'main',
       turn: 1,
       activePlayer: playerGoesFirst ? 'player' : 'opponent',
       player: {
@@ -139,7 +127,6 @@ export class GameEngine {
     this.drawCard('opponent', 5);
     this.addLog('=== Duel begins! ===');
 
-    // Show coin toss result
     if(this.ui.showCoinToss) await this.ui.showCoinToss(playerGoesFirst);
 
     if(playerGoesFirst){
@@ -150,7 +137,6 @@ export class GameEngine {
       this.addLog('Opponent goes first!');
       this.state.phase = 'draw';
       this.ui.render(this.state);
-      // Run AI turn
       setTimeout(() => {
         aiTurn(this).catch(err => {
           EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
@@ -165,10 +151,6 @@ export class GameEngine {
     }
   }
 
-  /**
-   * Restore a saved game state (for duel checkpoint resume).
-   * Reconstructs CardData from CARD_DB and FieldCard/FieldSpellTrap instances.
-   */
   restoreGame(checkpoint: SerializedCheckpoint): void {
     EchoesOfSanguo.startSession();
     this._initStats();
@@ -220,7 +202,6 @@ export class GameEngine {
       log: checkpoint.log,
     } as GameState;
 
-    // Rebuild equippedCards references on FieldCards from spell/trap zones
     for (const side of ['player', 'opponent'] as Owner[]) {
       for (const fst of this.state[side].field.spellTraps) {
         if (!fst || fst.card.type !== CardType.Equipment || fst.equippedOwner === undefined || fst.equippedMonsterZone === undefined) continue;
@@ -235,7 +216,6 @@ export class GameEngine {
     this.addLog('--- Duel resumed ---');
     this.ui.render(this.state);
 
-    // If it was the opponent's turn, resume AI
     if (this.state.activePlayer === 'opponent') {
       setTimeout(() => {
         aiTurn(this).catch(err => {
@@ -253,7 +233,6 @@ export class GameEngine {
 
   getState(): GameState { return this.state; }
 
-  // ───────── Utility ──────────────────────────────────────
   _shuffle<T>(arr: T[]): T[] {
     for(let i=arr.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
@@ -269,7 +248,6 @@ export class GameEngine {
     this.ui.log(msg);
   }
 
-  /** Safely execute an effect block, logging errors without crashing. */
   private _safeExecuteEffect(block: CardEffectBlock, ctx: EffectContext, cardId: string, label: string): EffectSignal | null {
     try {
       return executeEffectBlock(block, ctx);
@@ -326,7 +304,6 @@ export class GameEngine {
   _endDuel(result: 'victory' | 'defeat'){
     if(this._duelEnded) return;
     this._duelEnded = true;
-    // Snapshot final stats from current game state
     this._stats.turns = this.state.turn;
     this._stats.lpRemaining = this.state.player.lp;
     this._stats.opponentLpRemaining = this.state.opponent.lp;
@@ -349,7 +326,6 @@ export class GameEngine {
     this._endDuel('defeat');
   }
 
-  // ───────── Draw ─────────────────────────────────────────
   drawCard(owner: Owner, count = 1){
     const st = this.state[owner];
     let drawn = 0;
@@ -359,7 +335,6 @@ export class GameEngine {
       st.hand.push(card);
       drawn++;
     }
-    // hand limit (draw cap)
     while(st.hand.length > GAME_RULES.handLimitDraw) st.hand.shift();
     if (owner === 'player') this._stats.cardsDrawn += drawn;
     if(drawn > 0 && this.ui.onDraw) this.ui.onDraw(owner, drawn);
@@ -376,7 +351,6 @@ export class GameEngine {
     }
   }
 
-  // ───────── Summon ────────────────────────────────────────
   async summonMonster(owner: Owner, handIndex: number, zone: number, position: Position = 'atk', faceDown=false){
     const st = this.state[owner];
     if(zone < 0 || zone > 4 || st.field.monsters[zone]){
@@ -391,7 +365,6 @@ export class GameEngine {
     this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
     this.ui.playSfx?.('sfx_card_play');
     this._recalcFieldSpellBonuses(fc);
-    // trigger onSummon effect for every summon method
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
     this.ui.render(this.state);

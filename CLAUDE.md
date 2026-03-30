@@ -66,6 +66,11 @@ Card effects are **data-driven** via `CardEffectBlock` descriptors, not hardcode
 ```
 New effects are added to `EFFECT_REGISTRY` in `effect-registry.ts`. Never hardcode effect logic in the engine.
 
+### Code Style
+- No decorative dividers or section separators in comments
+- No comments that restate what the code does — code should be self-documenting
+- Only comment to explain *why*, not *what*
+
 ### Internationalization
 All user-facing strings go through i18next. Translation files: `locales/de.json`, `locales/en.json`. Use `t('key')` via `useTranslation()` hook.
 
