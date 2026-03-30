@@ -76,6 +76,7 @@ export class GameEngine {
   _currentOpponentId: number | null;
   _aiBehavior!: Required<AIBehavior>;
   _stats!: DuelStats;
+  _duelEnded = false;
 
   constructor(uiCallbacks: UICallbacks){
     this.ui = uiCallbacks; // { render, log, prompt, showResult, onDuelEnd }
@@ -103,6 +104,7 @@ export class GameEngine {
   async initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null){
     EchoesOfSanguo.startSession();
     this._initStats();
+    this._duelEnded = false;
     const oppDeckIds = (opponentConfig && opponentConfig.deckIds) ? opponentConfig.deckIds : OPPONENT_DECK_IDS;
     this._currentOpponentId = (opponentConfig && opponentConfig.id) ? opponentConfig.id : null;
     this._aiBehavior = resolveAIBehavior(opponentConfig?.behaviorId);
@@ -170,6 +172,7 @@ export class GameEngine {
   restoreGame(checkpoint: SerializedCheckpoint): void {
     EchoesOfSanguo.startSession();
     this._initStats();
+    this._duelEnded = false;
     this._currentOpponentId = checkpoint.opponentId;
     this._aiBehavior = resolveAIBehavior(checkpoint.opponentBehaviorId);
 
@@ -292,6 +295,7 @@ export class GameEngine {
   }
 
   checkWin(){
+    if(this._duelEnded) return true;
     if(this.state.player.lp <= 0){
       this.addLog('=== DEFEAT ===');
       this._stats.endReason = 'lp_zero';
@@ -320,6 +324,8 @@ export class GameEngine {
   }
 
   _endDuel(result: 'victory' | 'defeat'){
+    if(this._duelEnded) return;
+    this._duelEnded = true;
     // Snapshot final stats from current game state
     this._stats.turns = this.state.turn;
     this._stats.lpRemaining = this.state.player.lp;
@@ -856,6 +862,7 @@ export class GameEngine {
       if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, defenderZone);
       await this._resolveBattle(attackerOwner, attackerZone, defOwn, defenderZone, attFC, defFC);
     }
+    if(this._duelEnded) return;
     this.ui.render(this.state);
   }
 
@@ -887,6 +894,7 @@ export class GameEngine {
     this.addLog(`${attFC.card.name} greift direkt an!`);
     if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
     this.dealDamage(defOwn, attFC.effectiveATK());
+    if(this._duelEnded) return;
     this.ui.render(this.state);
   }
 
@@ -918,6 +926,7 @@ export class GameEngine {
         this.addLog(`${defFC.card.name} destroyed! Opponent: -${dmg} LP`);
         await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
         this.dealDamage(defOwner, dmg);
+        if(this._duelEnded) return;
         // attacker effect: onDestroyByBattle
         await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
         TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
@@ -930,6 +939,7 @@ export class GameEngine {
         this.addLog(`${attFC.card.name} destroyed! Player: -${dmg} LP`);
         await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
         this.dealDamage(atkOwner, dmg);
+        if(this._duelEnded) return;
         await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
         TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
         await this._triggerEffect(defFC, defOwner, 'onDestroyByBattle', null);
