@@ -1,10 +1,17 @@
 import { EchoesOfSanguo } from './debug-logger.js';
 import { GAME_RULES } from './rules.js';
 import { CardType, Attribute, isMonsterType } from './types.js';
-import type { AIBehavior, CardData } from './types.js';
+import type { AIBehavior, AIGoal, BoardSnapshot, CardData } from './types.js';
 import type { FieldCard } from './field.js';
 import { checkFusion, CARD_DB, FUSION_RECIPES } from './cards.js';
 import { AI_SCORE, AI_LP_THRESHOLD } from './ai-behaviors.js';
+import {
+  snapshotBoard,
+  computeBoardThreat,
+  classifyGoalAlignment,
+  evaluateTurnGoal,
+} from './ai-threat.js';
+// Use import type to avoid circular dependency (engine.ts → ai-orchestrator.ts → engine.ts)
 import type { GameEngine } from './engine.js';
 import {
   pickSummonCandidate,
@@ -20,6 +27,12 @@ import {
   aiEffectiveDEF,
   type AttackPlan,
 } from './ai-behaviors.js';
+
+interface TurnContext {
+  snap:       BoardSnapshot;
+  activeGoal: AIGoal | undefined;
+  isWinning:  boolean;
+}
 
 function _delay(ms: number){ return new Promise<void>(r => setTimeout(r, ms)); }
 
@@ -122,13 +135,19 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
   await _delay(400);
 
   const bh = engine._aiBehavior;
+  const snap = snapshotBoard(ai, plr);
+  const ctx: TurnContext = {
+    snap,
+    activeGoal: evaluateTurnGoal(engine.state.turn, bh.goal),
+    isWinning:  computeBoardThreat(snap) > 0,
+  };
 
   await _activateFieldSpells(engine);
 
   // Try fusion chain (FM-style: greedy 2-card + extend)
   EchoesOfSanguo.log('AI', 'Main Phase – checking fusion chain...');
   if(!ai.normalSummonUsed && bh.fusionFirst){
-    const bestChain = _findSmartFusionChain(ai.hand, bh.fusionMinATK, plr.field.monsters);
+    const bestChain = _findSmartFusionChain(ai.hand, bh.fusionMinATK, plr.field.monsters, ctx.activeGoal);
     const zone = ai.field.monsters.findIndex(z => z === null);
     if(bestChain && zone !== -1){
       const names = bestChain.indices.map(i => ai.hand[i].name);
@@ -208,7 +227,8 @@ async function aiMainPhase(engine: GameEngine): Promise<void> {
     }
   }
 
-  await _activateSpells(engine);
+  // Activate spells — smart ordering: buffs and damage spells
+  await _activateSpells(engine, ctx);
 }
 
 async function _activateFieldSpells(engine: GameEngine): Promise<void> {
@@ -225,16 +245,28 @@ async function _activateFieldSpells(engine: GameEngine): Promise<void> {
   }
 }
 
-async function _activateSpells(engine: GameEngine): Promise<void> {
+async function _activateSpells(engine: GameEngine, ctx: TurnContext): Promise<void> {
   const ai  = engine.state.opponent;
   const plr = engine.state.player;
   const bh  = engine._aiBehavior;
 
   EchoesOfSanguo.log('AI', 'Activating spells (smart ordering)...');
+
+  // stall_drain: prioritize heal spells by putting them first in evaluation order
+  function _spellSortKey(card: CardData): number {
+    if (ctx.activeGoal?.id === 'stall_drain') {
+      const actions = card.effect?.actions ?? [];
+      if (actions.some(a => a.type === 'gainLP')) return -1; // heal first
+    }
+    return 0;
+  }
+
   let spellActivated = true;
   while(spellActivated){
     spellActivated = false;
-    for(let i = 0; i < ai.hand.length; i++){
+    const handIndices = [...Array(ai.hand.length).keys()]
+      .sort((a, b) => _spellSortKey(ai.hand[a]) - _spellSortKey(ai.hand[b]));
+    for(const i of handIndices){
       const card = ai.hand[i];
       if(card.type !== CardType.Spell) continue;
       let activated = false;
@@ -388,6 +420,7 @@ async function aiEquipCards(engine: GameEngine): Promise<void> {
 async function aiBattlePhase(engine: GameEngine): Promise<boolean> {
   const ai  = engine.state.opponent;
   const plr = engine.state.player;
+  const bh  = engine._aiBehavior;
 
   engine.state.phase = 'battle';
   engine.addLog('--- Opponent Battle Phase ---');
@@ -396,13 +429,28 @@ async function aiBattlePhase(engine: GameEngine): Promise<boolean> {
   engine.ui.render(engine.state);
   await _delay(500);
 
-  const bh = engine._aiBehavior;
+  // stall_drain: skip battle entirely unless lethal is available
+  const activeGoal = evaluateTurnGoal(engine.state.turn, bh.goal);
+  if (activeGoal?.id === 'stall_drain') {
+    const snap = snapshotBoard(ai, plr);
+    const isWinning = computeBoardThreat(snap) > 0;
+    const totalATK = ai.field.monsters
+      .filter((fc): fc is FieldCard => fc !== null && fc.position === 'atk' && !fc.hasAttacked)
+      .reduce((sum, fc) => sum + fc.effectiveATK(), 0);
+    const canKill = totalATK > plr.lp || plr.field.monsters.every(fc => fc === null);
+    if (isWinning && !canKill) {
+      EchoesOfSanguo.log('AI', 'stall_drain: winning + no lethal – skipping battle phase.');
+      return false;
+    }
+  }
+
   if (bh.peekPlayerDeck && bh.peekPlayerDeck > 0 && plr.deck.length > 0) {
     const nextDraw = plr.deck[0];
     EchoesOfSanguo.log('AI', `CHEAT-PEEK: Player draws ${nextDraw.name} next turn (ATK:${nextDraw.atk ?? '?'})`);
   }
 
-  const attackPlan = planAttacks(ai.field.monsters, plr.field.monsters, plr.lp, engine._aiBehavior);
+  // Use the smart attack planner to determine optimal attack sequence
+  const attackPlan = planAttacks(ai.field.monsters, plr.field.monsters, plr.lp, bh);
 
   if (attackPlan.length > 0) {
     EchoesOfSanguo.log('AI', `Attack plan: ${attackPlan.length} attacks planned`);
@@ -533,6 +581,7 @@ function _findSmartFusionChain(
   hand: CardData[],
   minATK: number,
   plrMonsters: Array<FieldCard | null>,
+  goal?: AIGoal,
 ): { indices: number[]; resultName: string; resultATK: number } | null {
   const plrMaxATK = plrMonsters
     .filter((fc): fc is FieldCard => fc !== null)
@@ -590,8 +639,14 @@ function _findSmartFusionChain(
       if (currentATK > plrMaxATK && plrMaxATK > 0) score += AI_SCORE.EQUIP_UNLOCK_KILL;
       const fusionCard = CARD_DB[currentId];
       if (fusionCard?.effect) score += 500;
-      // slight penalty for using too many cards (card advantage)
-      score -= (chain.length - 2) * 100;
+
+      // Goal alignment bonus
+      score += classifyGoalAlignment('fusion', goal);
+
+      // Slight penalty for using too many cards (card advantage)
+      // fusion_otk: halve the penalty — saving hand for fusion is the whole point
+      const chainPenalty = goal?.id === 'fusion_otk' ? 50 : 100;
+      score -= (chain.length - 2) * chainPenalty;
 
       if (score > bestScore) {
         bestScore = score;
