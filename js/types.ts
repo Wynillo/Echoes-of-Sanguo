@@ -1,7 +1,7 @@
 export type Owner        = 'player' | 'opponent';
 export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
-export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell';
+export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell' | 'onAnySummon';
 export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip' | 'onDealBattleDamage' | 'onSentToGrave';
 export type SpellType    = 'normal' | 'targeted' | 'fromGrave' | 'field';
 
@@ -149,6 +149,8 @@ export interface EffectDescriptorMap {
   stealMonster:              {};
   skipOppDraw:               {};
   discardEntireHand:         { target: 'self' | 'opponent' | 'both' };
+  destroyAndDamageBoth:      { side: 'opponent' | 'self' };
+  preventBattleDamage:       {};
 }
 
 export type EffectDescriptor = {
@@ -305,6 +307,7 @@ export interface PlayerState {
   };
   graveyard:        CardData[];
   normalSummonUsed: boolean;
+  battleProtection?: boolean;
 }
 
 export interface GameState {

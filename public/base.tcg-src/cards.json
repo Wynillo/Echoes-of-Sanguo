@@ -3291,5 +3291,26 @@
     "attribute": 2,
     "race": 2,
     "effect": "onDestroyByBattle:specialSummonFromDeck({maxLevel=2,r=2},faceDown,def)"
+  },
+  {
+    "id": 331,
+    "rarity": 6,
+    "type": 4,
+    "effect": "onAnySummon:destroyAll()",
+    "trapTrigger": 6
+  },
+  {
+    "id": 332,
+    "rarity": 6,
+    "type": 4,
+    "effect": "manual:destroyAndDamageBoth(opponent)",
+    "trapTrigger": 4
+  },
+  {
+    "id": 333,
+    "rarity": 4,
+    "type": 4,
+    "effect": "onAttack:preventBattleDamage()",
+    "trapTrigger": 1
   }
 ]

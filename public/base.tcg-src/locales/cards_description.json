@@ -1648,5 +1648,20 @@
     "id": 330,
     "name": "Apprentice Magician",
     "description": "[Effect] When destroyed by battle: Special Summon 1 Level 2 or lower Spellcaster from your Deck in face-down Defense Position."
+  },
+  {
+    "id": 331,
+    "name": "Torrential Tribute",
+    "description": "[Trap] When a monster is Summoned: Destroy all monsters on the field."
+  },
+  {
+    "id": 332,
+    "name": "Ring of Destruction",
+    "description": "[Trap] Destroy 1 opponent monster. Both players take damage equal to its ATK."
+  },
+  {
+    "id": 333,
+    "name": "Waboku",
+    "description": "[Trap] Prevent all battle damage and destruction for this turn."
   }
 ]

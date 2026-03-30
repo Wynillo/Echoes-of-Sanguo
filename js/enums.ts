@@ -160,7 +160,7 @@ export function intToRarity(n: number): Rarity {
 const TRIGGER_STRINGS: ReadonlySet<string> = new Set([
   'onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive', 'onFlip',
   'onDealBattleDamage', 'onSentToGrave',
-  'onAttack', 'onOwnMonsterAttacked', 'onOpponentSummon', 'manual', 'onOpponentSpell',
+  'onAttack', 'onOwnMonsterAttacked', 'onOpponentSummon', 'manual', 'onOpponentSpell', 'onAnySummon',
 ]);
 
 export function isValidTrigger(s: string): s is (EffectTrigger | TrapTrigger) {
@@ -193,10 +193,10 @@ export function intToSpellType(n: number): SpellType {
 // ── TrapTrigger ─────────────────────────────────────────────
 
 const TRAP_TRIGGER_TO_INT: Record<string, number> = {
-  onAttack: 1, onOwnMonsterAttacked: 2, onOpponentSummon: 3, manual: 4, onOpponentSpell: 5,
+  onAttack: 1, onOwnMonsterAttacked: 2, onOpponentSummon: 3, manual: 4, onOpponentSpell: 5, onAnySummon: 6,
 };
 const INT_TO_TRAP_TRIGGER: Record<number, TrapTrigger> = {
-  1: 'onAttack', 2: 'onOwnMonsterAttacked', 3: 'onOpponentSummon', 4: 'manual', 5: 'onOpponentSpell',
+  1: 'onAttack', 2: 'onOwnMonsterAttacked', 3: 'onOpponentSummon', 4: 'manual', 5: 'onOpponentSpell', 6: 'onAnySummon',
 };
 
 export function trapTriggerToInt(t: TrapTrigger): number {

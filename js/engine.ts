@@ -391,6 +391,7 @@ export class GameEngine {
         }
       }
     }
+    await this._checkAnySummonTraps(owner, zone);
     this.ui.render(this.state);
     return true;
   }
@@ -427,6 +428,7 @@ export class GameEngine {
     this._recalcFieldSpellBonuses(fc);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    await this._checkAnySummonTraps(owner, zone);
     this.ui.render(this.state);
     return true;
   }
@@ -919,10 +921,14 @@ export class GameEngine {
 
     if(!defFC){
       this.addLog(`${attFC.card.name} attacks directly!`);
-      if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
-      this.dealDamage(defOwn, attFC.effectiveATK());
-      if(this._duelEnded) return;
-      await this._triggerEffect(attFC, attackerOwner, 'onDealBattleDamage', null);
+      if(this.state[defOwn].battleProtection){
+        this.addLog('Battle damage prevented!');
+      } else {
+        if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
+        this.dealDamage(defOwn, attFC.effectiveATK());
+        if(this._duelEnded) return;
+        await this._triggerEffect(attFC, attackerOwner, 'onDealBattleDamage', null);
+      }
     } else {
       if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, defenderZone);
       await this._resolveBattle(attackerOwner, attackerZone, defOwn, defenderZone, attFC, defFC);
@@ -994,6 +1000,11 @@ export class GameEngine {
     const effATK = atkVal + atkBonus;
 
     this.addLog(`${attFC.card.name} (ATK ${effATK}) vs ${defFC.card.name} (${modeStr} ${defVal})`);
+
+    if(this.state[defOwner].battleProtection){
+      this.addLog('Battle damage and destruction prevented!');
+      return;
+    }
 
     if(defFC.position === 'atk'){
       if(effATK > defVal){
@@ -1104,7 +1115,7 @@ export class GameEngine {
     } else if(trapTrigger === 'onOwnMonsterAttacked'){
       ctx.attacker = args[0];
       ctx.defender = args[1];
-    } else if(trapTrigger === 'onOpponentSummon'){
+    } else if(trapTrigger === 'onOpponentSummon' || trapTrigger === 'onAnySummon'){
       ctx.summonedFC = args[0];
     }
     return ctx;
@@ -1131,6 +1142,19 @@ export class GameEngine {
       blocks.push(card.effect);
     }
     return blocks;
+  }
+
+  async _checkAnySummonTraps(summonerOwner: Owner, zone: number): Promise<void> {
+    const fc = this.state[summonerOwner].field.monsters[zone];
+    if (!fc) return;
+    const trapResult = summonerOwner === 'player'
+      ? await this._autoActivateOpponentTraps('onAnySummon', fc)
+      : await this._promptPlayerTraps('onAnySummon', fc);
+    if (trapResult?.destroySummoned || trapResult?.destroyAttacker) {
+      this.state[summonerOwner].graveyard.push(fc.card);
+      this.state[summonerOwner].field.monsters[zone] = null;
+      this._removeEquipmentForMonster(summonerOwner, zone);
+    }
   }
 
   async _triggerSentToGrave(card: CardData, owner: Owner): Promise<void> {
@@ -1231,6 +1255,7 @@ export class GameEngine {
     this.state[owner].field.monsters.forEach(fc => {
       if(fc){ fc.tempATKBonus = 0; fc.tempDEFBonus = 0; fc.hasAttacked = false; fc.summonedThisTurn = false; }
     });
+    this.state[owner].battleProtection = false;
   }
 
   _returnSpiritMonsters(owner: Owner){

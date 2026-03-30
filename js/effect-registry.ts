@@ -304,6 +304,29 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
+  destroyAndDamageBoth(desc: { side: 'opponent' | 'self' }, ctx) {
+    const targetOwner = desc.side === 'opponent' ? oppOf(ctx.owner) : ctx.owner;
+    const st = ctx.engine.getState();
+    const monsters = st[targetOwner].field.monsters;
+    const idx = findMonsterByATK(monsters, 'strongest', {});
+    if (idx === null || !monsters[idx]) return {};
+    const fc = monsters[idx]!;
+    const atk = fc.effectiveATK();
+    ctx.engine.addLog(`${fc.card.name} is destroyed! Both players take ${atk} damage!`);
+    st[targetOwner].graveyard.push(fc.card);
+    st[targetOwner].field.monsters[idx] = null;
+    ctx.engine._removeEquipmentForMonster(targetOwner, idx);
+    ctx.engine.dealDamage('player', atk);
+    ctx.engine.dealDamage('opponent', atk);
+    return {};
+  },
+
+  preventBattleDamage(_desc: unknown, ctx) {
+    ctx.engine.getState()[ctx.owner].battleProtection = true;
+    ctx.engine.addLog('Battle damage and destruction prevented this turn!');
+    return { cancelAttack: true };
+  },
+
   discardEntireHand(desc: { target: 'self' | 'opponent' | 'both' }, ctx) {
     const state = ctx.engine.getState();
     const discard = (owner: Owner) => {

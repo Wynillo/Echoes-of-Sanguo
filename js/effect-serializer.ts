@@ -177,6 +177,8 @@ function serializeAction(a: EffectDescriptor): string {
     case 'stealMonster':            return 'stealMonster()';
     case 'skipOppDraw':             return 'skipOppDraw()';
     case 'discardEntireHand':       return `discardEntireHand(${a.target})`;
+    case 'destroyAndDamageBoth':    return `destroyAndDamageBoth(${a.side})`;
+    case 'preventBattleDamage':     return 'preventBattleDamage()';
     default:
       throw new Error(`Unknown effect action type: ${(a as any).type}`);
   }
@@ -346,6 +348,8 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     case 'stealMonster':            return { type: 'stealMonster' };
     case 'skipOppDraw':             return { type: 'skipOppDraw' };
     case 'discardEntireHand':       return { type: 'discardEntireHand', target: args[0] as 'self' | 'opponent' | 'both' };
+    case 'destroyAndDamageBoth':    return { type: 'destroyAndDamageBoth', side: args[0] as 'opponent' | 'self' };
+    case 'preventBattleDamage':     return { type: 'preventBattleDamage' };
 
     default:
       throw new Error(`Unknown action type: ${type}`);
