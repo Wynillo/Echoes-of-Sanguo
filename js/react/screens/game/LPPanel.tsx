@@ -22,8 +22,8 @@ export function LPPanel({ playerLp, oppLp, playerDeck, oppDeck }: Props) {
           <div className="io-bar-bg">
             <div id="opp-lp-bar" className="lp-bar opp-lp-bar" style={{ width: lpPct(oppLp) }}></div>
           </div>
-          <span className="lp-value" id="opp-lp">{oppLpDisplay}</span>
-          <span className="lp-deck" id="opp-deck-count">🂠{oppDeck}</span>
+          <span className="lp-value" id="opp-lp" aria-live="polite" aria-label={`Opponent LP: ${oppLpDisplay}`}>{oppLpDisplay}</span>
+          <span className="lp-deck" id="opp-deck-count" aria-label={`Opponent deck: ${oppDeck} cards`}>🂠{oppDeck}</span>
         </div>
       </div>
       <div className="lp-row player-lp-row">
@@ -32,8 +32,8 @@ export function LPPanel({ playerLp, oppLp, playerDeck, oppDeck }: Props) {
           <div className="io-bar-bg">
             <div id="player-lp-bar" className="lp-bar" style={{ width: lpPct(playerLp) }}></div>
           </div>
-          <span className="lp-value" id="player-lp">{playerLpDisplay}</span>
-          <span className="lp-deck" id="player-deck-count">🂠{playerDeck}</span>
+          <span className="lp-value" id="player-lp" aria-live="polite" aria-label={`Your LP: ${playerLpDisplay}`}>{playerLpDisplay}</span>
+          <span className="lp-deck" id="player-deck-count" aria-label={`Your deck: ${playerDeck} cards`}>🂠{playerDeck}</span>
         </div>
       </div>
     </div>

@@ -11,7 +11,8 @@ export type ModalState =
   | { type: 'main-options' }
   | { type: 'battle-log' }
   | { type: 'coin-toss'; playerGoesFirst: boolean; resolve: () => void }
-  | { type: 'gauntlet-transition'; duelIndex: number; totalDuels: number; nextOpponentName: string; resolve: () => void };
+  | { type: 'gauntlet-transition'; duelIndex: number; totalDuels: number; nextOpponentName: string; resolve: () => void }
+  | { type: 'how-to-play' };
 
 interface ModalCtx {
   modal: ModalState;

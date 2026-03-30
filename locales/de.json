@@ -8,7 +8,9 @@
     "back": "← Zurück",
     "coins": "Jade-Münzen",
     "cards": "Karten",
-    "load_more": "{{count}} weitere anzeigen"
+    "load_more": "{{count}} weitere anzeigen",
+    "card_one": "{{count}} Karte",
+    "card_other": "{{count}} Karten"
   },
   "title": {
     "subtitle": "Wolong's Awakening",
@@ -74,6 +76,8 @@
     "refill_hand": "Zieh-Regel",
     "refill_hand_on": "Auffüllen auf 5 (FM)",
     "refill_hand_off": "1 Karte pro Zug",
+    "mute": "Stumm",
+    "unmute": "Ton an",
     "view_log": "📜 Kampfprotokoll",
     "log_empty": "Noch keine Einträge.",
     "download_log": "⬇ Protokoll herunterladen"
@@ -150,6 +154,7 @@
     "add_to_deck": "Zum Deck hinzufügen",
     "remove_from_deck": "Aus Deck entfernen",
     "saved_toast": "✓ Deck gespeichert!",
+    "confirm_overwrite": "Aktuelles Deck überschreiben?",
     "type_all": "Alle",
     "type_normal": "Normal",
     "type_effect": "Effekt",
@@ -195,7 +200,13 @@
     "hint_selected": "{{name}} ausgewählt.",
     "grave_opp": "Gegner Friedhof",
     "grave_player": "Spieler Friedhof",
+    "ai_thinking": "Gegner denkt nach...",
     "aria_next_phase": "Nächste Phase (B/E/T)",
+    "keyboard_help_title": "Tastenkürzel",
+    "keyboard_advance": "Phase vorrücken",
+    "keyboard_end_turn": "Zug beenden",
+    "keyboard_cancel": "Auswahl abbrechen",
+    "keyboard_help": "Diese Hilfe ein-/ausblenden",
     "surrender": "⚑ Aufgeben",
     "surrender_confirm": "Wirklich aufgeben? Das Duell wird als Niederlage gewertet.",
     "surrender_yes": "⚑ Ja, aufgeben",
@@ -283,6 +294,11 @@
     "available": "Verfügbar",
     "no_data": "Keine Kampagnendaten geladen.",
     "no_missions": "Noch keine Missionen verfügbar.",
+    "progress": "{{done}}/{{total}} Duelle abgeschlossen",
+    "gauntlet_warning": "Dies ist ein Gauntlet: {{count}} aufeinanderfolgende Duelle. Zwischen den Kämpfen kann nicht gespeichert werden. Fortfahren?",
+    "unlock_complete_node": "Schließe \"{{node}}\" zuerst ab",
+    "unlock_complete_all": "Schließe alle Voraussetzungen ab",
+    "unlock_complete_any": "Schließe eine Voraussetzung ab",
     "ch_han_court": "Der Kaiserliche Hof",
     "ch_tournament": "Neo-Shanghai Turnier",
     "ch_return": "Rückkehr in die Vergangenheit",
@@ -417,6 +433,28 @@
     "attr_wind": "Wind",
     "attr_light": "Licht",
     "attr_dark": "Dunkel"
+  },
+  "howToPlay": {
+    "title": "Spielanleitung",
+    "goal_title": "Ziel",
+    "goal_text": "Reduziere die Lebenspunkte (LP) deines Gegners auf 0. Jeder Spieler startet mit 8000 LP und einem Kartendeck.",
+    "phases_title": "Zugphasen",
+    "phases_text": "Jeder Zug hat 3 Phasen: Hauptphase (Monster beschwören, Zauber/Fallen setzen), Kampfphase (mit Monstern angreifen) und Endphase. Drücke B für Kampf, E für Ende, T um den Zug zu beenden.",
+    "fusion_title": "Fusion",
+    "fusion_text": "Halte Monster in deiner Hand lange gedrückt, um sie für eine Fusion auszuwählen. Wenn eine gültige Fusion existiert, kannst du sie zu einem stärkeren Monster verschmelzen. Die Materialkarten werden dabei verbraucht.",
+    "spells_title": "Zauber, Fallen & Ausrüstung",
+    "spells_text": "Zauber wirken sofort. Fallen können verdeckt gesetzt und aktiviert werden, wenn der Gegner angreift. Ausrüstungskarten erhöhen ATK oder DEF eines Monsters."
+  },
+  "error": {
+    "title": "Ein Fehler ist aufgetreten",
+    "back_to_title": "\u2190 Zum Titelbildschirm",
+    "reload": "\u27f3 Neu laden",
+    "save_failed": "Speichern fehlgeschlagen \u2014 Speicher ist m\u00f6glicherweise voll."
+  },
+  "migration": {
+    "warning_title": "Speicherdaten migriert",
+    "warning_text": "Deine alten Speicherdaten wurden in ein neues Format aktualisiert. Ein Backup deiner vorherigen Daten wurde aufbewahrt. Falls etwas nicht stimmt, kannst du das Backup in den Optionen wiederherstellen.",
+    "dismiss": "OK, verstanden"
   },
   "duelResult": {
     "victory_title": "SIEG",

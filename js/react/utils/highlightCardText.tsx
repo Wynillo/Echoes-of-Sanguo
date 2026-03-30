@@ -111,11 +111,11 @@ export function highlightCardText(desc: string): React.ReactNode {
 
   return (
     <>
-      {tokens.map((tok, i) =>
-        tok.rule
-          ? <span key={i} className={tok.rule.className} style={tok.rule.color ? { color: tok.rule.color } : undefined}>{tok.text}</span>
-          : tok.text
-      )}
+      {tokens.map((tok, i) => {
+        if (!tok.rule) return tok.text;
+        const Tag = (tok.rule.className === 'kw-effect' || tok.rule.className === 'kw-passive') ? 'strong' : 'span';
+        return <Tag key={i} className={tok.rule.className} style={tok.rule.color ? { color: tok.rule.color } : undefined}>{tok.text}</Tag>;
+      })}
     </>
   );
 }
@@ -128,7 +128,8 @@ export function highlightCardTextHTML(desc: string): string {
 
   return tokens.map(tok => {
     if (!tok.rule) return tok.text;
+    const tag = (tok.rule.className === 'kw-effect' || tok.rule.className === 'kw-passive') ? 'strong' : 'span';
     const style = tok.rule.color ? ` style="color:${tok.rule.color}"` : '';
-    return `<span class="${tok.rule.className}"${style}>${tok.text}</span>`;
+    return `<${tag} class="${tok.rule.className}"${style}>${tok.text}</${tag}>`;
   }).join('');
 }

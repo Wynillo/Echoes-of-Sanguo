@@ -40,8 +40,8 @@ export const Progression = (() => {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
     } catch (e) {
-      // QuotaExceededError (storage full) or SecurityError (private browsing blocked)
       console.error(`[Progression] Save failed for "${key}":`, e);
+      window.dispatchEvent(new CustomEvent('eos:save-error', { detail: { key } }));
       return false;
     }
   }
@@ -81,7 +81,6 @@ export const Progression = (() => {
         const hasOldIds = col.some(e => /^[A-Z]/.test(e.id));
         if (hasOldIds) {
           console.info('[Progression] Migrating save data to v2: clearing collection and deck (card ID format changed).');
-          // Back up old data before wiping so it can be inspected if migration fails
           try {
             localStorage.setItem('tcg_collection_v1_backup', JSON.stringify(col));
             const oldDeck = localStorage.getItem(KEYS.deck);
@@ -89,10 +88,19 @@ export const Progression = (() => {
           } catch { /* backup is best-effort */ }
           _save(KEYS.collection, []);
           localStorage.removeItem(KEYS.deck);
+          localStorage.setItem('tcg_migration_pending', '1');
         }
         _save(KEYS.version, SAVE_VERSION);
       }
     }
+  }
+
+  function hasMigrationPending(): boolean {
+    return localStorage.getItem('tcg_migration_pending') === '1';
+  }
+
+  function clearMigrationPending(): void {
+    localStorage.removeItem('tcg_migration_pending');
   }
 
   function hasV1Backup(): boolean {
@@ -342,6 +350,8 @@ export const Progression = (() => {
     saveCampaignProgress,
     markNodeComplete,
     isNodeComplete,
+    hasMigrationPending,
+    clearMigrationPending,
     hasV1Backup,
     restoreV1Backup,
     resetAll,

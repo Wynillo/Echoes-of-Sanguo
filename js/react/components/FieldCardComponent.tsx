@@ -81,10 +81,25 @@ export function FieldCardComponent({
 
   const hasEquipment = fc.equippedCards && fc.equippedCards.length > 0;
 
+  const passiveIcons: string[] = [];
+  if (fc.indestructible) passiveIcons.push('\uD83D\uDEE1\uFE0F');
+  if (fc.cantBeAttacked) passiveIcons.push('\uD83D\uDEAB');
+  if (fc.effectImmune)   passiveIcons.push('\u2726');
+  if (fc.piercing)       passiveIcons.push('\u26A1');
+
+  const atkBonus = (fc.atk ?? 0) - (card.atk ?? 0);
+  const defBonus = (fc.def ?? 0) - (card.def ?? 0);
+  const bonusTitle = card.atk !== undefined
+    ? `ATK: ${card.atk}${atkBonus ? ` + ${atkBonus} = ${fc.atk}` : ''} | DEF: ${card.def ?? 0}${defBonus ? ` + ${defBonus} = ${fc.def}` : ''}`
+    : undefined;
+
   return (
-    <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
+    <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined} title={bonusTitle}>
       <Card card={card} fc={fc} small />
       {hasEquipment && <span className="equip-badge" title={fc.equippedCards.map((e: { zone: number; card: CardData }) => e.card.name).join(', ')}>⚔</span>}
+      {passiveIcons.length > 0 && (
+        <span className="passive-badges">{passiveIcons.join('')}</span>
+      )}
     </div>
   );
 }
