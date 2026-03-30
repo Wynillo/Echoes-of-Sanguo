@@ -138,7 +138,7 @@
     "def": 1250,
     "attribute": 2,
     "race": 1,
-    "effect": "onSummon:dealDamage(opponent,300)"
+    "effect": "passive:passive_vsAttrBonus(1,300)"
   },
   {
     "id": 15,
@@ -160,7 +160,7 @@
     "def": 1550,
     "attribute": 3,
     "race": 1,
-    "effect": "onSummon:dealDamage(opponent,400)"
+    "effect": "onSummon:tempBuffField(200,{r=1})"
   },
   {
     "id": 17,
@@ -193,7 +193,7 @@
     "def": 1750,
     "attribute": 2,
     "race": 1,
-    "effect": "onSummon:dealDamage(opponent,500)"
+    "effect": "onSummon:sendTopCardsToGrave(3)"
   },
   {
     "id": 20,
@@ -226,7 +226,7 @@
     "def": 2050,
     "attribute": 3,
     "race": 1,
-    "effect": "onSummon:dealDamage(opponent,600)"
+    "effect": "onSummon:reviveFromGrave()"
   },
   {
     "id": 23,
@@ -248,7 +248,7 @@
     "def": 2300,
     "attribute": 2,
     "race": 1,
-    "effect": "onSummon:dealDamage(opponent,800)"
+    "effect": "onSummon:specialSummonFromHand({ct=1,maxAtk=1500})"
   },
   {
     "id": 25,
@@ -685,7 +685,7 @@
     "def": 1300,
     "attribute": 1,
     "race": 2,
-    "effect": "onSummon:searchDeckToHand(1)"
+    "effect": "onSummon:searchDeckToHand({})"
   },
   {
     "id": 67,
@@ -718,7 +718,7 @@
     "def": 1550,
     "attribute": 1,
     "race": 2,
-    "effect": "onSummon:gainLP(self,500)"
+    "effect": "onSummon:gainLP(self,800)"
   },
   {
     "id": 70,
@@ -729,7 +729,7 @@
     "def": 1400,
     "attribute": 1,
     "race": 2,
-    "effect": "onSummon:searchDeckToHand(2)"
+    "effect": "onSummon:searchDeckToHand({})"
   },
   {
     "id": 71,
@@ -773,7 +773,7 @@
     "def": 2050,
     "attribute": 2,
     "race": 2,
-    "effect": "onSummon:searchDeckToHand(1)"
+    "effect": "onSummon:searchDeckToHand({})"
   },
   {
     "id": 75,
@@ -918,7 +918,7 @@
     "def": 1100,
     "attribute": 3,
     "race": 4,
-    "effect": "onSummon:dealDamage(opponent,300)"
+    "effect": "onSummon:discardOppHand(1)"
   },
   {
     "id": 89,
@@ -940,7 +940,7 @@
     "def": 1200,
     "attribute": 3,
     "race": 4,
-    "effect": "onSummon:dealDamage(opponent,400)"
+    "effect": "passive:passive_vsAttrBonus(4,400)"
   },
   {
     "id": 91,
@@ -962,7 +962,7 @@
     "def": 1300,
     "attribute": 5,
     "race": 4,
-    "effect": "onDestroyByBattle:gainLP(self,500)"
+    "effect": "onDestroyByBattle:gainLP(self,800)"
   },
   {
     "id": 93,
@@ -973,7 +973,7 @@
     "def": 1450,
     "attribute": 3,
     "race": 4,
-    "effect": "onSummon:dealDamage(opponent,500)"
+    "effect": "onSummon:tempDebuffField(300,300)"
   },
   {
     "id": 94,
@@ -995,7 +995,7 @@
     "def": 1500,
     "attribute": 5,
     "race": 4,
-    "effect": "onSummon:dealDamage(opponent,600)"
+    "effect": "onSummon:salvageFromGrave({ct=1})"
   },
   {
     "id": 96,
@@ -1139,7 +1139,7 @@
     "def": 1600,
     "attribute": 5,
     "race": 5,
-    "effect": "onDestroyByBattle:gainLP(self,500)"
+    "effect": "onDestroyByBattle:gainLP(self,800)"
   },
   {
     "id": 110,
@@ -1150,7 +1150,7 @@
     "def": 1650,
     "attribute": 5,
     "race": 5,
-    "effect": "onSummon:gainLP(self,400)"
+    "effect": "onSummon:gainLP(self,600)"
   },
   {
     "id": 111,
@@ -1183,7 +1183,7 @@
     "def": 2100,
     "attribute": 5,
     "race": 5,
-    "effect": "onDestroyByBattle:gainLP(self,800)"
+    "effect": "onDestroyByBattle:gainLP(self,1200)"
   },
   {
     "id": 114,
@@ -1194,7 +1194,7 @@
     "def": 2350,
     "attribute": 5,
     "race": 5,
-    "effect": "onSummon:gainLP(self,800)"
+    "effect": "onSummon:gainLP(self,1200)"
   },
   {
     "id": 115,
@@ -1216,7 +1216,7 @@
     "def": 2600,
     "attribute": 5,
     "race": 5,
-    "effect": "onDestroyByBattle:gainLP(self,1200)"
+    "effect": "onDestroyByBattle:gainLP(self,1800)"
   },
   {
     "id": 117,
@@ -1507,7 +1507,7 @@
     "def": 1250,
     "attribute": 3,
     "race": 7,
-    "effect": "onSummon:dealDamage(opponent,400)"
+    "effect": "onSummon:peekTopCard();draw(self,1)"
   },
   {
     "id": 145,
@@ -1529,7 +1529,7 @@
     "def": 1450,
     "attribute": 6,
     "race": 7,
-    "effect": "onSummon:dealDamage(opponent,500)"
+    "effect": "passive:passive_directAttack()"
   },
   {
     "id": 147,
@@ -1562,7 +1562,7 @@
     "def": 1800,
     "attribute": 3,
     "race": 7,
-    "effect": "onSummon:dealDamage(opponent,700)"
+    "effect": "passive:passive_effectImmune()"
   },
   {
     "id": 150,
@@ -1696,7 +1696,7 @@
     "def": 1400,
     "attribute": 5,
     "race": 8,
-    "effect": "onDestroyByBattle:gainLP(self,600)"
+    "effect": "onDestroyByBattle:gainLP(self,900)"
   },
   {
     "id": 163,
@@ -1729,7 +1729,7 @@
     "def": 1700,
     "attribute": 2,
     "race": 8,
-    "effect": "onSummon:gainLP(self,600)"
+    "effect": "onSummon:gainLP(self,900)"
   },
   {
     "id": 166,
@@ -1751,7 +1751,7 @@
     "def": 2050,
     "attribute": 2,
     "race": 8,
-    "effect": "onDestroyByBattle:gainLP(self,1000)"
+    "effect": "onDestroyByBattle:gainLP(self,1500)"
   },
   {
     "id": 168,
@@ -1917,7 +1917,7 @@
     "def": 1900,
     "attribute": 4,
     "race": 9,
-    "effect": "onSummon:searchDeckToHand(4)"
+    "effect": "onSummon:searchDeckToHand({})"
   },
   {
     "id": 184,
@@ -2316,7 +2316,7 @@
     "def": 1700,
     "attribute": 1,
     "race": 11,
-    "effect": "onSummon:dealDamage(opponent,400)"
+    "effect": "onSummon:destroyWeakestOpp()"
   },
   {
     "id": 222,
@@ -2483,7 +2483,7 @@
     "def": 900,
     "attribute": 3,
     "race": 12,
-    "effect": "onSummon:dealDamage(opponent,400)"
+    "effect": "onSummon:recycleFromGraveToDeck({ct=1})"
   },
   {
     "id": 238,
@@ -2494,7 +2494,7 @@
     "def": 1000,
     "attribute": 3,
     "race": 12,
-    "effect": "onSummon:dealDamage(opponent,500)"
+    "effect": "passive:passive_indestructible()"
   },
   {
     "id": 239,
@@ -2505,7 +2505,7 @@
     "def": 1100,
     "attribute": 1,
     "race": 12,
-    "effect": "onSummon:dealDamage(opponent,600)"
+    "effect": "passive:passive_cantBeAttacked()"
   },
   {
     "id": 240,
@@ -2527,7 +2527,7 @@
     "def": 1200,
     "attribute": 3,
     "race": 12,
-    "effect": "onSummon:dealDamage(opponent,700)"
+    "effect": "onSummon:discardFromHand(1);draw(self,2)"
   },
   {
     "id": 242,
@@ -2538,7 +2538,7 @@
     "def": 1500,
     "attribute": 3,
     "race": 12,
-    "effect": "onSummon:dealDamage(opponent,800)"
+    "effect": "onSummon:shuffleGraveIntoDeck();draw(self,1)"
   },
   {
     "id": 243,
@@ -2582,7 +2582,7 @@
     "def": 2000,
     "attribute": 3,
     "race": 1,
-    "effect": "onSummon:dealDamage(opponent,500)"
+    "effect": "onSummon:tempBuffField(300)"
   },
   {
     "id": 247,
@@ -2659,7 +2659,7 @@
     "def": 2000,
     "attribute": 5,
     "race": 4,
-    "effect": "onSummon:dealDamage(opponent,600)"
+    "effect": "onSummon:shuffleDeck();searchDeckToHand({ct=1})"
   },
   {
     "id": 254,
@@ -2670,7 +2670,7 @@
     "def": 2200,
     "attribute": 5,
     "race": 5,
-    "effect": "onSummon:gainLP(self,800)"
+    "effect": "onSummon:gainLP(self,1200)"
   },
   {
     "id": 255,
@@ -2714,7 +2714,7 @@
     "def": 1800,
     "attribute": 3,
     "race": 7,
-    "effect": "onSummon:dealDamage(opponent,500)"
+    "effect": "onSummon:sendTopCardsToGraveOpp(2)"
   },
   {
     "id": 259,
@@ -2758,7 +2758,7 @@
     "def": 2400,
     "attribute": 4,
     "race": 9,
-    "effect": "onSummon:gainLP(self,600)"
+    "effect": "onSummon:gainLP(self,900)"
   },
   {
     "id": 263,
@@ -2804,7 +2804,7 @@
     "id": 267,
     "rarity": 1,
     "type": 3,
-    "effect": "onSummon:dealDamage(opponent,400)",
+    "effect": "onSummon:destroyWeakestOpp()",
     "spellType": 1
   },
   {
@@ -2818,35 +2818,35 @@
     "id": 269,
     "rarity": 1,
     "type": 3,
-    "effect": "onSummon:gainLP(self,300)",
+    "effect": "onSummon:gainLP(self,600)",
     "spellType": 1
   },
   {
     "id": 270,
     "rarity": 1,
     "type": 3,
-    "effect": "onSummon:gainLP(self,500)",
+    "effect": "onSummon:gainLP(self,800)",
     "spellType": 1
   },
   {
     "id": 271,
     "rarity": 1,
     "type": 3,
-    "effect": "onSummon:gainLP(self,800)",
+    "effect": "onSummon:gainLP(self,1500)",
     "spellType": 1
   },
   {
     "id": 272,
-    "rarity": 1,
+    "rarity": 2,
     "type": 3,
-    "effect": "onSummon:dealDamage(opponent,600)",
+    "effect": "onSummon:destroyStrongestOpp()",
     "spellType": 1
   },
   {
     "id": 273,
     "rarity": 1,
     "type": 3,
-    "effect": "onSummon:dealDamage(opponent,800)",
+    "effect": "onSummon:sendTopCardsToGraveOpp(3)",
     "spellType": 1
   },
   {
@@ -2899,28 +2899,28 @@
     "id": 280,
     "rarity": 2,
     "type": 3,
-    "effect": "onSummon:gainLP(self,600)",
+    "effect": "onSummon:gainLP(self,1000)",
     "spellType": 1
   },
   {
     "id": 281,
     "rarity": 4,
     "type": 3,
-    "effect": "onSummon:dealDamage(opponent,1000)",
+    "effect": "onSummon:destroyAllOpp()",
     "spellType": 1
   },
   {
     "id": 282,
     "rarity": 4,
     "type": 3,
-    "effect": "onSummon:dealDamage(opponent,1200)",
+    "effect": "onSummon:destroyAll()",
     "spellType": 1
   },
   {
     "id": 283,
     "rarity": 4,
     "type": 3,
-    "effect": "onSummon:dealDamage(opponent,1500)",
+    "effect": "onSummon:discardOppHand(2)",
     "spellType": 1
   },
   {
@@ -3012,7 +3012,7 @@
     "id": 296,
     "rarity": 2,
     "type": 4,
-    "effect": "onOwnMonsterAttacked:cancelAttack()",
+    "effect": "onOwnMonsterAttacked:bounceAttacker()",
     "trapTrigger": 2
   },
   {
