@@ -3312,5 +3312,83 @@
     "type": 4,
     "effect": "onAttack:preventBattleDamage()",
     "trapTrigger": 1
+  },
+  {
+    "id": 334,
+    "level": 6,
+    "rarity": 8,
+    "type": 1,
+    "atk": 2400,
+    "def": 1500,
+    "attribute": 2,
+    "race": 11,
+    "effect": "passive:passive_negateTraps()"
+  },
+  {
+    "id": 335,
+    "rarity": 8,
+    "type": 4,
+    "effect": "manual[cost:lp=1000]:passive_negateMonsterEffects()",
+    "trapTrigger": 4
+  },
+  {
+    "id": 336,
+    "rarity": 8,
+    "type": 4,
+    "effect": "manual:passive_negateSpells()",
+    "trapTrigger": 4
+  },
+  {
+    "id": 337,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:drawThenDiscard(3,2)",
+    "spellType": 1
+  },
+  {
+    "id": 338,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:stealMonsterTemp()",
+    "spellType": 1
+  },
+  {
+    "id": 339,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:reviveFromEitherGrave()",
+    "spellType": 3
+  },
+  {
+    "id": 340,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon[cost:lp=1000]:discardOppHand(2)",
+    "spellType": 1
+  },
+  {
+    "id": 341,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon[cost:lp=1000]:discardOppHand(1)",
+    "spellType": 1
+  },
+  {
+    "id": 342,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:bounceOppHandToDeck(1)",
+    "spellType": 1
+  },
+  {
+    "id": 343,
+    "level": 4,
+    "rarity": 4,
+    "type": 1,
+    "atk": 1000,
+    "def": 400,
+    "attribute": 5,
+    "race": 3,
+    "effect": "onSummon[cost:tributeSelf]:destroyStrongestOpp()"
   }
 ]

@@ -1663,5 +1663,55 @@
     "id": 333,
     "name": "Waboku",
     "description": "[Trap] Prevent all battle damage and destruction for this turn."
+  },
+  {
+    "id": 334,
+    "name": "Jinzo",
+    "description": "[Passive] Negate all Trap card activations and effects while this card is on the field."
+  },
+  {
+    "id": 335,
+    "name": "Skill Drain",
+    "description": "[Trap] Pay 1000 LP. Negate the effects of all face-up monsters on the field."
+  },
+  {
+    "id": 336,
+    "name": "Imperial Order",
+    "description": "[Trap] Negate all Spell Card effects on the field."
+  },
+  {
+    "id": 337,
+    "name": "Graceful Charity",
+    "description": "Draw 3 cards, then discard 2 cards."
+  },
+  {
+    "id": 338,
+    "name": "Change of Heart",
+    "description": "Take control of 1 opponent's monster until the End Phase."
+  },
+  {
+    "id": 339,
+    "name": "Monster Reborn",
+    "description": "Special Summon 1 monster from either player's Graveyard."
+  },
+  {
+    "id": 340,
+    "name": "Delinquent Duo",
+    "description": "Pay 1000 LP. Your opponent discards 2 random cards."
+  },
+  {
+    "id": 341,
+    "name": "Confiscation",
+    "description": "Pay 1000 LP. Your opponent discards 1 random card."
+  },
+  {
+    "id": 342,
+    "name": "The Forceful Sentry",
+    "description": "Shuffle 1 random card from your opponent's hand back into their Deck."
+  },
+  {
+    "id": 343,
+    "name": "Exiled Force",
+    "description": "[Effect] Tribute this card: Destroy the strongest opponent monster."
   }
 ]

@@ -508,8 +508,12 @@ export class GameEngine {
       await this._autoActivateOpponentTraps('onOpponentSpell');
     }
     if(card.effect) {
-      const ctx = this._buildSpellContext(owner, targetInfo);
-      this._safeExecuteEffect(card.effect, ctx, card.id, 'spell effect');
+      if (this.state.player.fieldFlags?.negateSpells || this.state.opponent.fieldFlags?.negateSpells) {
+        this.addLog(`${card.name}'s effect was negated!`);
+      } else {
+        const ctx = this._buildSpellContext(owner, targetInfo);
+        this._safeExecuteEffect(card.effect, ctx, card.id, 'spell effect');
+      }
     }
     st.graveyard.push(card);
     this.ui.render(this.state);
@@ -1072,6 +1076,7 @@ export class GameEngine {
     this.ui.render(this.state);
 
     await this._triggerSentToGrave(fc.card, owner);
+    this._recalcFieldFlags();
 
     if (fc.phoenixRevival && !fc.phoenixRevivalUsed) {
       this.addLog(`${fc.card.name} rises from the graveyard!`);
@@ -1091,6 +1096,7 @@ export class GameEngine {
     st.field.monsters[zone] = null;
     this._removeEquipmentForMonster(owner, zone);
     await this._triggerSentToGrave(fc.card, owner);
+    this._recalcFieldFlags();
   }
 
   _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): EffectContext {
@@ -1123,6 +1129,9 @@ export class GameEngine {
 
   async _triggerEffect(fc: FieldCard, owner: Owner, trigger: string, zone: number | null){
     const card = fc.card;
+    if (trigger !== 'passive' && (this.state.player.fieldFlags?.negateMonsterEffects || this.state.opponent.fieldFlags?.negateMonsterEffects)) {
+      return;
+    }
     const blocks = this._getEffectBlocks(card, trigger);
     for (const block of blocks) {
       EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: ${trigger}`);
@@ -1182,6 +1191,7 @@ export class GameEngine {
   }
 
   async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]){
+    if (this.state.opponent.fieldFlags?.negateTraps) return null;
     const traps = this.state.player.field.spellTraps;
     for(let i=0;i<traps.length;i++){
       const fst = traps[i];
@@ -1221,6 +1231,7 @@ export class GameEngine {
   }
 
   async _autoActivateOpponentTraps(triggerType: string, ...args: FieldCard[]): Promise<EffectSignal | null> {
+    if (this.state.player.fieldFlags?.negateTraps) return null;
     const traps = this.state.opponent.field.spellTraps;
     for (let i = 0; i < traps.length; i++) {
       const fst = traps[i];
@@ -1258,6 +1269,59 @@ export class GameEngine {
     this.state[owner].battleProtection = false;
   }
 
+  _recalcFieldFlags(){
+    for (const side of ['player', 'opponent'] as Owner[]) {
+      const flags = { negateTraps: false, negateSpells: false, negateMonsterEffects: false };
+      const st = this.state[side];
+      for (const fc of st.field.monsters) {
+        if (!fc) continue;
+        const blocks = fc.card.effects ?? (fc.card.effect ? [fc.card.effect] : []);
+        for (const b of blocks) {
+          if (b.trigger !== 'passive') continue;
+          for (const a of b.actions) {
+            if (a.type === 'passive_negateTraps') flags.negateTraps = true;
+            if (a.type === 'passive_negateSpells') flags.negateSpells = true;
+            if (a.type === 'passive_negateMonsterEffects') flags.negateMonsterEffects = true;
+          }
+        }
+      }
+      for (const fst of st.field.spellTraps) {
+        if (!fst || fst.faceDown) continue;
+        const blocks = fst.card.effects ?? (fst.card.effect ? [fst.card.effect] : []);
+        for (const b of blocks) {
+          for (const a of b.actions) {
+            if (a.type === 'passive_negateTraps') flags.negateTraps = true;
+            if (a.type === 'passive_negateSpells') flags.negateSpells = true;
+            if (a.type === 'passive_negateMonsterEffects') flags.negateMonsterEffects = true;
+          }
+        }
+      }
+      st.fieldFlags = flags;
+    }
+  }
+
+  _returnTempStolenMonsters(owner: Owner){
+    const st = this.state[owner];
+    const opp = owner === 'player' ? 'opponent' : 'player' as Owner;
+    for(let i = 0; i < st.field.monsters.length; i++){
+      const fc = st.field.monsters[i];
+      if(fc && fc.originalOwner && fc.originalOwner !== owner){
+        const oppSt = this.state[opp];
+        const freeZone = oppSt.field.monsters.findIndex(z => z === null);
+        if(freeZone !== -1){
+          fc.originalOwner = undefined;
+          fc.hasAttacked = true;
+          oppSt.field.monsters[freeZone] = fc;
+        } else {
+          oppSt.graveyard.push(fc.card);
+        }
+        st.field.monsters[i] = null;
+        this._removeEquipmentForMonster(owner, i);
+        this.addLog(`${fc.card.name} returns to its owner.`);
+      }
+    }
+  }
+
   _returnSpiritMonsters(owner: Owner){
     const st = this.state[owner];
     for(let i = 0; i < st.field.monsters.length; i++){
@@ -1275,6 +1339,7 @@ export class GameEngine {
     // Clear only the current player's per-turn flags.
     // The opponent's flags are cleared by _aiTurn at the end of the AI's turn.
     this._resetMonsterFlags('player');
+    this._returnTempStolenMonsters('player');
     this._returnSpiritMonsters('player');
 
     this.state.player.normalSummonUsed   = false;

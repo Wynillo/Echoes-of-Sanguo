@@ -179,6 +179,14 @@ function serializeAction(a: EffectDescriptor): string {
     case 'discardEntireHand':       return `discardEntireHand(${a.target})`;
     case 'destroyAndDamageBoth':    return `destroyAndDamageBoth(${a.side})`;
     case 'preventBattleDamage':     return 'preventBattleDamage()';
+    case 'passive_negateTraps':     return 'passive_negateTraps()';
+    case 'passive_negateSpells':    return 'passive_negateSpells()';
+    case 'passive_negateMonsterEffects': return 'passive_negateMonsterEffects()';
+    case 'stealMonsterTemp':        return 'stealMonsterTemp()';
+    case 'reviveFromEitherGrave':   return 'reviveFromEitherGrave()';
+    case 'drawThenDiscard':         return `drawThenDiscard(${a.drawCount},${a.discardCount})`;
+    case 'bounceOppHandToDeck':     return `bounceOppHandToDeck(${a.count})`;
+    case 'tributeSelf':             return 'tributeSelf()';
     default:
       throw new Error(`Unknown effect action type: ${(a as any).type}`);
   }
@@ -350,6 +358,14 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     case 'discardEntireHand':       return { type: 'discardEntireHand', target: args[0] as 'self' | 'opponent' | 'both' };
     case 'destroyAndDamageBoth':    return { type: 'destroyAndDamageBoth', side: args[0] as 'opponent' | 'self' };
     case 'preventBattleDamage':     return { type: 'preventBattleDamage' };
+    case 'passive_negateTraps':     return { type: 'passive_negateTraps' };
+    case 'passive_negateSpells':    return { type: 'passive_negateSpells' };
+    case 'passive_negateMonsterEffects': return { type: 'passive_negateMonsterEffects' };
+    case 'stealMonsterTemp':        return { type: 'stealMonsterTemp' };
+    case 'reviveFromEitherGrave':   return { type: 'reviveFromEitherGrave' };
+    case 'drawThenDiscard':         return { type: 'drawThenDiscard', drawCount: parseInt(args[0]), discardCount: parseInt(args[1]) };
+    case 'bounceOppHandToDeck':     return { type: 'bounceOppHandToDeck', count: parseInt(args[0]) };
+    case 'tributeSelf':             return { type: 'tributeSelf' };
 
     default:
       throw new Error(`Unknown action type: ${type}`);
@@ -362,6 +378,7 @@ function serializeCost(cost: EffectCost): string {
   const parts: string[] = [];
   if (cost.lp !== undefined) parts.push(`lp=${cost.lp}`);
   if (cost.discard !== undefined) parts.push(`discard=${cost.discard}`);
+  if (cost.tributeSelf) parts.push('tributeSelf');
   return `[cost:${parts.join(',')}]`;
 }
 
@@ -371,8 +388,9 @@ function deserializeCost(costStr: string): EffectCost {
   for (const pair of inner.split(',')) {
     const [key, val] = pair.split('=');
     switch (key.trim()) {
-      case 'lp':      cost.lp = parseInt(val); break;
-      case 'discard': cost.discard = parseInt(val); break;
+      case 'lp':          cost.lp = parseInt(val); break;
+      case 'discard':     cost.discard = parseInt(val); break;
+      case 'tributeSelf': cost.tributeSelf = true; break;
     }
   }
   return cost;
@@ -385,7 +403,14 @@ export function serializeEffect(block: CardEffectBlock): string {
 }
 
 export function deserializeEffect(str: string): CardEffectBlock {
-  const colonIdx = str.indexOf(':');
+  // Find the trigger:actions separator colon, skipping any colons inside [cost:...] brackets
+  let colonIdx = -1;
+  let bracketDepth = 0;
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === '[') bracketDepth++;
+    else if (str[i] === ']') bracketDepth--;
+    else if (str[i] === ':' && bracketDepth === 0) { colonIdx = i; break; }
+  }
   if (colonIdx === -1) throw new Error(`Invalid effect string (no trigger separator): ${str}`);
 
   let triggerStr = str.substring(0, colonIdx);

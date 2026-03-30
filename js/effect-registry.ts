@@ -327,6 +327,106 @@ const IMPL: Record<string, InternalImpl> = {
     return { cancelAttack: true };
   },
 
+  passive_negateTraps(_desc: unknown, ctx) {
+    const st = ctx.engine.getState();
+    if (!st[ctx.owner].fieldFlags) st[ctx.owner].fieldFlags = {};
+    st[ctx.owner].fieldFlags!.negateTraps = true;
+    ctx.engine.addLog('All Trap effects are negated!');
+    return {};
+  },
+
+  passive_negateSpells(_desc: unknown, ctx) {
+    const st = ctx.engine.getState();
+    if (!st[ctx.owner].fieldFlags) st[ctx.owner].fieldFlags = {};
+    st[ctx.owner].fieldFlags!.negateSpells = true;
+    ctx.engine.addLog('All Spell effects are negated!');
+    return {};
+  },
+
+  passive_negateMonsterEffects(_desc: unknown, ctx) {
+    const st = ctx.engine.getState();
+    if (!st[ctx.owner].fieldFlags) st[ctx.owner].fieldFlags = {};
+    st[ctx.owner].fieldFlags!.negateMonsterEffects = true;
+    ctx.engine.addLog('All monster effects are negated!');
+    return {};
+  },
+
+  stealMonsterTemp(_desc: unknown, ctx) {
+    const opp = oppOf(ctx.owner);
+    const st = ctx.engine.getState();
+    const oppMonsters = st[opp].field.monsters;
+    const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
+    if (idx === null || !oppMonsters[idx]) return {};
+    const ownMonsters = st[ctx.owner].field.monsters;
+    const freeZone = ownMonsters.findIndex(z => z === null);
+    if (freeZone === -1) return {};
+    const fc = oppMonsters[idx]!;
+    oppMonsters[idx] = null;
+    ctx.engine._removeEquipmentForMonster(opp, idx);
+    fc.originalOwner = opp;
+    fc.hasAttacked = false;
+    ownMonsters[freeZone] = fc;
+    ctx.engine.addLog(`${fc.card.name} is temporarily under your control!`);
+    return {};
+  },
+
+  reviveFromEitherGrave(_desc: unknown, ctx) {
+    const st = ctx.engine.getState();
+    const ownGY = st[ctx.owner].graveyard;
+    const oppGY = st[oppOf(ctx.owner)].graveyard;
+    let bestIdx = -1;
+    let bestAtk = -1;
+    let fromOwner: Owner = ctx.owner;
+    for (let i = 0; i < ownGY.length; i++) {
+      if (ownGY[i].type === CardType.Monster || ownGY[i].type === CardType.Fusion) {
+        if ((ownGY[i].atk ?? 0) > bestAtk) { bestAtk = ownGY[i].atk ?? 0; bestIdx = i; fromOwner = ctx.owner; }
+      }
+    }
+    for (let i = 0; i < oppGY.length; i++) {
+      if (oppGY[i].type === CardType.Monster || oppGY[i].type === CardType.Fusion) {
+        if ((oppGY[i].atk ?? 0) > bestAtk) { bestAtk = oppGY[i].atk ?? 0; bestIdx = i; fromOwner = oppOf(ctx.owner); }
+      }
+    }
+    if (bestIdx >= 0) {
+      const gy = st[fromOwner].graveyard;
+      const [card] = gy.splice(bestIdx, 1);
+      ctx.engine.specialSummon(ctx.owner, card);
+    }
+    return {};
+  },
+
+  drawThenDiscard(desc: { drawCount: number; discardCount: number }, ctx) {
+    ctx.engine.drawCard(ctx.owner, desc.drawCount);
+    const st = ctx.engine.getState();
+    const hand = st[ctx.owner].hand;
+    const toDiscard = Math.min(desc.discardCount, hand.length);
+    for (let i = 0; i < toDiscard; i++) {
+      const idx = Math.floor(Math.random() * hand.length);
+      const [c] = hand.splice(idx, 1);
+      st[ctx.owner].graveyard.push(c);
+    }
+    ctx.engine.addLog(`Drew ${desc.drawCount}, discarded ${toDiscard}.`);
+    return {};
+  },
+
+  bounceOppHandToDeck(desc: { count: number }, ctx) {
+    const opp = oppOf(ctx.owner);
+    const st = ctx.engine.getState();
+    const hand = st[opp].hand;
+    const toReturn = Math.min(desc.count, hand.length);
+    for (let i = 0; i < toReturn; i++) {
+      const idx = Math.floor(Math.random() * hand.length);
+      const [c] = hand.splice(idx, 1);
+      st[opp].deck.push(c);
+    }
+    if (toReturn > 0) ctx.engine.addLog(`${toReturn} card(s) shuffled back into opponent's deck.`);
+    return {};
+  },
+
+  tributeSelf(_desc: unknown, _ctx) {
+    return {};
+  },
+
   discardEntireHand(desc: { target: 'self' | 'opponent' | 'both' }, ctx) {
     const state = ctx.engine.getState();
     const discard = (owner: Owner) => {
@@ -747,6 +847,20 @@ function payCost(block: CardEffectBlock, ctx: EffectContext): void {
       st.graveyard.push(c);
     }
     ctx.engine.addLog(`Discarded ${block.cost.discard} card(s) as cost.`);
+  }
+  if (block.cost.tributeSelf) {
+    const state = ctx.engine.getState();
+    const monsters = state[ctx.owner].field.monsters;
+    for (let i = 0; i < monsters.length; i++) {
+      const fc = monsters[i];
+      if (fc && fc.card.effect?.actions.some(a => a.type === block.actions[0]?.type)) {
+        state[ctx.owner].graveyard.push(fc.card);
+        monsters[i] = null;
+        ctx.engine._removeEquipmentForMonster(ctx.owner, i);
+        ctx.engine.addLog(`${fc.card.name} was tributed as cost.`);
+        break;
+      }
+    }
   }
 }
 

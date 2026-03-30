@@ -151,6 +151,14 @@ export interface EffectDescriptorMap {
   discardEntireHand:         { target: 'self' | 'opponent' | 'both' };
   destroyAndDamageBoth:      { side: 'opponent' | 'self' };
   preventBattleDamage:       {};
+  passive_negateTraps:       {};
+  passive_negateSpells:      {};
+  passive_negateMonsterEffects: {};
+  stealMonsterTemp:          {};
+  reviveFromEitherGrave:     {};
+  drawThenDiscard:           { drawCount: number; discardCount: number };
+  bounceOppHandToDeck:       { count: number };
+  tributeSelf:               {};
 }
 
 export type EffectDescriptor = {
@@ -176,8 +184,9 @@ export interface EffectSignal {
 }
 
 export interface EffectCost {
-  lp?:      number;
-  discard?: number;
+  lp?:          number;
+  discard?:     number;
+  tributeSelf?: boolean;
 }
 
 export interface CardEffectBlock {
@@ -308,6 +317,11 @@ export interface PlayerState {
   graveyard:        CardData[];
   normalSummonUsed: boolean;
   battleProtection?: boolean;
+  fieldFlags?: {
+    negateTraps?: boolean;
+    negateSpells?: boolean;
+    negateMonsterEffects?: boolean;
+  };
 }
 
 export interface GameState {

@@ -29,6 +29,7 @@ export class FieldCard {
   effectImmune: boolean;
   cantBeAttacked: boolean;
   equippedCards: Array<{ zone: number; card: CardData }>;
+  originalOwner?: Owner;
 
   constructor(card: CardData, position: Position = 'atk', faceDown: boolean = false) {
     this.card       = { // deep-copy effect to prevent shared mutations across FieldCard instances
