@@ -37,6 +37,8 @@ export interface PackageDef {
   id: string;
   name: string;
   desc: string;
+  nameKey?: string;
+  descKey?: string;
   price: number;
   icon: string;
   color: string;

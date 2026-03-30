@@ -37,22 +37,24 @@ export default function CampaignScreen() {
   const { navigateTo } = useScreen();
   const { campaignData, progress, isNodeUnlocked, completeNode, getOpponentForNode, setPendingDuel } = useCampaign();
   const { startGame } = useGame();
-  const [activeChapterIdx, setActiveChapterIdx] = useState(0);
   const [dialogueNode, setDialogueNode] = useState<CampaignNode | null>(null);
 
   const chapters = campaignData.chapters;
-  const activeChapter: Chapter | undefined = chapters[activeChapterIdx];
 
-  // Determine which chapters are unlocked (sequential: chapter N needs ALL duels in chapter N-1 completed)
-  const chapterUnlocked = useMemo(() => {
-    return chapters.map((_, idx) => {
-      if (idx === 0) return true;
-      const prev = chapters[idx - 1];
-      return prev.nodes
+  // Auto-select the latest unlocked chapter
+  const activeChapterIdx = useMemo(() => {
+    let latest = 0;
+    for (let i = 1; i < chapters.length; i++) {
+      const prev = chapters[i - 1];
+      const allDuelsComplete = prev.nodes
         .filter(n => n.type === 'duel')
         .every(n => progress.completedNodes.includes(n.id));
-    });
+      if (allDuelsComplete) latest = i;
+    }
+    return latest;
   }, [chapters, progress.completedNodes]);
+
+  const activeChapter: Chapter | undefined = chapters[activeChapterIdx];
 
   function getNodeState(node: CampaignNode): 'completed' | 'available' | 'locked' {
     if (progress.completedNodes.includes(node.id)) return 'completed';
@@ -211,28 +213,6 @@ export default function CampaignScreen() {
         <h2 className={styles.title}>{t('campaign.title')}</h2>
         <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('common.back')}</button>
       </div>
-
-      {chapters.length > 1 && (
-        <div className={styles.chapterNav}>
-          <select
-            className={styles.chapterSelect}
-            value={activeChapterIdx}
-            onChange={e => {
-              const idx = Number(e.target.value);
-              if (chapterUnlocked[idx]) setActiveChapterIdx(idx);
-            }}
-          >
-            {chapters.map((ch, idx) => {
-              if (!chapterUnlocked[idx]) return null;
-              return (
-                <option key={ch.id} value={idx}>
-                  {t(`campaign.chapter_${ch.id}`, ch.id)}
-                </option>
-              );
-            })}
-          </select>
-        </div>
-      )}
 
       {activeChapter && (() => {
         const totalNodes = activeChapter.nodes.filter(n => n.type === 'duel').length;

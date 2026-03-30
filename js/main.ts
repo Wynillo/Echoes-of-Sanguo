@@ -1,7 +1,9 @@
 // Entry point — loads card data from base.tcg then mounts the app
 import './cards.js';           // empty data stores + helpers
 import './mod-api.js';         // exposes window.EchoesOfSanguoMod (live references to stores)
-import { loadAndApplyTcg } from './tcg-bridge.js';
+import { loadAndApplyTcg, setTcgSourceBase, reloadTcgLocale } from './tcg-bridge.js';
+
+setTcgSourceBase(import.meta.env.BASE_URL + 'base.tcg-src/');
 
 const loadingBar = document.getElementById('loading-bar');
 try {
@@ -25,6 +27,8 @@ try {
 
 await import('./progression.js');
 await import('./i18n.js');          // must come after progression.js (reads saved language)
+const { default: i18n } = await import('i18next');
+await reloadTcgLocale(i18n.language);
 await import('./engine.js');
 
 // Fade out loading screen and wait for fonts before mounting React
