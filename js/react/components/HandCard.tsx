@@ -51,6 +51,9 @@ export function HandCard({ card, index, playable, dimmed, fusionable, targetable
         if (el) attachHover(el, card, null);
       }}
       className={cls}
+      role="button"
+      aria-label={`${card.name}${playable ? ' (playable)' : ''}${isSelected ? ' (selected)' : ''}`}
+      tabIndex={0}
       data-hand-index={index}
       style={newlyDrawn ? { animationDelay: `${drawDelay}ms` } : undefined}
       {...longPressHandlers}

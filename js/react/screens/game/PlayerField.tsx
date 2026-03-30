@@ -120,7 +120,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
           const viewable   = isPlayerMonsterViewable(i);
           return (
             <div key={i} className="zone-slot" data-zone={i}>
-              {!fc && <div className="zone-label">M</div>}
+              {!fc && <div className="zone-label" title="Monster Zone">M</div>}
               {fc && (
                 <FieldCardComponent
                   fc={fc} owner="player" zone={i}
@@ -145,7 +145,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
           const interact = isPlayerSpellTrapInteractive(i);
           return (
             <div key={i} className="zone-slot" data-zone={i}>
-              {!fst && <div className="zone-label">Z/F</div>}
+              {!fst && <div className="zone-label" title="Spell/Trap Zone">Z/F</div>}
               {fst && (
                 <FieldSpellTrapComponent
                   fst={fst} owner="player" zone={i} interactive={interact}

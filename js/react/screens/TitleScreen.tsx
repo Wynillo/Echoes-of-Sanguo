@@ -41,7 +41,8 @@ export default function TitleScreen() {
           {hasSave && (
             <button className="btn-menu" onClick={handleLoadGame}>{t('title.load_game')}</button>
           )}
-<button className="btn-menu" onClick={() => openModal({ type: 'main-options' })}>{t('title.options')}</button>
+<button className="btn-menu" onClick={() => openModal({ type: 'how-to-play' })}>{t('howToPlay.title')}</button>
+          <button className="btn-menu" onClick={() => openModal({ type: 'main-options' })}>{t('title.options')}</button>
           <button className="btn-menu" onClick={() => window.close()}>{t('title.quit')}</button>
         </div>
       </div>

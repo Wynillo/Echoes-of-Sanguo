@@ -12,16 +12,19 @@ export default function SavePointScreen() {
   const { openModal }      = useModal();
   const { t } = useTranslation();
   const [savedMsg, setSavedMsg] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const hasBackup = Progression.hasBackup();
 
   function handleSave() {
+    if (isSaving) return;
     if (hasBackup) {
       const ok = window.confirm(t('save.confirm_overwrite'));
       if (!ok) return;
       Progression.clearBackup();
     }
+    setIsSaving(true);
     setSavedMsg(true);
-    setTimeout(() => setSavedMsg(false), 2000);
+    setTimeout(() => { setSavedMsg(false); setIsSaving(false); }, 2000);
   }
 
   function handleToMainMenu() {
@@ -37,9 +40,10 @@ export default function SavePointScreen() {
       <button
         className="options-btn-floating"
         title={t('title.options')}
+        aria-label={t('title.options')}
         onClick={() => openModal({ type: 'main-options' })}
       >
-        <span className="btn-options-mobile">☰</span>
+        <span className="btn-options-mobile" aria-hidden="true">☰</span>
         <span className="btn-options-desktop">OPTIONS</span>
       </button>
       <div className="title-bg"></div>
@@ -62,7 +66,7 @@ export default function SavePointScreen() {
           <button className="btn-menu" onClick={() => navigateTo('deckbuilder')}>{t('save.btn_deckbuilder')}</button>
           <button className="btn-menu" onClick={() => openModal({ type: 'card-list' })}>{t('save.btn_cardlist')}</button>
           <button className="btn-menu" onClick={handleToMainMenu}>{t('save.btn_mainmenu')}</button>
-          <button className="btn-menu" onClick={handleSave}>
+          <button className="btn-menu" onClick={handleSave} disabled={isSaving}>
             {savedMsg ? t('save.btn_saved') : t('save.btn_save')}
           </button>
         </div>

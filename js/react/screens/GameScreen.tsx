@@ -26,7 +26,7 @@ export default function GameScreen() {
   const hideDirect         = useCallback(() => setShowDirect(false), []);
   const hideDirectAndReset = useCallback(() => { resetSel(); setShowDirect(false); }, [resetSel]);
 
-  useKeyboardShortcuts({ gameState, gameRef, resetSel, onHideDirect: hideDirect });
+  const { showHelp, setShowHelp } = useKeyboardShortcuts({ gameState, gameRef, resetSel, onHideDirect: hideDirect });
 
   // Kill any in-flight attack animations when the game screen unmounts
   useEffect(() => () => cleanupAttackAnimations(), []);
@@ -120,8 +120,8 @@ export default function GameScreen() {
 
         {/* Left panel */}
         <div id="field-left">
-          <button id="btn-options" title="Optionen" onClick={() => openModal({ type: 'main-options' })}>
-            <span className="btn-options-mobile">☰</span>
+          <button id="btn-options" title={t('title.options')} aria-label={t('title.options')} onClick={() => openModal({ type: 'main-options' })}>
+            <span className="btn-options-mobile" aria-hidden="true">☰</span>
             <span className="btn-options-desktop">OPTIONS</span>
           </button>
           <div id="field-effect-slot">
@@ -162,15 +162,16 @@ export default function GameScreen() {
 
         {/* Right panel */}
         <div id="field-right">
-          <div
+          <button
             id="opp-grave"
             className="grave-icon opp-grave-icon"
             title={t('game.grave_opp')}
+            aria-label={`${t('game.grave_opp')} (${opp.graveyard.length})`}
             onClick={() => onGraveClick('opponent')}
           >
             <span className="grave-icon-sym">🪦</span>
             <span className="grave-icon-count">{opp.graveyard.length}</span>
-          </div>
+          </button>
 
           <div id="field-right-center">
             <NextPhaseButton onHideDirectAndReset={hideDirectAndReset} />
@@ -182,15 +183,16 @@ export default function GameScreen() {
             />
           </div>
 
-          <div
+          <button
             id="player-grave"
             className="grave-icon player-grave-icon"
             title={t('game.grave_player')}
+            aria-label={`${t('game.grave_player')} (${player.graveyard.length})`}
             onClick={() => onGraveClick('player')}
           >
             <span className="grave-icon-sym">🪦</span>
             <span className="grave-icon-count">{player.graveyard.length}</span>
-          </div>
+          </button>
         </div>
 
       </div>{/* end #field */}
@@ -211,15 +213,26 @@ export default function GameScreen() {
           : '⏭ NEXT'}
       </button>
 
-      {/* Battle log — hidden, accessible via options later */}
-      <div id="battle-log" style={{ display: 'none' }}>
-        <div className="log-header">📜 Protokoll</div>
-        <div id="log-entries">
-          {logEntries.map((entry, i) => (
-            <div key={i} className="log-entry">{entry}</div>
-          ))}
+      {!isMyTurn && (
+        <div className="ai-thinking-indicator" role="status" aria-live="polite">
+          {t('game.ai_thinking', 'Opponent is thinking...')}
         </div>
-      </div>
+      )}
+
+      {showHelp && (
+        <div className="keyboard-help-overlay" onClick={() => setShowHelp(false)}>
+          <div className="keyboard-help-panel" onClick={e => e.stopPropagation()}>
+            <h3>{t('game.keyboard_help_title', 'Keyboard Shortcuts')}</h3>
+            <dl>
+              <dt>B / E</dt><dd>{t('game.keyboard_advance', 'Advance Phase')}</dd>
+              <dt>T</dt><dd>{t('game.keyboard_end_turn', 'End Turn')}</dd>
+              <dt>Esc</dt><dd>{t('game.keyboard_cancel', 'Cancel Selection')}</dd>
+              <dt>?</dt><dd>{t('game.keyboard_help', 'Toggle this help')}</dd>
+            </dl>
+            <button className="btn-small" onClick={() => setShowHelp(false)}>{t('common.close')}</button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

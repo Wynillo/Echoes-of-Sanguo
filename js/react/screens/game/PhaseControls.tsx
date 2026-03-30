@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame }      from '../../contexts/GameContext.js';
 import { useSelection } from '../../contexts/SelectionContext.js';
@@ -28,7 +28,7 @@ export function PhaseDivider() {
   const phase = gameState?.phase ?? 'main';
 
   return (
-    <div id="phase-display">
+    <div id="phase-display" aria-live="polite">
       <div id="phase-name">{PHASE_LABEL[phase] || phase.toUpperCase()}</div>
       <div className="turn-info">
         {t('game.round')} <span id="turn-num">{gameState?.turn}</span>
@@ -70,9 +70,13 @@ export function NextPhaseButton({ onHideDirectAndReset }: NextPhaseProps) {
     return t('game.btn_next_turn');
   }
 
+  const cooldownRef = useRef(false);
+
   const handleClick = useCallback(() => {
     const game = gameRef.current;
-    if (!game || !isMyTurn) return;
+    if (!game || !isMyTurn || cooldownRef.current) return;
+    cooldownRef.current = true;
+    setTimeout(() => { cooldownRef.current = false; }, 300);
     if (phase === 'end') {
       game.endTurn();
     } else {

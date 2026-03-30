@@ -8,7 +8,9 @@
     "back": "← Back",
     "coins": "Jade Coins",
     "cards": "Cards",
-    "load_more": "Show {{count}} more"
+    "load_more": "Show {{count}} more",
+    "card_one": "{{count}} card",
+    "card_other": "{{count}} cards"
   },
   "title": {
     "subtitle": "Wolong's Awakening",
@@ -74,6 +76,8 @@
     "refill_hand": "Draw Rule",
     "refill_hand_on": "Refill to 5 (FM)",
     "refill_hand_off": "Draw 1 per turn",
+    "mute": "Mute",
+    "unmute": "Unmute",
     "view_log": "📜 Battle Log",
     "log_empty": "No log entries yet.",
     "download_log": "⬇ Download Log"
@@ -150,6 +154,7 @@
     "add_to_deck": "Add to Deck",
     "remove_from_deck": "Remove from Deck",
     "saved_toast": "✓ Deck saved!",
+    "confirm_overwrite": "Overwrite current deck?",
     "type_all": "All",
     "type_normal": "Normal",
     "type_effect": "Effect",
@@ -195,7 +200,13 @@
     "hint_selected": "{{name}} selected.",
     "grave_opp": "Opponent Graveyard",
     "grave_player": "Player Graveyard",
+    "ai_thinking": "Opponent is thinking...",
     "aria_next_phase": "Next Phase (B/E/T)",
+    "keyboard_help_title": "Keyboard Shortcuts",
+    "keyboard_advance": "Advance Phase",
+    "keyboard_end_turn": "End Turn",
+    "keyboard_cancel": "Cancel Selection",
+    "keyboard_help": "Toggle this help",
     "surrender": "⚑ Surrender",
     "surrender_confirm": "Really surrender? The duel will be counted as a defeat.",
     "surrender_yes": "⚑ Yes, surrender",
@@ -283,6 +294,11 @@
     "available": "Available",
     "no_data": "No campaign data loaded.",
     "no_missions": "No missions available yet.",
+    "progress": "{{done}}/{{total}} duels completed",
+    "gauntlet_warning": "This is a gauntlet: {{count}} consecutive duels. You cannot save between fights. Continue?",
+    "unlock_complete_node": "Complete \"{{node}}\" first",
+    "unlock_complete_all": "Complete all prerequisite nodes first",
+    "unlock_complete_any": "Complete any prerequisite node first",
     "ch_han_court": "The Imperial Court",
     "ch_tournament": "Neo-Shanghai Tournament",
     "ch_return": "Return to the Past",
@@ -417,6 +433,28 @@
     "attr_wind": "Wind",
     "attr_light": "Light",
     "attr_dark": "Dark"
+  },
+  "howToPlay": {
+    "title": "How to Play",
+    "goal_title": "Goal",
+    "goal_text": "Reduce your opponent's Life Points (LP) to 0. Each player starts with 8000 LP and a deck of cards.",
+    "phases_title": "Turn Phases",
+    "phases_text": "Each turn has 3 phases: Main Phase (summon monsters, set spells/traps), Battle Phase (attack with monsters), and End Phase. Press B to enter Battle, E to End, T to pass the turn.",
+    "fusion_title": "Fusion",
+    "fusion_text": "Long-press monsters in your hand to select them for fusion. If a valid fusion exists, you can fuse them into a stronger monster. Fusion consumes the material cards.",
+    "spells_title": "Spells, Traps & Equipment",
+    "spells_text": "Spells activate immediately. Traps can be set face-down and activated when your opponent attacks. Equipment cards boost a monster's ATK or DEF."
+  },
+  "error": {
+    "title": "An error has occurred",
+    "back_to_title": "\u2190 Back to Title",
+    "reload": "\u27f3 Reload",
+    "save_failed": "Save failed \u2014 storage may be full."
+  },
+  "migration": {
+    "warning_title": "Save Data Migrated",
+    "warning_text": "Your old save data was updated to a new format. A backup of your previous data has been preserved. If something looks wrong, you can restore the backup from Options.",
+    "dismiss": "OK, got it"
   },
   "duelResult": {
     "victory_title": "VICTORY",

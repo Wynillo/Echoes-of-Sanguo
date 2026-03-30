@@ -169,6 +169,11 @@ export default function DeckbuilderScreen() {
 
   function saveDeck() {
     if (currentDeck.length !== MAX_DECK) return;
+    const existing = Progression.getDeck();
+    if (existing && existing.length > 0) {
+      const ok = window.confirm(t('deckbuilder.confirm_overwrite', 'Overwrite current deck?'));
+      if (!ok) return;
+    }
     Progression.saveDeck(currentDeck);
     setToast(true);
     setTimeout(() => setToast(false), 2000);
