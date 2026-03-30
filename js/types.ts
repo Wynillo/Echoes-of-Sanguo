@@ -133,6 +133,20 @@ export interface EffectDescriptorMap {
   passive_indestructible:    {};
   passive_effectImmune:      {};
   passive_cantBeAttacked:    {};
+  destroyOppSpellTrap:       {};
+  destroyAllOppSpellTraps:   {};
+  destroyAllSpellTraps:      {};
+  destroyOppFieldSpell:      {};
+  changePositionOpp:         {};
+  setFaceDown:               {};
+  flipAllOppFaceDown:        {};
+  destroyByFilter:           { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' };
+  halveAtk:                  { target: StatTarget };
+  doubleAtk:                 { target: StatTarget };
+  swapAtkDef:                { side: 'self' | 'opponent' | 'all' };
+  specialSummonFromDeck:     { filter: CardFilter };
+  reflectBattleDamage:       {};
+  stealMonster:              {};
 }
 
 export type EffectDescriptor = {
@@ -154,11 +168,18 @@ export interface EffectSignal {
   destroySummoned?:  boolean;
   destroyAttacker?:  boolean;
   cancelEffect?:     boolean;
+  reflectDamage?:    boolean;
+}
+
+export interface EffectCost {
+  lp?:      number;
+  discard?: number;
 }
 
 export interface CardEffectBlock {
   trigger:    EffectTrigger | TrapTrigger;
   actions:    EffectDescriptor[];
+  cost?:      EffectCost;
 }
 
 export interface CardData {
