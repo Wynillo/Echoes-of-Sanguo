@@ -30,87 +30,19 @@ The engine communicates with the UI through the `UICallbacks` interface (render,
 
 ## Directory Structure
 
-```
-js/
-├── main.ts                # Entry point (loads base.tcg-src, mounts React)
-├── engine.ts              # Game logic (phases, battle, summoning, AI turns)
-├── field.ts               # Field management
-├── rules.ts               # Game rules
-├── types.ts               # Core types/enums (CardData, GameState, Phase, Owner, etc.)
-├── type-metadata.ts       # Type metadata helpers
-├── cards.ts               # Card database store (CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS)
-├── effect-registry.ts     # Data-driven effect executor (EFFECT_REGISTRY)
-├── ai-behaviors.ts        # AI behavior profiles (AI_BEHAVIOR_REGISTRY)
-├── ai-orchestrator.ts     # AI decision-making orchestrator
-├── campaign.ts            # Campaign logic
-├── campaign-types.ts      # Campaign type definitions
-├── campaign-store.ts      # Campaign state management
-├── progression.ts         # Save/load via localStorage (coins, collection, deck)
-├── shop-data.ts           # Shop configuration
-├── audio.ts               # Web Audio API singleton
-├── mod-api.ts             # window.EchoesOfSanguoMod API for community mods
-├── i18n.ts                # i18next setup (de + en)
-├── debug-logger.ts        # Debug utility
-├── tcg-bridge.ts          # Bridge: @wynillo/tcg-format → game stores (CARD_DB, etc.)
-├── tcg-builder.ts         # Converts CardData → TcgCard for packing
-├── enums.ts               # Bidirectional enum converters (int ↔ game enums)
-├── effect-serializer.ts   # Effect string codec (serialize/deserialize)
-├── generate-base-tcg.ts   # Thin CLI wrapper → @wynillo/tcg-format packTcgArchive()
-├── trigger-bus.ts         # Event emitter for extensible trigger hooks
-└── react/
-    ├── App.tsx             # Root component, screen router
-    ├── index.tsx           # React entry point
-    ├── contexts/           # GameContext, ProgressionContext, ModalContext, ScreenContext, SelectionContext, CampaignContext
-    ├── screens/            # TitleScreen, PressStartScreen, StarterScreen, CampaignScreen, DialogueScreen,
-    │                       #   OpponentScreen, GameScreen, DefeatedScreen, ShopScreen, PackOpeningScreen,
-    │                       #   CollectionScreen, DeckbuilderScreen, SavePointScreen
-    │   └── game/           # GameScreen sub-components (HandArea, LPPanel, OpponentField, PlayerField, PhaseControls)
-    ├── components/         # Card, HandCard, FieldCardComponent, FieldSpellTrapComponent, HoverPreview,
-    │                       #   CardActivationOverlay, VFXOverlay, ErrorBoundary
-    ├── modals/             # BattleLogModal, CardDetailModal, CardListModal, CoinTossModal,
-    │                       #   GauntletTransitionModal, GraveSelectModal, OptionsModal, ResultModal, TrapPromptModal
-    ├── hooks/              # useAnimatedNumber, useAttackAnimation, useAudio, useFusionAnimation,
-    │                       #   useKeyboardShortcuts, useLongPress
-    └── utils/              # pack-logic.ts, highlightCardText.tsx
-
-tests/                     # Vitest unit/integration tests
-tests-e2e/                 # Playwright E2E tests
-css/                       # style.css, animations.css, progression.css
-locales/                   # de.json, en.json
-public/
-├── base.tcg-src/          # TCG source folder (served directly by Vite)
-│   ├── cards.json         # Card data (312 cards, numeric IDs)
-│   ├── races.json         # Race metadata { id, key, value, color, icon }
-│   ├── attributes.json    # Attribute metadata { id, key, value, color, symbol }
-│   ├── card_types.json    # Card type metadata { id, key, value, color }
-│   ├── rarities.json      # Rarity metadata { id, key, value, color }
-│   ├── meta.json          # Starter decks
-│   ├── fusion_formulas.json # Fusion recipe formulas
-│   ├── manifest.json      # Format version
-│   ├── shop.json          # Shop/booster pack & package definitions
-│   ├── campaign.json      # Campaign map data (7 chapters, 39 duels)
-│   ├── id_migration.json  # String-ID → Numeric-ID mapping
-│   ├── locales/           # cards_description.json, opponents_description.json
-│   └── opponents/         # 39 per-opponent deck JSON files
-├── audio/                 # Music and sound effects
-│   ├── music/             # battle, defeat, shop, title, victory
-│   └── sfx/               # attack, button, card-play, coin, damage, destroy, draw, fusion, etc.
-└── title-bg.png
-android/                   # Capacitor Android project
-docs/                      # Documentation (tcg-format.md, plan-outsource-tcg-package.md)
-```
+- `js/` — Engine layer (`engine.ts`, `field.ts`, `rules.ts`, `effect-registry.ts`, `ai-behaviors.ts`, `ai-orchestrator.ts`), data layer (`types.ts`, `cards.ts`, `enums.ts`, `tcg-bridge.ts`, `effect-serializer.ts`, `campaign.ts`, `shop-data.ts`, `progression.ts`), and `react/` UI layer
+- `js/react/` — `App.tsx`, `contexts/` (6 contexts), `screens/` (12 screens + `game/` sub-components), `components/`, `modals/`, `hooks/`, `utils/`
+- `tests/` — Vitest unit/integration tests (`.test.js`)
+- `tests-e2e/` — Playwright E2E tests
+- `css/` — Tailwind + custom CSS + animations
+- `locales/` — i18next translations (`de.json`, `en.json`)
+- `public/base.tcg-src/` — TCG source data (cards, opponents, campaign, shop, metadata, locales). See `docs/tcg-format.md` for schema details
+- `docs/` — Format specification, plans, audits
 
 ## Key Conventions
 
-### Naming
-- **Classes/Types**: PascalCase (`GameEngine`, `FieldCard`, `CardData`)
-- **Functions/variables**: camelCase (`drawCard`, `executeEffectBlock`)
-- **Constants**: UPPER_SNAKE_CASE (`HAND_LIMIT_END`, `CARD_DB`, `FUSION_RECIPES`)
-- **Enums**: PascalCase members (`CardType.Monster`, `Race.Dragon`)
-
 ### Imports
-- ES modules throughout; use `.js` extension in import paths (TypeScript with bundler resolution)
-- Example: `import { CardType, Attribute } from './types.js';`
+- ES modules with `.js` extension in import paths (TypeScript with bundler resolution)
 - External package: `import { loadTcgFile } from '@wynillo/tcg-format';`
 
 ### State Management
@@ -139,29 +71,9 @@ All user-facing strings go through i18next. Translation files: `locales/de.json`
 
 ## TCG Source Files
 
-`public/base.tcg-src/` is the **source folder** for the base card set. All JSON files
-and assets live here and are served directly by Vite during development.
-
-Metadata files use a uniform `{ id, key, value, color }` schema where:
-- `key` is the stable PascalCase identifier (e.g. `'Dragon'`) used for i18n lookups
-- `value` is the display label (localized at runtime via `locales/{lang}_*.json` overrides)
-- `icon` (races) and `symbol` (attributes) are optional extra fields
-
-For distribution as a standalone `.tcg` archive, run `npm run generate:tcg` to pack
-the folder contents into `public/base.tcg`. Keep both the source folder and
-the distributed archive in sync — changes to one must be reflected in the other.
-
-## Key Types (js/types.ts)
-
-- `CardData` — card definition (id, name, type, atk, def, effect, etc.)
-- `GameState` — full game snapshot (phase, turn, player/opponent states, log)
-- `PlayerState` — LP, deck, hand, field (monsters + spellTraps), graveyard
-- `FieldCard` — runtime monster instance with bonuses and status flags
-- `UICallbacks` — engine→UI communication interface
-- `CardEffectBlock` — { trigger, actions: EffectDescriptor[] }
-- Enums: `CardType` (Monster, Fusion, Spell, Trap, Equipment), `Attribute`, `Race`, `Rarity`, `SpellType`
-- Union types: `Owner` ('player'|'opponent'), `Phase` ('draw'|'main'|'battle'|'end'), `Position` ('atk'|'def')
-- Additional unions: `TrapTrigger`, `EffectTrigger` ('onSummon'|'onDestroyByBattle'|'onDestroyByOpponent'|'passive'|'onFlip')
+`public/base.tcg-src/` is the source folder for the base card set, served directly by Vite.
+Metadata files use a uniform `{ id, key, value, color }` schema (`key` = PascalCase i18n identifier, `value` = display label).
+Full format spec: `docs/tcg-format.md`. Core types: `js/types.ts`.
 
 ## Testing
 
@@ -179,12 +91,7 @@ the distributed archive in sync — changes to one must be reflected in the othe
 
 ## External Package: @wynillo/tcg-format
 
-The TCG format library has been extracted to a separate repository: [Wynillo/Echoes-of-Sanguo-TCG](https://github.com/Wynillo/Echoes-of-Sanguo-TCG). It handles loading, validation, and packing of `.tcg` archives with zero game imports.
-
-- **In `package.json`** as a GitHub dependency (`"github:Wynillo/Echoes-of-Sanguo-TCG"`) — installed automatically by `npm ci`
-- **Local dev**: Just run `npm install` — the package is fetched from GitHub automatically
-- **Bridge layer**: `js/tcg-bridge.ts` connects the package's pure data output to game stores (`CARD_DB`, `FUSION_RECIPES`, etc.)
-- **Effect strings are opaque** in the package — parsed only by `js/effect-serializer.ts` in this repo
+GitHub dependency ([Wynillo/Echoes-of-Sanguo-TCG](https://github.com/Wynillo/Echoes-of-Sanguo-TCG)) — handles loading, validation, and packing of `.tcg` archives. Bridge: `js/tcg-bridge.ts` connects output to game stores. Effect strings parsed by `js/effect-serializer.ts`.
 
 ## CI/CD
 
@@ -194,15 +101,3 @@ GitHub Actions (`.github/workflows/`):
 - `deploy-hetzner.yml` — Hetzner deployment workflow
 - `summary.yml` — AI issue summarization workflow
 
-## Tech Stack
-
-| Layer | Tech |
-|-------|------|
-| Framework | React 19 |
-| Language | TypeScript 6.0 |
-| Build | Vite 8 |
-| Styling | Tailwind CSS 4 + custom CSS + GSAP animations |
-| Testing | Vitest 4 + Playwright 1.58 |
-| i18n | i18next |
-| Mobile | Capacitor 8 (Android) |
-| Fonts | Press Start 2P, Pixelify Sans (pixel art theme) |
