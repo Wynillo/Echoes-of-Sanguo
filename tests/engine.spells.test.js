@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
-import { GameEngine, FieldCard, FieldSpellTrap } from '../js/engine.ts';
-import { CARD_DB, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../js/cards.js';
-import { CardType } from '../js/types.ts';
+import { GameEngine, FieldCard, FieldSpellTrap } from '../src/engine.ts';
+import { CARD_DB, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../src/cards.js';
+import { CardType } from '../src/types.ts';
 
 // ── Helpers (same pattern as engine.core.test.js) ─────────
 

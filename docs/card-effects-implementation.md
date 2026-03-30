@@ -28,11 +28,11 @@ No engine changes — cards use existing actions.
 ### Engine Changes
 
 - **Multi-effect block support**: `effects?: CardEffectBlock[]` on `CardData`. Pipe-delimited format: `"passive:passive_piercing()|onDealBattleDamage:draw(self,1)"`.
-  - `js/types.ts`: Added `effects` array and `spirit` flag to `CardData`
-  - `js/effect-serializer.ts`: `deserializeEffects()`, `serializeEffects()`, `parseEffectString()` for pipe-delimited multi-block
-  - `js/engine.ts`: `_getEffectBlocks()` helper iterates both `card.effects` and `card.effect`
-  - `js/field.ts`: `FieldCard` constructor scans all passive blocks from `effects` array
-  - `js/tcg-bridge.ts`: Uses `parseEffectString()` for multi-block support on load
+  - `src/types.ts`: Added `effects` array and `spirit` flag to `CardData`
+  - `src/effect-serializer.ts`: `deserializeEffects()`, `serializeEffects()`, `parseEffectString()` for pipe-delimited multi-block
+  - `src/engine.ts`: `_getEffectBlocks()` helper iterates both `card.effects` and `card.effect`
+  - `src/field.ts`: `FieldCard` constructor scans all passive blocks from `effects` array
+  - `src/tcg-bridge.ts`: Uses `parseEffectString()` for multi-block support on load
 
 - **New trigger: `onDealBattleDamage`**: Fires on the attacking monster after it deals battle damage to LP. Added in `_resolveBattle` (ATK win, piercing), `attack` (direct attack path), and `attackDirect`.
 
@@ -176,14 +176,14 @@ No engine changes — cards use existing actions.
 
 ## Files Modified
 
-- `js/types.ts` — EffectDescriptorMap (15 new actions), EffectTrigger (+2), TrapTrigger (+1), CardData (effects, spirit), PlayerState (battleProtection, turnCounters, fieldFlags), GameState (skipNextDraw), EffectCost (tributeSelf, lpHalf)
-- `js/engine.ts` — Battle damage triggers, continuous effect checks, spirit return, temp steal return, turn counters, preventAttacks, onAnySummon trap checking, onSentToGrave trigger
-- `js/effect-registry.ts` — 15+ new action handlers in EFFECT_REGISTRY
-- `js/effect-serializer.ts` — Multi-block pipe format, bracket-aware colon parsing, all new action serialize/deserialize, cancelEffect serialization
-- `js/field.ts` — FieldCard (originalOwner, multi-block passive extraction)
-- `js/ai-orchestrator.ts` — Spirit return, temp steal return, turn counter tick
-- `js/tcg-bridge.ts` — Multi-block effect parsing via parseEffectString
-- `js/enums.ts` — New triggers in TRIGGER_STRINGS and trap trigger int maps
+- `src/types.ts` — EffectDescriptorMap (15 new actions), EffectTrigger (+2), TrapTrigger (+1), CardData (effects, spirit), PlayerState (battleProtection, turnCounters, fieldFlags), GameState (skipNextDraw), EffectCost (tributeSelf, lpHalf)
+- `src/engine.ts` — Battle damage triggers, continuous effect checks, spirit return, temp steal return, turn counters, preventAttacks, onAnySummon trap checking, onSentToGrave trigger
+- `src/effect-registry.ts` — 15+ new action handlers in EFFECT_REGISTRY
+- `src/effect-serializer.ts` — Multi-block pipe format, bracket-aware colon parsing, all new action serialize/deserialize, cancelEffect serialization
+- `src/field.ts` — FieldCard (originalOwner, multi-block passive extraction)
+- `src/ai-orchestrator.ts` — Spirit return, temp steal return, turn counter tick
+- `src/tcg-bridge.ts` — Multi-block effect parsing via parseEffectString
+- `src/enums.ts` — New triggers in TRIGGER_STRINGS and trap trigger int maps
 - `public/base.tcg-src/cards.json` — 43 new card definitions (IDs 313-355)
 - `public/base.tcg-src/locales/cards_description.json` — Card names and descriptions
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateBattleBadges, rollBadgeCardDrops } from '../js/battle-badges.ts';
+import { calculateBattleBadges, rollBadgeCardDrops } from '../src/battle-badges.ts';
 
 // ── Helpers ────────────────────────────────────────────────
 

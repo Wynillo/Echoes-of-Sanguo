@@ -2,8 +2,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import JSZip from 'jszip';
 import { loadTcgFile, TcgNetworkError, TcgFormatError } from '@wynillo/tcg-format';
-import { loadAndApplyTcg, revokeTcgImages } from '../js/tcg-bridge.js';
-import { CARD_DB, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS } from '../js/cards.js';
+import { loadAndApplyTcg, revokeTcgImages } from '../src/tcg-bridge.js';
+import { CARD_DB, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS } from '../src/cards.js';
 
 // ── Helpers ─────────────────────────────────────────────────
 

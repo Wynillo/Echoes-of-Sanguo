@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { TriggerBus } from '../js/trigger-bus.js';
+import { TriggerBus } from '../src/trigger-bus.js';
 
 // setup.js calls TriggerBus.clear() in afterEach, so each test starts clean.
 

@@ -23,12 +23,12 @@ Specialist for campaign and shop content: campaign graph model, shop pack/packag
 
 - `public/base.tcg-src/campaign.json` — campaign graph: chapters, nodes, connections
 - `public/base.tcg-src/shop.json` — packs, packages, currency config
-- `js/campaign-types.ts` — CampaignData, Chapter, CampaignNode, UnlockCondition, NodeRewards
-- `js/campaign.ts` — node resolution, unlock checking
-- `js/shop-data.ts` — PackDef, PackageDef, PackSlotDef, CardPoolDef, CardFilter
-- `js/react/utils/pack-logic.ts` — pack opening: rarity picking, card pool filtering
+- `src/campaign-types.ts` — CampaignData, Chapter, CampaignNode, UnlockCondition, NodeRewards
+- `src/campaign.ts` — node resolution, unlock checking
+- `src/shop-data.ts` — PackDef, PackageDef, PackSlotDef, CardPoolDef, CardFilter
+- `src/react/utils/pack-logic.ts` — pack opening: rarity picking, card pool filtering
 
-Read `js/campaign-types.ts` for campaign types and `js/shop-data.ts` for shop types. Node types: `duel`, `story`, `reward`, `shop`, `branch`. Unlock types: `nodeComplete`, `allComplete`, `anyComplete`, `cardOwned`, `winsCount`.
+Read `src/campaign-types.ts` for campaign types and `src/shop-data.ts` for shop types. Node types: `duel`, `story`, `reward`, `shop`, `branch`. Unlock types: `nodeComplete`, `allComplete`, `anyComplete`, `cardOwned`, `winsCount`.
 
 ## Working Approach
 

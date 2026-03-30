@@ -23,7 +23,7 @@ Specialist for internationalization. The game supports English and German across
 
 ## Translation Layers
 
-**App-level (i18next):** `locales/en.json`, `locales/de.json` — flat dot-notation keys, used via `t('key')` from `useTranslation()`. Setup in `js/i18n.ts`.
+**App-level (i18next):** `locales/en.json`, `locales/de.json` — flat dot-notation keys, used via `t('key')` from `useTranslation()`. Setup in `src/i18n.ts`.
 
 **TCG content:** `public/base.tcg-src/locales/` — base files (`cards_description.json`, `opponents_description.json`) and language overrides (`{lang}_cards_description.json`, `{lang}_opponents_description.json`, `{lang}_races.json`, `{lang}_attributes.json`, `{lang}_card_types.json`).
 

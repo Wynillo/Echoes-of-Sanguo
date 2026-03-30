@@ -21,7 +21,7 @@ if (typeof window === 'undefined') {
   const { readdirSync } = await import('fs');
   const { readFile: readFileAsync } = await import('fs/promises');
   const JSZip = (await import('jszip')).default;
-  const { loadAndApplyTcg } = await import('../js/tcg-bridge.js');
+  const { loadAndApplyTcg } = await import('../src/tcg-bridge.js');
 
   // Pack public/base.tcg-src/ folder into an in-memory ZIP for the loader
   const folderPath = join(__dirname, '../public/base.tcg-src');
@@ -51,5 +51,5 @@ if (typeof window === 'undefined') {
 }
 
 // Clean TriggerBus between tests so handlers don't leak across test files
-const { TriggerBus } = await import('../js/trigger-bus.js');
+const { TriggerBus } = await import('../src/trigger-bus.js');
 afterEach(() => { TriggerBus.clear(); });

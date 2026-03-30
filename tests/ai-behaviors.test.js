@@ -13,8 +13,8 @@ import {
   pickDebuffTarget,
   pickBestGraveyardMonster,
   pickSpellBuffTarget,
-} from '../js/ai-behaviors.js';
-import { CardType } from '../js/types.js';
+} from '../src/ai-behaviors.js';
+import { CardType } from '../src/types.js';
 
 // ── Helpers ────────────────────────────────────────────────
 

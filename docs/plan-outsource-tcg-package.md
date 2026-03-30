@@ -2,7 +2,7 @@
 
 ## Context
 
-The `js/tcg-format/` folder is a format library for the custom `.tcg` ZIP-based card archive format. It handles serialization, validation, ZIP packaging, and loading of card data. It has enough scope to stand alone as a reusable npm package — useful to any community mod author or third-party tool that needs to read/write `.tcg` files — but currently it is tightly coupled to the main game's internals through six internal import paths, making extraction non-trivial.
+The `src/tcg-format/` folder is a format library for the custom `.tcg` ZIP-based card archive format. It handles serialization, validation, ZIP packaging, and loading of card data. It has enough scope to stand alone as a reusable npm package — useful to any community mod author or third-party tool that needs to read/write `.tcg` files — but currently it is tightly coupled to the main game's internals through six internal import paths, making extraction non-trivial.
 
 The goal is to create a standalone `@wynillo/tcg-format` npm package in its own GitHub repository, then consume it as a regular dependency in the main game repo.
 
@@ -11,31 +11,31 @@ The goal is to create a standalone `@wynillo/tcg-format` npm package in its own 
 ## Critical Files
 
 **Move to `@wynillo/tcg-format` package:**
-- `js/tcg-format/index.ts` — public export barrel
-- `js/tcg-format/types.ts` — TcgCard, TcgManifest, TcgMeta, etc.
-- `js/tcg-format/tcg-loader.ts` — refactored to return pure data (no global store mutations, no browser globals)
-- `js/tcg-format/tcg-validator.ts` — pure validation (no effect imports)
-- `js/tcg-format/card-validator.ts` — **remove the `isValidEffectString` import and call** (line 8 + line 126); effect strings are opaque in the package; engine validates after loading
-- `js/tcg-format/def-validator.ts`, `opp-desc-validator.ts` — pure validation, no changes needed
+- `src/tcg-format/index.ts` — public export barrel
+- `src/tcg-format/types.ts` — TcgCard, TcgManifest, TcgMeta, etc.
+- `src/tcg-format/tcg-loader.ts` — refactored to return pure data (no global store mutations, no browser globals)
+- `src/tcg-format/tcg-validator.ts` — pure validation (no effect imports)
+- `src/tcg-format/card-validator.ts` — **remove the `isValidEffectString` import and call** (line 8 + line 126); effect strings are opaque in the package; engine validates after loading
+- `src/tcg-format/def-validator.ts`, `opp-desc-validator.ts` — pure validation, no changes needed
 
-**Stay in game repo (move from `js/tcg-format/` to `js/`):**
-- `js/tcg-format/enums.ts` → `js/enums.ts` — keeps game enum imports; converters are identity mappings; package does NOT export converters
-- `js/tcg-format/effect-serializer.ts` → `js/effect-serializer.ts` — uses game effect types; package treats effects as opaque strings
-- `js/tcg-format/tcg-builder.ts` → `js/tcg-builder.ts` — uses `CardData`, `TYPE_META`; needed for `generate:tcg`
-- `js/tcg-format/generate-base-tcg.ts` → `js/generate-base-tcg.ts` — CLI packing script; replaced by thin wrapper calling package's `packTcgArchive()`
+**Stay in game repo (move from `src/tcg-format/` to `src/`):**
+- `src/tcg-format/enums.ts` → `src/enums.ts` — keeps game enum imports; converters are identity mappings; package does NOT export converters
+- `src/tcg-format/effect-serializer.ts` → `src/effect-serializer.ts` — uses game effect types; package treats effects as opaque strings
+- `src/tcg-format/tcg-builder.ts` → `src/tcg-builder.ts` — uses `CardData`, `TYPE_META`; needed for `generate:tcg`
+- `src/tcg-format/generate-base-tcg.ts` → `src/generate-base-tcg.ts` — CLI packing script; replaced by thin wrapper calling package's `packTcgArchive()`
 
 **Created/updated in game repo:**
-- `js/tcg-bridge.ts` — **NEW** — converts TcgLoadResult → game types, populates stores, mod tracking
-- `js/trigger-bus.ts` — **NEW** — event emitter for extensible trigger hooks
-- `js/main.ts` — update to use bridge
-- `js/types.ts` — no changes (effect types stay here untouched)
-- `js/generate-base-tcg.ts` — thin wrapper calling package's `packTcgArchive()`
+- `src/tcg-bridge.ts` — **NEW** — converts TcgLoadResult → game types, populates stores, mod tracking
+- `src/trigger-bus.ts` — **NEW** — event emitter for extensible trigger hooks
+- `src/main.ts` — update to use bridge
+- `src/types.ts` — no changes (effect types stay here untouched)
+- `src/generate-base-tcg.ts` — thin wrapper calling package's `packTcgArchive()`
 
 ---
 
 ## Internal Dependency Map (Current → Target)
 
-**Current** (all in `js/tcg-format/`, coupled to game internals):
+**Current** (all in `src/tcg-format/`, coupled to game internals):
 ```
 tcg-format/enums.ts         ← CardType, Attribute, Race, Rarity     (../types.js)
 tcg-format/card-validator.ts← isValidEffectString                    (./effect-serializer.js)
@@ -59,14 +59,14 @@ tcg-format/tcg-builder.ts  ← CardData, CardType                      (../types
   src/tcg-loader.ts            — pure: returns TcgLoadResult, no mutations, no browser globals
   src/card-validator.ts        — effect field treated as opaque string; no effect-serializer dep
 
-js/enums.ts (engine)         ← CardType, Attribute, Race, Rarity     (./types.js)
-js/effect-serializer.ts      ← CardEffectBlock, ...                   (./types.js)
+src/enums.ts (engine)         ← CardType, Attribute, Race, Rarity     (./types.js)
+src/effect-serializer.ts      ← CardEffectBlock, ...                   (./types.js)
                              ← intToSpellType, intToTrapTrigger, ...  (./enums.js)
-js/tcg-builder.ts            ← CardData, CardType                     (./types.js)
+src/tcg-builder.ts            ← CardData, CardType                     (./types.js)
                              ← TYPE_META                              (./type-metadata.js)
                              ← serializeEffect                        (./effect-serializer.js)
                              ← TcgCard, TcgManifest, ...              (@wynillo/tcg-format)
-js/tcg-bridge.ts (new)       ← loadTcgFile, TcgParsedCard, ...        (@wynillo/tcg-format)
+src/tcg-bridge.ts (new)       ← loadTcgFile, TcgParsedCard, ...        (@wynillo/tcg-format)
                              ← CARD_DB, FUSION_RECIPES, ...           (./cards.js)  [mutated here]
                              ← intToCardType, intToRace, ...          (./enums.js)
                              ← deserializeEffect                      (./effect-serializer.js)
@@ -86,23 +86,23 @@ js/tcg-bridge.ts (new)       ← loadTcgFile, TcgParsedCard, ...        (@wynill
 - Int constants: `TCG_TYPE_MONSTER`, `TCG_ATTR_LIGHT`, `TCG_RACE_DRAGON`, etc.
 - The `effect` field in `TcgCard` is just `string` — the package treats it as opaque
 
-**`EOS:Engine` retains all gameplay-extensible types** (zero changes to `js/types.ts`):
+**`EOS:Engine` retains all gameplay-extensible types** (zero changes to `src/types.ts`):
 - `CardEffectBlock`, `EffectDescriptor`, `CardFilter`, `ValueExpr`, `StatTarget`
 - `EffectTrigger`, `TrapTrigger`, `SpellType` — engine extends these freely
 - `CardData`, `CardType`, `Attribute`, `Race`, `Rarity`
 - All game state types
 
-**Consequence**: `effect-serializer.ts` stays in the game repo (it needs the effect types). It will NOT move to the package. Instead, the remaining `js/tcg-format/` slim down in the engine to just `effect-serializer.ts` + `tcg-builder.ts`, or these two files move to `js/` root.
+**Consequence**: `effect-serializer.ts` stays in the game repo (it needs the effect types). It will NOT move to the package. Instead, the remaining `src/tcg-format/` slim down in the engine to just `effect-serializer.ts` + `tcg-builder.ts`, or these two files move to `src/` root.
 
 **How `enums.ts` loses its game dependency**: The game enums are **numeric** (`CardType.Monster = 1`, `Race.Dragon = 1`, etc.) — they are NOT string enums. The current converters in `enums.ts` are identity mappings: `cardTypeToInt(CardType.Monster)` returns `1 === TCG_TYPE_MONSTER`. There is no string intermediate.
 
 The correct strategy is **Option C — converters stay in the engine, the package doesn't export them**:
-- `js/tcg-format/enums.ts` moves to `js/enums.ts` (engine file), keeping its game imports untouched
+- `src/tcg-format/enums.ts` moves to `src/enums.ts` (engine file), keeping its game imports untouched
 - The package's `src/` has **no converter functions** — it deals purely in raw ints (the wire format already uses ints)
 - `TcgParsedCard` uses `number` fields for type/attribute/race/rarity (same numeric values as the engine enums, but typed as `number` in the package's namespace)
 - The bridge's `parsedToCardData()` does explicit conversions — casts for enum fields (`type as CardType`) and `intToSpellType`/`intToTrapTrigger` calls for the string-typed fields. A simple spread is not sufficient (see Step 5).
 
-**Note**: The "identity mapping" statement above applies to `CardType`, `Attribute`, `Race`, and `Rarity` (numeric enum ↔ numeric int). `spellTypeToInt`/`intToSpellType` and `trapTriggerToInt`/`intToTrapTrigger` are **string↔int mappings** (`'normal' → 1`, `'onAttack' → 1`), not identity mappings. These converters remain in `js/enums.ts` and the bridge calls them explicitly in `parsedToCardData()`.
+**Note**: The "identity mapping" statement above applies to `CardType`, `Attribute`, `Race`, and `Rarity` (numeric enum ↔ numeric int). `spellTypeToInt`/`intToSpellType` and `trapTriggerToInt`/`intToTrapTrigger` are **string↔int mappings** (`'normal' → 1`, `'onAttack' → 1`), not identity mappings. These converters remain in `src/enums.ts` and the bridge calls them explicitly in `parsedToCardData()`.
 
 This means no call sites in the engine change at all.
 
@@ -112,7 +112,7 @@ This means no call sites in the engine change at all.
 
 ### Step 1 — Refactor `EffectDescriptor` to `EffectDescriptorMap`
 
-Convert the closed `EffectDescriptor` union in `js/types.ts` to an open `EffectDescriptorMap` interface (see EffectDescriptor Extensibility Refactor section). Update `effect-registry.ts` and `mod-api.ts` typing. Tests green. This is done first because it's a pure engine refactor with no external dependencies.
+Convert the closed `EffectDescriptor` union in `src/types.ts` to an open `EffectDescriptorMap` interface (see EffectDescriptor Extensibility Refactor section). Update `effect-registry.ts` and `mod-api.ts` typing. Tests green. This is done first because it's a pure engine refactor with no external dependencies.
 
 ### Step 2 — Create the new repository
 
@@ -146,7 +146,7 @@ Echoes-of-Sanguo-TCG/
 ```
 
 **NOT in the package (stays in game repo):**
-- `effect-serializer.ts` — entire file stays in `js/effect-serializer.ts` (uses game effect types; package treats effects as opaque strings)
+- `effect-serializer.ts` — entire file stays in `src/effect-serializer.ts` (uses game effect types; package treats effects as opaque strings)
 - `tcg-builder.ts` — stays in game repo (uses `CardData`, `TYPE_META`; only needed for `generate:tcg`)
 
 **`tcg-packer.ts` design**: The packer works purely with raw JSON files from disk. It reads `cards.json`, images, and other source files as-is and packs them into a `.tcg` ZIP archive. No `CardData` conversion occurs — that is `tcg-builder.ts`'s responsibility and stays in the engine. The packer validates JSON structure via `tcg-validator.ts` before packing.
@@ -193,7 +193,7 @@ Engine types for modders are shipped as a standalone `eos-engine.d.ts` file atta
 
 The raw grammar parser (`parseEffectString`) would only be ~40 lines of code in the package — too thin a layer to justify a cross-repo split. Instead:
 
-- **`effect-serializer.ts` stays in `js/` unchanged.** It keeps its imports from `./types.js` and handles both the string grammar and the semantic mapping.
+- **`effect-serializer.ts` stays in `src/` unchanged.** It keeps its imports from `./types.js` and handles both the string grammar and the semantic mapping.
 - **The package treats `effect` as an opaque `string`** in `TcgCard.effect`. It never parses, validates, or interprets effect strings.
 - **No `effect-serializer.ts` in the package at all.** The `src/` directory in `@wynillo/tcg-format` has no effect-related code.
 
@@ -206,11 +206,11 @@ This means:
 
 The game enums are **numeric** (`CardType.Monster = 1`, not `'Monster'`). The converters are identity mappings. Attempting to replace them with string literal types would break every call site in the engine.
 
-**Correct approach**: Move `js/tcg-format/enums.ts` → `js/enums.ts` (engine file). Game imports remain. No signature changes. The package exports **no converter functions** — it deals purely in raw ints.
+**Correct approach**: Move `src/tcg-format/enums.ts` → `src/enums.ts` (engine file). Game imports remain. No signature changes. The package exports **no converter functions** — it deals purely in raw ints.
 
 Update all engine-internal import paths from `'./tcg-format/enums.js'` to `'./enums.js'`. The package's `src/` directory has no `enums.ts` file; the string validator functions (`isValidTrigger`, `isValidSpellType`) move inline to the validator files that need them.
 
-### Step 5 — Add `TcgParsedCard` to `js/tcg-format/types.ts`
+### Step 5 — Add `TcgParsedCard` to `src/tcg-format/types.ts`
 
 The package's loader merges `TcgCard` (int fields) + `TcgCardDefinition` (name, description) into a single flat object. The name "parsed" reflects that the ZIP/JSON parsing is done; the wire-format int values remain as-is — `spellType: 1` not `'normal'`, `type: 3` not `CardType.Spell`. The engine bridge does the final int→enum/string conversion.
 
@@ -240,9 +240,9 @@ export interface TcgParsedCard {
 }
 ```
 
-The game's `CardData` in `js/types.ts` remains the source of truth, with its own `effect?: CardEffectBlock`. The bridge's `parsedToCardData` converts `TcgParsedCard → CardData` by:
+The game's `CardData` in `src/types.ts` remains the source of truth, with its own `effect?: CardEffectBlock`. The bridge's `parsedToCardData` converts `TcgParsedCard → CardData` by:
 - Casting numeric enum fields (`type as CardType`, `rarity as Rarity`, etc.) — safe since values are identical
-- Calling `intToSpellType()` / `intToTrapTrigger()` for string-typed fields (these stay in `js/enums.ts`)
+- Calling `intToSpellType()` / `intToTrapTrigger()` for string-typed fields (these stay in `src/enums.ts`)
 - Deserializing `effectString` via `deserializeEffect()`
 
 A simple spread `{ ...parsed, effect }` is **not sufficient** — `spellType` and `trapTrigger` are `number` in `TcgParsedCard` but `SpellType` (`'normal'`|...) and `TrapTrigger` (`'onAttack'`|...) in `CardData`. TypeScript would silently produce incorrect runtime values.
@@ -300,18 +300,18 @@ export async function loadTcgFile(
 
 Remove `getBrowserLang()` / `navigator.language` from the loader. The bridge passes `navigator.language.substring(0, 2)` from the browser context. The CLI passes `options.lang` from a `--lang` flag.
 
-> **Breaking change**: The signature changes from `(source, onProgress?)` to `(source, { lang?, onProgress? })`. This requires updating all call sites (`tests/setup.js`, `js/main.ts`) at this step, not at Step 11. Since Steps 6–10 use a big-bang strategy, these call sites will be updated together with the bridge.
+> **Breaking change**: The signature changes from `(source, onProgress?)` to `(source, { lang?, onProgress? })`. This requires updating all call sites (`tests/setup.js`, `src/main.ts`) at this step, not at Step 11. Since Steps 6–10 use a big-bang strategy, these call sites will be updated together with the bridge.
 
 **Three other key changes**:
 1. `URL.createObjectURL` is browser-only — the loader returns raw `ArrayBuffer` per image. The bridge creates blob URLs. `revokeTcgImages()` moves to the bridge.
 2. `tcgCardToCardData()` is removed from the loader — the bridge handles `TcgParsedCard → CardData` conversion via an explicit `parsedToCardData()` function (see Step 10).
 3. `applyTcgMeta()` and `applyFusionFormulas()` are currently unexported local functions in `tcg-loader.ts`. Their bodies move to the bridge — they mutate game stores and have no place in a pure loader.
 
-### Step 7 — Refactor `js/tcg-format/tcg-builder.ts`
+### Step 7 — Refactor `src/tcg-format/tcg-builder.ts`
 
-`cardDataToTcgCard()` and `cardDataToTcgDef()` depend on `CardData` and are needed by `npm run generate:tcg`. They **stay in `js/tcg-builder.ts`** (engine file, already has `CardData` import). They are NOT moved to the bridge (the bridge only converts in the opposite direction: `TcgParsedCard → CardData`). The plan's earlier wording "remove ... move to bridge" was imprecise — these functions have no equivalent purpose in the bridge.
+`cardDataToTcgCard()` and `cardDataToTcgDef()` depend on `CardData` and are needed by `npm run generate:tcg`. They **stay in `src/tcg-builder.ts`** (engine file, already has `CardData` import). They are NOT moved to the bridge (the bridge only converts in the opposite direction: `TcgParsedCard → CardData`). The plan's earlier wording "remove ... move to bridge" was imprecise — these functions have no equivalent purpose in the bridge.
 
-What actually changes in `js/tcg-builder.ts`:
+What actually changes in `src/tcg-builder.ts`:
 - The `buildRacesJson()` / `buildAttributesJson()` / `buildCardTypesJson()` / `buildRaritiesJson()` functions that currently read `TYPE_META` global are refactored to accept data as parameters (so they can be exported to the package as pure functions in `tcg-packer.ts`):
 
 ```typescript
@@ -326,12 +326,12 @@ export function buildRacesJson(races: TcgRaceEntry[]): TcgRacesJson
 
 ### Step 8 — Consolidate campaign types
 
-`js/tcg-format/types.ts` currently has a full copy of `CampaignData` and also re-exports `CampaignData as TcgCampaignJson` from `../campaign-types.js`. This is a circular dependency that must be broken.
+`src/tcg-format/types.ts` currently has a full copy of `CampaignData` and also re-exports `CampaignData as TcgCampaignJson` from `../campaign-types.js`. This is a circular dependency that must be broken.
 
-**Precondition — shape compatibility check**: Before migrating, verify that the `CampaignData` definition in `js/campaign-types.ts` exactly matches the shape being placed in the package. Even a single optional/required variance will produce TypeScript errors across all `DialogueScreen.tsx` and `campaign.ts` call sites. Add this assertion to a scratch file and run `tsc --noEmit` before touching any imports:
+**Precondition — shape compatibility check**: Before migrating, verify that the `CampaignData` definition in `src/campaign-types.ts` exactly matches the shape being placed in the package. Even a single optional/required variance will produce TypeScript errors across all `DialogueScreen.tsx` and `campaign.ts` call sites. Add this assertion to a scratch file and run `tsc --noEmit` before touching any imports:
 ```typescript
 // shape-check.ts (delete after verification)
-import type { CampaignData } from './js/campaign-types.js';
+import type { CampaignData } from './src/campaign-types.js';
 import type { TcgCampaignJson } from '@wynillo/tcg-format'; // or local package path
 type _AssertAssignable = CampaignData extends TcgCampaignJson
   ? TcgCampaignJson extends CampaignData ? true : never
@@ -343,35 +343,35 @@ If `tsc --noEmit` fails, resolve field mismatches in the package definition befo
 **After migration**: The package's `src/types.ts` is the single canonical source for `TcgCampaignJson`, `DialogueScene`, `ForegroundSprite`, `CampaignChapter`, `CampaignNode`, etc.
 
 In the game repo:
-- `js/campaign-types.ts`: delete the dialogue/campaign structure types; keep only `CampaignProgress`, `PendingDuel`, `NodeRewards`; re-export `TcgCampaignJson as CampaignData` from `@wynillo/tcg-format`
-- `js/react/screens/DialogueScreen.tsx`: change import to `from '@wynillo/tcg-format'`
-- `js/campaign.ts`: change `CampaignData` import to `from '@wynillo/tcg-format'`
+- `src/campaign-types.ts`: delete the dialogue/campaign structure types; keep only `CampaignProgress`, `PendingDuel`, `NodeRewards`; re-export `TcgCampaignJson as CampaignData` from `@wynillo/tcg-format`
+- `src/react/screens/DialogueScreen.tsx`: change import to `from '@wynillo/tcg-format'`
+- `src/campaign.ts`: change `CampaignData` import to `from '@wynillo/tcg-format'`
 
-### Step 9 — Move engine files out of `js/tcg-format/`
+### Step 9 — Move engine files out of `src/tcg-format/`
 
 Before the package extraction, move the three files that stay in the engine:
-- `js/tcg-format/enums.ts` → `js/enums.ts`
+- `src/tcg-format/enums.ts` → `src/enums.ts`
   - No import changes needed (game enum imports were already there)
-- `js/tcg-format/effect-serializer.ts` → `js/effect-serializer.ts`
+- `src/tcg-format/effect-serializer.ts` → `src/effect-serializer.ts`
   - Update `'../types.js'` → `'./types.js'`
-  - Update `'./enums.js'` → `'./enums.js'` (same file, now at `js/enums.ts`)
-- `js/tcg-format/tcg-builder.ts` → `js/tcg-builder.ts`
+  - Update `'./enums.js'` → `'./enums.js'` (same file, now at `src/enums.ts`)
+- `src/tcg-format/tcg-builder.ts` → `src/tcg-builder.ts`
   - Update `'../types.js'` → `'./types.js'`
   - Update `'./enums.js'` → `'./enums.js'` (engine's own enums file)
   - Update `'./effect-serializer.js'` → `'./effect-serializer.js'`
   - Update `'../type-metadata.js'` → `'./type-metadata.js'`
 - Update all imports across the codebase that reference these files at their old paths.
 
-**Dependency note**: After this step, `js/tcg-builder.ts` imports from both `@wynillo/tcg-format` (for `TcgCard`, `TcgManifest` format types) AND `./effect-serializer.js` (for `serializeEffect`). Engine → Package is the correct direction; there is no bidirectional dependency since the package never imports from the engine.
+**Dependency note**: After this step, `src/tcg-builder.ts` imports from both `@wynillo/tcg-format` (for `TcgCard`, `TcgManifest` format types) AND `./effect-serializer.js` (for `serializeEffect`). Engine → Package is the correct direction; there is no bidirectional dependency since the package never imports from the engine.
 
-Tests green. Now `js/tcg-format/` contains ONLY files destined for the package.
+Tests green. Now `src/tcg-format/` contains ONLY files destined for the package.
 
-### Step 10 — Create `js/tcg-bridge.ts` in main repo
+### Step 10 — Create `src/tcg-bridge.ts` in main repo
 
 This file does everything `tcg-loader.ts` used to do on the game side, plus mod tracking and collision detection:
 
 ```typescript
-// js/tcg-bridge.ts
+// src/tcg-bridge.ts
 import { loadTcgFile, type TcgLoadResult, type TcgParsedCard, type TcgMeta, type TcgOpponentDeck, type TcgOpponentDescription, type TcgFusionFormula } from '@wynillo/tcg-format';
 import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from './cards.js';
 import { applyRules } from './rules.js';
@@ -638,7 +638,7 @@ export function getLoadedMods(): readonly LoadedMod[] {
 }
 ```
 
-### Step 11 — Update `js/main.ts`
+### Step 11 — Update `src/main.ts`
 
 ```typescript
 // Before
@@ -649,7 +649,7 @@ import { loadAndApplyTcg } from './tcg-bridge.js';
 
 ### Step 12 — Verify isolation, then create the package repo
 
-Verify all `../` imports are gone from `js/tcg-format/`. The remaining files must compile in isolation with only `jszip` as an external dependency.
+Verify all `../` imports are gone from `src/tcg-format/`. The remaining files must compile in isolation with only `jszip` as an external dependency.
 
 Create the `@wynillo/tcg-format` repo. Copy cleaned files to `src/`. Add `tcg-packer.ts` (extracted from `generate-base-tcg.ts`) and `cli.ts`. Set up build, tests, CI. CI green.
 
@@ -658,7 +658,7 @@ Create the `@wynillo/tcg-format` repo. Copy cleaned files to `src/`. Add `tcg-pa
 1. Publish `@wynillo/tcg-format` to npm (or use `npm link` for local dev)
 2. `npm install @wynillo/tcg-format` in game repo
 3. Flip all imports from `./tcg-format/` to `@wynillo/tcg-format`
-4. Delete `js/tcg-format/` directory
+4. Delete `src/tcg-format/` directory
 5. Tests green
 
 ### Step 14 — Update `generate:tcg` script
@@ -666,7 +666,7 @@ Create the `@wynillo/tcg-format` repo. Copy cleaned files to `src/`. Add `tcg-pa
 The package exports `packTcgArchive(sourceDir, outputPath)` programmatically, and the CLI wraps it. The game repo's script becomes a thin wrapper:
 
 ```typescript
-// js/generate-base-tcg.ts (game repo — 5 lines)
+// src/generate-base-tcg.ts (game repo — 5 lines)
 import { packTcgArchive } from '@wynillo/tcg-format';
 const src = new URL('../public/base.tcg-src/', import.meta.url).pathname;
 const out = new URL('../public/base.tcg', import.meta.url).pathname;
@@ -679,11 +679,11 @@ Or modders use the CLI: `npx @wynillo/tcg-format pack ./my-mod/ -o my-mod.tcg`
 
 > **Scope note**: Steps 15–16 are independent of the TCG package extraction. They add modder value but increase the risk and size of an already large migration. If the PR is already large, consider shipping Steps 1–14 + 17 as the package extraction PR, and deferring Steps 15–16 to a follow-up.
 
-Create `js/trigger-bus.ts` (see TriggerBus section). Replace hardcoded trigger dispatch in `engine.ts` with `TriggerBus.emit()`. Expose `emitTrigger` + `addTriggerHook` in mod API. Tests green.
+Create `src/trigger-bus.ts` (see TriggerBus section). Replace hardcoded trigger dispatch in `engine.ts` with `TriggerBus.emit()`. Expose `emitTrigger` + `addTriggerHook` in mod API. Tests green.
 
 ### Step 16 — Generate `eos-engine.d.ts`
 
-Add CI step to produce the standalone `.d.ts` file from `js/types.ts` + `js/mod-api.ts` and attach it to GitHub releases.
+Add CI step to produce the standalone `.d.ts` file from `src/types.ts` + `src/mod-api.ts` and attach it to GitHub releases.
 
 ### Step 17 — Update tests
 
@@ -702,7 +702,7 @@ Add CI step to produce the standalone `.d.ts` file from `js/types.ts` + `js/mod-
 - `tests/tcg-packer.test.js` — new: test `packTcgArchive()` round-trips correctly
 
 **Stay in main repo:**
-- `tests/card-data-integrity.test.js` — imports `isValidEffectString` from `js/effect-serializer.ts` (unchanged)
+- `tests/card-data-integrity.test.js` — imports `isValidEffectString` from `src/effect-serializer.ts` (unchanged)
 - `tests/effect-serializer.test.js` — new home for effect string round-trip tests (moved from tcg-format.test.js)
 - `tests/tcg-bridge.test.js` — new: test `loadAndApplyTcg` populates `CARD_DB`, collision detection, `unloadMod`
 
@@ -712,7 +712,7 @@ Add CI step to produce the standalone `.d.ts` file from `js/types.ts` + `js/mod-
 
 Refactor the closed `EffectDescriptor` union into an open `EffectDescriptorMap` interface so modders can extend it via TypeScript declaration merging.
 
-**In `js/types.ts`** — replace the union with a map + derived type:
+**In `src/types.ts`** — replace the union with a map + derived type:
 ```typescript
 export interface EffectDescriptorMap {
   dealDamage:   { target: 'opponent' | 'player'; value: ValueExpr };
@@ -726,13 +726,13 @@ export type EffectDescriptor = {
 }[keyof EffectDescriptorMap];
 ```
 
-**In `js/effect-registry.ts`** — type the registry against the map:
+**In `src/effect-registry.ts`** — type the registry against the map:
 ```typescript
 type EffectHandler<K extends keyof EffectDescriptorMap> =
   (ctx: EffectContext, action: { type: K } & EffectDescriptorMap[K]) => void;
 ```
 
-**In `js/mod-api.ts`** — typed `registerEffect`:
+**In `src/mod-api.ts`** — typed `registerEffect`:
 ```typescript
 registerEffect<K extends keyof EffectDescriptorMap>(
   type: K,
@@ -772,7 +772,7 @@ export {};
 
 Using `declare global` instead of `declare module 'eos-engine'` avoids requiring modders to add `"paths"` to their `tsconfig.json`. It works simply by including `eos-engine.d.ts` in the project (via `"include"` or a `/// <reference path="..." />` directive).
 
-The `eos-engine.d.ts` file is auto-generated by CI from `js/types.ts` using `tsc --emitDeclarationOnly` with a wrapper that lifts the relevant interfaces into the global scope.
+The `eos-engine.d.ts` file is auto-generated by CI from `src/types.ts` using `tsc --emitDeclarationOnly` with a wrapper that lifts the relevant interfaces into the global scope.
 
 Same pattern applies to `EffectTrigger` if we convert it from a string union to a similar extensible interface.
 
@@ -817,7 +817,7 @@ The game repo's CI generates a standalone `eos-engine.d.ts` file and attaches it
 - `CardData` interface shape
 - `EchoesOfSanguoMod` API shape (what's on `window.EchoesOfSanguoMod`)
 
-Generated via `tsc --emitDeclarationOnly` on a subset of `js/types.ts` + `js/mod-api.ts`, wrapped in `declare global { ... }`.
+Generated via `tsc --emitDeclarationOnly` on a subset of `src/types.ts` + `src/mod-api.ts`, wrapped in `declare global { ... }`.
 
 Modders download `eos-engine.d.ts`, drop it into their project, and extend `EffectDescriptorMap` via `declare global` — no `tsconfig.json` `"paths"` config required:
 ```typescript
@@ -834,10 +834,10 @@ export {};
 
 ## TriggerBus
 
-New engine file `js/trigger-bus.ts` — a simple event emitter that replaces hardcoded trigger dispatch:
+New engine file `src/trigger-bus.ts` — a simple event emitter that replaces hardcoded trigger dispatch:
 
 ```typescript
-// js/trigger-bus.ts
+// src/trigger-bus.ts
 type TriggerHandler = (ctx: EffectContext) => void;
 
 const handlers = new Map<string, Set<TriggerHandler>>();
@@ -860,7 +860,7 @@ export const TriggerBus = {
 **Test isolation**: The `handlers` map is module-level state and persists between test files in Vitest. Add `TriggerBus.clear()` to `tests/setup.js` in an `afterEach` (or `beforeEach`) hook so each test starts with a clean bus:
 ```javascript
 // tests/setup.js
-import { TriggerBus } from '../js/trigger-bus.js';
+import { TriggerBus } from '../src/trigger-bus.js';
 afterEach(() => { TriggerBus.clear(); });
 ```
 
@@ -896,7 +896,7 @@ Community mod authors need to load external `.tcg` files at runtime without a ga
 
 **Bridge accepts any URL**: `loadAndApplyTcg(url)` in `tcg-bridge.ts` is called with any `.tcg` URL — `base.tcg` or a community mod URL. It can be called multiple times to layer multiple sets.
 
-**Expose via mod API** (`js/mod-api.ts`): Add mod lifecycle methods to `window.EchoesOfSanguoMod`:
+**Expose via mod API** (`src/mod-api.ts`): Add mod lifecycle methods to `window.EchoesOfSanguoMod`:
 ```typescript
 // New entries in mod-api.ts
 import { loadAndApplyTcg, unloadModCards, getLoadedMods } from './tcg-bridge.js';

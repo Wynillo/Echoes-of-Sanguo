@@ -22,16 +22,16 @@ npm run cap:open       # Open Android Studio
 
 Three-layer design with strict separation:
 
-1. **Engine Layer** (pure TypeScript, no React) — `js/engine.ts`, `js/effect-registry.ts`, `js/ai-behaviors.ts`, `js/ai-orchestrator.ts`, `js/field.ts`, `js/rules.ts`
-2. **Data Layer** — `js/types.ts`, `js/cards.ts`, `js/progression.ts`, `js/campaign.ts`, `js/campaign-types.ts`, `js/campaign-store.ts`, `js/shop-data.ts`, `@wynillo/tcg-format` (external package), `js/tcg-bridge.ts`, `js/enums.ts`
-3. **UI Layer** (React) — `js/react/` with Context-based state management
+1. **Engine Layer** (pure TypeScript, no React) — `src/engine.ts`, `src/effect-registry.ts`, `src/ai-behaviors.ts`, `src/ai-orchestrator.ts`, `src/field.ts`, `src/rules.ts`
+2. **Data Layer** — `src/types.ts`, `src/cards.ts`, `src/progression.ts`, `src/campaign.ts`, `src/campaign-types.ts`, `src/campaign-store.ts`, `src/shop-data.ts`, `@wynillo/tcg-format` (external package), `src/tcg-bridge.ts`, `src/enums.ts`
+3. **UI Layer** (React) — `src/react/` with Context-based state management
 
 The engine communicates with the UI through the `UICallbacks` interface (render, log, prompt, showResult, playAttackAnimation, etc.). The engine never imports React.
 
 ## Directory Structure
 
-- `js/` — Engine layer (`engine.ts`, `field.ts`, `rules.ts`, `effect-registry.ts`, `ai-behaviors.ts`, `ai-orchestrator.ts`), data layer (`types.ts`, `cards.ts`, `enums.ts`, `tcg-bridge.ts`, `effect-serializer.ts`, `campaign.ts`, `shop-data.ts`, `progression.ts`), and `react/` UI layer
-- `js/react/` — `App.tsx`, `contexts/` (6 contexts), `screens/` (12 screens + `game/` sub-components), `components/`, `modals/`, `hooks/`, `utils/`
+- `src/` — Engine layer (`engine.ts`, `field.ts`, `rules.ts`, `effect-registry.ts`, `ai-behaviors.ts`, `ai-orchestrator.ts`), data layer (`types.ts`, `cards.ts`, `enums.ts`, `tcg-bridge.ts`, `effect-serializer.ts`, `campaign.ts`, `shop-data.ts`, `progression.ts`), and `react/` UI layer
+- `src/react/` — `App.tsx`, `contexts/` (6 contexts), `screens/` (12 screens + `game/` sub-components), `components/`, `modals/`, `hooks/`, `utils/`
 - `tests/` — Vitest unit/integration tests (`.test.js`)
 - `tests-e2e/` — Playwright E2E tests
 - `css/` — Tailwind + custom CSS + animations
@@ -78,7 +78,7 @@ All user-facing strings go through i18next. Translation files: `locales/de.json`
 
 `public/base.tcg-src/` is the source folder for the base card set, served directly by Vite.
 Metadata files use a uniform `{ id, key, value, color }` schema (`key` = PascalCase i18n identifier, `value` = display label).
-Full format spec: `docs/tcg-format.md`. Core types: `js/types.ts`.
+Full format spec: `docs/tcg-format.md`. Core types: `src/types.ts`.
 
 ## Testing
 
@@ -96,7 +96,7 @@ Full format spec: `docs/tcg-format.md`. Core types: `js/types.ts`.
 
 ## External Package: @wynillo/tcg-format
 
-GitHub dependency ([Wynillo/Echoes-of-Sanguo-TCG](https://github.com/Wynillo/Echoes-of-Sanguo-TCG)) — handles loading, validation, and packing of `.tcg` archives. Bridge: `js/tcg-bridge.ts` connects output to game stores. Effect strings parsed by `js/effect-serializer.ts`.
+GitHub dependency ([Wynillo/Echoes-of-Sanguo-TCG](https://github.com/Wynillo/Echoes-of-Sanguo-TCG)) — handles loading, validation, and packing of `.tcg` archives. Bridge: `src/tcg-bridge.ts` connects output to game stores. Effect strings parsed by `src/effect-serializer.ts`.
 
 ## CI/CD
 

@@ -25,11 +25,11 @@ Specialist for the AI opponent system: scoring math, behavior profiles, orchestr
 
 ## Key Files
 
-- `js/ai-behaviors.ts` — AI_SCORE constants, behavior profiles, decision functions (pickSummonCandidate, planAttacks, pickEquipTarget, etc.)
-- `js/ai-orchestrator.ts` — aiTurn() full turn sequence: draw → main → traps → equip → battle → end
-- `js/types.ts` — AIBehavior interface, AISummonPriority, AIPositionStrategy, AIBattleStrategy, AISpellRule
-- `js/engine.ts` — GameEngine state and methods the AI calls
-- `js/field.ts` — FieldCard with effectiveATK/DEF/combatValue
+- `src/ai-behaviors.ts` — AI_SCORE constants, behavior profiles, decision functions (pickSummonCandidate, planAttacks, pickEquipTarget, etc.)
+- `src/ai-orchestrator.ts` — aiTurn() full turn sequence: draw → main → traps → equip → battle → end
+- `src/types.ts` — AIBehavior interface, AISummonPriority, AIPositionStrategy, AIBattleStrategy, AISpellRule
+- `src/engine.ts` — GameEngine state and methods the AI calls
+- `src/field.ts` — FieldCard with effectiveATK/DEF/combatValue
 - `public/base.tcg-src/opponents/*.json` — per-opponent deck configs with `behavior` field
 
 ## Working Approach

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FieldCard } from '../js/engine.ts';
+import { FieldCard } from '../src/engine.ts';
 
 const baseCard = { id:'1', name:'Test', type:'normal', atk:1000, def:800 };
 

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { executeEffectBlock, extractPassiveFlags, EFFECT_REGISTRY, matchesFilter } from '../js/effect-registry.js';
+import { executeEffectBlock, extractPassiveFlags, EFFECT_REGISTRY, matchesFilter } from '../src/effect-registry.js';
 
 // ── Helpers ─────────────────────────────────────────────────
 

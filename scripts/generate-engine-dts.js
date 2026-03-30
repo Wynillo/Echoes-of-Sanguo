@@ -2,8 +2,8 @@
 /**
  * Generate eos-engine.d.ts — a standalone type definitions file for modders.
  *
- * Extracts modding-relevant types from js/types.ts, js/trigger-bus.ts, and
- * js/mod-api.ts, wraps them in `declare global { ... }`, and writes
+ * Extracts modding-relevant types from src/types.ts, src/trigger-bus.ts, and
+ * src/mod-api.ts, wraps them in `declare global { ... }`, and writes
  * dist/eos-engine.d.ts.
  *
  * Usage: node scripts/generate-engine-dts.js
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 
-const typesSource = readFileSync(join(root, 'js/types.ts'), 'utf8');
+const typesSource = readFileSync(join(root, 'src/types.ts'), 'utf8');
 
 // Extract the types we want to expose to modders.
 // We manually curate them to avoid leaking internal engine details.

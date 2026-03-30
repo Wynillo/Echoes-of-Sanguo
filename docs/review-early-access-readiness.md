@@ -27,7 +27,7 @@
 ## CRITICAL FINDINGS — Gameplay Mechanics
 
 ### 1. No Chain/Response System ✅ PARTIALLY ADDRESSED
-**File:** `js/engine.ts`
+**File:** `src/engine.ts`
 
 ~~Traps and spells cannot be chained.~~ A basic chain/response layer has been added:
 - New `onOpponentSpell` trap trigger fires when the opponent activates a spell — the player is now prompted to respond with face-down traps
@@ -47,7 +47,7 @@ FM had hundreds of fusion combinations including attribute combos, specific card
 **Impact:** Fusions are predictable and free. The discovery element — one of FM's most exciting aspects — is minimal.
 
 ### 3. "Cheating" AI Doesn't Actually Cheat ✅ ADDRESSED
-**File:** `js/ai-behaviors.ts`
+**File:** `src/ai-behaviors.ts`
 
 ~~It's functionally identical to AGGRESSIVE but prioritizes fusions.~~ The CHEATING profile now has genuine foreknowledge mechanics:
 - `peekDeckCards: 5` — AI sees its own top 5 deck cards and will draw early if a fusion partner is found
@@ -60,7 +60,7 @@ These mechanics are subtle and feel like the AI "knows too much" — which is ex
 **Impact:** Endgame opponents are meaningfully harder. The AI won't run out of steam from over-drawing.
 
 ### 4. AI Has No Multi-Turn Planning ✅ PARTIALLY ADDRESSED
-**File:** `js/ai-orchestrator.ts`
+**File:** `src/ai-orchestrator.ts`
 
 ~~AI uses greedy single-turn optimization with no hand management.~~ Two multi-turn planning behaviors have been added:
 - **Fusion-piece holding** (`holdFusionPiece`, enabled for SMART and CHEATING): AI skips summoning a card that is a specific fusion material when the partner isn't in hand — waits for the fusion payoff instead of wasting the piece
@@ -71,7 +71,7 @@ Bluffing (face-down ATK) and full multi-turn lookahead remain future work.
 **Impact:** Experienced players can no longer trivially read the AI — it responds to what they're holding.
 
 ### 5. Effect Variety is Too Low
-**File:** `js/effect-registry.ts` — 41 registered effect types
+**File:** `src/effect-registry.ts` — 41 registered effect types
 
 312 cards but only **85 unique effect strings**. That's 2.2 cards per unique effect. Most effect monsters are stat sticks sharing effects with 1-2 other cards. Only 12 trap cards total. Only 7 equipment cards. No archetype synergies (cards rewarding mono-race or mono-attribute decks).
 
@@ -100,7 +100,7 @@ All 6 starter decks use identical structure: 13-14 doubled monsters + same tech 
 **Impact:** Starter choice feels cosmetic rather than strategic. No replay incentive.
 
 ### 8. Shop Economy Could Be Tighter
-**File:** `public/base.tcg-src/shop.json`, `js/react/utils/pack-logic.ts`
+**File:** `public/base.tcg-src/shop.json`, `src/react/utils/pack-logic.ts`
 
 The shop system itself is well-engineered: 6 tiered booster packs with randomized pulls, rarity distribution (60% C / 30% U / 8.9% R / 1% SR / 0.1% UR), pity system guaranteeing Rare+ per pack, card pool filtering by ATK ceiling, and campaign-gated unlock progression. Solid architecture.
 
@@ -236,18 +236,18 @@ However: duel rewards (100-1000 coins) vs pack prices (250-800 coins) means play
 
 | File | Relevance |
 |------|-----------|
-| `js/engine.ts` | Core game loop — missing chain/response mechanics |
-| `js/effect-registry.ts` | 41 effect types — needs expansion |
-| `js/ai-behaviors.ts` | 5 profiles — "cheating" is just aggressive |
-| `js/ai-orchestrator.ts` | Greedy single-turn AI — no multi-turn planning |
-| `js/rules.ts` | Game constants (LP 8000, hand 10, field 5, deck 40) |
-| `js/field.ts` | FieldCard with 8 passive abilities |
-| `js/progression.ts` | Save/load — functional but no meta-progression |
-| `js/campaign.ts` | Campaign logic — unused node types |
-| `js/campaign-types.ts` | Schema supports more than campaign.json uses |
-| `js/mod-api.ts` | Powerful mod surface — zero documentation |
-| `js/shop-data.ts` | Well-typed shop data store |
-| `js/react/utils/pack-logic.ts` | Solid pack opening: rarity distribution, pity, pool filtering |
+| `src/engine.ts` | Core game loop — missing chain/response mechanics |
+| `src/effect-registry.ts` | 41 effect types — needs expansion |
+| `src/ai-behaviors.ts` | 5 profiles — "cheating" is just aggressive |
+| `src/ai-orchestrator.ts` | Greedy single-turn AI — no multi-turn planning |
+| `src/rules.ts` | Game constants (LP 8000, hand 10, field 5, deck 40) |
+| `src/field.ts` | FieldCard with 8 passive abilities |
+| `src/progression.ts` | Save/load — functional but no meta-progression |
+| `src/campaign.ts` | Campaign logic — unused node types |
+| `src/campaign-types.ts` | Schema supports more than campaign.json uses |
+| `src/mod-api.ts` | Powerful mod surface — zero documentation |
+| `src/shop-data.ts` | Well-typed shop data store |
+| `src/react/utils/pack-logic.ts` | Solid pack opening: rarity distribution, pity, pool filtering |
 | `public/base.tcg-src/cards.json` | 312 cards, 85 unique effects |
 | `public/base.tcg-src/fusion_formulas.json` | Only 20 formulas |
 | `public/base.tcg-src/campaign.json` | 39 nodes, linear, 1 postgame duel |

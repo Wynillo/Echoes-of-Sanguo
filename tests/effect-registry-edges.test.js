@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
-import { executeEffectBlock, extractPassiveFlags, EFFECT_REGISTRY, registerEffect } from '../js/effect-registry.js';
+import { executeEffectBlock, extractPassiveFlags, EFFECT_REGISTRY, registerEffect } from '../src/effect-registry.js';
 
 // ── Helpers ─────────────────────────────────────────────────
 

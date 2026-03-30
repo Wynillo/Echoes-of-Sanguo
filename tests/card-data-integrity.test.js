@@ -4,9 +4,9 @@
 // no localization bugs (mixed languages, wrong metadata, etc.)
 // ============================================================
 import { describe, it, expect } from 'vitest';
-import { CARD_DB } from '../js/cards.js';
-import { CardType } from '../js/types.js';
-import { isValidEffectString } from '../js/effect-serializer.js';
+import { CARD_DB } from '../src/cards.js';
+import { CardType } from '../src/types.js';
+import { isValidEffectString } from '../src/effect-serializer.js';
 import fs from 'fs';
 import path from 'path';
 

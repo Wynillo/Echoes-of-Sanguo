@@ -154,7 +154,7 @@ ECHOES-OF-SANGUO/
 │   ├── style.css               – Main stylesheet
 │   ├── animations.css          – Card & battle animations
 │   └── progression.css         – Shop/collection screen styles
-├── js/
+├── src/
 │   ├── main.ts                 – Entry point (loads base.tcg-src, mounts React)
 │   ├── types.ts                – Core type definitions (enums, interfaces)
 │   ├── type-metadata.ts        – Type metadata helpers

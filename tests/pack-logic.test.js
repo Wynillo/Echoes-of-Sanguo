@@ -1,10 +1,10 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { CARD_DB } from '../js/cards.js';
-import { Rarity, Race, CardType } from '../js/types.js';
-import { RARITY_DROP_RATES, openPackage, buildCardPool } from '../js/react/utils/pack-logic.js';
-import { SHOP_DATA } from '../js/shop-data.js';
-import { Progression } from '../js/progression.js';
+import { CARD_DB } from '../src/cards.js';
+import { Rarity, Race, CardType } from '../src/types.js';
+import { RARITY_DROP_RATES, openPackage, buildCardPool } from '../src/react/utils/pack-logic.js';
+import { SHOP_DATA } from '../src/shop-data.js';
+import { Progression } from '../src/progression.js';
 
 // ── RARITY_DROP_RATES ────────────────────────────────────
 
