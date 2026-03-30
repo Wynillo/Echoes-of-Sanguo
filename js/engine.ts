@@ -94,7 +94,14 @@ export class GameEngine {
     EchoesOfSanguo.startSession();
     this._initStats();
     this._duelEnded = false;
-    const oppDeckIds = (opponentConfig && opponentConfig.deckIds) ? opponentConfig.deckIds : OPPONENT_DECK_IDS;
+    let oppDeckIds = (opponentConfig && opponentConfig.deckIds) ? opponentConfig.deckIds : OPPONENT_DECK_IDS;
+    if (oppDeckIds.length > 0 && oppDeckIds.length < GAME_RULES.maxDeckSize) {
+      const padded = [...oppDeckIds];
+      while (padded.length < GAME_RULES.maxDeckSize) {
+        padded.push(oppDeckIds[padded.length % oppDeckIds.length]);
+      }
+      oppDeckIds = padded;
+    }
     this._currentOpponentId = (opponentConfig && opponentConfig.id) ? opponentConfig.id : null;
     this._aiBehavior = resolveAIBehavior(opponentConfig?.behaviorId);
 
