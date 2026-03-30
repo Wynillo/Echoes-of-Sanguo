@@ -47,55 +47,9 @@ how the engine communicates with the React UI without importing it.
 - **FieldCard is the runtime representation.** A `CardData` becomes a `FieldCard` when placed on the field. `FieldCard` tracks temp/perm bonuses, equipment, passive flags, and position
 - **Phase flow:** `draw` → `main` (summon, fuse, spells, equip) → `battle` (attack declarations, trap activations) → `end` (cleanup, hand limit). AI turn uses the same phases via `aiTurn()` in `ai-orchestrator.ts`
 
-## Key Types
+## Key Types & Rules
 
-```typescript
-// Phase flow
-type Phase = 'draw' | 'main' | 'battle' | 'end';
-type Owner = 'player' | 'opponent';
-type Position = 'atk' | 'def';
-
-// Effect system
-interface CardEffectBlock {
-  trigger: EffectTrigger | TrapTrigger;  // 'onSummon' | 'passive' | 'onAttack' | etc.
-  actions: EffectDescriptor[];            // array of typed action descriptors
-}
-
-// EffectDescriptorMap defines all action types and their payloads
-// New actions: add to EffectDescriptorMap, implement in EFFECT_REGISTRY, update serializer
-
-// FieldCard — runtime monster on the field
-class FieldCard {
-  card: CardData;           // reference to card definition
-  position: Position;
-  faceDown: boolean;
-  tempATKBonus: number;     // resets each turn
-  permATKBonus: number;     // permanent until removed
-  fieldSpellATKBonus: number; // from field spell
-  equippedCards: Array<{ zone: number; card: CardData }>;
-  // passive flags: piercing, cannotBeTargeted, canDirectAttack, etc.
-  effectiveATK(): number;   // base + temp + perm + fieldSpell bonuses
-  effectiveDEF(): number;
-  combatValue(): number;    // ATK or DEF depending on position
-}
-```
-
-## Game Rules (defaults in `rules.ts`)
-
-```typescript
-GAME_RULES = {
-  startingLP: 8000,
-  maxLP: 99999,
-  handLimitDraw: 10,
-  handLimitEnd: 8,
-  fieldZones: 5,       // 5 monster + 5 spell/trap zones
-  maxDeckSize: 40,
-  maxCardCopies: 3,
-  drawPerTurn: 1,
-  handRefillSize: 5,
-  refillHandEnabled: true,
-};
-```
+Read `js/types.ts` for all type definitions: `CardData`, `GameState`, `PlayerState`, `CardEffectBlock`, `EffectDescriptorMap`, Phase/Owner/Position unions. Read `js/field.ts` for `FieldCard` class (runtime monster with bonuses, equipment, passive flags). Read `js/rules.ts` for `GAME_RULES` constants (LP, hand limits, field zones, deck size).
 
 ## Adding a New Effect Action
 

@@ -49,40 +49,8 @@ aiTurn(engine)
   → End Phase            — cleanup, hand limit, pass turn to player
 ```
 
-### Behavior Profiles (ai-behaviors.ts)
-```typescript
-interface AIBehavior {
-  fusionFirst?: boolean;              // attempt fusion before normal summon
-  fusionMinATK?: number;              // minimum ATK for fusion result to be worthwhile
-  summonPriority?: 'highestATK' | 'highestDEF' | 'effectFirst' | 'lowestLevel';
-  positionStrategy?: 'smart' | 'aggressive' | 'defensive';
-  battleStrategy?: 'smart' | 'aggressive' | 'conservative';
-  spellRules?: Record<string, AISpellRule>;
-  defaultSpellActivation?: 'always' | 'never' | 'smart';
-}
-```
-
-### Scoring Constants
-```typescript
-AI_SCORE = {
-  EFFECT_CARD_BONUS: 10000,      // Bonus for effect monsters in summon evaluation
-  DESTROY_TARGET: 1000,           // Base bonus when attacker can destroy target
-  STRONG_PROBE: 200,              // Bonus for probing face-down with strong monster
-  PROBE_ATK_THRESHOLD: 1800,      // ATK threshold for safe face-down probing
-  FACEDOWN_RISK: 300,             // Penalty for weak attackers vs face-down
-  EQUIP_UNLOCK_KILL: 2000,        // Bonus when equipment enables a kill
-  REVIVE_BEATS_STRONGEST: 1000,   // Bonus when revived monster beats strongest opponent
-  BUFF_UNLOCK_KILL: 800,          // Bonus when buff spell enables a kill
-  BUFF_KILL_THRESHOLD: 1000,      // Max ATK gap for buff to matter
-  LOW_LP_SURVIVAL: 300,           // Bonus for defensive play at low LP
-  FACEDOWN_DEF_ESTIMATE: 1200,    // AI's estimated DEF for face-down monsters
-};
-
-AI_LP_THRESHOLD = {
-  LOW: 3000,          // LP below which AI is considered dangerously low
-  DEFENSIVE: 5000,    // LP below which AI activates defensive spells
-};
-```
+### Behavior & Scoring
+Read `js/ai-behaviors.ts` for `AIBehavior` interface, `AI_SCORE` constants, `AI_LP_THRESHOLD` values, and all behavior profiles (DEFAULT, AGGRESSIVE, DEFENSIVE, SMART). Read `js/types.ts` for `AIBehavior`, `AISummonPriority`, `AIPositionStrategy`, `AIBattleStrategy`, `AISpellRule` types.
 
 ### Key Decision Functions (ai-behaviors.ts)
 - `pickSummonCandidate()` — selects best monster to summon based on behavior priority
