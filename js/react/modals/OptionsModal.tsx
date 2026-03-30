@@ -6,6 +6,7 @@ import { Progression }  from '../../progression.js';
 import { Audio }        from '../../audio.js';
 import { GAME_RULES }   from '../../rules.js';
 import i18n             from '../../i18n.js';
+import { reloadTcgLocale } from '../../tcg-bridge.js';
 
 export function OptionsModal() {
   const { closeModal, openModal } = useModal();
@@ -35,6 +36,7 @@ export function OptionsModal() {
 
   function apply() {
     i18n.changeLanguage(lang);
+    reloadTcgLocale(lang);
     Progression.saveSettings({ lang, volMaster, volMusic, volSfx, refillHand });
     Audio.setVolumes(volMaster, volMusic, volSfx);
     GAME_RULES.refillHandEnabled = refillHand;

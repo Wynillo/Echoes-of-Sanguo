@@ -13,9 +13,10 @@ import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, 
 import { deserializeEffect, isValidEffectString } from './effect-serializer.js';
 import { applyRules } from './rules.js';
 import { applyTypeMeta } from './type-metadata.js';
-import { applyShopData } from './shop-data.js';
+import { applyShopData, SHOP_DATA } from './shop-data.js';
 import { applyCampaignData } from './campaign-store.js';
 import type { CampaignData } from './campaign-types.js';
+import { TYPE_META } from './type-metadata.js';
 
 // Re-export error classes for consumers
 export { TcgNetworkError, TcgFormatError };
@@ -303,4 +304,102 @@ export function unloadModCards(source: string): boolean {
 /** List all currently loaded mods. */
 export function getLoadedMods(): readonly LoadedMod[] {
   return loadedMods;
+}
+
+// ── TCG Locale System ───────────────────────────────────────
+// Loads unified locale files (locales/{lang}.json) from the TCG source
+// and overlays translations onto the mutable game stores.
+
+interface TcgLocale {
+  cards?: Record<string, { name: string; description: string }>;
+  opponents?: Record<string, { name: string; title: string; flavor: string }>;
+  races?: Record<string, string>;
+  attributes?: Record<string, string>;
+  cardTypes?: Record<string, string>;
+  shop?: Record<string, { name: string; desc: string }>;
+}
+
+let tcgSourceBase = '';
+
+/** Set the base path for TCG source files (e.g. '/base.tcg-src/'). */
+export function setTcgSourceBase(base: string): void {
+  tcgSourceBase = base.endsWith('/') ? base : base + '/';
+}
+
+/** Cache of loaded locale data to avoid redundant fetches. */
+const localeCache = new Map<string, TcgLocale>();
+
+async function fetchLocale(lang: string): Promise<TcgLocale | null> {
+  const cached = localeCache.get(lang);
+  if (cached) return cached;
+  try {
+    const res = await fetch(`${tcgSourceBase}locales/${lang}.json`);
+    if (!res.ok) return null;
+    const data: TcgLocale = await res.json();
+    localeCache.set(lang, data);
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function applyLocaleToStores(locale: TcgLocale): void {
+  if (locale.cards) {
+    for (const [id, trans] of Object.entries(locale.cards)) {
+      const card = CARD_DB[id];
+      if (card) {
+        card.name = trans.name;
+        card.description = trans.description;
+      }
+    }
+  }
+
+  if (locale.opponents) {
+    for (const [id, trans] of Object.entries(locale.opponents)) {
+      const opp = OPPONENT_CONFIGS.find(o => o.id === Number(id));
+      if (opp) {
+        opp.name = trans.name;
+        opp.title = trans.title;
+        opp.flavor = trans.flavor;
+      }
+    }
+  }
+
+  if (locale.races) {
+    for (const meta of TYPE_META.races) {
+      if (locale.races[meta.key]) meta.value = locale.races[meta.key];
+    }
+  }
+
+  if (locale.attributes) {
+    for (const meta of TYPE_META.attributes) {
+      if (locale.attributes[meta.key]) meta.value = locale.attributes[meta.key];
+    }
+  }
+
+  if (locale.cardTypes) {
+    for (const meta of TYPE_META.cardTypes) {
+      if (locale.cardTypes[meta.key]) meta.value = locale.cardTypes[meta.key];
+    }
+  }
+
+  if (locale.shop) {
+    for (const pkg of SHOP_DATA.packages) {
+      const trans = locale.shop[pkg.id];
+      if (trans) {
+        pkg.name = trans.name;
+        pkg.desc = trans.desc;
+      }
+    }
+  }
+}
+
+/**
+ * Load and apply a TCG locale file for the given language.
+ * Updates card names, opponent info, type metadata, and shop text in-place.
+ * Falls back to 'en' if the requested locale is unavailable.
+ */
+export async function reloadTcgLocale(lang: string): Promise<void> {
+  const locale = await fetchLocale(lang) ?? await fetchLocale('en');
+  if (locale) applyLocaleToStores(locale);
 }

@@ -10,8 +10,20 @@ export const CAMPAIGN_DATA: CampaignData = { chapters: [] };
 
 /**
  * Replace the current campaign data with new data.
+ * Flattens scene.dialogue[].textKey into dialogueKeys[] so the UI can render them.
  */
 export function applyCampaignData(data: CampaignData): void {
+  for (const chapter of data.chapters) {
+    for (const node of chapter.nodes) {
+      const raw = node as unknown as Record<string, unknown>;
+      const scene = raw['scene'] as { dialogue?: { textKey?: string }[] } | undefined;
+      if (scene?.dialogue && !node.dialogueKeys?.length) {
+        node.dialogueKeys = scene.dialogue
+          .map(d => d.textKey)
+          .filter((k): k is string => !!k);
+      }
+    }
+  }
   CAMPAIGN_DATA.chapters = data.chapters;
 }
 
