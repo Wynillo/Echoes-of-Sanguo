@@ -2,7 +2,7 @@ export type Owner        = 'player' | 'opponent';
 export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
 export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell';
-export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip';
+export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip' | 'onDealBattleDamage' | 'onSentToGrave';
 export type SpellType    = 'normal' | 'targeted' | 'fromGrave' | 'field';
 
 // Monster covers both normal and effect cards; distinction via effect field.
@@ -147,6 +147,7 @@ export interface EffectDescriptorMap {
   specialSummonFromDeck:     { filter: CardFilter };
   reflectBattleDamage:       {};
   stealMonster:              {};
+  skipOppDraw:               {};
 }
 
 export type EffectDescriptor = {
@@ -194,6 +195,8 @@ export interface CardData {
   def?:         number;
   description:  string;
   effect?:      CardEffectBlock;
+  effects?:     CardEffectBlock[];
+  spirit?:      boolean;
   spellType?:   SpellType;
   trapTrigger?: TrapTrigger;
   target?:      string;
@@ -311,6 +314,7 @@ export interface GameState {
   opponent:     PlayerState;
   log:          string[];
   firstTurnNoAttack?: boolean;
+  skipNextDraw?: Owner;
 }
 
 export interface DuelStats {

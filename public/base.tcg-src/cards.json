@@ -3124,5 +3124,128 @@
     "type": 5,
     "atkBonus": 600,
     "equipReqAttr": 3
+  },
+  {
+    "id": 313,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:draw(self,2)",
+    "spellType": 1
+  },
+  {
+    "id": 314,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:destroyAllOpp()",
+    "spellType": 1
+  },
+  {
+    "id": 315,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:destroyAll()",
+    "spellType": 1
+  },
+  {
+    "id": 316,
+    "rarity": 8,
+    "type": 3,
+    "effect": "onSummon:destroyAllOppSpellTraps()",
+    "spellType": 1
+  },
+  {
+    "id": 317,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:destroyAllSpellTraps()",
+    "spellType": 1
+  },
+  {
+    "id": 318,
+    "rarity": 4,
+    "type": 3,
+    "effect": "onSummon:destroyOppSpellTrap()",
+    "spellType": 1
+  },
+  {
+    "id": 319,
+    "rarity": 6,
+    "type": 4,
+    "effect": "onAttack:destroyAllOpp()",
+    "trapTrigger": 1
+  },
+  {
+    "id": 320,
+    "rarity": 6,
+    "type": 4,
+    "effect": "onAttack:reflectBattleDamage()",
+    "trapTrigger": 1
+  },
+  {
+    "id": 321,
+    "level": 5,
+    "rarity": 6,
+    "type": 1,
+    "atk": 1900,
+    "def": 1400,
+    "attribute": 1,
+    "race": 3,
+    "effect": "passive:passive_piercing()|onDealBattleDamage:draw(self,1)"
+  },
+  {
+    "id": 322,
+    "level": 4,
+    "rarity": 6,
+    "type": 1,
+    "atk": 1400,
+    "def": 1500,
+    "attribute": 2,
+    "race": 3,
+    "effect": "onDealBattleDamage:discardOppHand(1)"
+  },
+  {
+    "id": 323,
+    "level": 2,
+    "rarity": 8,
+    "type": 1,
+    "atk": 200,
+    "def": 100,
+    "attribute": 2,
+    "race": 8,
+    "effect": "onDealBattleDamage:skipOppDraw()",
+    "spirit": true
+  },
+  {
+    "id": 324,
+    "level": 3,
+    "rarity": 6,
+    "type": 1,
+    "atk": 1000,
+    "def": 600,
+    "attribute": 2,
+    "race": 8,
+    "effect": "onSentToGrave:searchDeckToHand({maxAtk=1500,ct=1})"
+  },
+  {
+    "id": 325,
+    "level": 4,
+    "rarity": 6,
+    "type": 1,
+    "atk": 1100,
+    "def": 1200,
+    "attribute": 2,
+    "race": 2,
+    "effect": "onSentToGrave:searchDeckToHand({maxDef=1500,ct=1})"
+  },
+  {
+    "id": 326,
+    "level": 3,
+    "rarity": 8,
+    "type": 1,
+    "atk": 300,
+    "def": 200,
+    "attribute": 2,
+    "race": 8,
+    "effect": "passive:passive_indestructible()|onDealBattleDamage:discardOppHand(1)"
   }
 ]

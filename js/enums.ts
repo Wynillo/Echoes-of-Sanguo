@@ -159,6 +159,7 @@ export function intToRarity(n: number): Rarity {
 
 const TRIGGER_STRINGS: ReadonlySet<string> = new Set([
   'onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive', 'onFlip',
+  'onDealBattleDamage', 'onSentToGrave',
   'onAttack', 'onOwnMonsterAttacked', 'onOpponentSummon', 'manual', 'onOpponentSpell',
 ]);
 

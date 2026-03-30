@@ -350,6 +350,11 @@ export class GameEngine {
 
   /** Refill hand up to handRefillSize (Forbidden Memories style) or draw 1. */
   refillHand(owner: Owner){
+    if(this.state.skipNextDraw === owner){
+      this.state.skipNextDraw = undefined;
+      this.addLog(`${owner === 'player' ? 'Your' : "Opponent's"} draw phase was skipped!`);
+      return;
+    }
     if(GAME_RULES.refillHandEnabled){
       const st = this.state[owner];
       const need = GAME_RULES.handRefillSize - st.hand.length;
@@ -916,6 +921,8 @@ export class GameEngine {
       this.addLog(`${attFC.card.name} attacks directly!`);
       if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
       this.dealDamage(defOwn, attFC.effectiveATK());
+      if(this._duelEnded) return;
+      await this._triggerEffect(attFC, attackerOwner, 'onDealBattleDamage', null);
     } else {
       if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, defenderZone);
       await this._resolveBattle(attackerOwner, attackerZone, defOwn, defenderZone, attFC, defFC);
@@ -961,6 +968,8 @@ export class GameEngine {
     if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
     this.dealDamage(defOwn, attFC.effectiveATK());
     if(this._duelEnded) return;
+    await this._triggerEffect(attFC, attackerOwner, 'onDealBattleDamage', null);
+    if(this._duelEnded) return;
     this.ui.render(this.state);
   }
 
@@ -995,6 +1004,7 @@ export class GameEngine {
         if(this._duelEnded) return;
         await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
         TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
+        await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
       } else if(effATK === defVal){
         this.addLog('Tie! Both monsters destroyed!');
         await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
@@ -1018,6 +1028,8 @@ export class GameEngine {
           const pierceDmg = effATK - defVal;
           this.addLog(`Piercing attack! -${pierceDmg} LP`);
           this.dealDamage(defOwner, pierceDmg);
+          if(this._duelEnded) return;
+          await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
         }
       } else if(effATK === defVal){
         this.addLog('Monster held its ground!');
@@ -1048,6 +1060,8 @@ export class GameEngine {
     this._removeEquipmentForMonster(owner, zone);
     this.ui.render(this.state);
 
+    await this._triggerSentToGrave(fc.card, owner);
+
     if (fc.phoenixRevival && !fc.phoenixRevivalUsed) {
       this.addLog(`${fc.card.name} rises from the graveyard!`);
       const revived = await this.specialSummonFromGrave(owner, fc.card);
@@ -1058,13 +1072,14 @@ export class GameEngine {
     }
   }
 
-  _destroyMonsterBySignal(owner: Owner, zone: number, fc: FieldCard): void {
+  async _destroyMonsterBySignal(owner: Owner, zone: number, fc: FieldCard): Promise<void> {
     const st = this.state[owner];
     this.addLog(`${fc.card.name} was destroyed by trap!`);
     this.ui.playSfx?.('sfx_destroy');
     st.graveyard.push(fc.card);
     st.field.monsters[zone] = null;
     this._removeEquipmentForMonster(owner, zone);
+    await this._triggerSentToGrave(fc.card, owner);
   }
 
   _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): EffectContext {
@@ -1097,22 +1112,49 @@ export class GameEngine {
 
   async _triggerEffect(fc: FieldCard, owner: Owner, trigger: string, zone: number | null){
     const card = fc.card;
-    if(!card.effect || card.effect.trigger !== trigger) return;
-    EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: ${trigger}`);
-    if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
-    const ctx: EffectContext = { engine: this, owner };
-    this._safeExecuteEffect(card.effect, ctx, card.id, `effect trigger=${trigger}`);
+    const blocks = this._getEffectBlocks(card, trigger);
+    for (const block of blocks) {
+      EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: ${trigger}`);
+      if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
+      const ctx: EffectContext = { engine: this, owner };
+      this._safeExecuteEffect(block, ctx, card.id, `effect trigger=${trigger}`);
+    }
+  }
+
+  _getEffectBlocks(card: CardData, trigger: string): CardEffectBlock[] {
+    const blocks: CardEffectBlock[] = [];
+    if (card.effects) {
+      for (const b of card.effects) {
+        if (b.trigger === trigger) blocks.push(b);
+      }
+    } else if (card.effect && card.effect.trigger === trigger) {
+      blocks.push(card.effect);
+    }
+    return blocks;
+  }
+
+  async _triggerSentToGrave(card: CardData, owner: Owner): Promise<void> {
+    const blocks = this._getEffectBlocks(card, 'onSentToGrave');
+    for (const block of blocks) {
+      EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: onSentToGrave`);
+      if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
+      const ctx: EffectContext = { engine: this, owner };
+      this._safeExecuteEffect(block, ctx, card.id, 'onSentToGrave');
+    }
   }
 
   async _triggerFlipEffect(fc: FieldCard, owner: Owner, zone: number){
     if(fc.hasFlipped) return;
     fc.hasFlipped = true;
     const card = fc.card;
-    if(!card.effect || card.effect.trigger !== 'onFlip') return;
+    const blocks = this._getEffectBlocks(card, 'onFlip');
+    if (blocks.length === 0) return;
     EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Flip Effect`);
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
     const ctx: EffectContext = { engine: this, owner };
-    this._safeExecuteEffect(card.effect, ctx, card.id, 'flip effect');
+    for (const block of blocks) {
+      this._safeExecuteEffect(block, ctx, card.id, 'flip effect');
+    }
   }
 
   async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]){
@@ -1191,10 +1233,24 @@ export class GameEngine {
     });
   }
 
+  _returnSpiritMonsters(owner: Owner){
+    const st = this.state[owner];
+    for(let i = 0; i < st.field.monsters.length; i++){
+      const fc = st.field.monsters[i];
+      if(fc && fc.card.spirit){
+        st.hand.push(fc.card);
+        st.field.monsters[i] = null;
+        this._removeEquipmentForMonster(owner, i);
+        this.addLog(`${fc.card.name} returns to hand (Spirit).`);
+      }
+    }
+  }
+
   endTurn(){
     // Clear only the current player's per-turn flags.
     // The opponent's flags are cleared by _aiTurn at the end of the AI's turn.
     this._resetMonsterFlags('player');
+    this._returnSpiritMonsters('player');
 
     this.state.player.normalSummonUsed   = false;
     this.state.opponent.normalSummonUsed = false;

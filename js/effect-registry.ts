@@ -297,6 +297,13 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
+  skipOppDraw(_desc: unknown, ctx) {
+    const opp = oppOf(ctx.owner);
+    ctx.engine.getState().skipNextDraw = opp;
+    ctx.engine.addLog(`${opp === 'player' ? 'You' : 'Opponent'} will skip the next Draw Phase!`);
+    return {};
+  },
+
   destroyAttacker() {
     return { cancelAttack: true, destroyAttacker: true };
   },

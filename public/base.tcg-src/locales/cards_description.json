@@ -1558,5 +1558,75 @@
     "id": 312,
     "name": "Flame Armor",
     "description": "Equip to a Fire monster. ATK +600."
+  },
+  {
+    "id": 313,
+    "name": "Pot of Greed",
+    "description": "Draw 2 cards."
+  },
+  {
+    "id": 314,
+    "name": "Raigeki",
+    "description": "Destroy all of your opponent's monsters."
+  },
+  {
+    "id": 315,
+    "name": "Dark Hole",
+    "description": "Destroy all monsters on the field."
+  },
+  {
+    "id": 316,
+    "name": "Harpie's Feather Duster",
+    "description": "Destroy all of your opponent's Spell and Trap cards."
+  },
+  {
+    "id": 317,
+    "name": "Heavy Storm",
+    "description": "Destroy all Spell and Trap cards on the field."
+  },
+  {
+    "id": 318,
+    "name": "Mystical Space Typhoon",
+    "description": "Destroy 1 Spell or Trap card on the field."
+  },
+  {
+    "id": 319,
+    "name": "Mirror Force",
+    "description": "[Trap] When an opponent's monster attacks: Destroy all of your opponent's monsters."
+  },
+  {
+    "id": 320,
+    "name": "Magic Cylinder",
+    "description": "[Trap] When an opponent's monster attacks: Negate the attack, and deal damage to your opponent equal to that monster's ATK."
+  },
+  {
+    "id": 321,
+    "name": "Airknight Parshath",
+    "description": "[Effect] Piercing. When this card deals battle damage: Draw 1 card."
+  },
+  {
+    "id": 322,
+    "name": "Don Zaloog",
+    "description": "[Effect] When this card deals battle damage to your opponent: Your opponent discards 1 card."
+  },
+  {
+    "id": 323,
+    "name": "Yata-Garasu",
+    "description": "[Effect] Spirit. When this card deals battle damage: Your opponent skips their next Draw Phase. Returns to hand at End Phase."
+  },
+  {
+    "id": 324,
+    "name": "Sangan",
+    "description": "[Effect] When this card is sent to the Graveyard: Add 1 monster with 1500 or less ATK from your Deck to your hand."
+  },
+  {
+    "id": 325,
+    "name": "Witch of the Black Forest",
+    "description": "[Effect] When this card is sent to the Graveyard: Add 1 monster with 1500 or less DEF from your Deck to your hand."
+  },
+  {
+    "id": 326,
+    "name": "Spirit Reaper",
+    "description": "[Passive] Cannot be destroyed by battle. When this card deals battle damage: Your opponent discards 1 card."
   }
 ]

@@ -10,7 +10,7 @@
 //   "onAttack:dealDamage(opponent,attacker.effectiveATK*0.5f);cancelAttack()"
 // ============================================================
 
-import { type CardEffectBlock, type CardFilter, type EffectCost, type EffectDescriptor, type EffectTrigger, type TrapTrigger, type ValueExpr, type StatTarget } from './types.js';
+import { type CardEffectBlock, type CardData, type CardFilter, type EffectCost, type EffectDescriptor, type EffectTrigger, type TrapTrigger, type ValueExpr, type StatTarget } from './types.js';
 import { isValidTrigger, intToAttribute, intToRace, attributeToInt, raceToInt, cardTypeToInt, intToCardType } from './enums.js';
 
 // ── ValueExpr Serialization ──────────────────────────────────
@@ -170,6 +170,7 @@ function serializeAction(a: EffectDescriptor): string {
     // Phase 2: Reflect & Steal
     case 'reflectBattleDamage':     return 'reflectBattleDamage()';
     case 'stealMonster':            return 'stealMonster()';
+    case 'skipOppDraw':             return 'skipOppDraw()';
     default:
       throw new Error(`Unknown effect action type: ${(a as any).type}`);
   }
@@ -330,6 +331,7 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     // Phase 2: Reflect & Steal
     case 'reflectBattleDamage':     return { type: 'reflectBattleDamage' };
     case 'stealMonster':            return { type: 'stealMonster' };
+    case 'skipOppDraw':             return { type: 'skipOppDraw' };
 
     default:
       throw new Error(`Unknown action type: ${type}`);
@@ -405,10 +407,44 @@ function splitActions(s: string): string[] {
   return parts.filter(p => p.length > 0);
 }
 
+/** Deserialize a pipe-delimited multi-block effect string (e.g. "passive:...|onDealBattleDamage:...") */
+export function deserializeEffects(str: string): CardEffectBlock[] {
+  return str.split('|').map(s => deserializeEffect(s.trim()));
+}
+
+/** Serialize multiple effect blocks into pipe-delimited format */
+export function serializeEffects(blocks: CardEffectBlock[]): string {
+  return blocks.map(serializeEffect).join('|');
+}
+
+/** Check if an effect string contains multiple blocks (pipe-delimited) */
+export function isMultiBlockEffect(str: string): boolean {
+  return str.includes('|');
+}
+
+/**
+ * Parse an effect string and populate card.effect and card.effects.
+ * Single-block strings set card.effect only (backward compat).
+ * Multi-block strings set card.effects (array) and card.effect to the first block.
+ */
+export function parseEffectString(str: string, card: Partial<Pick<CardData, 'effect' | 'effects'>>): void {
+  if (isMultiBlockEffect(str)) {
+    const blocks = deserializeEffects(str);
+    card.effects = blocks;
+    card.effect = blocks[0];
+  } else {
+    card.effect = deserializeEffect(str);
+  }
+}
+
 /** Validate effect string syntax without full deserialization */
 export function isValidEffectString(str: string): boolean {
   try {
-    deserializeEffect(str);
+    if (str.includes('|')) {
+      deserializeEffects(str);
+    } else {
+      deserializeEffect(str);
+    }
     return true;
   } catch {
     return false;
