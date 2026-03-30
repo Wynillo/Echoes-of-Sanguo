@@ -159,6 +159,7 @@ export interface EffectDescriptorMap {
   drawThenDiscard:           { drawCount: number; discardCount: number };
   bounceOppHandToDeck:       { count: number };
   tributeSelf:               {};
+  preventAttacks:            { turns: number };
 }
 
 export type EffectDescriptor = {
@@ -187,6 +188,12 @@ export interface EffectCost {
   lp?:          number;
   discard?:     number;
   tributeSelf?: boolean;
+  lpHalf?:      boolean;
+}
+
+export interface TurnCounter {
+  turnsRemaining: number;
+  effect: string;
 }
 
 export interface CardEffectBlock {
@@ -317,6 +324,7 @@ export interface PlayerState {
   graveyard:        CardData[];
   normalSummonUsed: boolean;
   battleProtection?: boolean;
+  turnCounters?: TurnCounter[];
   fieldFlags?: {
     negateTraps?: boolean;
     negateSpells?: boolean;

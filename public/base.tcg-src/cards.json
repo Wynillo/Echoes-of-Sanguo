@@ -3390,5 +3390,40 @@
     "attribute": 5,
     "race": 3,
     "effect": "onSummon[cost:tributeSelf]:destroyStrongestOpp()"
+  },
+  {
+    "id": 344,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:preventAttacks(3)",
+    "spellType": 1
+  },
+  {
+    "id": 345,
+    "rarity": 8,
+    "type": 4,
+    "effect": "onOpponentSummon[cost:lpHalf]:cancelEffect()",
+    "trapTrigger": 3
+  },
+  {
+    "id": 346,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon:stealMonster()",
+    "spellType": 1
+  },
+  {
+    "id": 347,
+    "rarity": 6,
+    "type": 3,
+    "effect": "onSummon[cost:lp=800]:reviveFromGrave()",
+    "spellType": 3
+  },
+  {
+    "id": 348,
+    "rarity": 6,
+    "type": 4,
+    "effect": "manual:reviveFromGrave()",
+    "trapTrigger": 4
   }
 ]

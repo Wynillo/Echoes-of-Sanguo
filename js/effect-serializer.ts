@@ -121,6 +121,7 @@ function serializeAction(a: EffectDescriptor): string {
     case 'reviveFromGrave':         return 'reviveFromGrave()';
     // Trap signals
     case 'cancelAttack':            return 'cancelAttack()';
+    case 'cancelEffect':            return 'cancelEffect()';
     case 'destroyAttacker':         return 'destroyAttacker()';
     case 'destroySummonedIf':       return `destroySummonedIf(${a.minAtk})`;
     // Destruction
@@ -187,6 +188,7 @@ function serializeAction(a: EffectDescriptor): string {
     case 'drawThenDiscard':         return `drawThenDiscard(${a.drawCount},${a.discardCount})`;
     case 'bounceOppHandToDeck':     return `bounceOppHandToDeck(${a.count})`;
     case 'tributeSelf':             return 'tributeSelf()';
+    case 'preventAttacks':          return `preventAttacks(${a.turns})`;
     default:
       throw new Error(`Unknown effect action type: ${(a as any).type}`);
   }
@@ -276,6 +278,7 @@ function deserializeAction(actionStr: string): EffectDescriptor {
 
     // Trap signals
     case 'cancelAttack':            return { type: 'cancelAttack' };
+    case 'cancelEffect':            return { type: 'cancelEffect' };
     case 'destroyAttacker':         return { type: 'destroyAttacker' };
     case 'destroySummonedIf':       return { type: 'destroySummonedIf', minAtk: parseInt(args[0]) };
 
@@ -366,6 +369,7 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     case 'drawThenDiscard':         return { type: 'drawThenDiscard', drawCount: parseInt(args[0]), discardCount: parseInt(args[1]) };
     case 'bounceOppHandToDeck':     return { type: 'bounceOppHandToDeck', count: parseInt(args[0]) };
     case 'tributeSelf':             return { type: 'tributeSelf' };
+    case 'preventAttacks':          return { type: 'preventAttacks', turns: parseInt(args[0]) };
 
     default:
       throw new Error(`Unknown action type: ${type}`);
@@ -379,6 +383,7 @@ function serializeCost(cost: EffectCost): string {
   if (cost.lp !== undefined) parts.push(`lp=${cost.lp}`);
   if (cost.discard !== undefined) parts.push(`discard=${cost.discard}`);
   if (cost.tributeSelf) parts.push('tributeSelf');
+  if (cost.lpHalf) parts.push('lpHalf');
   return `[cost:${parts.join(',')}]`;
 }
 
@@ -391,6 +396,7 @@ function deserializeCost(costStr: string): EffectCost {
       case 'lp':          cost.lp = parseInt(val); break;
       case 'discard':     cost.discard = parseInt(val); break;
       case 'tributeSelf': cost.tributeSelf = true; break;
+      case 'lpHalf':      cost.lpHalf = true; break;
     }
   }
   return cost;

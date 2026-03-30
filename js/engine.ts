@@ -349,6 +349,23 @@ export class GameEngine {
   }
 
   /** Refill hand up to handRefillSize (Forbidden Memories style) or draw 1. */
+  _tickTurnCounters(owner: Owner){
+    const tc = this.state[owner].turnCounters;
+    if (!tc) return;
+    for (let i = tc.length - 1; i >= 0; i--) {
+      tc[i].turnsRemaining--;
+      if (tc[i].turnsRemaining <= 0) {
+        this.addLog(`Turn counter expired: ${tc[i].effect}`);
+        tc.splice(i, 1);
+      }
+    }
+  }
+
+  hasPreventAttacks(owner: Owner): boolean {
+    const tc = this.state[owner].turnCounters;
+    return !!tc && tc.some(c => c.effect === 'preventAttacks');
+  }
+
   refillHand(owner: Owner){
     if(this.state.skipNextDraw === owner){
       this.state.skipNextDraw = undefined;
@@ -874,6 +891,7 @@ export class GameEngine {
   }
 
   async attack(attackerOwner: Owner, attackerZone: number, defenderZone: number){
+    if(this.hasPreventAttacks(attackerOwner)){ this.addLog('Attacks are prevented!'); return; }
     const atkSt  = this.state[attackerOwner];
     const defOwn = attackerOwner === 'player' ? 'opponent' : 'player';
     const defSt  = this.state[defOwn];
@@ -942,6 +960,7 @@ export class GameEngine {
   }
 
   async attackDirect(attackerOwner: Owner, attackerZone: number){
+    if(this.hasPreventAttacks(attackerOwner)){ this.addLog('Attacks are prevented!'); return; }
     const defOwn  = attackerOwner === 'player' ? 'opponent' : 'player';
     const defMons = this.state[defOwn].field.monsters;
     const attFC   = this.state[attackerOwner].field.monsters[attackerZone];
@@ -1341,6 +1360,7 @@ export class GameEngine {
     this._resetMonsterFlags('player');
     this._returnTempStolenMonsters('player');
     this._returnSpiritMonsters('player');
+    this._tickTurnCounters('player');
 
     this.state.player.normalSummonUsed   = false;
     this.state.opponent.normalSummonUsed = false;

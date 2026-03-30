@@ -96,6 +96,7 @@ export async function aiTurn(engine: GameEngine): Promise<void> {
   engine._resetMonsterFlags('opponent');
   engine._returnTempStolenMonsters('opponent');
   engine._returnSpiritMonsters('opponent');
+  engine._tickTurnCounters('opponent');
   while(ai.hand.length > 8) ai.hand.shift();
 
   engine.state.activePlayer = 'player';

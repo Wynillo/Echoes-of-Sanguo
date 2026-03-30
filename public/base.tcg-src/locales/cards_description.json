@@ -1713,5 +1713,30 @@
     "id": 343,
     "name": "Exiled Force",
     "description": "[Effect] Tribute this card: Destroy the strongest opponent monster."
+  },
+  {
+    "id": 344,
+    "name": "Swords of Revealing Light",
+    "description": "Your opponent cannot attack for 3 turns."
+  },
+  {
+    "id": 345,
+    "name": "Solemn Judgment",
+    "description": "[Trap] Pay half your LP. Negate a Summon and destroy the monster."
+  },
+  {
+    "id": 346,
+    "name": "Snatch Steal",
+    "description": "Take permanent control of 1 opponent's monster."
+  },
+  {
+    "id": 347,
+    "name": "Premature Burial",
+    "description": "Pay 800 LP. Special Summon 1 monster from your Graveyard."
+  },
+  {
+    "id": 348,
+    "name": "Call of the Haunted",
+    "description": "[Trap] Special Summon 1 monster from your Graveyard."
   }
 ]

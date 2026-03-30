@@ -427,6 +427,15 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
+  preventAttacks(desc: { turns: number }, ctx) {
+    const opp = oppOf(ctx.owner);
+    const st = ctx.engine.getState();
+    if (!st[opp].turnCounters) st[opp].turnCounters = [];
+    st[opp].turnCounters!.push({ turnsRemaining: desc.turns, effect: 'preventAttacks' });
+    ctx.engine.addLog(`Opponent cannot attack for ${desc.turns} turns!`);
+    return {};
+  },
+
   discardEntireHand(desc: { target: 'self' | 'opponent' | 'both' }, ctx) {
     const state = ctx.engine.getState();
     const discard = (owner: Owner) => {
@@ -836,7 +845,11 @@ export function canPayCost(block: CardEffectBlock, ctx: EffectContext): boolean 
 function payCost(block: CardEffectBlock, ctx: EffectContext): void {
   if (!block.cost) return;
   const st = ctx.engine.getState()[ctx.owner];
-  if (block.cost.lp) {
+  if (block.cost.lpHalf) {
+    const halfLP = Math.floor(st.lp / 2);
+    ctx.engine.dealDamage(ctx.owner, halfLP);
+    ctx.engine.addLog(`Paid ${halfLP} LP (half) as cost.`);
+  } else if (block.cost.lp) {
     ctx.engine.dealDamage(ctx.owner, block.cost.lp);
     ctx.engine.addLog(`Paid ${block.cost.lp} LP as cost.`);
   }
