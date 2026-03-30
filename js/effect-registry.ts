@@ -275,6 +275,28 @@ const IMPL: Record<string, InternalImpl> = {
     return { cancelEffect: true };
   },
 
+  reflectBattleDamage() {
+    return { cancelAttack: true, reflectDamage: true };
+  },
+
+  stealMonster(_desc: unknown, ctx) {
+    const opp = oppOf(ctx.owner);
+    const st = ctx.engine.getState();
+    const oppMonsters = st[opp].field.monsters;
+    const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
+    if (idx === null || !oppMonsters[idx]) return {};
+    const ownMonsters = st[ctx.owner].field.monsters;
+    const freeZone = ownMonsters.findIndex(z => z === null);
+    if (freeZone === -1) return {};
+    const fc = oppMonsters[idx]!;
+    oppMonsters[idx] = null;
+    ctx.engine._removeEquipmentForMonster(opp, idx);
+    ownMonsters[freeZone] = fc;
+    fc.hasAttacked = false;
+    ctx.engine.addLog(`${fc.card.name} control changed!`);
+    return {};
+  },
+
   destroyAttacker() {
     return { cancelAttack: true, destroyAttacker: true };
   },
@@ -461,6 +483,185 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
+  destroyOppSpellTrap(_desc: unknown, ctx) {
+    const opp = oppOf(ctx.owner);
+    const st = ctx.engine.getState();
+    const zones = st[opp].field.spellTraps;
+    for (let i = 0; i < zones.length; i++) {
+      if (zones[i]) {
+        ctx.engine.addLog(`${zones[i]!.card.name} was destroyed!`);
+        st[opp].graveyard.push(zones[i]!.card);
+        zones[i] = null;
+        ctx.engine._removeEquipmentForMonster(opp, i);
+        break;
+      }
+    }
+    return {};
+  },
+
+  destroyAllOppSpellTraps(_desc: unknown, ctx) {
+    const opp = oppOf(ctx.owner);
+    const st = ctx.engine.getState();
+    const zones = st[opp].field.spellTraps;
+    for (let i = 0; i < zones.length; i++) {
+      if (zones[i]) {
+        ctx.engine.addLog(`${zones[i]!.card.name} was destroyed!`);
+        st[opp].graveyard.push(zones[i]!.card);
+        zones[i] = null;
+      }
+    }
+    return {};
+  },
+
+  destroyAllSpellTraps(_desc: unknown, ctx) {
+    const st = ctx.engine.getState();
+    for (const side of ['player', 'opponent'] as Owner[]) {
+      const zones = st[side].field.spellTraps;
+      for (let i = 0; i < zones.length; i++) {
+        if (zones[i]) {
+          ctx.engine.addLog(`${zones[i]!.card.name} was destroyed!`);
+          st[side].graveyard.push(zones[i]!.card);
+          zones[i] = null;
+        }
+      }
+    }
+    return {};
+  },
+
+  destroyOppFieldSpell(_desc: unknown, ctx) {
+    const opp = oppOf(ctx.owner);
+    ctx.engine._removeFieldSpell(opp);
+    return {};
+  },
+
+  changePositionOpp(_desc: unknown, ctx) {
+    const opp = oppOf(ctx.owner);
+    const st = ctx.engine.getState();
+    const monsters = st[opp].field.monsters;
+    const idx = findMonsterByATK(monsters, 'strongest');
+    if (idx !== null && monsters[idx]) {
+      const fc = monsters[idx]!;
+      fc.position = fc.position === 'atk' ? 'def' : 'atk';
+      ctx.engine.addLog(`${fc.card.name} position changed to ${fc.position.toUpperCase()}!`);
+    }
+    return {};
+  },
+
+  setFaceDown(_desc: unknown, ctx) {
+    if (!ctx.targetFC) return {};
+    ctx.targetFC.faceDown = true;
+    ctx.targetFC.position = 'def';
+    ctx.targetFC.hasFlipped = false;
+    ctx.engine.addLog(`${ctx.targetFC.card.name} was set face-down!`);
+    return {};
+  },
+
+  flipAllOppFaceDown(_desc: unknown, ctx) {
+    const opp = oppOf(ctx.owner);
+    const st = ctx.engine.getState();
+    for (const fc of st[opp].field.monsters) {
+      if (fc && !fc.faceDown) {
+        fc.faceDown = true;
+        fc.position = 'def';
+        fc.hasFlipped = false;
+      }
+    }
+    ctx.engine.addLog('All opponent monsters set face-down!');
+    return {};
+  },
+
+  destroyByFilter(desc: { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' }, ctx) {
+    const side = desc.side === 'self' ? ctx.owner : oppOf(ctx.owner);
+    const st = ctx.engine.getState();
+    const monsters = st[side].field.monsters;
+    let idx: number | null = null;
+
+    if (desc.mode === 'weakest') {
+      idx = findMonsterByATK(monsters, 'weakest');
+    } else if (desc.mode === 'strongest') {
+      idx = findMonsterByATK(monsters, 'strongest');
+    } else if (desc.mode === 'highestDef') {
+      let best: number | null = null;
+      monsters.forEach((fm, i) => {
+        if (!fm) return;
+        if (desc.filter && !matchesFilter(fm.card, desc.filter)) return;
+        if (best === null || fm.effectiveDEF() > monsters[best]!.effectiveDEF()) best = i;
+      });
+      idx = best;
+    } else {
+      for (let i = 0; i < monsters.length; i++) {
+        if (monsters[i] && (!desc.filter || matchesFilter(monsters[i]!.card, desc.filter))) {
+          idx = i; break;
+        }
+      }
+    }
+
+    if (idx !== null && monsters[idx]) {
+      const fc = monsters[idx]!;
+      st[side].graveyard.push(fc.card);
+      monsters[idx] = null;
+      ctx.engine._removeEquipmentForMonster(side, idx);
+      ctx.engine.addLog(`${fc.card.name} was destroyed!`);
+    }
+    return {};
+  },
+
+  halveAtk(desc: { target: StatTarget }, ctx) {
+    const fc = resolveStatTarget(desc.target, ctx);
+    if (fc) {
+      const half = Math.floor(fc.effectiveATK() / 2);
+      const reduction = fc.effectiveATK() - half;
+      fc.tempATKBonus = (fc.tempATKBonus || 0) - reduction;
+      ctx.engine.addLog(`${fc.card.name}'s ATK halved!`);
+    }
+    return {};
+  },
+
+  doubleAtk(desc: { target: StatTarget }, ctx) {
+    const fc = resolveStatTarget(desc.target, ctx);
+    if (fc) {
+      const current = fc.effectiveATK();
+      fc.tempATKBonus = (fc.tempATKBonus || 0) + current;
+      _triggerBuffVFX(fc, ctx);
+      ctx.engine.addLog(`${fc.card.name}'s ATK doubled!`);
+    }
+    return {};
+  },
+
+  swapAtkDef(desc: { side: 'self' | 'opponent' | 'all' }, ctx) {
+    const st = ctx.engine.getState();
+    const sides: Owner[] = desc.side === 'all'
+      ? ['player', 'opponent']
+      : [desc.side === 'self' ? ctx.owner : oppOf(ctx.owner)];
+    for (const side of sides) {
+      for (const fc of st[side].field.monsters) {
+        if (!fc) continue;
+        const atk = fc.card.atk ?? 0;
+        const def = fc.card.def ?? 0;
+        const atkBonus = fc.permATKBonus + fc.tempATKBonus + fc.fieldSpellATKBonus;
+        const defBonus = fc.permDEFBonus + fc.tempDEFBonus + fc.fieldSpellDEFBonus;
+        const effAtk = Math.max(0, atk + atkBonus);
+        const effDef = Math.max(0, def + defBonus);
+        fc.tempATKBonus += (effDef - effAtk);
+        fc.tempDEFBonus += (effAtk - effDef);
+      }
+    }
+    ctx.engine.addLog('ATK and DEF values swapped!');
+    return {};
+  },
+
+  specialSummonFromDeck(desc: { filter: CardFilter }, ctx) {
+    const st = ctx.engine.getState();
+    const deck = st[ctx.owner].deck;
+    const idx = deck.findIndex(c => matchesFilter(c, desc.filter));
+    if (idx !== -1) {
+      const [card] = deck.splice(idx, 1);
+      ctx.engine.specialSummon(ctx.owner, card);
+      ctx.engine.addLog(`${card.name} special summoned from deck!`);
+    }
+    return {};
+  },
+
   passive_piercing()       { return {}; },
   passive_untargetable()   { return {}; },
   passive_directAttack()   { return {}; },
@@ -479,7 +680,38 @@ export function registerEffect(type: string, impl: EffectImpl): void {
   EFFECT_REGISTRY.set(type, impl);
 }
 
+export function canPayCost(block: CardEffectBlock, ctx: EffectContext): boolean {
+  if (!block.cost) return true;
+  const st = ctx.engine.getState()[ctx.owner];
+  if (block.cost.lp && st.lp <= block.cost.lp) return false;
+  if (block.cost.discard && st.hand.length < block.cost.discard) return false;
+  return true;
+}
+
+function payCost(block: CardEffectBlock, ctx: EffectContext): void {
+  if (!block.cost) return;
+  const st = ctx.engine.getState()[ctx.owner];
+  if (block.cost.lp) {
+    ctx.engine.dealDamage(ctx.owner, block.cost.lp);
+    ctx.engine.addLog(`Paid ${block.cost.lp} LP as cost.`);
+  }
+  if (block.cost.discard) {
+    for (let i = 0; i < block.cost.discard && st.hand.length > 0; i++) {
+      const idx = Math.floor(Math.random() * st.hand.length);
+      const [c] = st.hand.splice(idx, 1);
+      st.graveyard.push(c);
+    }
+    ctx.engine.addLog(`Discarded ${block.cost.discard} card(s) as cost.`);
+  }
+}
+
 export function executeEffectBlock(block: CardEffectBlock, ctx: EffectContext): EffectSignal {
+  if (!canPayCost(block, ctx)) {
+    ctx.engine.addLog('Cannot pay effect cost!');
+    return {};
+  }
+  payCost(block, ctx);
+
   const signal: EffectSignal = {};
   for (const action of block.actions) {
     const impl = EFFECT_REGISTRY.get(action.type);

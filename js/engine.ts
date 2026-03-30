@@ -826,18 +826,26 @@ export class GameEngine {
 
     if(attackerOwner === 'opponent'){
       const trapResult = await this._promptPlayerTraps('onAttack', attFC);
+      if(trapResult?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(trapResult?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(trapResult && trapResult.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(defFC){
         const trapResult2 = await this._promptPlayerTraps('onOwnMonsterAttacked', attFC, defFC);
+        if(trapResult2?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
+        if(trapResult2?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
         if(trapResult2 && trapResult2.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
       }
     }
 
     if(attackerOwner === 'player'){
       const oppTrap = await this._autoActivateOpponentTraps('onAttack', attFC);
+      if(oppTrap?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(oppTrap?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(oppTrap?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(defFC){
         const oppTrap2 = await this._autoActivateOpponentTraps('onOwnMonsterAttacked', attFC, defFC);
+        if(oppTrap2?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
+        if(oppTrap2?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
         if(oppTrap2?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
       }
     }
@@ -876,11 +884,15 @@ export class GameEngine {
 
     if(attackerOwner === 'opponent'){
       const trapResult = await this._promptPlayerTraps('onAttack', attFC);
+      if(trapResult?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(trapResult?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(trapResult && trapResult.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
     }
 
     if(attackerOwner === 'player'){
       const oppTrap = await this._autoActivateOpponentTraps('onAttack', attFC);
+      if(oppTrap?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(oppTrap?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(oppTrap?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
     }
 
@@ -984,6 +996,15 @@ export class GameEngine {
         if (revivedFC) revivedFC.phoenixRevivalUsed = true;
       }
     }
+  }
+
+  _destroyMonsterBySignal(owner: Owner, zone: number, fc: FieldCard): void {
+    const st = this.state[owner];
+    this.addLog(`${fc.card.name} was destroyed by trap!`);
+    this.ui.playSfx?.('sfx_destroy');
+    st.graveyard.push(fc.card);
+    st.field.monsters[zone] = null;
+    this._removeEquipmentForMonster(owner, zone);
   }
 
   _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): EffectContext {
