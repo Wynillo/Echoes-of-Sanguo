@@ -1,7 +1,4 @@
-// ============================================================
-// ECHOES OF SANGUO — Campaign Types
-// Graph-based campaign system with chapters and nodes
-// ============================================================
+import type { DialogueScene } from '@wynillo/tcg-format';
 
 export interface CampaignData {
   chapters: Chapter[];
@@ -23,6 +20,8 @@ export interface CampaignNode {
   unlockCondition: UnlockCondition | null;  // null = always unlocked (start node)
   rewards?: NodeRewards;
   dialogueKeys?: string[];    // i18n keys for story nodes
+  preDialogue?: DialogueScene | null;
+  postDialogue?: DialogueScene | null;
   connections?: string[];     // visual connections to other nodes
 }
 
@@ -48,7 +47,7 @@ export interface PendingDuel {
   nodeId: string;
   completeOnLoss?: boolean;
   rewards?: NodeRewards;
-  postDialogue?: string[];
+  postDialogue?: DialogueScene | null;
   /** Ordered opponent IDs for gauntlet (back-to-back duels, no saving between). */
   gauntletOpponents?: number[];
   /** Index of the current opponent within gauntletOpponents (0-based). */

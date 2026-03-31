@@ -76,7 +76,7 @@ describe('computeCampaignDuelNav', () => {
         pending: {
           nodeId: 'n1',
           rewards: { coins: 50 },
-          postDialogue: ['dialogue.scene1'],
+          postDialogue: { background: 'bg_default', dialogue: [{ textKey: 'dialogue.scene1', speaker: 'Narrator', portrait: null, side: 'left', foregrounds: null }] },
         },
       },
       ops,
@@ -133,7 +133,7 @@ describe('computeCampaignDuelNav', () => {
         pending: {
           nodeId: 'n1',
           completeOnLoss: true,
-          postDialogue: ['dialogue.loss'],
+          postDialogue: { background: 'bg_default', dialogue: [{ textKey: 'dialogue.loss', speaker: 'Narrator', portrait: null, side: 'left', foregrounds: null }] },
         },
       },
       ops,
@@ -221,8 +221,8 @@ describe('computeCampaignDuelNav', () => {
       { nodeId: 'n1' },
       { nodeId: 'n1', rewards: { coins: 100 } },
       { nodeId: 'n1', rewards: { coins: 50, cards: ['c1'] } },
-      { nodeId: 'n1', postDialogue: ['d1'] },
-      { nodeId: 'n1', rewards: { coins: 200 }, postDialogue: ['d1'] },
+      { nodeId: 'n1', postDialogue: { background: 'bg_default', dialogue: [{ textKey: 'd1', speaker: 'Narrator', portrait: null, side: 'left', foregrounds: null }] } },
+      { nodeId: 'n1', rewards: { coins: 200 }, postDialogue: { background: 'bg_default', dialogue: [{ textKey: 'd1', speaker: 'Narrator', portrait: null, side: 'left', foregrounds: null }] } },
     ];
 
     for (const pending of scenarios) {

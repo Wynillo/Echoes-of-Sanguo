@@ -227,14 +227,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
               refreshRef.current();
               refreshCampaignRef.current();
-              if (pending.postDialogue && pending.postDialogue.length > 0) {
+              if (pending.postDialogue && pending.postDialogue.dialogue.length > 0) {
                 navigateToRef.current('duel-result', resultData('victory', {
                   rewards: adjustedRewards,
                   badges,
                   newCardIds,
                   nextScreen: 'dialogue',
                   dialogueData: {
-                    scene: pending.postDialogue as unknown as Record<string, unknown>,
+                    scene: pending.postDialogue,
                     nextScreen: 'campaign',
                   },
                 }));

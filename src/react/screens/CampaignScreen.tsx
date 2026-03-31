@@ -124,12 +124,20 @@ export default function CampaignScreen() {
               nodeId: node.id,
               completeOnLoss: node.completeOnLoss,
               rewards: node.rewards,
-              postDialogue: node.dialogueKeys,
+              postDialogue: node.postDialogue ?? null,
               gauntletOpponents: node.gauntlet,
               gauntletIndex: 0,
             });
-            startGame(firstCfg);
-            navigateTo('game');
+            if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
+              navigateTo('dialogue', {
+                scene: node.preDialogue,
+                nextScreen: 'game',
+                nextScreenData: { campaignOpponentConfig: firstCfg },
+              });
+            } else {
+              startGame(firstCfg);
+              navigateTo('game');
+            }
           }
         } else {
           // Standard single duel
@@ -139,10 +147,18 @@ export default function CampaignScreen() {
               nodeId: node.id,
               completeOnLoss: node.completeOnLoss,
               rewards: node.rewards,
-              postDialogue: node.dialogueKeys,
+              postDialogue: node.postDialogue ?? null,
             });
-            startGame(opponent);
-            navigateTo('game');
+            if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
+              navigateTo('dialogue', {
+                scene: node.preDialogue,
+                nextScreen: 'game',
+                nextScreenData: { campaignOpponentConfig: opponent },
+              });
+            } else {
+              startGame(opponent);
+              navigateTo('game');
+            }
           }
         }
         break;

@@ -3,6 +3,7 @@
 // Holds campaign data and provides query functions
 // ============================================================
 
+import type { DialogueScene } from '@wynillo/tcg-format';
 import type { CampaignData, CampaignNode, CampaignProgress, Chapter } from './campaign-types.js';
 import { Progression } from './progression.js';
 
@@ -22,6 +23,10 @@ export function applyCampaignData(data: CampaignData): void {
           .map(d => d.textKey)
           .filter((k): k is string => !!k);
       }
+      const pre = raw['preDialogue'] as DialogueScene | null | undefined;
+      const post = raw['postDialogue'] as DialogueScene | null | undefined;
+      if (pre) node.preDialogue = pre;
+      if (post) node.postDialogue = post;
     }
   }
   CAMPAIGN_DATA.chapters = data.chapters;

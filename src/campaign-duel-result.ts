@@ -1,3 +1,4 @@
+import type { DialogueScene } from '@wynillo/tcg-format';
 import type { DuelStats } from './types.js';
 import type { NodeRewards } from './campaign-types.js';
 import type { BattleBadges } from './battle-badges.js';
@@ -27,7 +28,7 @@ export interface CampaignDuelInput {
     nodeId: string;
     completeOnLoss?: boolean;
     rewards?: NodeRewards;
-    postDialogue?: string[];
+    postDialogue?: DialogueScene | null;
   };
 }
 
@@ -78,7 +79,7 @@ export function computeCampaignDuelNav(
     ops.recordDuelResult(opponentId, result === 'victory');
   }
 
-  if (result === 'victory' && pending.postDialogue && pending.postDialogue.length > 0) {
+  if (result === 'victory' && pending.postDialogue && pending.postDialogue.dialogue.length > 0) {
     return {
       screen: 'duel-result',
       data: resultData('victory', {
@@ -87,7 +88,7 @@ export function computeCampaignDuelNav(
         newCardIds,
         nextScreen: 'dialogue',
         dialogueData: {
-          scene: pending.postDialogue as unknown as Record<string, unknown>,
+          scene: pending.postDialogue,
           nextScreen: 'campaign',
         },
       }),
@@ -106,11 +107,11 @@ export function computeCampaignDuelNav(
     };
   }
 
-  if (isComplete && pending.postDialogue && pending.postDialogue.length > 0) {
+  if (isComplete && pending.postDialogue && pending.postDialogue.dialogue.length > 0) {
     return {
       screen: 'dialogue',
       data: {
-        scene: pending.postDialogue as unknown as Record<string, unknown>,
+        scene: pending.postDialogue,
         nextScreen: 'campaign',
       },
     };
