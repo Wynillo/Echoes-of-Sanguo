@@ -147,7 +147,7 @@
 .collectionGrid.gridSmall :global(.card) { width: var(--card-w); height: var(--card-h); }
 
 .tableWrap {
-  flex: 1; overflow-y: auto; padding: 0;
+  flex: 1; overflow: auto; padding: 0;
 }
 
 .table {
