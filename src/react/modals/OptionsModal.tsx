@@ -5,6 +5,7 @@ import { useGame }      from '../contexts/GameContext.js';
 import { Progression }  from '../../progression.js';
 import { Audio }        from '../../audio.js';
 import { GAME_RULES }   from '../../rules.js';
+import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import i18n             from '../../i18n.js';
 import { reloadTcgLocale } from '../../tcg-bridge.js';
 
@@ -22,6 +23,7 @@ export function OptionsModal() {
   const [muted,       setMuted]       = useState(saved.volMaster === 0);
   const [preMuteVol,  setPreMuteVol]  = useState(saved.volMaster || 50);
   const [showConfirm, setShowConfirm] = useState(false);
+  const { canInstall, triggerInstall } = usePwaInstall();
 
   // Re-sync from persisted settings on mount to guard against stale
   // initial values (e.g. React StrictMode state preservation).
@@ -110,6 +112,15 @@ export function OptionsModal() {
           <option value="draw1">{t('options.refill_hand_off')}</option>
         </select>
       </div>
+
+      {canInstall && (
+        <div className="options-row">
+          <label>{t('options.install_app')}</label>
+          <button className="btn-secondary" onClick={triggerInstall}>
+            {t('options.install_app')}
+          </button>
+        </div>
+      )}
 
       <div className="options-buttons">
         <button className="btn-cancel"    onClick={closeModal}>{t('common.cancel')}</button>
