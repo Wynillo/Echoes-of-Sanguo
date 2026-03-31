@@ -9,15 +9,15 @@ export function DamageNumberOverlay() {
     const container = containerRef.current;
     if (!container) return;
 
-    const lpId = owner === 'player' ? 'player-lp' : 'opp-lp';
-    const anchor = document.getElementById(lpId) ?? document.body;
+    const zoneId = owner === 'player' ? 'player-monster-zone' : 'opponent-monster-zone';
+    const anchor = document.getElementById(zoneId) ?? document.body;
     const rect = anchor.getBoundingClientRect();
 
     const el = document.createElement('div');
     el.className = 'damage-number';
     el.textContent = `-${amount}`;
     el.style.left = `${rect.left + rect.width / 2}px`;
-    el.style.top = `${rect.top}px`;
+    el.style.top = `${rect.top + rect.height / 2}px`;
     container.appendChild(el);
 
     const cleanup = () => { if (el.parentNode) el.remove(); };
