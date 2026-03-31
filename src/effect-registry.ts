@@ -291,6 +291,7 @@ const IMPL: Record<string, InternalImpl> = {
     const fc = oppMonsters[idx]!;
     oppMonsters[idx] = null;
     ctx.engine._removeEquipmentForMonster(opp, idx);
+    fc.originalOwner = opp;
     ownMonsters[freeZone] = fc;
     fc.hasAttacked = false;
     ctx.engine.addLog(`${fc.card.name} control changed!`);
@@ -732,6 +733,7 @@ const IMPL: Record<string, InternalImpl> = {
         ctx.engine.addLog(`${zones[i]!.card.name} was destroyed!`);
         st[opp].graveyard.push(zones[i]!.card);
         zones[i] = null;
+        ctx.engine._removeEquipmentForMonster(opp, i);
       }
     }
     return {};
@@ -746,6 +748,7 @@ const IMPL: Record<string, InternalImpl> = {
           ctx.engine.addLog(`${zones[i]!.card.name} was destroyed!`);
           st[side].graveyard.push(zones[i]!.card);
           zones[i] = null;
+          ctx.engine._removeEquipmentForMonster(side, i);
         }
       }
     }
@@ -908,7 +911,7 @@ export function registerEffect(type: string, impl: EffectImpl): void {
 export function canPayCost(block: CardEffectBlock, ctx: EffectContext): boolean {
   if (!block.cost) return true;
   const st = ctx.engine.getState()[ctx.owner];
-  if (block.cost.lp && st.lp <= block.cost.lp) return false;
+  if (block.cost.lp && st.lp < block.cost.lp) return false;
   if (block.cost.discard && st.hand.length < block.cost.discard) return false;
   return true;
 }
