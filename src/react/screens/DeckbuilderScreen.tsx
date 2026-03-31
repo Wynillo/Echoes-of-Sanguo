@@ -422,7 +422,7 @@ export default function DeckbuilderScreen() {
                         <td>{card.def !== undefined ? card.def : '\u2014'}</td>
                         <td style={{ color: typeColor }}>{typeLbl}</td>
                         <td>{raceLbl}</td>
-                        <td>{copies} / {ownedCount}</td>
+                        <td>{copies} / {maxCopiesFor(card.id)}</td>
                         <td>{isNew(card.id) && <span className={styles.newBadge}>NEW</span>}</td>
                       </tr>
                     );
