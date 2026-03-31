@@ -14,7 +14,7 @@ import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, 
 import { deserializeEffect, isValidEffectString, parseEffectString } from './effect-serializer.js';
 import { applyRules } from './rules.js';
 import { applyTypeMeta } from './type-metadata.js';
-import { applyShopData, SHOP_DATA } from './shop-data.js';
+import { applyShopData, SHOP_DATA, type ShopData } from './shop-data.js';
 import { applyCampaignData } from './campaign-store.js';
 import type { CampaignData } from './campaign-types.js';
 import { TYPE_META } from './type-metadata.js';
@@ -220,7 +220,7 @@ export async function loadAndApplyTcg(
   let buffer: ArrayBuffer;
   if (typeof source === 'string') {
     const res = await fetch(source);
-    if (!res.ok) throw new TcgNetworkError(`Failed to fetch ${source}: ${res.status}`);
+    if (!res.ok) throw new TcgNetworkError(source, res.status);
     buffer = await res.arrayBuffer();
   } else {
     buffer = source;
@@ -270,7 +270,7 @@ export async function loadAndApplyTcg(
       }
       result.shopData.backgrounds = resolvedBgs;
     }
-    applyShopData(result.shopData);
+    applyShopData(result.shopData as unknown as Partial<ShopData>);
   }
   if (result.campaignData) applyCampaignData(result.campaignData as unknown as CampaignData);
 
