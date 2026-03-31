@@ -148,10 +148,11 @@
 
 .tableWrap {
   flex: 1; overflow: auto; padding: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
-  width: 100%; border-collapse: collapse; font-size: 12px;
+  min-width: 100%; border-collapse: collapse; font-size: 12px;
 }
 
 .table th {
@@ -241,16 +242,7 @@
   .nameSearch { width: 130px; font-size: 12px; padding: 4px 8px; }
 }
 
-/* Hide non-essential table columns on mobile (C3) */
 @media (max-width: 699px) {
-  /* Hide: ID (1st), DEF (5th), Type (6th), Race (7th), New (9th) */
-  .table th:nth-child(1), .table td:nth-child(1),
-  .table th:nth-child(5), .table td:nth-child(5),
-  .table th:nth-child(6), .table td:nth-child(6),
-  .table th:nth-child(7), .table td:nth-child(7),
-  .table th:nth-child(9), .table td:nth-child(9) {
-    display: none;
-  }
   .table { font-size: 11px; }
-  .table th, .table td { padding: 5px 6px; }
+  .table th, .table td { padding: 5px 6px; white-space: nowrap; }
 }
