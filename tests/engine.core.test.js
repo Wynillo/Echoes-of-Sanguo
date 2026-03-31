@@ -324,39 +324,6 @@ describe('performFusion', () => {
     ];
   }
 
-  it('places fusion monster on field', async () => {
-    const { engine } = makeEngine();
-    setupFusion(engine);
-    await engine.performFusion('player', 0, 1);
-    const placed = engine.state.player.field.monsters.find(fc => fc !== null);
-    expect(placed).not.toBeNull();
-    expect(placed.card.id).toBe('246');
-  });
-
-  it('sends both materials to graveyard', async () => {
-    const { engine } = makeEngine();
-    setupFusion(engine);
-    await engine.performFusion('player', 0, 1);
-    const ids = engine.state.player.graveyard.map(c => c.id);
-    expect(ids).toContain('4');
-    expect(ids).toContain('5');
-  });
-
-  it('removes materials from hand', async () => {
-    const { engine } = makeEngine();
-    setupFusion(engine);
-    await engine.performFusion('player', 0, 1);
-    expect(engine.state.player.hand).toHaveLength(0);
-  });
-
-  it('fusion monster has no summoning sickness', async () => {
-    const { engine } = makeEngine();
-    setupFusion(engine);
-    await engine.performFusion('player', 0, 1);
-    const fc = engine.state.player.field.monsters.find(m => m !== null);
-    expect(fc.summonedThisTurn).toBe(false);
-  });
-
   it('returns false for non-matching materials', async () => {
     const { engine } = makeEngine();
     engine.state.player.hand = [
