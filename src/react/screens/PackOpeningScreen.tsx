@@ -2,8 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { useScreen }   from '../contexts/ScreenContext.js';
+import { useModal }    from '../contexts/ModalContext.js';
 import { getRarityById } from '../../type-metadata.js';
-import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
+import { Card } from '../components/Card.js';
 import { Audio }        from '../../audio.js';
 import { CardType, Rarity } from '../../types.js';
 import type { CardData }          from '../../types.js';
@@ -40,14 +41,6 @@ const TYPE_ICONS: Record<number, string> = {
 };
 
 /* ── Helpers ───────────────────────────────────────────────── */
-
-function getTypeLabel(card: CardData, t: (k: string) => string) {
-  if (card.type === CardType.Monster && card.effect) return t('pack_opening.type_effect');
-  if (card.type === CardType.Monster) return t('pack_opening.type_normal');
-  if (card.type === CardType.Fusion) return t('pack_opening.type_fusion');
-  if (card.type === CardType.Spell)  return t('pack_opening.type_spell');
-  return t('pack_opening.type_trap');
-}
 
 function spawnRevealFX(container: HTMLElement, rarity: number) {
   const cfg = SPARKLE_CONFIG[rarity];
@@ -114,6 +107,7 @@ function getBgClass(rarity: number): string {
 
 export default function PackOpeningScreen() {
   const { navigateTo, screenData } = useScreen();
+  const { openModal } = useModal();
   const { t } = useTranslation();
 
   const { cards: _cards, preOpen: _preOpen } = (screenData as { cards: CardData[]; preOpen: CollectionEntry[] } | null) ?? { cards: [], preOpen: [] };
@@ -205,10 +199,11 @@ export default function PackOpeningScreen() {
     tlRef.current = tl;
 
     // Final dramatic wobble before tear
-    tl.to(pack, { rotation: -8, scale: 1.08, duration: 0.1, ease: 'steps(3)' })
-      .to(pack, { rotation: 8, scale: 1.08, duration: 0.1, ease: 'steps(3)' })
-      .to(pack, { rotation: -10, scale: 1.1, duration: 0.08, ease: 'steps(2)' })
-      .to(pack, { rotation: 0, scale: 1, duration: 0.06, ease: 'steps(2)' });
+    tl.to(pack, { rotation: -8, scale: 1.08, duration: 0.12, ease: 'steps(3)' })
+      .to(pack, { rotation: 10, scale: 1.1, duration: 0.12, ease: 'steps(3)' })
+      .to(pack, { rotation: -12, scale: 1.12, duration: 0.12, ease: 'steps(3)' })
+      .to(pack, { rotation: 14, scale: 1.14, duration: 0.1, ease: 'steps(2)' })
+      .to(pack, { rotation: 0, scale: 1, duration: 0.08, ease: 'steps(2)' });
 
     // Hide original, show halves
     tl.call(() => {
@@ -218,20 +213,20 @@ export default function PackOpeningScreen() {
 
     // Tear apart
     tl.to(left, {
-      x: -100, rotation: -15, opacity: 0,
-      duration: 0.4, ease: 'steps(6)',
+      x: -130, rotation: -20, opacity: 0,
+      duration: 0.7, ease: 'steps(10)',
     }, '+=0')
       .to(right, {
-        x: 100, rotation: 15, opacity: 0,
-        duration: 0.4, ease: 'steps(6)',
+        x: 130, rotation: 20, opacity: 0,
+        duration: 0.7, ease: 'steps(10)',
       }, '<');
 
     // Flash + screen shake
     tl.call(() => {
       setShowFlash(true);
       if (screenRef.current) shakeScreen(screenRef.current, 3, 0.3);
-    }, undefined, '-=0.15');
-    tl.to({}, { duration: 0.5 }); // wait for flash to fade
+    }, undefined, '-=0.25');
+    tl.to({}, { duration: 0.25 }); // wait for flash to fade
 
     return () => { tl.kill(); };
   }, [phase, tearing]);
@@ -454,29 +449,10 @@ export default function PackOpeningScreen() {
                   </div>
 
                   {/* Front face (revealed after flip) */}
-                  <div
-                    className={`${styles.revealCardFront} card ${cardTypeCss(currentCard)}-card attr-${currentCard.attribute ? ATTR_CSS[currentCard.attribute] || 'spell' : 'spell'}`}
-                    style={{ '--rarity-color': rarColor } as React.CSSProperties}
-                  >
-                    <div className={styles.revealRarityBar} style={{ background: rarColor }} />
+                  <div className={styles.revealCardFront}>
+                    <Card card={currentCard} big />
                     {!ownedBefore.has(currentCard.id) && (
                       <div className={styles.newBadge}>{t('pack_opening.new_badge')}</div>
-                    )}
-                    <div className="card-header">
-                      <span className="card-name">{currentCard.name}</span>
-                      <span className="card-level">
-                        {currentCard.level ? '★'.repeat(Math.min(currentCard.level, 5)) : ''}
-                      </span>
-                    </div>
-                    <div className="card-body">
-                      <div className="card-type-line">{getTypeLabel(currentCard, t)}</div>
-                      <div className="card-desc">{currentCard.description || ''}</div>
-                    </div>
-                    {currentCard.atk !== undefined && (
-                      <div className="card-footer">
-                        <span>ATK {currentCard.atk}</span>
-                        <span>DEF {currentCard.def}</span>
-                      </div>
                     )}
                   </div>
                 </div>
@@ -528,7 +504,8 @@ export default function PackOpeningScreen() {
               <div
                 key={i}
                 className={styles.cardWrapper}
-                style={{ animationDelay: `${i * 0.12}s` }}
+                style={{ animationDelay: `${i * 0.12}s`, cursor: 'pointer' }}
+                onClick={() => openModal({ type: 'card-detail', card })}
               >
                 {isNew && <div className={styles.newBadge}>{t('pack_opening.new_badge')}</div>}
                 <Card card={card} />

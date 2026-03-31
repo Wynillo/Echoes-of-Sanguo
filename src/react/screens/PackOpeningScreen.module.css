@@ -149,7 +149,7 @@
   background: radial-gradient(ellipse at center, rgba(255, 240, 200, 0.9), rgba(255, 255, 255, 0.6));
   pointer-events: none;
   z-index: 210;
-  animation: packFlash 0.5s ease-out forwards;
+  animation: packFlash 0.25s ease-out forwards;
 }
 
 .revealPhase {
@@ -174,15 +174,15 @@
 
 .revealCard {
   position: absolute;
-  width: 160px;
-  min-height: 200px;
+  width: 180px;
+  min-height: 248px;
   opacity: 0;
   will-change: transform, opacity;
   perspective: 600px;
 }
 
 @media (min-width: 480px) {
-  .revealCard { width: 180px; min-height: 230px; }
+  .revealCard { width: 200px; min-height: 276px; }
 }
 
 .revealCardInner {
@@ -209,7 +209,7 @@
 .cardBackPattern {
   width: 100%;
   height: 100%;
-  min-height: 200px;
+  min-height: 248px;
   background: repeating-conic-gradient(#081610 0% 25%, rgba(30, 90, 50, 0.15) 0% 50%) 0 0 / 8px 8px;
   image-rendering: pixelated;
   display: flex;
@@ -218,7 +218,7 @@
 }
 
 @media (min-width: 480px) {
-  .cardBackPattern { min-height: 230px; }
+  .cardBackPattern { min-height: 276px; }
 }
 
 .backLabel {
@@ -234,13 +234,6 @@
   min-height: inherit;
   backface-visibility: hidden;
   transform: rotateY(180deg);
-  border-radius: 0;
-  padding: 10px;
-  font-size: 0.8rem;
-  overflow: hidden;
-  border: 3px solid var(--rarity-color, #aaa);
-  background: #111828;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.8);
 }
 
 .revealCardFront.sparkle {
@@ -425,11 +418,6 @@
   animation: lightBeamFade 1.2s ease-out forwards;
 }
 
-.revealRarityBar {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-}
 
 .revealCounter {
   position: absolute;
@@ -518,18 +506,6 @@
   text-shadow: none;
 }
 
-.revealCardFront :global(.card-header) {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
-  margin-bottom: 4px;
-}
-
-.revealCardFront :global(.card-name) { font-weight: bold; color: #d0e0ff; font-size: 0.9rem; }
-.revealCardFront :global(.card-level) { color: #c8a84b; font-size: 0.7rem; }
-.revealCardFront :global(.card-type-line) { color: #6080a0; font-size: 0.7rem; margin-bottom: 3px; }
-.revealCardFront :global(.card-desc) { color: #8090a8; font-size: 0.7rem; line-height: 1.3; max-height: 3.9em; overflow: hidden; }
-.revealCardFront :global(.card-footer) { display: flex; justify-content: space-between; margin-top: 4px; color: #90b0d0; font-size: 0.75rem; }
 
 .buttons {
   display: flex;
