@@ -81,6 +81,36 @@ describe('matchesFilter', () => {
     expect(matchesFilter({ atk: 2000 }, { maxAtk: 1500 })).toBe(false);
   });
 
+  it('matches by minAtk', () => {
+    expect(matchesFilter({ atk: 1500 }, { minAtk: 1200 })).toBe(true);
+    expect(matchesFilter({ atk: 800 }, { minAtk: 1200 })).toBe(false);
+  });
+
+  it('matches by maxDef', () => {
+    expect(matchesFilter({ def: 1000 }, { maxDef: 1500 })).toBe(true);
+    expect(matchesFilter({ def: 2000 }, { maxDef: 1500 })).toBe(false);
+  });
+
+  it('matches by maxLevel', () => {
+    expect(matchesFilter({ level: 4 }, { maxLevel: 6 })).toBe(true);
+    expect(matchesFilter({ level: 8 }, { maxLevel: 6 })).toBe(false);
+  });
+
+  it('matches by minLevel', () => {
+    expect(matchesFilter({ level: 5 }, { minLevel: 3 })).toBe(true);
+    expect(matchesFilter({ level: 2 }, { minLevel: 3 })).toBe(false);
+  });
+
+  it('matches by cardType', () => {
+    expect(matchesFilter({ type: 1 }, { cardType: 1 })).toBe(true);
+    expect(matchesFilter({ type: 2 }, { cardType: 1 })).toBe(false);
+  });
+
+  it('matches by cardId', () => {
+    expect(matchesFilter({ id: 'card-001' }, { cardId: 'card-001' })).toBe(true);
+    expect(matchesFilter({ id: 'card-002' }, { cardId: 'card-001' })).toBe(false);
+  });
+
   it('matches by multiple filters', () => {
     expect(matchesFilter({ race: 1, attribute: 2, atk: 1000 }, { race: 1, attr: 2, maxAtk: 1500 })).toBe(true);
     expect(matchesFilter({ race: 1, attribute: 3, atk: 1000 }, { race: 1, attr: 2, maxAtk: 1500 })).toBe(false);
