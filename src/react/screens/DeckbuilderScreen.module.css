@@ -97,7 +97,6 @@
   background: #283c78;
 }
 
-.raceBtn { padding: 3px 5px; font-size: 11px; }
 
 .raritySelect {
   background: #141e3c; color: var(--text-dim);
@@ -237,7 +236,6 @@
   .filterGroup { gap: 4px; flex-wrap: wrap; overflow-x: visible; }
   .filterGroup + .filterGroup { padding-left: 8px; }
   .filterBtn { padding: 4px 12px; font-size: 0.75rem; }
-  .raceBtn { padding: 4px 7px; font-size: 13px; }
   .raritySelect { font-size: 12px; padding: 4px 8px; }
   .nameSearch { width: 130px; font-size: 12px; padding: 4px 8px; }
 }

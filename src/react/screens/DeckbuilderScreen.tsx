@@ -8,7 +8,8 @@ import { Progression }     from '../../progression.js';
 import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { CardType, Race, Rarity } from '../../types.js';
-import { getAllRaces, getAllRarities, getRarityById, getCardTypeById, getRaceById } from '../../type-metadata.js';
+import { getAllRarities, getRarityById, getCardTypeById, getRaceById } from '../../type-metadata.js';
+import RaceFilterBar from '../components/RaceFilterBar.js';
 import type { CardData }   from '../../types.js';
 import styles from './DeckbuilderScreen.module.css';
 import { GAME_RULES } from '../../rules.js';
@@ -271,18 +272,7 @@ export default function DeckbuilderScreen() {
               ))}
             </div>
             <div className={styles.filterGroup}>
-              <button
-                key="all"
-                className={`${styles.filterBtn} ${styles.raceBtn}${raceFilter === 'all' ? ` ${styles.active}` : ''}`}
-                onClick={() => setRaceFilter('all')}
-              >🌐</button>
-              {getAllRaces().map(rm => (
-                <button
-                  key={rm.id}
-                  className={`${styles.filterBtn} ${styles.raceBtn}${raceFilter === rm.id ? ` ${styles.active}` : ''}`}
-                  onClick={() => setRaceFilter(rm.id as Race)}
-                >{rm.icon}</button>
-              ))}
+              <RaceFilterBar value={raceFilter} onChange={setRaceFilter} />
             </div>
             <div className={styles.filterGroup}>
               <select
