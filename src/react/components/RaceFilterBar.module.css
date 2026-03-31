@@ -1,0 +1,46 @@
+.buttons {
+  display: none;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.dropdown {
+  display: block;
+}
+
+@media (min-width: 700px) {
+  .buttons { display: flex; }
+  .dropdown { display: none; }
+}
+
+.btn {
+  background: #141e3c;
+  color: var(--text-dim);
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.btn.active {
+  border-color: var(--gold);
+  color: var(--gold-light);
+  background: #283c78;
+}
+
+.select {
+  background: #141e3c;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  font-size: 13px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.select:focus { outline: none; border-color: var(--gold); }
