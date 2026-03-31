@@ -501,5 +501,8 @@
     "badge_rank_b": "B",
     "coin_multiplier": "x{{multiplier}} Münzen",
     "badge_cards_earned": "+{{count}} Karte(n) vom Gegner"
+  },
+  "status": {
+    "offline": "Offline"
   }
 }
