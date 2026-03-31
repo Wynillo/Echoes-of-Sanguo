@@ -449,8 +449,8 @@ const IMPL: Record<string, InternalImpl> = {
         def: 0,
         description: 'A token monster.',
       };
-      const result = ctx.engine.specialSummon(ctx.owner, tokenCard, undefined, pos);
-      if (result) placed++;
+      void ctx.engine.specialSummon(ctx.owner, tokenCard, undefined, pos);
+      placed++;
     }
     ctx.engine.addLog(`${placed} token(s) summoned!`);
     return {};

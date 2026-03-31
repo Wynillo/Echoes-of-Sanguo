@@ -443,6 +443,8 @@ export declare class FieldCard {
   effectImmune:     boolean;
   cantBeAttacked:   boolean;
   equippedCards:    Array<{ zone: number; card: CardData }>;
+  originalOwner?:   Owner;
+  _getPassiveBlocks(): CardEffectBlock[];
   effectiveATK():   number;
   effectiveDEF():   number;
   combatValue():    number;
@@ -471,12 +473,13 @@ export declare class GameEngine {
   gainLP(target: Owner, amount: number): void;
   drawCard(owner: Owner, count?: number): void;
   refillHand(owner: Owner): void;
-  specialSummon(owner: Owner, card: CardData, zone?: number): Promise<boolean>;
+  specialSummon(owner: Owner, card: CardData, zone?: number, position?: Position, faceDown?: boolean): Promise<boolean>;
   specialSummonFromGrave(owner: Owner, card: CardData): Promise<boolean>;
   performFusionChain(owner: Owner, handIndices: number[]): Promise<boolean>;
   equipCard(owner: Owner, handIndex: number, targetOwner: Owner, targetMonsterZone: number): Promise<boolean>;
   activateFieldSpell(owner: Owner, handIndex: number): Promise<boolean>;
   _removeEquipmentForMonster(monsterOwner: Owner, monsterZone: number): void;
+  _removeFieldSpell(owner: Owner): void;
   endTurn(): void;
   advancePhase(): void;
 }

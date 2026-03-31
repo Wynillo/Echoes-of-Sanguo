@@ -74,7 +74,7 @@ export class FieldCard {
     }
   }
 
-  private _getPassiveBlocks(): import('./types.js').CardEffectBlock[] {
+  _getPassiveBlocks(): import('./types.js').CardEffectBlock[] {
     const blocks: import('./types.js').CardEffectBlock[] = [];
     if (this.card.effects) {
       for (const b of this.card.effects) {
