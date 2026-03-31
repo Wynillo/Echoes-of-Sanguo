@@ -35,6 +35,12 @@ describe('FieldCard', () => {
     expect(card.atk).toBe(1000);
   });
 
+  it('preserves spirit flag through deep copy', () => {
+    const card = { ...baseCard, spirit: true };
+    const fc = new FieldCard(card);
+    expect(fc.card.spirit).toBe(true);
+  });
+
   it('deep-copies effect so mutations on one FieldCard do not affect another', () => {
     const card = { ...baseCard, effect: { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 300 }] } };
     const fc1 = new FieldCard(card);

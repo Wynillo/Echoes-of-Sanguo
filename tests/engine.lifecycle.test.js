@@ -392,6 +392,24 @@ describe('endTurn', () => {
     expect(engine.state.player.hand.length).toBe(2);
     vi.useRealTimers();
   });
+
+  it('bounces spirit monsters to hand during end phase', () => {
+    const { engine } = makeEngine();
+    const spiritCard = monster(900, 400, { spirit: true });
+    const normalCard = monster(1200, 600);
+    placeMonster(engine, 'player', spiritCard, 0);
+    placeMonster(engine, 'player', normalCard, 1);
+    const handBefore = engine.state.player.hand.length;
+
+    vi.useFakeTimers();
+    engine.endTurn();
+
+    expect(engine.state.player.field.monsters[0]).toBeNull();
+    expect(engine.state.player.field.monsters[1]).not.toBeNull();
+    expect(engine.state.player.hand.length).toBe(handBefore + 1);
+    expect(engine.state.player.hand[handBefore].spirit).toBe(true);
+    vi.useRealTimers();
+  });
 });
 
 describe('_recalcFieldFlags', () => {

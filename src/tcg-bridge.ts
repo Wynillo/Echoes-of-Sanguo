@@ -78,7 +78,6 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
   }
   if (parsedEffect.effect)   card.effect  = parsedEffect.effect;
   if (parsedEffect.effects)  card.effects = parsedEffect.effects;
-  if ((p as any).spirit)     card.spirit  = true;
   if (p.spellType) {
     try { card.spellType = intToSpellType(p.spellType); }
     catch { warnings.push(`Card #${p.id}: invalid spellType int ${p.spellType}`); }
@@ -227,12 +226,16 @@ export async function loadAndApplyTcg(
   };
 
   // Convert TcgParsedCard[] → CardData[] with collision detection
-  for (const parsed of result.parsedCards) {
+  for (let i = 0; i < result.parsedCards.length; i++) {
+    const parsed = result.parsedCards[i];
+    const raw    = result.cards[i];
     const id = String(parsed.id);
     if (CARD_DB[id]) {
       result.warnings.push(`Card ${id} ("${parsed.name}") overwrites existing card "${CARD_DB[id].name}"`);
     }
-    CARD_DB[id] = parsedToCardData(parsed, result.warnings);
+    const card = parsedToCardData(parsed, result.warnings);
+    if ((raw as any).spirit) card.spirit = true;
+    CARD_DB[id] = card;
     mod.cardIds.push(id);
   }
 
