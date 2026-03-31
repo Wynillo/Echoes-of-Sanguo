@@ -17,7 +17,7 @@ import {
 } from './game/PhaseControls.js';
 
 export default function GameScreen() {
-  const { gameState, gameRef, logEntries, pendingDraw, clearPendingDraw } = useGame();
+  const { gameState, gameRef, logEntries, pendingDraw, clearPendingDraw, lastOpponent } = useGame();
   const { openModal }          = useModal();
   const { sel, resetSel }      = useSelection();
   const { t }                  = useTranslation();
@@ -66,17 +66,6 @@ export default function GameScreen() {
     else game.advancePhase();
   }
 
-  const PHASE_LABEL: Record<string, string> = {
-    draw: t('game.phase_draw'), standby: t('game.phase_standby'),
-    main: t('game.phase_main'), battle: t('game.phase_battle'),
-    end:  t('game.phase_end'),
-  };
-
-  const portraitPhaseIcon = !isMyTurn ? '⏸'
-    : phase === 'main'   ? '⚔'
-    : phase === 'battle' ? '→'
-    : '⏭';
-
   return (
     <div id="game-screen">
 
@@ -89,19 +78,10 @@ export default function GameScreen() {
         >☰</button>
 
         <div className="portrait-hud">
-          <span className="phud-lp phud-opp">♥ {opp.lp} <span className="phud-deck">🂠{opp.deck?.length ?? 0}</span></span>
-          <span className="phud-phase">{PHASE_LABEL[phase] ?? phase}</span>
           <span className="phud-lp phud-player">♥ {player.lp} <span className="phud-deck">🂠{player.deck?.length ?? 0}</span></span>
+          <span className="phud-phase">{lastOpponent?.name ?? t('game.phase_battle')}</span>
+          <span className="phud-lp phud-opp">♥ {opp.lp} <span className="phud-deck">🂠{opp.deck?.length ?? 0}</span></span>
         </div>
-
-        <button
-          className={`portrait-phase-btn phase-${phase}${!isMyTurn ? ' waiting' : ''}`}
-          disabled={!isMyTurn}
-          onClick={onPortraitPhase}
-          aria-label={t('game.aria_next_phase')}
-        >
-          {portraitPhaseIcon}
-        </button>
       </div>
 
       {/* Opponent hand */}

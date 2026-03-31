@@ -1245,15 +1245,16 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   }
   .phud-lp {
     font-family: var(--font-stats);
-    font-size: 9px;
+    font-size: 18px;
+    font-weight: bold;
     white-space: nowrap;
   }
   .phud-opp    { color: #ff8080; }
   .phud-player { color: #80ff80; }
-  .phud-deck   { opacity: 0.7; font-size: 8px; margin-left: 2px; }
+  .phud-deck   { opacity: 0.8; font-size: 14px; margin-left: 4px; }
   .phud-phase {
     font-family: var(--font-stats);
-    font-size: 6px;
+    font-size: 12px;
     color: #d0c090;
     text-align: center;
     flex: 1;
@@ -1261,22 +1262,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .portrait-phase-btn {
-    width: 36px; height: 36px;
-    border-radius: 4px;
-    border: 1px solid rgba(60, 160, 80, 0.4);
-    font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; padding: 0;
-    flex-shrink: 0;
-  }
-  .portrait-phase-btn.phase-main              { background: rgba(80, 40, 0, 0.9);  color: #ffcc00; border-color: #ffcc00; }
-  .portrait-phase-btn.phase-battle            { background: rgba(100, 0, 0, 0.9);  color: #ff6060; border-color: #ff4040; }
-  .portrait-phase-btn.phase-end,
-  .portrait-phase-btn.phase-draw,
-  .portrait-phase-btn.phase-standby           { background: rgba(20, 60, 30, 0.8); color: #a0e0b0; }
-  .portrait-phase-btn.waiting,
-  .portrait-phase-btn:disabled                { background: rgba(20, 30, 25, 0.8); color: #607060; opacity: 0.6; cursor: default; }
 
   /* Hide left panel entirely — options button moved to portrait bar */
   #field-left { display: none; }
@@ -1349,8 +1334,6 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   .floating-phase-btn.waiting,
   .floating-phase-btn:disabled       { background: rgba(20, 30, 25, 0.85); color: #607060; border: 2px solid #405040; opacity: 0.5; cursor: default; animation: none; }
 
-  /* Dim the portrait-bar phase button since floating button is primary */
-  .portrait-phase-btn { opacity: 0.4; }
 }
 
 /* In landscape, width is sufficient — revert to height-based sizing.
