@@ -9,8 +9,23 @@ import { CardType } from '../src/types.js';
 import { isValidEffectString } from '../src/effect-serializer.js';
 import fs from 'fs';
 import path from 'path';
+import JSZip from 'jszip';
 
 const GERMAN_PATTERN = /\b(der|die|das|ein|eine|und|auf|ist|des|dem|den|mit|von|für|oder|nicht|werden|wird|haben|hat|sind|wenn|alle|dein|deinem|deinen|deiner|erhalt|erhalten|Spielfeld|Stufe|Krieger|Drache|Zauberer|Karte|Feld|Gegner|Schaden|Angriff|Verteidigung|Zerstore|Negiere|Aktiviere|Fuge|Wahle|Schadenspunkte|Beschwort|zuruckgeschickt|gehartetem|massiver|Verstarkt|Umhang|Schutz|Bietet|gefertigt|uralten|Starkt|Effekt|Zauberkarte|Fallenkarte)\b/;
+
+// Extract raw JSON files from the pre-built base.tcg archive
+const tcgPath = path.resolve('node_modules/@wynillo/echoes-mod-base/dist/base.tcg');
+const tcgBuf = fs.readFileSync(tcgPath);
+const zip = await JSZip.loadAsync(tcgBuf);
+
+async function readJsonFromZip(entryPath) {
+  const entry = zip.file(entryPath);
+  if (!entry) throw new Error(`Entry "${entryPath}" not found in base.tcg`);
+  return JSON.parse(await entry.async('string'));
+}
+
+const cardsJson = await readJsonFromZip('cards.json');
+const descsJson = await readJsonFromZip('locales/cards_description.json');
 
 function allCards() {
   return Object.values(CARD_DB);
@@ -19,11 +34,6 @@ function allCards() {
 // ── Source file integrity ───────────────────────────────────
 
 describe('TCG source file integrity', () => {
-  const cardsJsonPath = path.resolve('public/base.tcg-src/cards.json');
-  const descsJsonPath = path.resolve('public/base.tcg-src/locales/cards_description.json');
-  const cardsJson = JSON.parse(fs.readFileSync(cardsJsonPath, 'utf8'));
-  const descsJson = JSON.parse(fs.readFileSync(descsJsonPath, 'utf8'));
-
   it('cards_description.json is an array', () => {
     expect(Array.isArray(descsJson)).toBe(true);
   });
@@ -112,7 +122,6 @@ describe('Effect description consistency', () => {
   });
 
   it('all effect strings in cards.json are valid', () => {
-    const cardsJson = JSON.parse(fs.readFileSync(path.resolve('public/base.tcg-src/cards.json'), 'utf8'));
     const invalid = [];
     for (const card of cardsJson) {
       if (card.effect && !isValidEffectString(card.effect)) {

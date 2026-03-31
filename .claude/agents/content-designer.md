@@ -21,8 +21,8 @@ Specialist for campaign and shop content: campaign graph model, shop pack/packag
 
 ## Key Files
 
-- `public/base.tcg-src/campaign.json` — campaign graph: chapters, nodes, connections
-- `public/base.tcg-src/shop.json` — packs, packages, currency config
+- `@wynillo/echoes-mod-base` tcg-src/campaign.json — campaign graph: chapters, nodes, connections
+- `@wynillo/echoes-mod-base` tcg-src/shop.json — packs, packages, currency config
 - `src/campaign-types.ts` — CampaignData, Chapter, CampaignNode, UnlockCondition, NodeRewards
 - `src/campaign.ts` — node resolution, unlock checking
 - `src/shop-data.ts` — PackDef, PackageDef, PackSlotDef, CardPoolDef, CardFilter

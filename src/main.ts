@@ -1,9 +1,7 @@
 // Entry point — loads card data from base.tcg then mounts the app
 import './cards.js';           // empty data stores + helpers
 import './mod-api.js';         // exposes window.EchoesOfSanguoMod (live references to stores)
-import { loadAndApplyTcg, setTcgSourceBase, reloadTcgLocale } from './tcg-bridge.js';
-
-setTcgSourceBase(import.meta.env.BASE_URL + 'base.tcg-src/');
+import { loadAndApplyTcg, reloadTcgLocale } from './tcg-bridge.js';
 
 const loadingBar = document.getElementById('loading-bar');
 try {

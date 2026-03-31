@@ -1,7 +1,23 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { copyFileSync, existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+function copyBaseTcg() {
+  return {
+    name: 'copy-base-tcg',
+    buildStart() {
+      const src = resolve('node_modules/@wynillo/echoes-mod-base/dist/base.tcg');
+      const dest = resolve('public/base.tcg');
+      if (existsSync(src)) {
+        copyFileSync(src, dest);
+      }
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), copyBaseTcg()],
   root: '.',
   base: './',
   optimizeDeps: {

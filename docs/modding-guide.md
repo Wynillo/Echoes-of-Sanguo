@@ -176,7 +176,7 @@ The archive is merged into the running game — no restart needed.
 To validate your archive before shipping:
 
 ```bash
-npm run generate:tcg   # rebuilds public/base.tcg and reports warnings
+npm run copy:tcg   # ensures node_modules/@wynillo/echoes-mod-base/tcg-src is up-to-date and reports warnings
 ```
 
 See [`docs/tcg-format.md`](./tcg-format.md) for the full archive schema.
@@ -288,7 +288,7 @@ This standalone HTML snippet adds one card with a custom effect and one opponent
 
 ## Development Tips
 
-- **Validate archives:** Run `npm run generate:tcg` to build `public/base.tcg` and see any format warnings
+- **Validate archives:** Run `npm run copy:tcg` to ensure node_modules/@wynillo/echoes-mod-base/tcg-src is current and see any format warnings
 - **Inspect live state:** `window.EchoesOfSanguoMod.CARD_DB` is a live reference — check it in DevTools
 - **Effect strings:** The compact string format (`onSummon:dealDamage(opponent,300)`) is parsed by the TCG format package; when injecting via JS, you can also provide a pre-parsed `effect` object directly (see example above)
 - **ID collisions:** Use a unique prefix for all your card IDs (e.g., `mymod_`) to avoid conflicts with the base set

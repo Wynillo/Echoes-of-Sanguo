@@ -725,7 +725,7 @@ Validation logic lives in the [`@wynillo/tcg-format`](https://github.com/Wynillo
 To validate locally before shipping, run:
 
 ```bash
-npm run generate:tcg    # rebuilds public/base.tcg and prints any warnings
+npm run copy:tcg    # copies node_modules/@wynillo/echoes-mod-base/dist/base.tcg → public/base.tcg
 ```
 
-This command calls the package's `packTcgArchive()` function via a thin wrapper (`src/generate-base-tcg.ts`).
+This command validates and prepares the base TCG source for packing.

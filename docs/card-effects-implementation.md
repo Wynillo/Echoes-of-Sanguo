@@ -184,8 +184,8 @@ No engine changes — cards use existing actions.
 - `src/ai-orchestrator.ts` — Spirit return, temp steal return, turn counter tick
 - `src/tcg-bridge.ts` — Multi-block effect parsing via parseEffectString
 - `src/enums.ts` — New triggers in TRIGGER_STRINGS and trap trigger int maps
-- `public/base.tcg-src/cards.json` — 43 new card definitions (IDs 313-355)
-- `public/base.tcg-src/locales/cards_description.json` — Card names and descriptions
+- `node_modules/@wynillo/echoes-mod-base/tcg-src/cards.json` — 43 new card definitions (IDs 313-355)
+- `node_modules/@wynillo/echoes-mod-base/tcg-src/locales/cards_description.json` — Card names and descriptions (English)
 
 ## Simplifications
 

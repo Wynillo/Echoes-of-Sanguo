@@ -25,7 +25,7 @@ Specialist for internationalization. The game supports English and German across
 
 **App-level (i18next):** `locales/en.json`, `locales/de.json` — flat dot-notation keys, used via `t('key')` from `useTranslation()`. Setup in `src/i18n.ts`.
 
-**TCG content:** `public/base.tcg-src/locales/` — base files (`cards_description.json`, `opponents_description.json`) and language overrides (`{lang}_cards_description.json`, `{lang}_opponents_description.json`, `{lang}_races.json`, `{lang}_attributes.json`, `{lang}_card_types.json`).
+**TCG content:** Locale data is embedded in the `.tcg` archive from `@wynillo/echoes-mod-base`. Base files (`cards_description.json`, `opponents_description.json`) and language overrides (`{lang}_cards_description.json`, `{lang}_opponents_description.json`, `{lang}_races.json`, `{lang}_attributes.json`, `{lang}_card_types.json`) live in the MOD-base repository.
 
 ## Sync Rules
 

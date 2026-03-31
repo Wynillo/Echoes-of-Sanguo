@@ -45,7 +45,7 @@ The game has strong responsive CSS and a solid `prefers-reduced-motion` implemen
 ## P1 — High (Significant Pain Points)
 
 ### B1. Card Descriptions Not Localized (200+ cards, 39 opponents)
-- **Files:** `public/base.tcg-src/locales/cards_description.json`, `opponents_description.json`
+- **Files:** `node_modules/@wynillo/echoes-mod-base/tcg-src/locales/de_cards_description.json`, `de_opponents_description.json`
 - **Impact:** German-language players see English card descriptions and opponent flavor text. Breaks immersion for ~50% of target audience.
 - **Fix:** Create German translations for all card and opponent descriptions.
 

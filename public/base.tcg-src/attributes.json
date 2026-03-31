@@ -1,8 +1,0 @@
-[
-  { "id": 1, "key": "Light", "value": "Light", "color": "#c09000", "symbol": "☀" },
-  { "id": 2, "key": "Dark",  "value": "Dark",  "color": "#7020a0", "symbol": "☽" },
-  { "id": 3, "key": "Fire",  "value": "Fire",  "color": "#c0300a", "symbol": "♨" },
-  { "id": 4, "key": "Water", "value": "Water", "color": "#1a6aaa", "symbol": "◎" },
-  { "id": 5, "key": "Earth", "value": "Earth", "color": "#6a7030", "symbol": "◆" },
-  { "id": 6, "key": "Wind",  "value": "Wind",  "color": "#4a6080", "symbol": "∿" }
-]
