@@ -25,9 +25,6 @@ async function buildMinimalZip(overrides = {}) {
   if (overrides.manifest !== null) {
     zip.file('manifest.json', JSON.stringify(overrides.manifest ?? VALID_MANIFEST));
   }
-  if (overrides.meta) {
-    zip.file('meta.json', JSON.stringify(overrides.meta));
-  }
   if (overrides.fusionFormulas) {
     zip.file('fusion_formulas.json', JSON.stringify(overrides.fusionFormulas));
   }
@@ -194,20 +191,18 @@ describe('loadAndApplyTcg (bridge)', () => {
       flavor: 'A test opponent', coinsWin: 100, coinsLoss: 20,
       deckIds: [1, 1, 1], behavior: 'default',
     };
-    const meta = { starterDecks: { '1': [1, 1, 1] } };
-    const buf = await buildMinimalZip({ opponents: [opp], meta });
+    const buf = await buildMinimalZip({ opponents: [opp] });
     await loadAndApplyTcg(buf);
     expect(OPPONENT_CONFIGS).toHaveLength(1);
     expect(OPPONENT_CONFIGS[0].name).toBe('Test Opp');
   });
 
-  it('warns on malformed meta.json but continues loading', async () => {
+  it('loads starter decks from starterDecks.json', async () => {
     const buf = await buildMinimalZip({
-      extraFiles: { 'meta.json': 'not json' },
+      extraFiles: { 'starterDecks.json': JSON.stringify({ '1': [1, 1, 1] }) },
     });
-    const result = await loadAndApplyTcg(buf);
-    expect(result.warnings.some(w => w.includes('meta.json'))).toBe(true);
-    expect(CARD_DB['1']).toBeDefined();
+    await loadAndApplyTcg(buf);
+    expect(STARTER_DECKS[1]).toEqual(['1', '1', '1']);
   });
 });
 

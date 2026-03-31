@@ -6,7 +6,7 @@
 
 import { loadTcgFile, TcgNetworkError, TcgFormatError } from '@wynillo/tcg-format';
 import JSZip from 'jszip';
-import type { TcgLoadResult, TcgParsedCard, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from '@wynillo/tcg-format';
+import type { TcgLoadResult, TcgParsedCard, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from '@wynillo/tcg-format';
 import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
 import { CardType, Rarity } from './types.js';
 import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from './cards.js';
@@ -105,60 +105,58 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
   return card;
 }
 
-// ── applyTcgMeta — moved from tcg-loader.ts ──────────────────
+// ── applyOpponents ──────────────────────────────────────────
 
-function applyTcgMeta(
-  meta: TcgMeta,
-  tcgOpponents?: TcgOpponentDeck[],
+function applyOpponents(
+  tcgOpponents: TcgOpponentDeck[],
   oppDescs?: TcgOpponentDescription[],
 ): number[] {
   const rid = (numId: number): string => String(numId);
   const addedOpponentIds: number[] = [];
-
-  if (meta.fusionRecipes) {
-    const recipes: FusionRecipe[] = meta.fusionRecipes.map(r => ({
-      materials: [rid(r.materials[0]), rid(r.materials[1])] as [string, string],
-      result: rid(r.result),
-    }));
-    FUSION_RECIPES.push(...recipes);
+  const oppDescMap = new Map<number, TcgOpponentDescription>();
+  if (oppDescs) {
+    for (const d of oppDescs) oppDescMap.set(d.id, d);
   }
-
-  const rawOpponents = tcgOpponents ?? meta.opponentConfigs;
-  if (rawOpponents) {
-    const oppDescMap = new Map<number, TcgOpponentDescription>();
-    if (oppDescs) {
-      for (const d of oppDescs) oppDescMap.set(d.id, d);
-    }
-    const configs: OpponentConfig[] = rawOpponents.map(o => {
-      const desc = oppDescMap.get(o.id);
-      addedOpponentIds.push(o.id);
-      return {
-        id:         o.id,
-        name:       desc?.name ?? o.name,
-        title:      desc?.title ?? o.title,
-        race:       intToRace(o.race),
-        flavor:     desc?.flavor ?? o.flavor,
-        coinsWin:   o.coinsWin,
-        coinsLoss:  o.coinsLoss,
-        deckIds:    o.deckIds.map(rid),
-        behaviorId: o.behavior,
-      };
-    });
-    OPPONENT_CONFIGS.push(...configs);
-  }
-
-  if (meta.starterDecks) {
-    for (const [raceKey, numIds] of Object.entries(meta.starterDecks)) {
-      STARTER_DECKS[Number(raceKey)] = numIds.map(rid);
-    }
-    const firstDeck = Object.values(STARTER_DECKS)[0];
-    if (firstDeck) {
-      PLAYER_DECK_IDS.splice(0, PLAYER_DECK_IDS.length, ...firstDeck);
-      OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
-    }
-  }
-
+  const configs: OpponentConfig[] = tcgOpponents.map(o => {
+    const desc = oppDescMap.get(o.id);
+    addedOpponentIds.push(o.id);
+    return {
+      id:         o.id,
+      name:       desc?.name ?? o.name,
+      title:      desc?.title ?? o.title,
+      race:       intToRace(o.race),
+      flavor:     desc?.flavor ?? o.flavor,
+      coinsWin:   o.coinsWin,
+      coinsLoss:  o.coinsLoss,
+      deckIds:    o.deckIds.map(rid),
+      behaviorId: o.behavior,
+    };
+  });
+  OPPONENT_CONFIGS.push(...configs);
   return addedOpponentIds;
+}
+
+// ── applyStarterDecks ───────────────────────────────────────
+
+function applyFusionRecipes(raw: Array<{ materials: number[]; result: number }>): void {
+  const rid = (numId: number): string => String(numId);
+  const recipes: FusionRecipe[] = raw.map(r => ({
+    materials: [rid(r.materials[0]), rid(r.materials[1])] as [string, string],
+    result: rid(r.result),
+  }));
+  FUSION_RECIPES.push(...recipes);
+}
+
+function applyStarterDecks(raw: Record<string, number[]>): void {
+  const rid = (numId: number): string => String(numId);
+  for (const [raceKey, numIds] of Object.entries(raw)) {
+    STARTER_DECKS[Number(raceKey)] = numIds.map(rid);
+  }
+  const firstDeck = Object.values(STARTER_DECKS)[0];
+  if (firstDeck) {
+    PLAYER_DECK_IDS.splice(0, PLAYER_DECK_IDS.length, ...firstDeck);
+    OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
+  }
 }
 
 // ── applyFusionFormulas — moved from tcg-loader.ts ───────────
@@ -208,7 +206,6 @@ export interface BridgeLoadResult {
   parsedCards: TcgLoadResult['parsedCards'];
   definitions: TcgLoadResult['definitions'];
   images: Map<number, string>;   // card id → blob URL
-  meta?: TcgLoadResult['meta'];
   manifest?: TcgManifest;
   warnings: string[];
 }
@@ -229,7 +226,10 @@ export async function loadAndApplyTcg(
     buffer = source;
   }
 
-  await extractLocalesFromZip(buffer);
+  await Promise.all([
+    extractLocalesFromZip(buffer),
+    extractExtraDataFromZip(buffer),
+  ]);
 
   const lang = options?.lang ?? (typeof navigator !== 'undefined' ? navigator.language.substring(0, 2) : '');
   const result = await loadTcgFile(buffer, { lang, onProgress: options?.onProgress });
@@ -278,13 +278,9 @@ export async function loadAndApplyTcg(
   const oppDescs = result.opponentDescriptions?.get(lang)
     ?? (result.opponentDescriptions?.size ? result.opponentDescriptions.values().next().value! : undefined);
 
-  if (result.meta) {
-    try {
-      const opponentIds = applyTcgMeta(result.meta, result.opponents, oppDescs);
-      mod.opponentIds.push(...opponentIds);
-    } catch (e) {
-      result.warnings.push(`meta.json: failed to apply game data — ${e instanceof Error ? e.message : e}`);
-    }
+  if (result.opponents) {
+    const opponentIds = applyOpponents(result.opponents, oppDescs);
+    mod.opponentIds.push(...opponentIds);
   }
   if (result.fusionFormulas) applyFusionFormulas(result.fusionFormulas, result.warnings);
 
@@ -295,7 +291,6 @@ export async function loadAndApplyTcg(
     parsedCards: result.parsedCards,
     definitions: result.definitions,
     images,
-    meta: result.meta,
     manifest: result.manifest,
     warnings: result.warnings,
   };
@@ -306,7 +301,7 @@ export async function loadAndApplyTcg(
  * Does NOT revert: fusion recipes/formulas, shop data, campaign data, rules, or type metadata.
  */
 export function unloadModCards(source: string): boolean {
-  console.warn('[EOS] unloadModCards: partial unload — fusion recipes, shop data, campaign data, rules, and type metadata from this mod are NOT reverted.');
+  console.warn('[EOS] unloadModCards: partial unload — fusion formulas, shop data, campaign data, rules, and type metadata from this mod are NOT reverted.');
   const idx = loadedMods.findIndex(m => m.source === source);
   if (idx === -1) return false;
   const mod = loadedMods[idx];
@@ -339,6 +334,22 @@ interface TcgLocale {
 
 /** Cache of locale data extracted from .tcg archives. */
 const localeCache = new Map<string, TcgLocale>();
+
+async function extractExtraDataFromZip(buffer: ArrayBuffer): Promise<void> {
+  const zip = await JSZip.loadAsync(buffer);
+
+  const starterDecksFile = zip.file('starterDecks.json');
+  if (starterDecksFile) {
+    const raw: Record<string, number[]> = JSON.parse(await starterDecksFile.async('string'));
+    applyStarterDecks(raw);
+  }
+
+  const fusionRecipesFile = zip.file('fusion_recipes.json');
+  if (fusionRecipesFile) {
+    const raw = JSON.parse(await fusionRecipesFile.async('string'));
+    applyFusionRecipes(raw);
+  }
+}
 
 const LOCALE_PATTERN = /^locales\/([a-z]{2}(?:-[A-Z]{2})?)\.json$/;
 
