@@ -23,20 +23,21 @@ export enum Attribute {
   Wind  = 6,
 }
 
-export enum Race {
-  Dragon      = 1,
-  Spellcaster = 2,
-  Warrior     = 3,
-  Beast       = 4,
-  Plant       = 5,
-  Rock        = 6,
-  Phoenix     = 7,
-  Undead      = 8,
-  Aqua        = 9,
-  Insect      = 10,
-  Machine     = 11,
-  Pyro        = 12,
-}
+export type Race = number;
+export const Race = {
+  Dragon:      1,
+  Spellcaster: 2,
+  Warrior:     3,
+  Beast:       4,
+  Plant:       5,
+  Rock:        6,
+  Phoenix:     7,
+  Undead:      8,
+  Aqua:        9,
+  Insect:      10,
+  Machine:     11,
+  Pyro:        12,
+} as const;
 
 export enum Rarity {
   Common    = 1,
@@ -250,8 +251,8 @@ export type FusionComboType = 'race+race' | 'race+attr' | 'attr+attr';
 export interface FusionFormula {
   id:         string;
   comboType:  FusionComboType;
-  operand1:   number;    // Race (1-12) or Attribute (1-6) enum value
-  operand2:   number;    // Race (1-12) or Attribute (1-6) enum value
+  operand1:   number;    // Race or Attribute enum value
+  operand2:   number;    // Race or Attribute enum value
   priority:   number;    // Higher = checked first
   resultPool: string[];  // Card IDs (string, post-loader conversion)
 }

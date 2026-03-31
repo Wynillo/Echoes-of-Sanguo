@@ -10,9 +10,6 @@ import type { EffectTrigger, TrapTrigger, SpellType } from './types.js';
 import {
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_EQUIPMENT,
   TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG_ATTR_WATER, TCG_ATTR_EARTH, TCG_ATTR_WIND,
-  TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_BEAST, TCG_RACE_PLANT,
-  TCG_RACE_ROCK, TCG_RACE_PHOENIX, TCG_RACE_UNDEAD, TCG_RACE_AQUA, TCG_RACE_INSECT,
-  TCG_RACE_MACHINE, TCG_RACE_PYRO,
   TCG_RARITY_COMMON, TCG_RARITY_UNCOMMON, TCG_RARITY_RARE, TCG_RARITY_SUPER_RARE, TCG_RARITY_ULTRA_RARE,
 } from '@wynillo/tcg-format';
 
@@ -81,47 +78,14 @@ export function intToAttribute(n: number): Attribute {
 }
 
 // ── Race ─────────────────────────────────────────────────────
-
-const RACE_TO_INT: Record<Race, number> = {
-  [Race.Dragon]:      TCG_RACE_DRAGON,
-  [Race.Spellcaster]: TCG_RACE_SPELLCASTER,
-  [Race.Warrior]:     TCG_RACE_WARRIOR,
-  [Race.Beast]:       TCG_RACE_BEAST,
-  [Race.Plant]:       TCG_RACE_PLANT,
-  [Race.Rock]:        TCG_RACE_ROCK,
-  [Race.Phoenix]:     TCG_RACE_PHOENIX,
-  [Race.Undead]:      TCG_RACE_UNDEAD,
-  [Race.Aqua]:        TCG_RACE_AQUA,
-  [Race.Insect]:      TCG_RACE_INSECT,
-  [Race.Machine]:     TCG_RACE_MACHINE,
-  [Race.Pyro]:        TCG_RACE_PYRO,
-};
-
-const INT_TO_RACE: Record<number, Race> = {
-  [TCG_RACE_DRAGON]:      Race.Dragon,
-  [TCG_RACE_SPELLCASTER]: Race.Spellcaster,
-  [TCG_RACE_WARRIOR]:     Race.Warrior,
-  [TCG_RACE_BEAST]:       Race.Beast,
-  [TCG_RACE_PLANT]:       Race.Plant,
-  [TCG_RACE_ROCK]:        Race.Rock,
-  [TCG_RACE_PHOENIX]:     Race.Phoenix,
-  [TCG_RACE_UNDEAD]:      Race.Undead,
-  [TCG_RACE_AQUA]:        Race.Aqua,
-  [TCG_RACE_INSECT]:      Race.Insect,
-  [TCG_RACE_MACHINE]:     Race.Machine,
-  [TCG_RACE_PYRO]:        Race.Pyro,
-};
+// Race is a plain number type — identity conversion, no fixed limit.
 
 export function raceToInt(r: Race): number {
-  const n = RACE_TO_INT[r];
-  if (n === undefined) throw new Error(`Unknown Race: ${r}`);
-  return n;
+  return r;
 }
 
 export function intToRace(n: number): Race {
-  const r = INT_TO_RACE[n];
-  if (r === undefined) throw new Error(`Unknown race int: ${n}`);
-  return r;
+  return n;
 }
 
 // ── Rarity ───────────────────────────────────────────────────
