@@ -1,7 +1,0 @@
-[
-  { "id": 1, "key": "Common",    "value": "Common",     "color": "#aaaaaa" },
-  { "id": 2, "key": "Uncommon",  "value": "Uncommon",   "color": "#7ec8e3" },
-  { "id": 4, "key": "Rare",      "value": "Rare",       "color": "#f5c518" },
-  { "id": 6, "key": "SuperRare", "value": "Super Rare", "color": "#c084fc" },
-  { "id": 8, "key": "UltraRare", "value": "Ultra Rare", "color": "#f97316" }
-]

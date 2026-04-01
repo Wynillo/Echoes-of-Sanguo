@@ -1,22 +1,23 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
+// Enum converters (engine-specific)
 import {
-  // Enum converters
   cardTypeToInt, intToCardType,
   attributeToInt, intToAttribute,
   raceToInt, intToRace,
   rarityToInt, intToRarity,
-  // Effect serializer
-  serializeEffect, deserializeEffect, isValidEffectString,
-  // Validators
+} from '../src/enums.js';
+// Effect serializer (engine-specific)
+import { serializeEffect, deserializeEffect, isValidEffectString } from '../src/effect-serializer.js';
+// Builder (engine-specific)
+import { cardDataToTcgCard, cardDataToTcgDef } from '../src/tcg-builder.js';
+// Validators & constants (from package)
+import {
   validateTcgCards, validateTcgDefinitions,
-  // Builder
-  cardDataToTcgCard, cardDataToTcgDef,
-  // Constants
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP,
   TCG_RARITY_COMMON, TCG_RARITY_ULTRA_RARE,
-} from '../js/tcg-format/index.js';
-import { CardType, Attribute, Race, Rarity } from '../js/types.js';
+} from '@wynillo/tcg-format';
+import { CardType, Attribute, Race, Rarity } from '../src/types.js';
 
 // ── Enum Converter Tests ────────────────────────────────────
 
@@ -257,10 +258,11 @@ describe('Card Validator', () => {
     expect(result.errors.some(e => e.includes('duplicate'))).toBe(true);
   });
 
-  it('rejects invalid effect syntax', () => {
+  it('accepts any effect string (opaque at format level)', () => {
+    // Effect strings are treated as opaque by the card validator — semantic
+    // validation is done by the engine bridge after loading.
     const result = validateTcgCards([{ ...validMonster, effect: 'not_a_valid_effect' }]);
-    expect(result.valid).toBe(false);
-    expect(result.errors[0]).toContain('effect');
+    expect(result.valid).toBe(true);
   });
 
   it('accepts valid effect syntax', () => {

@@ -1,0 +1,533 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  background: #080c18;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+  will-change: transform;
+}
+
+.packPhase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.packWrapper {
+  position: relative;
+  width: 140px;
+  height: 200px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1a1040 0%, #2a1860 30%, #3a2080 50%, #2a1860 70%, #1a1040 100%);
+  border: 2px solid #c8a84b;
+  box-shadow: 0 0 20px rgba(200, 168, 75, 0.3), 0 4px 20px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.packWrapper:hover {
+  box-shadow: 0 0 30px rgba(200, 168, 75, 0.5), 0 4px 24px rgba(0, 0, 0, 0.7);
+}
+
+.packFoil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 220, 100, 0.15) 30%,
+    rgba(200, 160, 255, 0.2) 40%,
+    rgba(100, 220, 255, 0.15) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: packShimmer 1.8s linear infinite;
+  pointer-events: none;
+}
+
+.packLabel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+}
+
+.packIcon {
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 0 4px rgba(200, 168, 75, 0.6));
+}
+
+.packName {
+  font-size: 0.7rem;
+  color: #c8a84b;
+  text-shadow: 1px 1px 0 #000;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.tapPrompt {
+  margin-top: 24px;
+  font-size: 0.7rem;
+  color: #c8a84b;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: tapPulse 1.2s ease-in-out infinite;
+  text-shadow: 0 0 8px rgba(200, 168, 75, 0.4);
+}
+
+.tapDots {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tapDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1a1040;
+  border: 1px solid #c8a84b40;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.tapDot.filled {
+  background: #c8a84b;
+  box-shadow: 0 0 6px rgba(200, 168, 75, 0.8);
+}
+
+.packHalfLeft,
+.packHalfRight {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.packHalfLeft {
+  left: 0;
+  clip-path: polygon(0 0, 100% 0, 85% 50%, 100% 100%, 0 100%);
+}
+
+.packHalfRight {
+  right: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 15% 50%);
+}
+
+.packHalfInner {
+  position: absolute;
+  top: 0;
+  width: 140px;
+  height: 200px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1a1040 0%, #2a1860 30%, #3a2080 50%, #2a1860 70%, #1a1040 100%);
+  border: 2px solid #c8a84b;
+}
+
+.packHalfLeft .packHalfInner { left: 0; }
+.packHalfRight .packHalfInner { right: 0; }
+
+.flash {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(255, 240, 200, 0.9), rgba(255, 255, 255, 0.6));
+  pointer-events: none;
+  z-index: 210;
+  animation: packFlash 0.25s ease-out forwards;
+}
+
+.revealPhase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.revealStage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  perspective: 600px;
+}
+
+.revealCard {
+  position: absolute;
+  width: 180px;
+  min-height: 248px;
+  opacity: 0;
+  will-change: transform, opacity;
+  perspective: 600px;
+}
+
+@media (min-width: 480px) {
+  .revealCard { width: 200px; min-height: 276px; }
+}
+
+.revealCardInner {
+  position: relative;
+  width: 100%;
+  min-height: inherit;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.revealCardBack {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 0;
+  border: 3px solid #286e3a;
+  background: #081610;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cardBackPattern {
+  width: 100%;
+  height: 100%;
+  min-height: 248px;
+  background: repeating-conic-gradient(#081610 0% 25%, rgba(30, 90, 50, 0.15) 0% 50%) 0 0 / 8px 8px;
+  image-rendering: pixelated;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 480px) {
+  .cardBackPattern { min-height: 276px; }
+}
+
+.backLabel {
+  font-size: 32px;
+  color: rgba(50, 140, 70, 0.3);
+  font-weight: bold;
+  letter-spacing: -2px;
+}
+
+.revealCardFront {
+  position: relative;
+  width: 100%;
+  min-height: inherit;
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+}
+
+.revealCardFront.sparkle {
+  animation: rareBorderGlow 0.8s ease-in-out 3;
+}
+
+.bgEffect {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 199;
+  opacity: 0;
+  will-change: opacity;
+}
+
+.bgUncommon {
+  background: radial-gradient(ellipse at center, rgba(40, 60, 120, 0.3) 0%, transparent 70%);
+  animation: bgPulse 2s ease-in-out infinite;
+}
+
+.bgRare {
+  background: radial-gradient(ellipse at center, rgba(80, 60, 180, 0.4) 0%, rgba(40, 30, 120, 0.2) 40%, transparent 70%);
+  animation: bgPulse 1.5s ease-in-out infinite;
+}
+
+.bgSuperRare {
+  background: radial-gradient(ellipse at center, rgba(200, 168, 75, 0.15) 0%, transparent 60%);
+}
+
+.bgUltraRare {
+  background: radial-gradient(ellipse at center, rgba(200, 100, 255, 0.15) 0%, transparent 60%);
+}
+
+.lightRaysContainer {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 500px;
+  height: 500px;
+  pointer-events: none;
+  z-index: 198;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.lightRaysSR {
+  width: 100%;
+  height: 100%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(200, 168, 75, 0.15) 10deg,
+    transparent 20deg,
+    transparent 40deg,
+    rgba(200, 168, 75, 0.12) 50deg,
+    transparent 60deg,
+    transparent 80deg,
+    rgba(200, 168, 75, 0.15) 90deg,
+    transparent 100deg,
+    transparent 120deg,
+    rgba(200, 168, 75, 0.12) 130deg,
+    transparent 140deg,
+    transparent 160deg,
+    rgba(200, 168, 75, 0.15) 170deg,
+    transparent 180deg,
+    transparent 200deg,
+    rgba(200, 168, 75, 0.12) 210deg,
+    transparent 220deg,
+    transparent 240deg,
+    rgba(200, 168, 75, 0.15) 250deg,
+    transparent 260deg,
+    transparent 280deg,
+    rgba(200, 168, 75, 0.12) 290deg,
+    transparent 300deg,
+    transparent 320deg,
+    rgba(200, 168, 75, 0.15) 330deg,
+    transparent 340deg,
+    transparent 360deg
+  );
+  animation: lightRays 8s linear infinite;
+}
+
+.lightRaysUR {
+  width: 100%;
+  height: 100%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(255, 80, 80, 0.15) 10deg,
+    transparent 20deg,
+    transparent 30deg,
+    rgba(255, 200, 60, 0.15) 40deg,
+    transparent 50deg,
+    transparent 60deg,
+    rgba(100, 255, 100, 0.15) 70deg,
+    transparent 80deg,
+    transparent 90deg,
+    rgba(80, 160, 255, 0.15) 100deg,
+    transparent 110deg,
+    transparent 120deg,
+    rgba(200, 100, 255, 0.15) 130deg,
+    transparent 140deg,
+    transparent 160deg,
+    rgba(255, 80, 80, 0.15) 170deg,
+    transparent 180deg,
+    transparent 190deg,
+    rgba(255, 200, 60, 0.15) 200deg,
+    transparent 210deg,
+    transparent 220deg,
+    rgba(100, 255, 100, 0.15) 230deg,
+    transparent 240deg,
+    transparent 250deg,
+    rgba(80, 160, 255, 0.15) 260deg,
+    transparent 270deg,
+    transparent 280deg,
+    rgba(200, 100, 255, 0.15) 290deg,
+    transparent 300deg,
+    transparent 320deg,
+    rgba(255, 80, 80, 0.12) 330deg,
+    transparent 340deg,
+    transparent 360deg
+  );
+  animation: lightRays 6s linear infinite;
+}
+
+.sparkle-particle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  left: 50%;
+  top: 50%;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: linear-gradient(135deg, var(--sparkle-color, #ffd700) 0%, #fff8dc 50%, var(--sparkle-color, #ffd700) 100%);
+  box-shadow: 0 0 6px var(--sparkle-color, rgba(255, 215, 0, 0.8));
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: sparkleParticle 0.8s ease-out forwards;
+}
+
+.sparkle-particle-small {
+  composes: sparkle-particle;
+  width: 6px;
+  height: 6px;
+  box-shadow: 0 0 3px var(--sparkle-color, rgba(120, 160, 255, 0.6));
+}
+
+.sparkle-burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--sparkle-color, rgba(255, 215, 0, 0.5)) 0%, var(--sparkle-color, rgba(255, 215, 0, 0.1)) 40%, transparent 70%);
+  pointer-events: none;
+  animation: sparkleBurst 0.7s ease-out forwards;
+  z-index: -1;
+}
+
+.sparkle-burst-large {
+  composes: sparkle-burst;
+  width: 280px;
+  height: 280px;
+}
+
+.lightBeam {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 200px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--sparkle-color, rgba(255, 215, 0, 0.6)) 30%,
+    var(--sparkle-color, rgba(255, 215, 0, 0.8)) 50%,
+    var(--sparkle-color, rgba(255, 215, 0, 0.6)) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+  transform-origin: center center;
+  animation: lightBeamFade 1.2s ease-out forwards;
+}
+
+
+.revealCounter {
+  position: absolute;
+  bottom: 24px;
+  font-size: 0.7rem;
+  color: #607090;
+  letter-spacing: 2px;
+}
+
+.miniStrip {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-height: 48px;
+}
+
+.miniCard {
+  width: 32px;
+  height: 44px;
+  border-radius: 0;
+  border: 1px solid var(--rarity-color, #aaa);
+  background: #111828;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5rem;
+  color: #6080a0;
+  overflow: hidden;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.miniCardIcon {
+  font-size: 0.5rem;
+  line-height: 1;
+}
+
+.summaryPhase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px 40px;
+  overflow-y: auto;
+  width: 100%;
+  height: 100%;
+}
+
+.header { text-align: center; margin-bottom: 20px; }
+
+.title {
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  letter-spacing: 3px;
+  color: #c8a84b;
+  margin: 0;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 800px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.cardWrapper {
+  animation: packReveal 0.4s ease both;
+  position: relative;
+}
+
+.newBadge {
+  position: absolute;
+  top: 4px; right: 4px;
+  background: #c8a84b;
+  color: #050a14;
+  font-size: 0.6rem;
+  font-weight: bold;
+  padding: 1px 5px;
+  border-radius: 0;
+  letter-spacing: 1px;
+  z-index: 1;
+  text-shadow: none;
+}
+
+
+.buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.backBtn {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  z-index: 10;
+}
+
+.skipHint {
+  position: absolute;
+  bottom: 16px;
+  font-size: 0.6rem;
+  color: #405060;
+  letter-spacing: 1px;
+  animation: titlePulse 2s ease-in-out infinite;
+}

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { executeEffectBlock, extractPassiveFlags, EFFECT_REGISTRY, matchesFilter } from '../js/effect-registry.js';
+import { executeEffectBlock, extractPassiveFlags, EFFECT_REGISTRY, matchesFilter } from '../src/effect-registry.js';
 
 // ── Helpers ─────────────────────────────────────────────────
 
@@ -47,17 +47,27 @@ describe('Effect Registry', () => {
       'bounceStrongestOpp', 'bounceAttacker', 'bounceAllOppMonsters',
       'searchDeckToHand',
       'tempAtkBonus', 'permAtkBonus', 'tempDefBonus', 'permDefBonus',
-      'reviveFromGrave',
-      'cancelAttack', 'destroyAttacker', 'destroySummonedIf',
+      'reviveFromGrave', 'reviveFromEitherGrave',
+      'cancelAttack', 'cancelEffect', 'reflectBattleDamage',
+      'destroyAttacker', 'destroySummonedIf',
       'destroyAllOpp', 'destroyAll', 'destroyWeakestOpp', 'destroyStrongestOpp',
+      'destroyOppSpellTrap', 'destroyAllOppSpellTraps', 'destroyAllSpellTraps', 'destroyOppFieldSpell',
+      'destroyByFilter', 'destroyAndDamageBoth',
       'sendTopCardsToGrave', 'sendTopCardsToGraveOpp',
       'salvageFromGrave', 'recycleFromGraveToDeck',
       'shuffleGraveIntoDeck', 'shuffleDeck', 'peekTopCard',
-      'specialSummonFromHand',
-      'discardFromHand', 'discardOppHand',
+      'specialSummonFromHand', 'specialSummonFromDeck',
+      'discardFromHand', 'discardOppHand', 'discardEntireHand',
+      'drawThenDiscard', 'bounceOppHandToDeck',
+      'stealMonster', 'stealMonsterTemp',
+      'skipOppDraw', 'preventBattleDamage', 'preventAttacks',
+      'changePositionOpp', 'setFaceDown', 'flipAllOppFaceDown',
+      'halveAtk', 'doubleAtk', 'swapAtkDef',
+      'createTokens', 'gameReset', 'excavateAndSummon', 'tributeSelf',
       'passive_piercing', 'passive_untargetable', 'passive_directAttack',
       'passive_vsAttrBonus', 'passive_phoenixRevival',
       'passive_indestructible', 'passive_effectImmune', 'passive_cantBeAttacked',
+      'passive_negateTraps', 'passive_negateSpells', 'passive_negateMonsterEffects',
     ];
     for (const t of expectedTypes) {
       expect(EFFECT_REGISTRY.has(t), `missing: ${t}`).toBe(true);
@@ -79,6 +89,36 @@ describe('matchesFilter', () => {
   it('matches by maxAtk', () => {
     expect(matchesFilter({ atk: 1200 }, { maxAtk: 1500 })).toBe(true);
     expect(matchesFilter({ atk: 2000 }, { maxAtk: 1500 })).toBe(false);
+  });
+
+  it('matches by minAtk', () => {
+    expect(matchesFilter({ atk: 1500 }, { minAtk: 1200 })).toBe(true);
+    expect(matchesFilter({ atk: 800 }, { minAtk: 1200 })).toBe(false);
+  });
+
+  it('matches by maxDef', () => {
+    expect(matchesFilter({ def: 1000 }, { maxDef: 1500 })).toBe(true);
+    expect(matchesFilter({ def: 2000 }, { maxDef: 1500 })).toBe(false);
+  });
+
+  it('matches by maxLevel', () => {
+    expect(matchesFilter({ level: 4 }, { maxLevel: 6 })).toBe(true);
+    expect(matchesFilter({ level: 8 }, { maxLevel: 6 })).toBe(false);
+  });
+
+  it('matches by minLevel', () => {
+    expect(matchesFilter({ level: 5 }, { minLevel: 3 })).toBe(true);
+    expect(matchesFilter({ level: 2 }, { minLevel: 3 })).toBe(false);
+  });
+
+  it('matches by cardType', () => {
+    expect(matchesFilter({ type: 1 }, { cardType: 1 })).toBe(true);
+    expect(matchesFilter({ type: 2 }, { cardType: 1 })).toBe(false);
+  });
+
+  it('matches by cardId', () => {
+    expect(matchesFilter({ id: 'card-001' }, { cardId: 'card-001' })).toBe(true);
+    expect(matchesFilter({ id: 'card-002' }, { cardId: 'card-001' })).toBe(false);
   });
 
   it('matches by multiple filters', () => {

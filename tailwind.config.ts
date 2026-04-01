@@ -1,12 +1,12 @@
 import type { Config } from 'tailwindcss'
 
 export default {
-  content: ['./index.html', './js/**/*.{ts,tsx,js}'],
+  content: ['./index.html', './src/**/*.{ts,tsx,js}'],
   theme: {
     extend: {
       fontFamily: {
-        pixel: ['"Pixelify Sans"', 'monospace'],
-        title: ['"Press Start 2P"', 'monospace'],
+        pixel: ['var(--font-stats)'],
+        title: ['var(--font-stats)'],
       },
       borderRadius: {
         DEFAULT: '0',

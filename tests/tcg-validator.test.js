@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
 import JSZip from 'jszip';
-import { validateTcgArchive, validateFusionFormulasJson, validateOpponentDeck } from '../js/tcg-format/index.js';
+import { validateTcgArchive, validateFusionFormulasJson, validateOpponentDeck } from '@wynillo/tcg-format';
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -224,9 +224,9 @@ describe('validateOpponentDeck', () => {
     expect(warnings.some(w => w.includes('name'))).toBe(true);
   });
 
-  it('warns when race is invalid (13)', () => {
+  it('warns when race is invalid (0)', () => {
     const opp = validOpponent();
-    opp.race = 13;
+    opp.race = 0;
     const warnings = validateOpponentDeck(opp, 0);
     expect(warnings.some(w => w.includes('race'))).toBe(true);
   });

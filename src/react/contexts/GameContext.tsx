@@ -1,0 +1,427 @@
+import { createContext, useContext, useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import type { GameState, UICallbacks, OpponentConfig, CardData, PlayerState } from '../../types.js';
+import type { GameEngine as GameEngineType, SerializedCheckpoint, SerializedPlayerState, SerializedFieldCardData, SerializedFieldSpellTrapData } from '../../engine.js';
+import type { PendingDuel } from '../../campaign-types.js';
+import { useModal } from './ModalContext.js';
+import { useSelection } from './SelectionContext.js';
+import { useProgression } from './ProgressionContext.js';
+import { useScreen } from './ScreenContext.js';
+import { useCampaign } from './CampaignContext.js';
+import { Audio } from '../../audio.js';
+import { OPPONENT_CONFIGS } from '../../cards.js';
+import { calculateBattleBadges, rollBadgeCardDrops } from '../../battle-badges.js';
+import type { BattleBadges } from '../../battle-badges.js';
+import { computeCampaignDuelNav } from '../../campaign-duel-result.js';
+
+interface GameCtx {
+  gameState:          GameState | null;
+  gameRef:            React.MutableRefObject<GameEngineType | null>;
+  logEntries:         string[];
+  pendingDraw:        number;
+  lastOpponent:       OpponentConfig | null;
+  startGame:          (opponentConfig?: OpponentConfig | null) => void;
+  clearPendingDraw:   () => void;
+}
+
+const GameContext = createContext<GameCtx>({
+  gameState: null, gameRef: { current: null }, logEntries: [],
+  pendingDraw: 0, lastOpponent: null,
+  startGame: () => {}, clearPendingDraw: () => {},
+});
+
+function serializePlayerState(ps: PlayerState): SerializedPlayerState {
+  return {
+    lp: ps.lp,
+    deckIds: ps.deck.map(c => c.id),
+    handIds: ps.hand.map(c => c.id),
+    graveyardIds: ps.graveyard.map(c => c.id),
+    normalSummonUsed: ps.normalSummonUsed,
+    monsters: ps.field.monsters.map(fc => {
+      if (!fc) return null;
+      return {
+        cardId: fc.card.id,
+        position: fc.position,
+        faceDown: fc.faceDown,
+        hasAttacked: fc.hasAttacked,
+        hasFlipped: fc.hasFlipped,
+        summonedThisTurn: fc.summonedThisTurn,
+        tempATKBonus: fc.tempATKBonus,
+        tempDEFBonus: fc.tempDEFBonus,
+        permATKBonus: fc.permATKBonus,
+        permDEFBonus: fc.permDEFBonus,
+        fieldSpellATKBonus: fc.fieldSpellATKBonus,
+        fieldSpellDEFBonus: fc.fieldSpellDEFBonus,
+        phoenixRevivalUsed: fc.phoenixRevivalUsed,
+      } as SerializedFieldCardData;
+    }),
+    spellTraps: ps.field.spellTraps.map(st => {
+      if (!st) return null;
+      return {
+        cardId: st.card.id,
+        faceDown: st.faceDown,
+        used: st.used,
+        equippedMonsterZone: st.equippedMonsterZone,
+        equippedOwner: st.equippedOwner,
+      } as SerializedFieldSpellTrapData;
+    }),
+    fieldSpell: ps.field.fieldSpell ? {
+      cardId: ps.field.fieldSpell.card.id,
+      faceDown: ps.field.fieldSpell.faceDown,
+      used: ps.field.fieldSpell.used,
+    } as SerializedFieldSpellTrapData : null,
+  };
+}
+
+interface FullCheckpoint {
+  checkpoint: SerializedCheckpoint;
+  pendingDuel: PendingDuel | null;
+  lastOpponent: OpponentConfig | null;
+}
+
+export function GameProvider({ children }: { children: React.ReactNode }) {
+  const [gameState,    setGameState]    = useState<GameState | null>(null);
+  const [logEntries,   setLogEntries]   = useState<string[]>([]);
+  const [pendingDraw,  setPendingDraw]  = useState(0);
+  const [lastOpponent, setLastOpponent] = useState<OpponentConfig | null>(null);
+
+  const gameRef = useRef<GameEngineType | null>(null);
+  const restoredRef = useRef(false);
+
+  const { openModal }     = useModal();
+  const { resetSel }      = useSelection();
+  const { loadDeck, refresh } = useProgression();
+  const { setScreen, navigateTo } = useScreen();
+  const { pendingDuel, setPendingDuel, refreshCampaignProgress } = useCampaign();
+
+  // Stable refs so useMemo(() => uiCallbacks, []) can safely use current values
+  const openModalRef      = useRef(openModal);      openModalRef.current      = openModal;
+  const resetSelRef       = useRef(resetSel);       resetSelRef.current       = resetSel;
+  const setScreenRef      = useRef(setScreen);      setScreenRef.current      = setScreen;
+  const navigateToRef     = useRef(navigateTo);     navigateToRef.current     = navigateTo;
+  const refreshRef        = useRef(refresh);        refreshRef.current        = refresh;
+  const pendingDuelRef    = useRef(pendingDuel);    pendingDuelRef.current    = pendingDuel;
+  const setPendingDuelRef = useRef(setPendingDuel); setPendingDuelRef.current = setPendingDuel;
+  const refreshCampaignRef = useRef(refreshCampaignProgress); refreshCampaignRef.current = refreshCampaignProgress;
+  const lastOppRef        = useRef<OpponentConfig | null>(null);
+  const gameStateRef      = useRef<GameState | null>(null);
+  gameStateRef.current    = gameState;
+  const startGameRef      = useRef<(cfg?: OpponentConfig | null) => void>(() => {});
+
+  const uiCallbacks = useMemo<UICallbacks>(() => ({
+    render: (state) => setGameState({ ...state }),
+    log: (msg) => setLogEntries(prev => [msg, ...prev].slice(0, 25)),
+    prompt: (opts) => new Promise(resolve => {
+      openModalRef.current({ type: 'trap-prompt', opts, resolve });
+    }),
+    showResult: (type) => {
+      /* result shown via onDuelEnd */
+    },
+    showActivation: (card: CardData, text: string) => {
+      return import('../components/cardActivationApi.js').then(m => m.showActivation(card, text));
+    },
+    playAttackAnimation: (ao, az, dO, dZ) => {
+      return import('../hooks/useAttackAnimation.js').then(m => m.playAttackAnim(ao, az, dO, dZ));
+    },
+    playFusionAnimation: (owner, handIdx1, handIdx2, resultZone) => {
+      return import('../hooks/useFusionAnimation.js').then(m => m.playFusionAnim(owner, handIdx1, handIdx2, resultZone));
+    },
+    playFusionChainAnimation: (owner, handIndices, resultZone) => {
+      return import('../hooks/useFusionAnimation.js').then(m => m.playFusionChainAnim(owner, handIndices, resultZone));
+    },
+    playVFX: (type, owner, zone) => {
+      return import('../components/vfxApi.js').then(m => m.playVFXAtZone(type, owner, zone));
+    },
+    playSfx: (sfxId: string) => {
+      Audio.playSfx(sfxId);
+    },
+    showDamageNumber: (amount, owner) => {
+      import('../components/damageNumberApi.js').then(m => m.showDamageNumber(amount, owner));
+    },
+    onDraw: (owner, count) => {
+      if (owner === 'player') setPendingDraw(prev => prev + count);
+    },
+    showCoinToss: (playerGoesFirst: boolean) => {
+      return new Promise<void>(resolve => {
+        openModalRef.current({ type: 'coin-toss', playerGoesFirst, resolve });
+      });
+    },
+    onDuelEnd: (result, opponentId, stats) => {
+      // Clear engine refs synchronously so beforeunload won't re-save a stale checkpoint
+      gameRef.current = null;
+      gameStateRef.current = null;
+      setGameState(null);
+
+      // Clear duel checkpoint — the duel is over
+      import('../../progression.js').then(({ Progression }) => Progression.clearDuelCheckpoint());
+
+      Audio.playMusic(result === 'victory' ? 'music_victory' : 'music_defeat');
+
+      /** Helper to build duel-result screen data */
+      const resultData = (
+        r: 'victory' | 'defeat',
+        extra?: Record<string, unknown>,
+      ): Record<string, unknown> => ({ result: r, stats, ...extra });
+
+      // Compute battle badges on victory
+      const badges: BattleBadges | null = result === 'victory' && stats ? calculateBattleBadges(stats) : null;
+
+      /** Apply badge coin multiplier to a base amount */
+      const applyBadgeMultiplier = (base: number): number =>
+        badges ? Math.round(base * badges.coinMultiplier) : base;
+
+      /** Roll S-rank card drops from opponent deck, returns card IDs or empty array */
+      const rollSRankDrops = (): string[] => {
+        if (!badges || badges.best !== 'S' || !opponentId) return [];
+        const cfg = (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === opponentId);
+        return cfg?.deckIds ? rollBadgeCardDrops(cfg.deckIds, 3) : [];
+      };
+
+      // Campaign duel
+      const pending = pendingDuelRef.current;
+      if (pending) {
+        // --- Gauntlet: back-to-back duels ---
+        const gauntlet = pending.gauntletOpponents;
+        const gIdx = pending.gauntletIndex ?? 0;
+
+        if (gauntlet && gauntlet.length > 0) {
+          import('../../progression.js').then(({ Progression }) => {
+            // Record individual duel result
+            if (opponentId) Progression.recordDuelResult(opponentId, result === 'victory');
+
+            if (result === 'victory' && gIdx + 1 < gauntlet.length) {
+              // More opponents remain — show transition, then start next duel
+              const nextOppId = gauntlet[gIdx + 1];
+              const nextCfg = (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === nextOppId);
+              const nextName = nextCfg?.name ?? `Opponent #${nextOppId}`;
+
+              // Update pending duel to advance gauntlet index
+              const nextPending = { ...pending, gauntletIndex: gIdx + 1 };
+              setPendingDuelRef.current(nextPending);
+
+              openModalRef.current({
+                type: 'gauntlet-transition',
+                duelIndex: gIdx + 1,
+                totalDuels: gauntlet.length,
+                nextOpponentName: nextName,
+                resolve: () => {
+                  openModalRef.current(null); // close modal
+                  startGameRef.current(nextCfg ?? null);
+                },
+              });
+            } else if (result === 'victory') {
+              // Final gauntlet duel won — complete node, give rewards
+              setPendingDuelRef.current(null);
+              Progression.markNodeComplete(pending.nodeId);
+
+              // Badge-adjusted rewards
+              const badgeDrops = rollSRankDrops();
+              const adjustedRewards = { ...pending.rewards };
+              if (adjustedRewards.coins) adjustedRewards.coins = applyBadgeMultiplier(adjustedRewards.coins);
+              if (adjustedRewards.coins) Progression.addCoins(adjustedRewards.coins);
+              const allCards = [...(adjustedRewards.cards ?? []), ...badgeDrops];
+              const newCardIds = allCards.filter(id => !Progression.ownsCard(id));
+              if (allCards.length) Progression.addCardsToCollection(allCards);
+              if (badgeDrops.length) adjustedRewards.cards = allCards;
+
+              refreshRef.current();
+              refreshCampaignRef.current();
+              if (pending.postDialogue && pending.postDialogue.dialogue.length > 0) {
+                navigateToRef.current('duel-result', resultData('victory', {
+                  rewards: adjustedRewards,
+                  badges,
+                  newCardIds,
+                  nextScreen: 'dialogue',
+                  dialogueData: {
+                    scene: pending.postDialogue,
+                    nextScreen: 'campaign',
+                  },
+                }));
+              } else {
+                navigateToRef.current('duel-result', resultData('victory', {
+                  rewards: adjustedRewards,
+                  badges,
+                  newCardIds,
+                  nextScreen: 'campaign',
+                }));
+              }
+            } else {
+              // Defeat in gauntlet — entire gauntlet fails
+              setPendingDuelRef.current(null);
+              refreshRef.current();
+              refreshCampaignRef.current();
+              navigateToRef.current('duel-result', resultData('defeat'));
+            }
+          });
+          return;
+        }
+
+        // --- Standard campaign duel (non-gauntlet) ---
+        setPendingDuelRef.current(null);
+        Promise.all([
+          import('../../progression.js'),
+          import('../../campaign-store.js'),
+        ]).then(([{ Progression }, { getNode }]) => {
+          const nav = computeCampaignDuelNav(
+            { result, stats, badges, opponentId: opponentId ?? null, pending },
+            {
+              markNodeComplete: (id) => Progression.markNodeComplete(id),
+              nodeExists: (id) => !!getNode(id),
+              addCoins: (n) => Progression.addCoins(n),
+              ownsCard: (id) => Progression.ownsCard(id),
+              addCardsToCollection: (ids) => Progression.addCardsToCollection(ids),
+              recordDuelResult: (id, won) => Progression.recordDuelResult(id, won),
+              applyBadgeMultiplier,
+              rollSRankDrops,
+            },
+          );
+          refreshRef.current();
+          refreshCampaignRef.current();
+          navigateToRef.current(nav.screen, nav.data);
+        }).catch(e => console.error('[GameContext] Failed to apply campaign duel result:', e));
+        return;
+      }
+
+      // Standard (non-campaign) duel flow
+      if (opponentId) {
+        import('../../cards.js').then(({ OPPONENT_CONFIGS }) =>
+          import('../../progression.js').then(({ Progression }) => {
+            Progression.recordDuelResult(opponentId, result === 'victory');
+            const cfg = OPPONENT_CONFIGS.find((o) => o.id === opponentId);
+            let coinsEarned = 0;
+            if (cfg) {
+              coinsEarned = result === 'victory' ? applyBadgeMultiplier(cfg.coinsWin) : 0;
+              Progression.addCoins(coinsEarned);
+            }
+            // S-rank card drops
+            const badgeDrops = rollSRankDrops();
+            const newCardIds = badgeDrops.filter(id => !Progression.ownsCard(id));
+            if (badgeDrops.length) Progression.addCardsToCollection(badgeDrops);
+
+            refreshRef.current();
+            navigateToRef.current('duel-result', resultData(result, {
+              rewards: coinsEarned > 0 || badgeDrops.length > 0
+                ? { coins: coinsEarned || undefined, cards: badgeDrops.length > 0 ? badgeDrops : undefined }
+                : undefined,
+              badges,
+              newCardIds: newCardIds.length > 0 ? newCardIds : undefined,
+              mode: 'free',
+            }));
+          })
+        ).catch(e => console.error('[GameContext] Failed to apply standard duel result:', e));
+      } else {
+        navigateToRef.current('duel-result', resultData(result, { badges, mode: 'free' }));
+      }
+    },
+  }), []); // stable — uses refs internally
+
+  useEffect(() => {
+    function handleBeforeUnload() {
+      const engine = gameRef.current;
+      if (!engine || !gameStateRef.current) return;
+      const state = engine.state as GameState;
+      if (!state) return;
+
+      const checkpoint: SerializedCheckpoint = {
+        phase: state.phase,
+        turn: state.turn,
+        activePlayer: state.activePlayer,
+        firstTurnNoAttack: state.firstTurnNoAttack,
+        log: state.log,
+        player: serializePlayerState(state.player),
+        opponent: serializePlayerState(state.opponent),
+        opponentId: engine._currentOpponentId,
+        opponentBehaviorId: lastOppRef.current?.behaviorId,
+      };
+      const full: FullCheckpoint = {
+        checkpoint,
+        pendingDuel: pendingDuelRef.current,
+        lastOpponent: lastOppRef.current,
+      };
+      // Synchronous save — must use localStorage directly in beforeunload
+      try {
+        localStorage.setItem('tcg_duel_checkpoint', JSON.stringify(full));
+      } catch (_) { /* quota exceeded — ignore */ }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+
+    import('../../progression.js').then(({ Progression }) => {
+      const saved = Progression.loadDuelCheckpoint<FullCheckpoint>();
+      if (!saved || !saved.checkpoint) return;
+
+      Promise.all([
+        import('../../engine.js'),
+        import('../../cards.js'),
+      ]).then(([{ GameEngine }, _cardsModule]) => {
+        const g = new GameEngine(uiCallbacks);
+        gameRef.current = g;
+
+        if (saved.lastOpponent) {
+          setLastOpponent(saved.lastOpponent);
+          lastOppRef.current = saved.lastOpponent;
+        }
+        if (saved.pendingDuel) {
+          setPendingDuelRef.current(saved.pendingDuel);
+        }
+
+        g.restoreGame(saved.checkpoint);
+        setScreenRef.current('game');
+        Audio.playMusic('music_battle');
+      });
+    });
+  }, [uiCallbacks]);
+
+  const startGame = useCallback((opponentConfig?: OpponentConfig | null) => {
+    const cfg = opponentConfig ?? null;
+    setLastOpponent(cfg);
+    lastOppRef.current = cfg;
+    resetSelRef.current();
+    setLogEntries([]);
+
+    Promise.all([
+      import('../../engine.js'),
+      import('../../cards.js'),
+    ]).then(([{ GameEngine }, { PLAYER_DECK_IDS, CARD_DB }]) => {
+      loadDeck();
+      // Read deck from Progression to ensure it's fresh
+      import('../../progression.js').then(({ Progression }) => {
+        // Clear NEW badges when a duel starts
+        const col = Progression.getCollection();
+        Progression.markCardsAsSeen(col.map(e => e.id));
+        const saved = Progression.getDeck();
+        const rawIds = (saved && saved.length > 0) ? saved : [...PLAYER_DECK_IDS];
+        // Strip stale or invalid card IDs so makeDeck() never crashes
+        const deck = rawIds.filter(id => {
+          if (!CARD_DB[id]) { console.warn(`[startGame] Removed unknown card ID "${id}" from deck.`); return false; }
+          return true;
+        });
+        const g = new GameEngine(uiCallbacks);
+        gameRef.current = g;
+        g.initGame(deck, cfg).then(() => {
+          setScreenRef.current('game');
+          Audio.playMusic('music_battle');
+        });
+      });
+    });
+  }, [uiCallbacks, loadDeck]);
+  startGameRef.current = startGame;
+
+  const clearPendingDraw = useCallback(() => setPendingDraw(0), []);
+
+  return (
+    <GameContext.Provider value={{
+      gameState, gameRef, logEntries, pendingDraw, lastOpponent,
+      startGame, clearPendingDraw,
+    }}>
+      {children}
+    </GameContext.Provider>
+  );
+}
+
+export function useGame() { return useContext(GameContext); }

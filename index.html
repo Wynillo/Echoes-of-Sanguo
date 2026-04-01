@@ -1,48 +1,52 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#060e0a">
+  <meta name="description" content="Echoes of Sanguo — A browser-based TCG inspired by classic card battlers, set in the Three Kingdoms era.">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180x180.png">
   <title>Echoes of Sanguo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/progression.css">
 </head>
 <body>
+<a class="skip-link" href="#react-root">Skip to game</a>
 <div id="react-root">
   <style>
     .loading-screen {
       position: fixed; inset: 0;
       display: flex; align-items: center; justify-content: center;
       flex-direction: column; gap: 24px;
-      background: url('/title-bg.png') center center/cover no-repeat, #080c18;
+      background: radial-gradient(ellipse at center, #101828 0%, #060a14 70%);
       z-index: 100;
     }
     .loading-screen p {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 3px;
-      color: #f0d080;
-      text-shadow: 0 0 10px rgba(255, 220, 100, 0.6);
-      animation: loading-blink 1.2s step-start infinite;
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: #8899aa;
+      text-shadow: 0 0 8px rgba(100, 140, 180, 0.4);
+      animation: loading-pulse 2s ease-in-out infinite;
     }
     .loading-bar-track {
-      width: 200px; height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
+      width: 200px; height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
       overflow: hidden;
     }
     .loading-bar-fill {
       height: 100%; width: 0%;
-      background: #f0d080;
-      border-radius: 3px;
+      background: #667888;
+      border-radius: 2px;
       transition: width 0.3s ease;
     }
-    @keyframes loading-blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
+    @keyframes loading-pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
     }
   </style>
   <div class="loading-screen">
@@ -53,6 +57,6 @@
   </div>
 </div>
 <div id="crt-overlay"></div>
-<script type="module" src="/js/main.ts"></script>
+<script type="module" src="/src/main.ts"></script>
 </body>
 </html>

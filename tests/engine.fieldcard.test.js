@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FieldCard } from '../js/engine.ts';
+import { FieldCard } from '../src/engine.ts';
 
 const baseCard = { id:'1', name:'Test', type:'normal', atk:1000, def:800 };
 
@@ -33,6 +33,12 @@ describe('FieldCard', () => {
     const fc = new FieldCard(card);
     fc.card.atk = 9999;
     expect(card.atk).toBe(1000);
+  });
+
+  it('preserves spirit flag through deep copy', () => {
+    const card = { ...baseCard, spirit: true };
+    const fc = new FieldCard(card);
+    expect(fc.card.spirit).toBe(true);
   });
 
   it('deep-copies effect so mutations on one FieldCard do not affect another', () => {

@@ -1,0 +1,186 @@
+.cardHeader {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 2px 4px;
+  background: #000000;
+  min-height: 18px;
+  flex-shrink: 0;
+}
+
+.nameShort {
+  font-size: 8px; font-weight: bold; color: var(--gold-light);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.attrOrb {
+  width: 14px; height: 14px;
+  border-radius: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; color: #fff;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.4);
+  line-height: 1;
+}
+
+.cardLevel {
+  font-size: 9px; color: var(--gold); text-align: center;
+  line-height: 1; padding: 1px 2px; min-height: 11px;
+  letter-spacing: -1px; flex-shrink: 0;
+}
+
+.cardArt {
+  aspect-ratio: 1 / 1;
+  width: calc(100% - 10px);
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 0;
+  margin: 5px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 2px;
+}
+
+.raceBadge {
+  position: absolute; top: 2px; left: 2px;
+  font-size: 7px; font-weight: bold;
+  padding: 1px 3px; border-radius: 0;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.3px; line-height: 1.2;
+  z-index: 1;
+}
+
+.rarityText {
+  position: absolute; bottom: 2px; right: 3px;
+  font-size: 7px; font-weight: bold;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cardBody {
+  padding: 2px 4px;
+  display: flex; flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+  max-height: 36px; overflow: hidden;
+  background: #080808;
+  border-top: 1px solid #303030;
+}
+
+.typeSubtype {
+  font-size: 7px; color: var(--text-dim);
+  font-style: italic;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.descText {
+  font-size: 7px; color: var(--text);
+  line-height: 1.3; overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.cardStats {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 2px 5px 3px;
+  background: #000000;
+  flex-shrink: 0;
+  min-height: 17px;
+  gap: 4px;
+}
+
+.atkVal { font-size: 9px; font-weight: bold; color: #ff9955; font-family: var(--font-stats); }
+.defVal { font-size: 9px; font-weight: bold; color: #55aaff; font-family: var(--font-stats); }
+
+.statBuffed { color: #88ff88 !important; }
+.statNerfed { color: #ff6666 !important; }
+
+.cardStats.noStats { min-height: 0; padding: 0; }
+
+.equipReq {
+  font-size: 7px; text-align: center;
+  color: #e08030; background: rgba(0,0,0,0.6);
+  padding: 1px 4px; letter-spacing: 0.3px;
+}
+:global(.big-card) .equipReq { font-size: 10px; padding: 2px 6px; }
+
+:global(.normal-card) .typeSubtype { color: rgba(220,220,220,0.9); }
+:global(.normal-card) .cardNameSmall { color: #e8e8e8; }
+:global(.effect-card) .typeSubtype { color: #ffaa60; }
+:global(.effect-card) .cardNameSmall { color: #e0c870; }
+:global(.fusion-card) .typeSubtype { color: #cc88ff; }
+:global(.spell-card)  .typeSubtype { color: #44ddaa; }
+:global(.trap-card)      .typeSubtype { color: #ff6688; }
+:global(.equipment-card) .typeSubtype { color: #e0a050; }
+:global(.equipment-card) .cardNameSmall { color: #e0a050; }
+
+:global(.attr-fire)  .attrOrb { box-shadow: none; border: 1px solid #c0300a; }
+:global(.attr-water) .attrOrb { box-shadow: none; border: 1px solid #1a6aaa; }
+:global(.attr-earth) .attrOrb { box-shadow: none; border: 1px solid #6a7030; }
+:global(.attr-wind)  .attrOrb { box-shadow: none; border: 1px solid #4a6080; }
+:global(.attr-light) .attrOrb { box-shadow: none; border: 1px solid #c09000; }
+:global(.attr-dark)  .attrOrb { box-shadow: none; border: 1px solid #7020a0; }
+
+:global(.opponent-side) .nameShort    { font-size: 7px; max-width: 40px; }
+:global(.opponent-side) .attrOrb      { width: 10px; height: 10px; font-size: 6px; }
+:global(.opponent-side) .cardLevel    { font-size: 6px; min-height: 8px; }
+:global(.opponent-side) .rarityText   { font-size: 5px; }
+:global(.opponent-side) .raceBadge    { font-size: 5px; padding: 1px 2px; }
+:global(.opponent-side) .cardBody     { max-height: 24px; padding: 1px 3px; }
+:global(.opponent-side) .typeSubtype  { font-size: 5px; }
+:global(.opponent-side) .descText     { font-size: 5px; -webkit-line-clamp: 1; }
+:global(.opponent-side) .cardStats    { padding: 1px 3px 2px; min-height: 13px; }
+:global(.opponent-side) .atkVal,
+:global(.opponent-side) .defVal       { font-size: 8px; }
+
+:global(.small-card) .cardArt { max-height: 80px; }
+:global(.small-card) .cardHeader { display: none; }
+:global(.small-card) .cardLevel  { display: none; }
+:global(.small-card) .cardBody   { display: none; }
+:global(.small-card) .cardStats  {
+  gap: 0; padding: 0;
+  border-top: 1px solid #303030;
+}
+:global(.small-card) .atkVal {
+  flex: 1; text-align: center; padding: 3px 0; font-size: 9px;
+  border-right: 1px solid #303030;
+}
+:global(.small-card) .defVal {
+  flex: 1; text-align: center; padding: 3px 0; font-size: 9px;
+}
+
+.cardNameSmall {
+  font-size: 7px;
+  font-weight: bold;
+  color: var(--gold-light, #e0c870);
+  text-align: center;
+  padding: 2px 3px 3px;
+  background: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.typeLabel {
+  flex: 1; text-align: center; padding: 3px 0; font-size: 8px;
+  color: #7090b0; font-weight: bold;
+}
+:global(.opponent-side) :global(.small-card) .atkVal,
+:global(.opponent-side) :global(.small-card) .defVal { font-size: 7px; padding: 2px 0; }
+
+:global(.big-card) .nameShort   { font-size: 11px; }
+:global(.big-card) .attrOrb     { width: 20px; height: 20px; font-size: 12px; }
+:global(.big-card) .cardLevel   { font-size: 12px; min-height: 15px; letter-spacing: -0.5px; }
+:global(.big-card) .rarityText  { font-size: 9px; }
+:global(.big-card) .raceBadge   { font-size: 9px; padding: 1px 5px; }
+:global(.big-card) .cardBody    { max-height: 56px; padding: 3px 6px; gap: 2px; }
+:global(.big-card) .typeSubtype { font-size: 9px; }
+:global(.big-card) .descText    { font-size: 9px; -webkit-line-clamp: 3; }
+:global(.big-card) .cardStats   { padding: 4px 8px 5px; min-height: 22px; }
+:global(.big-card) .atkVal,
+:global(.big-card) .defVal      { font-size: 12px; }

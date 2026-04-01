@@ -1,0 +1,119 @@
+.screen {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #080c18;
+  z-index: 100;
+}
+
+.content {
+  position: relative; z-index: 1;
+  text-align: center; padding: 30px 40px;
+  background: rgba(0, 10, 5, 0.55);
+  border: 1px solid rgba(40, 160, 80, 0.25);
+  border-radius: 6px;
+  backdrop-filter: blur(3px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  max-width: 480px;
+  width: 90vw;
+}
+
+.title {
+  font-size: clamp(0.75rem, 2.5vw, 1.25rem);
+  letter-spacing: 4px;
+  color: var(--gold-light);
+  text-shadow: 2px 2px 0 #000;
+  margin: 10px 0 20px;
+}
+
+.slotList {
+  display: flex; flex-direction: column;
+  gap: 12px; margin-bottom: 20px;
+}
+
+.slotCard {
+  display: flex; flex-direction: column;
+  width: 100%;
+  background: rgba(14, 28, 20, 0.8);
+  border: 2px solid rgba(48, 160, 96, 0.4);
+  border-radius: 4px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+}
+
+.slotCard:hover:not(:disabled) {
+  background: rgba(22, 100, 55, 0.5);
+  border-color: rgba(48, 160, 96, 0.8);
+}
+
+.slotEmpty {
+  border-style: dashed;
+}
+
+.slotDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.slotHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.slotLabel {
+  font-size: 0.875rem;
+  letter-spacing: 3px;
+  color: var(--gold-light);
+  text-shadow: 1px 1px 0 #000;
+  font-weight: bold;
+}
+
+.deleteBtn {
+  background: rgba(180, 40, 40, 0.3);
+  border: 1px solid rgba(180, 40, 40, 0.5);
+  border-radius: 3px;
+  color: #e88;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.deleteBtn:hover {
+  background: rgba(180, 40, 40, 0.6);
+}
+
+.emptyLabel {
+  font-size: 0.8rem;
+  color: #6a8a70;
+  letter-spacing: 2px;
+  padding: 8px 0;
+}
+
+.slotInfo {
+  display: flex; flex-direction: column;
+  gap: 3px;
+}
+
+.infoRow {
+  font-size: 0.75rem;
+  color: #b0d0b8;
+  letter-spacing: 1px;
+}
+
+.dateLine {
+  color: #7a9a80;
+  font-size: 0.6875rem;
+  margin-top: 2px;
+}
+
+.backBtn {
+  width: 200px;
+  margin-top: 4px;
+}
