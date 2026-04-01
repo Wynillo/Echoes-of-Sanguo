@@ -6,7 +6,13 @@ description: >
   debugging game logic (phases, battle resolution, summoning, fusion), modifying
   FieldCard mechanics (bonuses, equipment, positions), updating game rules,
   working with the TriggerBus event system, or extending the mod API.
-tools: Read, Grep, Glob, Bash, Edit, Write
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Edit
+  - Write
 model: sonnet
 ---
 
