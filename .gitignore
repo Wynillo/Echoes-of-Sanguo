@@ -7,9 +7,10 @@ android/.gradle/
 android/app/build/
 android/build/
 android/local.properties
-# Allow .claude/agents/ to be checked in, ignore the rest
+# Allow .claude/agents/ and instruction .md files to be checked in, ignore the rest
 .claude/*
 !.claude/agents/
+!.claude/*.md
 *.local
 coverage/
 test-results/
