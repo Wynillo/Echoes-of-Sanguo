@@ -1,7 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO - Kartendatenbank
-// Runtime data store — populated at startup by loading base.tcg
-// ============================================================
 import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
 import { CardType, Rarity, isMonsterType } from './types.js';
 import {
@@ -11,8 +7,6 @@ import {
 
 export const TYPE = CardType;
 export const RARITY = Rarity;
-
-// ── Display helpers (backward-compatible re-exports from type-metadata) ──
 
 /** @deprecated Use getRarityById() from type-metadata.ts instead */
 export const RARITY_COLOR: Record<number, string> = new Proxy({} as Record<number, string>, {
@@ -56,7 +50,6 @@ export const ATTR_NAME: Record<string, string> = new Proxy({} as Record<string, 
   getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
 });
 
-// ── Runtime data stores (populated by tcg-loader from base.tcg) ──
 export const CARD_DB: Record<string, CardData> = {};
 export const FUSION_RECIPES: FusionRecipe[] = [];
 export const FUSION_FORMULAS: FusionFormula[] = [];
@@ -73,9 +66,11 @@ export function makeDeck(ids: string[]): CardData[] {
       console.warn(`[makeDeck] Unknown card ID "${id}" – skipping.`);
       return [];
     }
-    if (!card.effect) return [{ ...card }];
-    // Deep-clone effect so deck copies don't share the same object references.
-    return [{ ...card, effect: { ...card.effect, actions: [...card.effect.actions] } }];
+    if (!card.effect && !card.effects) return [{ ...card }];
+    const cloned: CardData = { ...card };
+    if (card.effect) cloned.effect = { ...card.effect, actions: [...card.effect.actions] };
+    if (card.effects) cloned.effects = card.effects.map(b => ({ ...b, actions: [...b.actions] }));
+    return [cloned];
   });
 }
 
@@ -138,8 +133,6 @@ function selectFusionResult(pool: string[], threshold: number): string | null {
   if (candidates.length === 0) return null;
   return candidates[0].id;
 }
-
-// ── Multi-Card Fusion Chain (FM-style) ───────────────────
 
 export interface FusionChainStep {
   inputA: string;           // current result card ID
@@ -215,8 +208,6 @@ export function resolveFusionChain(cardIds: string[]): FusionChainResult {
 
   return { finalCardId: currentId, steps, consumedIds };
 }
-
-// ── Fusion Hints (reverse lookup for card detail) ───────
 
 export interface FusionHint {
   type: 'formula' | 'recipe';

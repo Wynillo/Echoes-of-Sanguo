@@ -46,22 +46,6 @@
   align-items: center;
 }
 
-.filterBtn {
-  background: #111828;
-  border: 1px solid #334;
-  color: #7090b0;
-  padding: 4px 10px;
-  border-radius: 0;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.filterBtn.active, .filterBtn:hover {
-  border-color: #4070c0;
-  color: #90b0e0;
-  background: #1a2840;
-}
-
 .raritySelect {
   background: #111828;
   border: 1px solid #334;

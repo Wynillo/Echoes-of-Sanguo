@@ -31,6 +31,7 @@ import { AnimSkipOverlay }      from './components/AnimSkipOverlay.js';
 import { VFXOverlay }           from './components/VFXOverlay.js';
 import { DamageNumberOverlay }  from './components/DamageNumberOverlay.js';
 import { ModalOverlay }         from './modals/ModalOverlay.js';
+import { OfflineIndicator }     from './components/OfflineIndicator.js';
 
 function SaveErrorToast() {
   const { t } = useTranslation();
@@ -94,6 +95,7 @@ function Router() {
       <DamageNumberOverlay />
       <ModalOverlay />
       <SaveErrorToast />
+      <OfflineIndicator />
       <MigrationWarning />
       <div id="screen-transition-overlay" style={{ position: 'fixed', inset: 0, background: '#000', opacity: 0, pointerEvents: 'none', zIndex: 9999, transition: 'opacity 200ms ease' }} />
     </>

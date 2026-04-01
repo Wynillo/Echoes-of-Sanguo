@@ -291,6 +291,7 @@ const IMPL: Record<string, InternalImpl> = {
     const fc = oppMonsters[idx]!;
     oppMonsters[idx] = null;
     ctx.engine._removeEquipmentForMonster(opp, idx);
+    fc.originalOwner = opp;
     ownMonsters[freeZone] = fc;
     fc.hasAttacked = false;
     ctx.engine.addLog(`${fc.card.name} control changed!`);
@@ -438,7 +439,6 @@ const IMPL: Record<string, InternalImpl> = {
 
   createTokens(desc: { tokenId: string; count: number; position: string }, ctx) {
     const pos = (desc.position ?? 'def') as 'atk' | 'def';
-    let placed = 0;
     for (let i = 0; i < desc.count; i++) {
       const tokenCard: CardData = {
         id: `${desc.tokenId}_${Date.now()}_${i}`,
@@ -448,10 +448,9 @@ const IMPL: Record<string, InternalImpl> = {
         def: 0,
         description: 'A token monster.',
       };
-      const result = ctx.engine.specialSummon(ctx.owner, tokenCard, undefined, pos);
-      if (result) placed++;
+      void ctx.engine.specialSummon(ctx.owner, tokenCard, undefined, pos);
     }
-    ctx.engine.addLog(`${placed} token(s) summoned!`);
+    ctx.engine.addLog(`${desc.count} token(s) summoned!`);
     return {};
   },
 
@@ -732,6 +731,7 @@ const IMPL: Record<string, InternalImpl> = {
         ctx.engine.addLog(`${zones[i]!.card.name} was destroyed!`);
         st[opp].graveyard.push(zones[i]!.card);
         zones[i] = null;
+        ctx.engine._removeEquipmentForMonster(opp, i);
       }
     }
     return {};
@@ -746,6 +746,7 @@ const IMPL: Record<string, InternalImpl> = {
           ctx.engine.addLog(`${zones[i]!.card.name} was destroyed!`);
           st[side].graveyard.push(zones[i]!.card);
           zones[i] = null;
+          ctx.engine._removeEquipmentForMonster(side, i);
         }
       }
     }
@@ -908,7 +909,7 @@ export function registerEffect(type: string, impl: EffectImpl): void {
 export function canPayCost(block: CardEffectBlock, ctx: EffectContext): boolean {
   if (!block.cost) return true;
   const st = ctx.engine.getState()[ctx.owner];
-  if (block.cost.lp && st.lp <= block.cost.lp) return false;
+  if (block.cost.lp && st.lp < block.cost.lp) return false;
   if (block.cost.discard && st.hand.length < block.cost.discard) return false;
   return true;
 }
@@ -961,7 +962,7 @@ export function executeEffectBlock(block: CardEffectBlock, ctx: EffectContext): 
     if (impl) {
       Object.assign(signal, impl(action, ctx));
     } else {
-      console.warn(`[EffectRegistry] No handler for effect type: "${action.type}" — skipping.`);
+      ctx.engine.addLog(`[EffectRegistry] No handler for effect type: "${action.type}" — skipping.`);
     }
   }
   return signal;

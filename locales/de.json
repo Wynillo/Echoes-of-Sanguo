@@ -80,7 +80,8 @@
     "unmute": "Ton an",
     "view_log": "📜 Kampfprotokoll",
     "log_empty": "Noch keine Einträge.",
-    "download_log": "⬇ Protokoll herunterladen"
+    "download_log": "⬇ Protokoll herunterladen",
+    "install_app": "App installieren"
   },
   "shop": {
     "title": "◈ JADE-SHOP",
@@ -501,5 +502,8 @@
     "badge_rank_b": "B",
     "coin_multiplier": "x{{multiplier}} Münzen",
     "badge_cards_earned": "+{{count}} Karte(n) vom Gegner"
+  },
+  "status": {
+    "offline": "Offline"
   }
 }

@@ -53,11 +53,11 @@ describe('canPayCost', () => {
     expect(canPayCost(block, ctx(e))).toBe(true);
   });
 
-  it('returns false when LP equals cost (must have MORE)', () => {
+  it('returns true when LP equals cost (can pay exact amount)', () => {
     const e = mockEngine();
     e._state.player.lp = 1000;
     const block = { trigger: 'onSummon', actions: [], cost: { lp: 1000 } };
-    expect(canPayCost(block, ctx(e))).toBe(false);
+    expect(canPayCost(block, ctx(e))).toBe(true);
   });
 
   it('returns false when LP is less than cost', () => {

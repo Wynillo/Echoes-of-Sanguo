@@ -1,11 +1,6 @@
-// ============================================================
-// ECHOES OF SANGUO — TCG Bridge
-// Connects the pure TCG loader to the game engine's mutable stores.
-// All side effects (store mutation, blob URL creation, etc.) happen here.
-// ============================================================
-
 import { loadTcgFile, TcgNetworkError, TcgFormatError } from '@wynillo/tcg-format';
-import type { TcgLoadResult, TcgParsedCard, TcgMeta, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from '@wynillo/tcg-format';
+import JSZip from 'jszip';
+import type { TcgLoadResult, TcgParsedCard, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from '@wynillo/tcg-format';
 import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
 import { CardType, Rarity } from './types.js';
 import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from './cards.js';
@@ -13,7 +8,7 @@ import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, 
 import { deserializeEffect, isValidEffectString, parseEffectString } from './effect-serializer.js';
 import { applyRules } from './rules.js';
 import { applyTypeMeta } from './type-metadata.js';
-import { applyShopData, SHOP_DATA } from './shop-data.js';
+import { applyShopData, SHOP_DATA, type ShopData } from './shop-data.js';
 import { applyCampaignData } from './campaign-store.js';
 import type { CampaignData } from './campaign-types.js';
 import { TYPE_META } from './type-metadata.js';
@@ -21,7 +16,7 @@ import { TYPE_META } from './type-metadata.js';
 // Re-export error classes for consumers
 export { TcgNetworkError, TcgFormatError };
 
-// ── Mod Tracking ─────────────────────────────────────────────
+const rid = (numId: number): string => String(numId);
 
 interface LoadedMod {
   source: string;           // URL or label
@@ -31,13 +26,8 @@ interface LoadedMod {
 }
 const loadedMods: LoadedMod[] = [];
 
-// ── TcgParsedCard → CardData conversion ──────────────────────
-// Mirrors the old tcgCardToCardData() from tcg-loader.ts.
-// Cannot use a simple spread: spellType and trapTrigger are `number` in TcgParsedCard
-// but string-based types (SpellType, TrapTrigger) in CardData.
-
 function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
-  let parsedEffect: { effect?: any; effects?: any[] } = {};
+  let parsedEffect: Partial<Pick<CardData, 'effect' | 'effects'>> = {};
   if (p.effect) {
     if (!isValidEffectString(p.effect)) {
       warnings.push(`Card #${p.id}: effect string may contain unknown actions: "${p.effect}"`);
@@ -104,68 +94,56 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
   return card;
 }
 
-// ── applyTcgMeta — moved from tcg-loader.ts ──────────────────
-
-function applyTcgMeta(
-  meta: TcgMeta,
-  tcgOpponents?: TcgOpponentDeck[],
+function applyOpponents(
+  tcgOpponents: TcgOpponentDeck[],
   oppDescs?: TcgOpponentDescription[],
 ): number[] {
-  const rid = (numId: number): string => String(numId);
   const addedOpponentIds: number[] = [];
-
-  if (meta.fusionRecipes) {
-    const recipes: FusionRecipe[] = meta.fusionRecipes.map(r => ({
-      materials: [rid(r.materials[0]), rid(r.materials[1])] as [string, string],
-      result: rid(r.result),
-    }));
-    FUSION_RECIPES.push(...recipes);
+  const oppDescMap = new Map<number, TcgOpponentDescription>();
+  if (oppDescs) {
+    for (const d of oppDescs) oppDescMap.set(d.id, d);
   }
-
-  const rawOpponents = tcgOpponents ?? meta.opponentConfigs;
-  if (rawOpponents) {
-    const oppDescMap = new Map<number, TcgOpponentDescription>();
-    if (oppDescs) {
-      for (const d of oppDescs) oppDescMap.set(d.id, d);
-    }
-    const configs: OpponentConfig[] = rawOpponents.map(o => {
-      const desc = oppDescMap.get(o.id);
-      addedOpponentIds.push(o.id);
-      return {
-        id:         o.id,
-        name:       desc?.name ?? o.name,
-        title:      desc?.title ?? o.title,
-        race:       intToRace(o.race),
-        flavor:     desc?.flavor ?? o.flavor,
-        coinsWin:   o.coinsWin,
-        coinsLoss:  o.coinsLoss,
-        deckIds:    o.deckIds.map(rid),
-        behaviorId: o.behavior,
-      };
-    });
-    OPPONENT_CONFIGS.push(...configs);
-  }
-
-  if (meta.starterDecks) {
-    for (const [raceKey, numIds] of Object.entries(meta.starterDecks)) {
-      STARTER_DECKS[Number(raceKey)] = numIds.map(rid);
-    }
-    const firstDeck = Object.values(STARTER_DECKS)[0];
-    if (firstDeck) {
-      PLAYER_DECK_IDS.splice(0, PLAYER_DECK_IDS.length, ...firstDeck);
-      OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
-    }
-  }
-
+  const configs: OpponentConfig[] = tcgOpponents.map(o => {
+    const desc = oppDescMap.get(o.id);
+    addedOpponentIds.push(o.id);
+    return {
+      id:         o.id,
+      name:       desc?.name ?? o.name,
+      title:      desc?.title ?? o.title,
+      race:       intToRace(o.race),
+      flavor:     desc?.flavor ?? o.flavor,
+      coinsWin:   o.coinsWin,
+      coinsLoss:  o.coinsLoss,
+      deckIds:    o.deckIds.map(rid),
+      behaviorId: o.behavior,
+    };
+  });
+  OPPONENT_CONFIGS.push(...configs);
   return addedOpponentIds;
 }
 
-// ── applyFusionFormulas — moved from tcg-loader.ts ───────────
+function applyFusionRecipes(raw: Array<{ materials: number[]; result: number }>): void {
+  const recipes: FusionRecipe[] = raw.map(r => ({
+    materials: [rid(r.materials[0]), rid(r.materials[1])] as [string, string],
+    result: rid(r.result),
+  }));
+  FUSION_RECIPES.push(...recipes);
+}
+
+function applyStarterDecks(raw: Record<string, number[]>): void {
+  for (const [raceKey, numIds] of Object.entries(raw)) {
+    STARTER_DECKS[Number(raceKey)] = numIds.map(rid);
+  }
+  const firstDeck = Object.values(STARTER_DECKS)[0];
+  if (firstDeck) {
+    PLAYER_DECK_IDS.splice(0, PLAYER_DECK_IDS.length, ...firstDeck);
+    OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
+  }
+}
 
 const VALID_COMBO_TYPES = new Set<FusionComboType>(['race+race', 'race+attr', 'attr+attr']);
 
 function applyFusionFormulas(raw: TcgFusionFormula[], warnings: string[]): void {
-  const rid = (numId: number): string => String(numId);
   const converted: FusionFormula[] = [];
   for (const f of raw) {
     if (!VALID_COMBO_TYPES.has(f.comboType as FusionComboType)) {
@@ -182,9 +160,6 @@ function applyFusionFormulas(raw: TcgFusionFormula[], warnings: string[]): void 
   FUSION_FORMULAS.push(...converted);
 }
 
-// ── Image handling ───────────────────────────────────────────
-// Bridge creates blob URLs from raw ArrayBuffers (loader is environment-agnostic)
-
 const blobUrls: Map<number, string> = new Map();
 
 function applyImages(rawImages: Map<number, ArrayBuffer>): Map<number, string> {
@@ -200,26 +175,36 @@ export function revokeTcgImages(): void {
   blobUrls.clear();
 }
 
-// ── BridgeLoadResult ─────────────────────────────────────────
-
 export interface BridgeLoadResult {
   cards: TcgLoadResult['cards'];
   parsedCards: TcgLoadResult['parsedCards'];
   definitions: TcgLoadResult['definitions'];
   images: Map<number, string>;   // card id → blob URL
-  meta?: TcgLoadResult['meta'];
   manifest?: TcgManifest;
   warnings: string[];
 }
-
-// ── Public API ───────────────────────────────────────────────
 
 export async function loadAndApplyTcg(
   source: string | ArrayBuffer,
   options?: { lang?: string; onProgress?: (percent: number) => void },
 ): Promise<BridgeLoadResult> {
+  // Resolve source to ArrayBuffer so we can extract locale files from the ZIP
+  let buffer: ArrayBuffer;
+  if (typeof source === 'string') {
+    const res = await fetch(source);
+    if (!res.ok) throw new TcgNetworkError(source, res.status);
+    buffer = await res.arrayBuffer();
+  } else {
+    buffer = source;
+  }
+
+  await Promise.all([
+    extractLocalesFromZip(buffer),
+    extractExtraDataFromZip(buffer),
+  ]);
+
   const lang = options?.lang ?? (typeof navigator !== 'undefined' ? navigator.language.substring(0, 2) : '');
-  const result = await loadTcgFile(source, { lang, onProgress: options?.onProgress });
+  const result = await loadTcgFile(buffer, { lang, onProgress: options?.onProgress });
   const mod: LoadedMod = {
     source: typeof source === 'string' ? source : '<ArrayBuffer>',
     cardIds: [], opponentIds: [], timestamp: Date.now(),
@@ -234,7 +219,7 @@ export async function loadAndApplyTcg(
       result.warnings.push(`Card ${id} ("${parsed.name}") overwrites existing card "${CARD_DB[id].name}"`);
     }
     const card = parsedToCardData(parsed, result.warnings);
-    if ((raw as any).spirit) card.spirit = true;
+    if ((raw as Record<string, unknown>).spirit) card.spirit = true;
     CARD_DB[id] = card;
     mod.cardIds.push(id);
   }
@@ -257,7 +242,7 @@ export async function loadAndApplyTcg(
       }
       result.shopData.backgrounds = resolvedBgs;
     }
-    applyShopData(result.shopData);
+    applyShopData(result.shopData as unknown as Partial<ShopData>);
   }
   if (result.campaignData) applyCampaignData(result.campaignData as unknown as CampaignData);
 
@@ -265,13 +250,9 @@ export async function loadAndApplyTcg(
   const oppDescs = result.opponentDescriptions?.get(lang)
     ?? (result.opponentDescriptions?.size ? result.opponentDescriptions.values().next().value! : undefined);
 
-  if (result.meta) {
-    try {
-      const opponentIds = applyTcgMeta(result.meta, result.opponents, oppDescs);
-      mod.opponentIds.push(...opponentIds);
-    } catch (e) {
-      result.warnings.push(`meta.json: failed to apply game data — ${e instanceof Error ? e.message : e}`);
-    }
+  if (result.opponents) {
+    const opponentIds = applyOpponents(result.opponents, oppDescs);
+    mod.opponentIds.push(...opponentIds);
   }
   if (result.fusionFormulas) applyFusionFormulas(result.fusionFormulas, result.warnings);
 
@@ -282,7 +263,6 @@ export async function loadAndApplyTcg(
     parsedCards: result.parsedCards,
     definitions: result.definitions,
     images,
-    meta: result.meta,
     manifest: result.manifest,
     warnings: result.warnings,
   };
@@ -293,7 +273,7 @@ export async function loadAndApplyTcg(
  * Does NOT revert: fusion recipes/formulas, shop data, campaign data, rules, or type metadata.
  */
 export function unloadModCards(source: string): boolean {
-  console.warn('[EOS] unloadModCards: partial unload — fusion recipes, shop data, campaign data, rules, and type metadata from this mod are NOT reverted.');
+  console.warn('[EOS] unloadModCards: partial unload — fusion formulas, shop data, campaign data, rules, and type metadata from this mod are NOT reverted.');
   const idx = loadedMods.findIndex(m => m.source === source);
   if (idx === -1) return false;
   const mod = loadedMods[idx];
@@ -311,10 +291,6 @@ export function getLoadedMods(): readonly LoadedMod[] {
   return loadedMods;
 }
 
-// ── TCG Locale System ───────────────────────────────────────
-// Loads unified locale files (locales/{lang}.json) from the TCG source
-// and overlays translations onto the mutable game stores.
-
 interface TcgLocale {
   cards?: Record<string, { name: string; description: string }>;
   opponents?: Record<string, { name: string; title: string; flavor: string }>;
@@ -324,28 +300,41 @@ interface TcgLocale {
   shop?: Record<string, { name: string; desc: string }>;
 }
 
-let tcgSourceBase = '';
-
-/** Set the base path for TCG source files (e.g. '/base.tcg-src/'). */
-export function setTcgSourceBase(base: string): void {
-  tcgSourceBase = base.endsWith('/') ? base : base + '/';
-}
-
-/** Cache of loaded locale data to avoid redundant fetches. */
+/** Cache of locale data extracted from .tcg archives. */
 const localeCache = new Map<string, TcgLocale>();
 
-async function fetchLocale(lang: string): Promise<TcgLocale | null> {
-  const cached = localeCache.get(lang);
-  if (cached) return cached;
-  try {
-    const res = await fetch(`${tcgSourceBase}locales/${lang}.json`);
-    if (!res.ok) return null;
-    const data: TcgLocale = await res.json();
-    localeCache.set(lang, data);
-    return data;
-  } catch {
-    return null;
+async function extractExtraDataFromZip(buffer: ArrayBuffer): Promise<void> {
+  const zip = await JSZip.loadAsync(buffer);
+
+  const starterDecksFile = zip.file('starterDecks.json');
+  if (starterDecksFile) {
+    const raw: Record<string, number[]> = JSON.parse(await starterDecksFile.async('string'));
+    applyStarterDecks(raw);
   }
+
+  const fusionRecipesFile = zip.file('fusion_recipes.json');
+  if (fusionRecipesFile) {
+    const raw = JSON.parse(await fusionRecipesFile.async('string'));
+    applyFusionRecipes(raw);
+  }
+}
+
+const LOCALE_PATTERN = /^locales\/([a-z]{2}(?:-[A-Z]{2})?)\.json$/;
+
+async function extractLocalesFromZip(buffer: ArrayBuffer): Promise<void> {
+  const zip = await JSZip.loadAsync(buffer);
+  const promises: Promise<void>[] = [];
+  zip.forEach((relativePath, entry) => {
+    const match = relativePath.match(LOCALE_PATTERN);
+    if (match && !entry.dir) {
+      promises.push(
+        entry.async('string').then(text => {
+          localeCache.set(match[1], JSON.parse(text));
+        })
+      );
+    }
+  });
+  await Promise.all(promises);
 }
 
 function applyLocaleToStores(locale: TcgLocale): void {
@@ -400,11 +389,12 @@ function applyLocaleToStores(locale: TcgLocale): void {
 }
 
 /**
- * Load and apply a TCG locale file for the given language.
+ * Apply a cached TCG locale for the given language.
  * Updates card names, opponent info, type metadata, and shop text in-place.
  * Falls back to 'en' if the requested locale is unavailable.
+ * Locales are extracted from the .tcg archive during loadAndApplyTcg().
  */
 export async function reloadTcgLocale(lang: string): Promise<void> {
-  const locale = await fetchLocale(lang) ?? await fetchLocale('en');
+  const locale = localeCache.get(lang) ?? localeCache.get('en');
   if (locale) applyLocaleToStores(locale);
 }

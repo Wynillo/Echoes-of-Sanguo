@@ -525,7 +525,8 @@ export class GameEngine {
       await this._autoActivateOpponentTraps('onOpponentSpell');
     }
     if(card.effect) {
-      if (this.state.player.fieldFlags?.negateSpells || this.state.opponent.fieldFlags?.negateSpells) {
+      const spellOpp = owner === 'player' ? 'opponent' : 'player';
+      if (this.state[spellOpp].fieldFlags?.negateSpells) {
         this.addLog(`${card.name}'s effect was negated!`);
       } else {
         const ctx = this._buildSpellContext(owner, targetInfo);
@@ -1148,7 +1149,8 @@ export class GameEngine {
 
   async _triggerEffect(fc: FieldCard, owner: Owner, trigger: string, zone: number | null){
     const card = fc.card;
-    if (trigger !== 'passive' && (this.state.player.fieldFlags?.negateMonsterEffects || this.state.opponent.fieldFlags?.negateMonsterEffects)) {
+    const oppSide = owner === 'player' ? 'opponent' : 'player';
+    if (trigger !== 'passive' && this.state[oppSide].fieldFlags?.negateMonsterEffects) {
       return;
     }
     const blocks = this._getEffectBlocks(card, trigger);
@@ -1378,7 +1380,6 @@ export class GameEngine {
     setTimeout(() => {
       aiTurn(this).catch(err => {
         EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
-        console.error('[EchoesOfSanguo] Unhandled error in aiTurn:', err);
         EchoesOfSanguo.downloadLog('ai_crash');
         // Recover: switch back to player so game isn't frozen
         this.state.activePlayer = 'player';

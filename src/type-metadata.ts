@@ -1,13 +1,4 @@
-// ============================================================
-// ECHOES OF SANGUO — Centralized Enum Metadata
-// Single source of truth for race/attribute/rarity/cardType display data.
-// Populated with defaults at module load; can be overridden by races.json,
-// attributes.json, card_types.json, rarities.json from a .tcg folder/archive.
-// ============================================================
-
 import { CardType, Attribute, Race, Rarity } from './types.js';
-
-// ── Metadata interfaces ────────────────────────────────────
 
 export interface RaceMeta {
   id:     number;
@@ -39,16 +30,12 @@ export interface CardTypeMeta {
   color:  string;   // display color
 }
 
-// ── Central store ──────────────────────────────────────────
-
 export const TYPE_META = {
   races:      [] as RaceMeta[],
   attributes: [] as AttributeMeta[],
   rarities:   [] as RarityMeta[],
   cardTypes:  [] as CardTypeMeta[],
 };
-
-// ── Lookup indices (rebuilt after init/apply) ──────────────
 
 const _raceById   = new Map<number, RaceMeta>();
 const _raceByKey  = new Map<string, RaceMeta>();
@@ -71,8 +58,6 @@ function rebuildIndices(): void {
   for (const c of TYPE_META.cardTypes)  { _ctById.set(c.id, c);     _ctByKey.set(c.key, c); }
 }
 
-// ── Lookup helpers ─────────────────────────────────────────
-
 export function getRaceById(id: number): RaceMeta | undefined   { return _raceById.get(id); }
 export function getRaceByKey(key: string): RaceMeta | undefined  { return _raceByKey.get(key); }
 export function getAttrById(id: number): AttributeMeta | undefined  { return _attrById.get(id); }
@@ -86,8 +71,6 @@ export function getCardTypeByKey(key: string): CardTypeMeta | undefined  { retur
 export function getAllRaces(): readonly RaceMeta[] { return TYPE_META.races; }
 /** Get all rarities as array */
 export function getAllRarities(): readonly RarityMeta[] { return TYPE_META.rarities; }
-
-// ── Default initialization ─────────────────────────────────
 
 export function initDefaults(): void {
   TYPE_META.races = [
@@ -133,8 +116,6 @@ export function initDefaults(): void {
   rebuildIndices();
 }
 
-// ── Apply external metadata (from races/attributes/card_types/rarities JSON) ──
-
 export interface TypeMetaData {
   races?:      RaceMeta[];
   attributes?: AttributeMeta[];
@@ -150,5 +131,4 @@ export function applyTypeMeta(data: TypeMetaData): void {
   rebuildIndices();
 }
 
-// ── Auto-initialize defaults at module load ────────────────
 initDefaults();

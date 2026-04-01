@@ -1,11 +1,6 @@
-// ============================================================
-// ECHOES OF SANGUO — Field Card Classes
-// ============================================================
-
 import { extractPassiveFlags } from './effect-registry.js';
 import type { CardData, Owner, Position, VsAttrBonus } from './types.js';
 
-// ── FieldCard ────────────────────────────────────────────────
 export class FieldCard {
   card: CardData;
   position: Position;
@@ -74,7 +69,7 @@ export class FieldCard {
     }
   }
 
-  private _getPassiveBlocks(): import('./types.js').CardEffectBlock[] {
+  _getPassiveBlocks(): import('./types.js').CardEffectBlock[] {
     const blocks: import('./types.js').CardEffectBlock[] = [];
     if (this.card.effects) {
       for (const b of this.card.effects) {
@@ -97,7 +92,6 @@ export class FieldCard {
   }
 }
 
-// ── FieldSpellTrap ─────────────────────────────────────────
 export class FieldSpellTrap {
   card: CardData;
   faceDown: boolean;

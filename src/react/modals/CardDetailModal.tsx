@@ -49,7 +49,6 @@ export function CardDetailModal({ modal }: Props) {
     if (fc && (fc.permATKBonus || fc.tempATKBonus)) statsText += t('card_detail.atk_bonus');
   }
 
-  // ── Action buttons (only when action context is provided) ──
   const actions: React.ReactNode[] = [];
 
   if (state && index !== undefined && game) {
@@ -206,11 +205,10 @@ function actionBtn(label: string, handler: (() => void) | null, disabled = false
   );
 }
 
-// ── Targeting helpers ──────────────────────────────────────
-
 type SetSel = (s: Partial<Selection>) => void;
 type OpenModal = (m: ModalState) => void;
-type TFunc = (key: string, defaultValue?: string) => string;
+import type { TFunction } from 'i18next';
+type TFunc = TFunction;
 
 function startSpellTargeting(card: CardData, handIndex: number, state: GameState, game: GameEngine, setSel: SetSel, openModal: OpenModal, close: () => void, t: TFunc) {
   if (card.spellType === 'targeted' && card.target === 'ownMonster') {

@@ -11,6 +11,7 @@ import { Audio } from '../../audio.js';
 import { OPPONENT_CONFIGS } from '../../cards.js';
 import { calculateBattleBadges, rollBadgeCardDrops } from '../../battle-badges.js';
 import type { BattleBadges } from '../../battle-badges.js';
+import { computeCampaignDuelNav } from '../../campaign-duel-result.js';
 
 interface GameCtx {
   gameState:          GameState | null;
@@ -27,8 +28,6 @@ const GameContext = createContext<GameCtx>({
   pendingDraw: 0, lastOpponent: null,
   startGame: () => {}, clearPendingDraw: () => {},
 });
-
-// ── Serialization helpers ──────────────────────────────────
 
 function serializePlayerState(ps: PlayerState): SerializedPlayerState {
   return {
@@ -226,14 +225,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
               refreshRef.current();
               refreshCampaignRef.current();
-              if (pending.postDialogue && pending.postDialogue.length > 0) {
+              if (pending.postDialogue && pending.postDialogue.dialogue.length > 0) {
                 navigateToRef.current('duel-result', resultData('victory', {
                   rewards: adjustedRewards,
                   badges,
                   newCardIds,
                   nextScreen: 'dialogue',
                   dialogueData: {
-                    scene: pending.postDialogue as unknown as Record<string, unknown>,
+                    scene: pending.postDialogue,
                     nextScreen: 'campaign',
                   },
                 }));
@@ -262,67 +261,22 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           import('../../progression.js'),
           import('../../campaign-store.js'),
         ]).then(([{ Progression }, { getNode }]) => {
-          const isComplete = result === 'victory' || !!pending.completeOnLoss;
-          if (isComplete) {
-            if (getNode(pending.nodeId)) {
-              Progression.markNodeComplete(pending.nodeId);
-            } else {
-              console.warn(`[GameContext] Campaign node "${pending.nodeId}" not found — skipping markNodeComplete.`);
-            }
-
-            // Badge-adjusted rewards
-            const badgeDrops = result === 'victory' ? rollSRankDrops() : [];
-            const adjustedRewards = pending.rewards ? { ...pending.rewards } : undefined;
-            if (adjustedRewards?.coins && result === 'victory') {
-              adjustedRewards.coins = applyBadgeMultiplier(adjustedRewards.coins);
-            }
-            if (adjustedRewards?.coins) Progression.addCoins(adjustedRewards.coins);
-            const allCards = [...(adjustedRewards?.cards ?? []), ...badgeDrops];
-            const newCardIds = allCards.filter(id => !Progression.ownsCard(id));
-            if (allCards.length) {
-              Progression.addCardsToCollection(allCards);
-              if (adjustedRewards && badgeDrops.length) adjustedRewards.cards = allCards;
-            }
-
-            // Overwrite pending.rewards reference for navigation below
-            (pending as { rewards: typeof adjustedRewards }).rewards = adjustedRewards;
-          }
-          // Also record the duel result for win/loss stats
-          if (opponentId) {
-            Progression.recordDuelResult(opponentId, result === 'victory');
-          }
+          const nav = computeCampaignDuelNav(
+            { result, stats, badges, opponentId: opponentId ?? null, pending },
+            {
+              markNodeComplete: (id) => Progression.markNodeComplete(id),
+              nodeExists: (id) => !!getNode(id),
+              addCoins: (n) => Progression.addCoins(n),
+              ownsCard: (id) => Progression.ownsCard(id),
+              addCardsToCollection: (ids) => Progression.addCardsToCollection(ids),
+              recordDuelResult: (id, won) => Progression.recordDuelResult(id, won),
+              applyBadgeMultiplier,
+              rollSRankDrops,
+            },
+          );
           refreshRef.current();
           refreshCampaignRef.current();
-          if (result === 'victory' && pending.postDialogue && pending.postDialogue.length > 0) {
-            navigateToRef.current('duel-result', resultData('victory', {
-              rewards: pending.rewards,
-              badges,
-              newCardIds,
-              nextScreen: 'dialogue',
-              dialogueData: {
-                scene: pending.postDialogue as unknown as Record<string, unknown>,
-                nextScreen: 'campaign',
-              },
-            }));
-          } else if (result === 'victory') {
-            navigateToRef.current('duel-result', resultData('victory', {
-              rewards: pending.rewards,
-              badges,
-              newCardIds,
-              nextScreen: 'campaign',
-            }));
-          } else if (isComplete && pending.postDialogue && pending.postDialogue.length > 0) {
-            // completeOnLoss with post-dialogue — show dialogue, skip duel-result screen
-            navigateToRef.current('dialogue', {
-              scene: pending.postDialogue as unknown as Record<string, unknown>,
-              nextScreen: 'campaign',
-            });
-          } else if (isComplete) {
-            navigateToRef.current('campaign');
-          } else {
-            // Defeat in campaign: go to duel-result screen
-            navigateToRef.current('duel-result', resultData('defeat'));
-          }
+          navigateToRef.current(nav.screen, nav.data);
         }).catch(e => console.error('[GameContext] Failed to apply campaign duel result:', e));
         return;
       }
@@ -360,7 +314,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     },
   }), []); // stable — uses refs internally
 
-  // ── Save duel checkpoint on page unload ──────────────────
   useEffect(() => {
     function handleBeforeUnload() {
       const engine = gameRef.current;
@@ -394,7 +347,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  // ── Restore duel checkpoint on mount ─────────────────────
   useEffect(() => {
     if (restoredRef.current) return;
     restoredRef.current = true;

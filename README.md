@@ -155,7 +155,7 @@ ECHOES-OF-SANGUO/
 │   ├── animations.css          – Card & battle animations
 │   └── progression.css         – Shop/collection screen styles
 ├── src/
-│   ├── main.ts                 – Entry point (loads base.tcg-src, mounts React)
+│   ├── main.ts                 – Entry point (loads base.tcg from @wynillo/echoes-mod-base, mounts React)
 │   ├── types.ts                – Core type definitions (enums, interfaces)
 │   ├── type-metadata.ts        – Type metadata helpers
 │   ├── cards.ts                – Card database store & lookup functions
@@ -178,7 +178,7 @@ ECHOES-OF-SANGUO/
 │   ├── tcg-builder.ts          – Converts CardData → TcgCard for packing
 │   ├── enums.ts                – Bidirectional enum converters (int ↔ game enums)
 │   ├── effect-serializer.ts    – Effect string codec (serialize/deserialize)
-│   ├── generate-base-tcg.ts    – CLI wrapper → @wynillo/tcg-format packTcgArchive()
+│   ├── copy-tcg.ts             – Script to copy base.tcg from @wynillo/echoes-mod-base
 │   ├── trigger-bus.ts          – Event emitter for extensible trigger hooks
 │   └── react/
 │       ├── App.tsx             – Root component (provider tree + screen router)
@@ -195,21 +195,7 @@ ECHOES-OF-SANGUO/
 │       │                         useFusionAnimation, useKeyboardShortcuts, useLongPress)
 │       └── utils/              – pack-logic.ts, highlightCardText.tsx
 ├── public/
-│   ├── base.tcg                – Compiled card archive (ZIP format)
-│   ├── base.tcg-src/           – Source data for base.tcg (served directly by Vite)
-│   │   ├── cards.json          – 312 cards (numeric IDs)
-│   │   ├── meta.json           – Starter decks
-│   │   ├── fusion_formulas.json – Fusion recipe formulas
-│   │   ├── races.json          – Race metadata { id, key, value, color, icon }
-│   │   ├── attributes.json     – Attribute metadata { id, key, value, color, symbol }
-│   │   ├── card_types.json     – Card type metadata (Monster, Fusion, Spell, Trap, Equipment)
-│   │   ├── rarities.json       – Rarity metadata { id, key, value, color }
-│   │   ├── manifest.json       – Format version
-│   │   ├── shop.json           – Booster pack & package definitions
-│   │   ├── campaign.json       – Campaign map (7 chapters, 39 duels)
-│   │   ├── id_migration.json   – String-ID → Numeric-ID mapping
-│   │   ├── opponents/          – 39 per-opponent deck JSON files
-│   │   └── locales/            – cards_description.json, opponents_description.json
+│   ├── base.tcg                – Compiled card archive (ZIP format, from @wynillo/echoes-mod-base)
 │   └── audio/                  – Music (5 tracks) and SFX (12 effects)
 ├── locales/
 │   ├── de.json                 – German translations
@@ -233,9 +219,9 @@ The core TCG format library has been extracted to the [`@wynillo/tcg-format`](ht
 - **tcg-builder.ts** — converts `CardData` → `TcgCard` for packing
 - **effect-serializer.ts** — parses and serializes effect strings (the package treats effects as opaque)
 - **enums.ts** — bidirectional converters between TCG integer IDs and game enums
-- **generate-base-tcg.ts** — thin CLI wrapper calling the package's `packTcgArchive()`
+- **copy-tcg.ts** — copies `base.tcg` from the `@wynillo/echoes-mod-base` package to the public folder
 
-Generate via `npm run generate:tcg` — validates `public/base.tcg-src/` and repacks it.
+Copy via `npm run copy:tcg` — retrieves the base card set from the external package.
 
 ---
 
@@ -278,7 +264,7 @@ npm install              # Install dependencies
 
 npm run dev              # Start dev server (http://localhost:5173)
 npm run build            # Production build → dist/
-npm run generate:tcg     # Generate base.tcg from card source data
+npm run copy:tcg         # Copy base.tcg from @wynillo/echoes-mod-base package
 npm run generate:engine-dts  # Generate eos-engine.d.ts for modders
 
 npm test                 # Run tests once

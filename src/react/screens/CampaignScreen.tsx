@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation }   from 'react-i18next';
+import type { TFunction }   from 'i18next';
 import { useScreen }        from '../contexts/ScreenContext.js';
 import { useCampaign }      from '../contexts/CampaignContext.js';
 import { useGame }           from '../contexts/GameContext.js';
@@ -7,7 +8,7 @@ import { OPPONENT_CONFIGS }  from '../../cards.js';
 import type { CampaignNode, Chapter } from '../../campaign-types.js';
 import styles from './CampaignScreen.module.css';
 
-function getUnlockHint(node: CampaignNode, t: (key: string, fallback?: string, opts?: Record<string, unknown>) => string): string {
+function getUnlockHint(node: CampaignNode, t: TFunction): string {
   const cond = node.unlockCondition;
   if (!cond) return t('campaign.locked');
   switch (cond.type) {
@@ -124,12 +125,20 @@ export default function CampaignScreen() {
               nodeId: node.id,
               completeOnLoss: node.completeOnLoss,
               rewards: node.rewards,
-              postDialogue: node.dialogueKeys,
+              postDialogue: node.postDialogue ?? null,
               gauntletOpponents: node.gauntlet,
               gauntletIndex: 0,
             });
-            startGame(firstCfg);
-            navigateTo('game');
+            if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
+              navigateTo('dialogue', {
+                scene: node.preDialogue,
+                nextScreen: 'game',
+                nextScreenData: { campaignOpponentConfig: firstCfg },
+              });
+            } else {
+              startGame(firstCfg);
+              navigateTo('game');
+            }
           }
         } else {
           // Standard single duel
@@ -139,10 +148,18 @@ export default function CampaignScreen() {
               nodeId: node.id,
               completeOnLoss: node.completeOnLoss,
               rewards: node.rewards,
-              postDialogue: node.dialogueKeys,
+              postDialogue: node.postDialogue ?? null,
             });
-            startGame(opponent);
-            navigateTo('game');
+            if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
+              navigateTo('dialogue', {
+                scene: node.preDialogue,
+                nextScreen: 'game',
+                nextScreenData: { campaignOpponentConfig: opponent },
+              });
+            } else {
+              startGame(opponent);
+              navigateTo('game');
+            }
           }
         }
         break;

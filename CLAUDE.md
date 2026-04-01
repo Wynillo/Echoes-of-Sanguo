@@ -11,7 +11,7 @@ npm test               # Run Vitest tests once
 npm run test:watch     # Vitest in watch mode
 npm run test:coverage  # Coverage report (v8)
 npm run test:e2e       # Playwright E2E tests (launches dev server)
-npm run generate:tcg   # Validate public/base.tcg-src/ folder and pack into public/base.tcg
+npm run copy:tcg          # Copy base.tcg from @wynillo/echoes-mod-base into public/
 npm run generate:engine-dts # Generate eos-engine.d.ts for modders
 npm run build:android  # Build + Capacitor sync for Android
 npm run cap:sync       # Sync Capacitor changes
@@ -23,7 +23,7 @@ npm run cap:open       # Open Android Studio
 Three-layer design with strict separation:
 
 1. **Engine Layer** (pure TypeScript, no React) — `src/engine.ts`, `src/effect-registry.ts`, `src/ai-behaviors.ts`, `src/ai-orchestrator.ts`, `src/field.ts`, `src/rules.ts`
-2. **Data Layer** — `src/types.ts`, `src/cards.ts`, `src/progression.ts`, `src/campaign.ts`, `src/campaign-types.ts`, `src/campaign-store.ts`, `src/shop-data.ts`, `@wynillo/tcg-format` (external package), `src/tcg-bridge.ts`, `src/enums.ts`
+2. **Data Layer** — `src/types.ts`, `src/cards.ts`, `src/progression.ts`, `src/campaign.ts`, `src/campaign-types.ts`, `src/campaign-store.ts`, `src/shop-data.ts`, `@wynillo/tcg-format` and `@wynillo/echoes-mod-base` (external packages), `src/tcg-bridge.ts`, `src/enums.ts`
 3. **UI Layer** (React) — `src/react/` with Context-based state management
 
 The engine communicates with the UI through the `UICallbacks` interface (render, log, prompt, showResult, playAttackAnimation, etc.). The engine never imports React.
@@ -36,7 +36,7 @@ The engine communicates with the UI through the `UICallbacks` interface (render,
 - `tests-e2e/` — Playwright E2E tests
 - `css/` — Tailwind + custom CSS + animations
 - `locales/` — i18next translations (`de.json`, `en.json`)
-- `public/base.tcg-src/` — TCG source data (cards, opponents, campaign, shop, metadata, locales). See `docs/tcg-format.md` for schema details
+- `public/base.tcg` — TCG data file copied from `@wynillo/echoes-mod-base` package. Source data (cards, opponents, campaign, shop, metadata, locales) located in `node_modules/@wynillo/echoes-mod-base/tcg-src/`. See `docs/tcg-format.md` for schema details
 - `docs/` — Format specification, plans, audits
 
 ## Key Conventions
@@ -76,7 +76,7 @@ All user-facing strings go through i18next. Translation files: `locales/de.json`
 
 ## TCG Source Files
 
-`public/base.tcg-src/` is the source folder for the base card set, served directly by Vite.
+Base card set data is provided by the `@wynillo/echoes-mod-base` package (in `node_modules/@wynillo/echoes-mod-base/tcg-src/`). The compiled `base.tcg` file is copied into `public/` via the Vite plugin at build time and served directly by Vite.
 Metadata files use a uniform `{ id, key, value, color }` schema (`key` = PascalCase i18n identifier, `value` = display label).
 Full format spec: `docs/tcg-format.md`. Core types: `src/types.ts`.
 
@@ -94,14 +94,16 @@ Full format spec: `docs/tcg-format.md`. Core types: `src/types.ts`.
 - Auto-starts dev server on port 5173
 - Run: `npm run test:e2e`
 
-## External Package: @wynillo/tcg-format
+## External Packages
 
-GitHub dependency ([Wynillo/Echoes-of-Sanguo-TCG](https://github.com/Wynillo/Echoes-of-Sanguo-TCG)) — handles loading, validation, and packing of `.tcg` archives. Bridge: `src/tcg-bridge.ts` connects output to game stores. Effect strings parsed by `src/effect-serializer.ts`.
+**@wynillo/tcg-format** — GitHub dependency ([Wynillo/Echoes-of-Sanguo-TCG](https://github.com/Wynillo/Echoes-of-Sanguo-TCG)) handles loading, validation, and packing of `.tcg` archives. Bridge: `src/tcg-bridge.ts` connects output to game stores. Effect strings parsed by `src/effect-serializer.ts`.
+
+**@wynillo/echoes-mod-base** — GitHub dependency providing base card set data (cards, opponents, campaign, shop, metadata, locales). The `npm run copy:tcg` command copies the compiled `base.tcg` from `node_modules/@wynillo/echoes-mod-base/` into `public/`.
 
 ## CI/CD
 
 GitHub Actions (`.github/workflows/`):
-- `deploy.yml` — Triggers on push to `main`: `npm ci` → `npm test` → `npm run generate:tcg` → E2E tests → `npm run build` → deploy to GitHub Pages (Node.js 22)
+- `deploy.yml` — Triggers on push to `main`: `npm ci` → `npm test` → `npm run copy:tcg` → E2E tests → `npm run build` → deploy to GitHub Pages (Node.js 22)
 - `release.yml` — Triggers on version tags (`v*`): build, generate `eos-engine.d.ts`, create GitHub Release
 - `deploy-hetzner.yml` — Hetzner deployment workflow
 - `summary.yml` — AI issue summarization workflow

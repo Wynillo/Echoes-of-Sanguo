@@ -127,14 +127,14 @@ export function resolveAIBehavior(id?: string): Required<AIBehavior> {
     battleStrategy:         base.battleStrategy         ?? 'smart',
     spellRules:             base.spellRules             ?? {},
     defaultSpellActivation: base.defaultSpellActivation ?? 'smart',
-    goal:                   base.goal                   ?? undefined,
+    goal:                   base.goal,
     lookaheadDepth:         base.lookaheadDepth         ?? 1,
     gamma:                  base.gamma                  ?? AI_SCORE.FUTURE_GAMMA_DEFAULT,
     peekDeckCards:          base.peekDeckCards          ?? 0,
     knowsPlayerHand:        base.knowsPlayerHand        ?? false,
     peekPlayerDeck:         base.peekPlayerDeck         ?? 0,
     holdFusionPiece:        base.holdFusionPiece        ?? false,
-  };
+  } as Required<AIBehavior>;
 }
 
 export function shouldActivateNormalSpell(
@@ -550,8 +550,6 @@ export function pickDebuffTarget(
     const curATK = fc.effectiveATK();
 
     score += curATK;
-
-    if (curATK + atkDebuff < curATK) score += 300;
 
     if (fc.card.effect) score += 500;
 

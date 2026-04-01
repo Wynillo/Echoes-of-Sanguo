@@ -87,10 +87,12 @@ export function FieldCardComponent({
   if (fc.effectImmune)   passiveIcons.push('\u2726');
   if (fc.piercing)       passiveIcons.push('\u26A1');
 
-  const atkBonus = (fc.atk ?? 0) - (card.atk ?? 0);
-  const defBonus = (fc.def ?? 0) - (card.def ?? 0);
+  const effATK = fc.effectiveATK();
+  const effDEF = fc.effectiveDEF();
+  const atkBonus = effATK - (card.atk ?? 0);
+  const defBonus = effDEF - (card.def ?? 0);
   const bonusTitle = card.atk !== undefined
-    ? `ATK: ${card.atk}${atkBonus ? ` + ${atkBonus} = ${fc.atk}` : ''} | DEF: ${card.def ?? 0}${defBonus ? ` + ${defBonus} = ${fc.def}` : ''}`
+    ? `ATK: ${card.atk}${atkBonus ? ` + ${atkBonus} = ${effATK}` : ''} | DEF: ${card.def ?? 0}${defBonus ? ` + ${defBonus} = ${effDEF}` : ''}`
     : undefined;
 
   return (

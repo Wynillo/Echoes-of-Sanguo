@@ -1,0 +1,30 @@
+{
+  "name": "Echoes of Sanguo",
+  "short_name": "Echoes",
+  "description": "A browser-based TCG inspired by classic card battlers, set in the Three Kingdoms era.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "theme_color": "#060e0a",
+  "background_color": "#060a14",
+  "categories": ["games"],
+  "icons": [
+    {
+      "src": "./icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

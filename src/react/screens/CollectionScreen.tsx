@@ -8,7 +8,8 @@ import { Progression }     from '../../progression.js';
 import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { Race, Rarity } from '../../types.js';
-import { getAllRaces, getAllRarities, getRarityById, getRaceById } from '../../type-metadata.js';
+import { getAllRarities, getRarityById, getRaceById } from '../../type-metadata.js';
+import RaceFilterBar from '../components/RaceFilterBar.js';
 import type { CardData } from '../../types.js';
 import styles from './CollectionScreen.module.css';
 
@@ -50,22 +51,7 @@ export default function CollectionScreen() {
       </div>
 
       <div className={styles.filters}>
-        <button
-          key="all"
-          className={`${styles.filterBtn}${raceFilter === 'all' ? ` ${styles.active}` : ''}`}
-          onClick={() => { setRaceFilter('all'); setVisibleCount(PAGE_SIZE); }}
-        >
-          🌐
-        </button>
-        {getAllRaces().map(rm => (
-          <button
-            key={rm.id}
-            className={`${styles.filterBtn}${raceFilter === rm.id ? ` ${styles.active}` : ''}`}
-            onClick={() => { setRaceFilter(rm.id as Race); setVisibleCount(PAGE_SIZE); }}
-          >
-            {rm.icon}
-          </button>
-        ))}
+        <RaceFilterBar value={raceFilter} onChange={r => { setRaceFilter(r); setVisibleCount(PAGE_SIZE); }} />
         <select
           className={styles.raritySelect}
           value={rarityFilter}
@@ -81,7 +67,7 @@ export default function CollectionScreen() {
       <div className={styles.grid}>
         {visibleCards.map(card => {
           const owned = countMap[card.id] || 0;
-          const rarColor = getRarityById((card as any).rarity)?.color ?? '#aaa';
+          const rarColor = getRarityById(card.rarity)?.color ?? '#aaa';
           if (owned) {
             return (
               <div
@@ -106,7 +92,7 @@ export default function CollectionScreen() {
             <div key={card.id} className={`${styles.card} ${styles.unowned}`}>
               <div className={styles.unknownLabel}>???</div>
               <div className={styles.cardMeta} style={{ textAlign: 'center', opacity: 0.4 }}>
-                {(card as any).race ? (getRaceById((card as any).race)?.value ?? '') : ''}
+                {card.race ? (getRaceById(card.race)?.value ?? '') : ''}
               </div>
             </div>
           );

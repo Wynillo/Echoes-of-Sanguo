@@ -30,7 +30,7 @@ Specialist for the AI opponent system: scoring math, behavior profiles, orchestr
 - `src/types.ts` — AIBehavior interface, AISummonPriority, AIPositionStrategy, AIBattleStrategy, AISpellRule
 - `src/engine.ts` — GameEngine state and methods the AI calls
 - `src/field.ts` — FieldCard with effectiveATK/DEF/combatValue
-- `public/base.tcg-src/opponents/*.json` — per-opponent deck configs with `behavior` field
+- `@wynillo/echoes-mod-base` tcg-src/opponents/*.json — per-opponent deck configs with `behavior` field
 
 ## Working Approach
 

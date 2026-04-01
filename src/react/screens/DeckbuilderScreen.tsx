@@ -8,7 +8,8 @@ import { Progression }     from '../../progression.js';
 import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import { attachHover }     from '../components/hoverApi.js';
 import { CardType, Race, Rarity } from '../../types.js';
-import { getAllRaces, getAllRarities, getRarityById, getCardTypeById, getRaceById } from '../../type-metadata.js';
+import { getAllRarities, getRarityById, getCardTypeById, getRaceById } from '../../type-metadata.js';
+import RaceFilterBar from '../components/RaceFilterBar.js';
 import type { CardData }   from '../../types.js';
 import styles from './DeckbuilderScreen.module.css';
 import { GAME_RULES } from '../../rules.js';
@@ -32,7 +33,7 @@ export default function DeckbuilderScreen() {
   const [nameSearch, setNameSearch]           = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [visibleCount, setVisibleCount]       = useState(100);
-  const _debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [viewMode, setViewMode]               = useState<ViewMode>('small');
   const [activeTab, setActiveTab]             = useState<ActiveTab>('collection');
   const [sortColumn, setSortColumn]           = useState<SortColumn | null>(null);
@@ -41,9 +42,9 @@ export default function DeckbuilderScreen() {
   const [seenCards, setSeenCards]             = useState<Set<string>>(() => Progression.getSeenCards());
 
   useEffect(() => {
-    if (_debounceRef.current !== null) clearTimeout(_debounceRef.current);
-    _debounceRef.current = setTimeout(() => setDebouncedSearch(nameSearch), 200);
-    return () => { if (_debounceRef.current !== null) clearTimeout(_debounceRef.current); };
+    if (debounceRef.current !== null) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(nameSearch), 200);
+    return () => { if (debounceRef.current !== null) clearTimeout(debounceRef.current); };
   }, [nameSearch]);
 
   const TYPE_FILTERS: { key: typeof typeFilter; label: string }[] = [
@@ -106,7 +107,7 @@ export default function DeckbuilderScreen() {
     currentDeck.forEach(id => {
       if (seen.has(id)) return;
       seen.add(id);
-      const card = (CARD_DB as any)[id] as CardData | undefined;
+      const card = CARD_DB[id] as CardData | undefined;
       if (card && matchesFilters(card)) cards.push(card);
     });
     return cards;
@@ -128,9 +129,9 @@ export default function DeckbuilderScreen() {
         case 'name':       cmp = a.name.localeCompare(b.name); break;
         case 'atk':        cmp = (a.atk ?? -1) - (b.atk ?? -1); break;
         case 'def':        cmp = (a.def ?? -1) - (b.def ?? -1); break;
-        case 'rarity':     cmp = (a.rarity as number) - (b.rarity as number); break;
+        case 'rarity':     cmp = (a.rarity ?? 0) - (b.rarity ?? 0); break;
         case 'type':       cmp = a.type - b.type; break;
-        case 'race':       cmp = ((a.race as number) ?? 0) - ((b.race as number) ?? 0); break;
+        case 'race':       cmp = (a.race ?? 0) - (b.race ?? 0); break;
         case 'collection': cmp = (collectionCount[a.id] || 0) - (collectionCount[b.id] || 0); break;
         case 'inDeck':     cmp = (copyMap[a.id] || 0) - (copyMap[b.id] || 0); break;
         case 'newest':     cmp = (isNew(a.id) ? 1 : 0) - (isNew(b.id) ? 1 : 0); break;
@@ -271,18 +272,7 @@ export default function DeckbuilderScreen() {
               ))}
             </div>
             <div className={styles.filterGroup}>
-              <button
-                key="all"
-                className={`${styles.filterBtn} ${styles.raceBtn}${raceFilter === 'all' ? ` ${styles.active}` : ''}`}
-                onClick={() => setRaceFilter('all')}
-              >🌐</button>
-              {getAllRaces().map(rm => (
-                <button
-                  key={rm.id}
-                  className={`${styles.filterBtn} ${styles.raceBtn}${raceFilter === rm.id ? ` ${styles.active}` : ''}`}
-                  onClick={() => setRaceFilter(rm.id as Race)}
-                >{rm.icon}</button>
-              ))}
+              <RaceFilterBar value={raceFilter} onChange={setRaceFilter} />
             </div>
             <div className={styles.filterGroup}>
               <select
@@ -409,7 +399,7 @@ export default function DeckbuilderScreen() {
                         className={dimmed ? styles.tableRowDimmed : ''}
                         onClick={() => handleCardClick(card)}
                         onDoubleClick={() => handleCardDoubleClick(card)}
-                        ref={el => { if (el) attachHover(el as any, card, null); }}
+                        ref={el => { if (el) attachHover(el, card, null); }}
                       >
                         <td>{card.id}</td>
                         <td>

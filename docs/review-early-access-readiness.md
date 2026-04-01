@@ -40,7 +40,7 @@ Full spell-speed chain (multi-card chains, counter-traps) remains a P2 item.
 **Impact:** Duels are more interactive on both turns. Trap placement is now strategically meaningful.
 
 ### 2. Fusion System is Shallow
-**File:** `public/base.tcg-src/fusion_formulas.json` — only 20 formulas (24 lines)
+**File:** `node_modules/@wynillo/echoes-mod-base/tcg-src/fusion_formulas.json` — only 20 fusion formulas
 
 FM had hundreds of fusion combinations including attribute combos, specific card combos, and material interactions. Here it's 20 race+race generic formulas. No LP cost for fusing. No fusion spell cards required. No fusion substitute monsters.
 
@@ -82,7 +82,7 @@ Bluffing (face-down ATK) and full multi-turn lookahead remain future work.
 ## CRITICAL FINDINGS — Content & Progression
 
 ### 6. Campaign Lacks Endgame
-**File:** `public/base.tcg-src/campaign.json`
+**File:** `node_modules/@wynillo/echoes-mod-base/tcg-src/campaign.json` — campaign graph
 
 - 7 chapters, 39 duel nodes, strictly linear progression
 - Chapter 7 (Postgame): **1 single duel node**
@@ -93,14 +93,14 @@ Bluffing (face-down ATK) and full multi-turn lookahead remain future work.
 **Impact:** Hardcore players complete campaign in 3-5 hours and have nothing left. FM's appeal was the grind loop — replaying duels for drops, buying packs, optimizing decks over dozens of hours.
 
 ### 7. Starter Decks Are Structurally Identical
-**File:** `public/base.tcg-src/meta.json`
+**File:** `node_modules/@wynillo/echoes-mod-base/tcg-src/meta.json` — starter deck definitions
 
 All 6 starter decks use identical structure: 13-14 doubled monsters + same tech card package (IDs 266, 267, 269, 270, 274, 291). Only the monster ID range changes. No aggro vs control vs combo identity.
 
 **Impact:** Starter choice feels cosmetic rather than strategic. No replay incentive.
 
 ### 8. Shop Economy Could Be Tighter
-**File:** `public/base.tcg-src/shop.json`, `src/react/utils/pack-logic.ts`
+**File:** `node_modules/@wynillo/echoes-mod-base/tcg-src/shop.json` (shop pack definitions), `src/react/utils/pack-logic.ts`
 
 The shop system itself is well-engineered: 6 tiered booster packs with randomized pulls, rarity distribution (60% C / 30% U / 8.9% R / 1% SR / 0.1% UR), pity system guaranteeing Rare+ per pack, card pool filtering by ATK ceiling, and campaign-gated unlock progression. Solid architecture.
 
@@ -245,11 +245,10 @@ However: duel rewards (100-1000 coins) vs pack prices (250-800 coins) means play
 | `src/progression.ts` | Save/load — functional but no meta-progression |
 | `src/campaign.ts` | Campaign logic — unused node types |
 | `src/campaign-types.ts` | Schema supports more than campaign.json uses |
-| `src/mod-api.ts` | Powerful mod surface — zero documentation |
 | `src/shop-data.ts` | Well-typed shop data store |
 | `src/react/utils/pack-logic.ts` | Solid pack opening: rarity distribution, pity, pool filtering |
-| `public/base.tcg-src/cards.json` | 312 cards, 85 unique effects |
-| `public/base.tcg-src/fusion_formulas.json` | Only 20 formulas |
-| `public/base.tcg-src/campaign.json` | 39 nodes, linear, 1 postgame duel |
-| `public/base.tcg-src/shop.json` | 6 tiered booster packs with unlock progression |
-| `public/base.tcg-src/meta.json` | 6 starter decks, identical structure |
+| `node_modules/@wynillo/echoes-mod-base/tcg-src/cards.json` | 312 cards, 85 unique effects |
+| `node_modules/@wynillo/echoes-mod-base/tcg-src/fusion_formulas.json` | Only 20 formulas |
+| `node_modules/@wynillo/echoes-mod-base/tcg-src/campaign.json` | 39 nodes, linear, 1 postgame duel |
+| `node_modules/@wynillo/echoes-mod-base/tcg-src/shop.json` | 6 tiered booster packs with unlock progression |
+| `node_modules/@wynillo/echoes-mod-base/tcg-src/meta.json` | 6 starter decks, identical structure |

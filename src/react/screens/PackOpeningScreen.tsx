@@ -13,7 +13,6 @@ import styles from './PackOpeningScreen.module.css';
 
 type Phase = 'pack' | 'reveal' | 'summary';
 
-/* ── Constants ────────────────────────────────────────────── */
 const TAPS_TO_OPEN = 3;
 
 const HOLD_BY_RARITY: Record<number, number> = {
@@ -103,8 +102,6 @@ function getBgClass(rarity: number): string {
   }
 }
 
-/* ── Component ─────────────────────────────────────────────── */
-
 export default function PackOpeningScreen() {
   const { navigateTo, screenData } = useScreen();
   const { openModal } = useModal();
@@ -135,7 +132,6 @@ export default function PackOpeningScreen() {
   const lightRaysRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
 
-  /* ── Reduced motion: skip everything ─── */
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       skipRef.current = true;
@@ -143,7 +139,6 @@ export default function PackOpeningScreen() {
     }
   }, []);
 
-  /* ── Skip handler ─── */
   const handleSkip = useCallback(() => {
     if (phase === 'summary') return;
     if (phase === 'pack' && !tearing) return; // don't skip during tap phase
@@ -152,7 +147,6 @@ export default function PackOpeningScreen() {
     setPhase('summary');
   }, [phase, tearing]);
 
-  /* ── Pack tap handler ─── */
   const handlePackTap = useCallback(() => {
     if (tearing || skipRef.current) return;
     const pack = packRef.current;
@@ -179,7 +173,6 @@ export default function PackOpeningScreen() {
     }
   }, [tapCount, tearing]);
 
-  /* ── Phase 1: Pack tear-open animation (triggered when tearing=true) ─── */
   useEffect(() => {
     if (phase !== 'pack' || !tearing) return;
     if (skipRef.current) { setPhase('summary'); return; }
@@ -231,7 +224,6 @@ export default function PackOpeningScreen() {
     return () => { tl.kill(); };
   }, [phase, tearing]);
 
-  /* ── Phase 2: Card reveal sequence ─── */
   useEffect(() => {
     if (phase !== 'reveal') return;
     if (skipRef.current) { setPhase('summary'); return; }
@@ -364,8 +356,6 @@ export default function PackOpeningScreen() {
       currentTl?.kill();
     };
   }, [phase, sortedCards]);
-
-  /* ── Render ─── */
 
   // Phase 1: Pack
   if (phase === 'pack') {

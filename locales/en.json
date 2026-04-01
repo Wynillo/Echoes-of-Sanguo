@@ -80,7 +80,8 @@
     "unmute": "Unmute",
     "view_log": "📜 Battle Log",
     "log_empty": "No log entries yet.",
-    "download_log": "⬇ Download Log"
+    "download_log": "⬇ Download Log",
+    "install_app": "Install App"
   },
   "shop": {
     "title": "◈ JADE SHOP",
@@ -501,5 +502,8 @@
     "badge_rank_b": "B",
     "coin_multiplier": "x{{multiplier}} Coins",
     "badge_cards_earned": "+{{count}} Card(s) from Enemy"
+  },
+  "status": {
+    "offline": "Offline"
   }
 }
