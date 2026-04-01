@@ -43,6 +43,11 @@
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.1.2"
   },
+  "overrides": {
+    "vite-plugin-pwa": {
+      "vite": "$vite"
+    }
+  },
   "dependencies": {
     "@capacitor/android": "^8.3.0",
     "@capacitor/cli": "^8.3.0",
