@@ -26,7 +26,7 @@ Three layers with strict separation:
 2. **Data** — `src/types.ts`, `src/cards.ts`, `src/enums.ts`, `src/progression.ts`, `src/campaign.ts`, `src/tcg-bridge.ts`, external packages `@wynillo/tcg-format` and `@wynillo/echoes-mod-base`
 3. **UI** (React) — `src/react/` with Context-based state management
 
-The engine communicates with the UI only through the `UICallbacks` interface. The engine never imports React.
+The engine communicates with the UI only through the `UICallbacks` interface. Keep the engine as pure TypeScript; all UI interaction must go through UICallbacks.
 
 ## Code Style
 
@@ -37,7 +37,7 @@ The engine communicates with the UI only through the `UICallbacks` interface. Th
 
 ## Reference
 
-- Architecture & directory map: `.claude/architecture.md`
-- Conventions (state, commits, i18n, effects, testing): `.claude/conventions.md`
-- CI/CD workflows: `.claude/cicd.md`
+- Architecture & directory map: .claude/architecture.md
+- Conventions (state, commits, i18n, effects, testing): .claude/conventions.md
+- CI/CD workflows: .claude/cicd.md
 - TCG format schema: `docs/tcg-format.md`
