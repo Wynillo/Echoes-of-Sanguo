@@ -211,8 +211,6 @@ export default function ShopScreen() {
   );
 }
 
-// ── Package Tile ───────────────────────────────────────────
-
 interface PackageTileProps {
   pkg: PackageDef;
   affordable: boolean;
@@ -245,8 +243,6 @@ function PackageTile({ pkg, affordable, onBuy, onInfo }: PackageTileProps) {
     </div>
   );
 }
-
-// ── Pack Info Modal ────────────────────────────────────────
 
 interface PackInfoModalProps {
   pack: PackageDef;

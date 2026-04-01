@@ -1,8 +1,3 @@
-// ============================================================
-// hoverApi — imperative hover-preview API (no React)
-// Separated from HoverPreview.tsx so React Fast Refresh can
-// hot-update the component without resetting module-level state.
-// ============================================================
 import type { CardData, FieldCard } from '../../types.js';
 
 export interface HoverState {

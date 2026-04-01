@@ -69,7 +69,6 @@ export default function GameScreen() {
   return (
     <div id="game-screen">
 
-      {/* ── Portrait-only top control bar ─────────────────────── */}
       <div id="portrait-bar">
         <button
           className="portrait-opts-btn"

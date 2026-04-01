@@ -439,7 +439,6 @@ const IMPL: Record<string, InternalImpl> = {
 
   createTokens(desc: { tokenId: string; count: number; position: string }, ctx) {
     const pos = (desc.position ?? 'def') as 'atk' | 'def';
-    let placed = 0;
     for (let i = 0; i < desc.count; i++) {
       const tokenCard: CardData = {
         id: `${desc.tokenId}_${Date.now()}_${i}`,
@@ -450,9 +449,8 @@ const IMPL: Record<string, InternalImpl> = {
         description: 'A token monster.',
       };
       void ctx.engine.specialSummon(ctx.owner, tokenCard, undefined, pos);
-      placed++;
     }
-    ctx.engine.addLog(`${placed} token(s) summoned!`);
+    ctx.engine.addLog(`${desc.count} token(s) summoned!`);
     return {};
   },
 
@@ -964,7 +962,7 @@ export function executeEffectBlock(block: CardEffectBlock, ctx: EffectContext): 
     if (impl) {
       Object.assign(signal, impl(action, ctx));
     } else {
-      console.warn(`[EffectRegistry] No handler for effect type: "${action.type}" — skipping.`);
+      ctx.engine.addLog(`[EffectRegistry] No handler for effect type: "${action.type}" — skipping.`);
     }
   }
   return signal;

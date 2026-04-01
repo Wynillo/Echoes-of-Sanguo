@@ -1,13 +1,5 @@
-// ============================================================
-// ECHOES OF SANGUO — AI Threat Evaluation
-// Pure functions for board threat scoring and future value
-// estimation. No engine imports, no async, no side effects.
-// ============================================================
-
 import type { AIGoal, BoardSnapshot, PlayerState } from './types.js';
 import { AI_SCORE } from './ai-behaviors.js';
-
-// ── Board Snapshot ───────────────────────────────────────────
 
 /** Create a lightweight board snapshot from live player states. */
 export function snapshotBoard(ai: PlayerState, plr: PlayerState): BoardSnapshot {
@@ -29,8 +21,6 @@ export function snapshotBoard(ai: PlayerState, plr: PlayerState): BoardSnapshot 
   };
 }
 
-// ── Threat Score ─────────────────────────────────────────────
-
 /**
  * Compute a signed threat score from a board snapshot.
  * Positive = AI is ahead. Negative = AI is losing.
@@ -42,8 +32,6 @@ export function computeBoardThreat(snap: BoardSnapshot): number {
   const handAdv = (snap.aiHandSize - snap.plrHandSize) * AI_SCORE.THREAT_HAND_WEIGHT;
   return lpRatio + boardDiff + handAdv;
 }
-
-// ── Future Value ─────────────────────────────────────────────
 
 /**
  * One-step lookahead: how much does the board threat improve after an action?
@@ -58,8 +46,6 @@ export function estimateFutureValue(
   const delta = computeBoardThreat(snapAfter) - computeBoardThreat(snapBefore);
   return gamma * delta;
 }
-
-// ── Goal Alignment ───────────────────────────────────────────
 
 export type AIActionType =
   | 'fusion'
@@ -102,8 +88,6 @@ export function classifyGoalAlignment(
       return 0;
   }
 }
-
-// ── Turn Context Helper ──────────────────────────────────────
 
 /**
  * Evaluate whether the goal is still active this turn.

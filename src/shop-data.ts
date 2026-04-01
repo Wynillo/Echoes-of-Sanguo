@@ -1,12 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — Shop Data Store
-// Runtime store for pack definitions and shop configuration.
-// Loaded from shop.json inside .tcg archives; defaults match
-// the original hardcoded pack-logic values.
-// ============================================================
-
-// ── Card Pool Filtering ─────────────────────────────────────
-
 /** Filter criteria for a card pool. All specified fields use AND logic within the same filter object. */
 export interface CardFilter {
   races?: number[];       // Race enum values — only applies to cards that have a race field
@@ -47,8 +38,6 @@ export interface PackageDef {
   unlockCondition?: UnlockCondition;
 }
 
-// ── Pack Slot ───────────────────────────────────────────────
-
 export interface PackSlotDef {
   count: number;
   rarity?: number;                      // Rarity enum int (1=C, 2=U, 4=R, 6=SR, 8=UR)
@@ -74,8 +63,6 @@ export interface ShopData {
   currency: { nameKey: string; icon: string };
   backgrounds: Record<string, string>;  // chapter key -> resolved URL
 }
-
-// ── Default shop data ───────────────────────────────────────
 
 export const SHOP_DATA: ShopData = {
   backgrounds: {},

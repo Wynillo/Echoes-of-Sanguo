@@ -29,8 +29,6 @@ const GameContext = createContext<GameCtx>({
   startGame: () => {}, clearPendingDraw: () => {},
 });
 
-// ── Serialization helpers ──────────────────────────────────
-
 function serializePlayerState(ps: PlayerState): SerializedPlayerState {
   return {
     lp: ps.lp,
@@ -316,7 +314,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     },
   }), []); // stable — uses refs internally
 
-  // ── Save duel checkpoint on page unload ──────────────────
   useEffect(() => {
     function handleBeforeUnload() {
       const engine = gameRef.current;
@@ -350,7 +347,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  // ── Restore duel checkpoint on mount ─────────────────────
   useEffect(() => {
     if (restoredRef.current) return;
     restoredRef.current = true;

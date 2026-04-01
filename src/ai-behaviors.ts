@@ -551,8 +551,6 @@ export function pickDebuffTarget(
 
     score += curATK;
 
-    if (curATK + atkDebuff < curATK) score += 300;
-
     if (fc.card.effect) score += 500;
 
     if (score > bestScore) {

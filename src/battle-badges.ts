@@ -3,8 +3,6 @@ import { Rarity } from './types.js';
 import { CARD_DB } from './cards.js';
 import { RARITY_DROP_RATES } from './react/utils/pack-logic.js';
 
-// ── Types ────────────────────────────────────────────────────
-
 export type BadgeRank = 'S' | 'A' | 'B';
 export type BadgeCategory = 'POW' | 'TEC';
 
@@ -20,8 +18,6 @@ export interface BattleBadges {
   best: BadgeRank;
   coinMultiplier: number;
 }
-
-// ── Helpers ──────────────────────────────────────────────────
 
 /** Pick the first matching range value. Ranges are [max, modifier] checked with <=. */
 function rangeScore(value: number, ranges: [number, number][]): number {
@@ -44,8 +40,6 @@ function multiplierForRank(rank: BadgeRank): number {
     case 'B': return 0.8;
   }
 }
-
-// ── POW scoring ──────────────────────────────────────────────
 
 function scorePOW(stats: DuelStats): number {
   let score = 50;
@@ -91,8 +85,6 @@ function rankPOW(score: number): BadgeRank {
   if (score >= 60) return 'A';
   return 'B';
 }
-
-// ── TEC scoring ──────────────────────────────────────────────
 
 function scoreTEC(stats: DuelStats): number {
   let score = 50;
@@ -145,8 +137,6 @@ function rankTEC(score: number): BadgeRank {
   return 'B';
 }
 
-// ── Public API ───────────────────────────────────────────────
-
 export function calculateBattleBadges(stats: DuelStats): BattleBadges {
   const powScore = scorePOW(stats);
   const tecScore = scoreTEC(stats);
@@ -157,8 +147,6 @@ export function calculateBattleBadges(stats: DuelStats): BattleBadges {
 
   return { pow, tec, best, coinMultiplier: multiplierForRank(best) };
 }
-
-// ── S-rank card drops ────────────────────────────────────────
 
 const RARITY_FALLBACK: Rarity[] = [
   Rarity.UltraRare, Rarity.SuperRare, Rarity.Rare, Rarity.Uncommon, Rarity.Common,

@@ -1,8 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — Campaign Data Store
-// Global stores populated by tcg-loader from base.tcg
-// ============================================================
-
 import type { CampaignData } from './campaign-types.js';
 
 export let CAMPAIGN_DATA: CampaignData | null = null;

@@ -67,7 +67,7 @@ export default function CollectionScreen() {
       <div className={styles.grid}>
         {visibleCards.map(card => {
           const owned = countMap[card.id] || 0;
-          const rarColor = getRarityById((card as any).rarity)?.color ?? '#aaa';
+          const rarColor = getRarityById(card.rarity)?.color ?? '#aaa';
           if (owned) {
             return (
               <div
@@ -92,7 +92,7 @@ export default function CollectionScreen() {
             <div key={card.id} className={`${styles.card} ${styles.unowned}`}>
               <div className={styles.unknownLabel}>???</div>
               <div className={styles.cardMeta} style={{ textAlign: 'center', opacity: 0.4 }}>
-                {(card as any).race ? (getRaceById((card as any).race)?.value ?? '') : ''}
+                {card.race ? (getRaceById(card.race)?.value ?? '') : ''}
               </div>
             </div>
           );

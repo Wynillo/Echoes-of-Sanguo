@@ -1,10 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — Enum Converters (enum ↔ int)
-// Bidirectional mapping between internal enums and TCG int enums
-// Since the internal enums now use the same numeric values as the
-// TCG format constants, these conversions are identity mappings.
-// ============================================================
-
 import { CardType, Attribute, Race, Rarity } from './types.js';
 import type { EffectTrigger, TrapTrigger, SpellType } from './types.js';
 import {
@@ -12,9 +5,6 @@ import {
   TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG_ATTR_WATER, TCG_ATTR_EARTH, TCG_ATTR_WIND,
   TCG_RARITY_COMMON, TCG_RARITY_UNCOMMON, TCG_RARITY_RARE, TCG_RARITY_SUPER_RARE, TCG_RARITY_ULTRA_RARE,
 } from '@wynillo/tcg-format';
-
-// ── CardType ─────────────────────────────────────────────────
-// CardType.Monster (1) == TCG_TYPE_MONSTER (1), etc.
 
 const TYPE_TO_INT: Record<CardType, number> = {
   [CardType.Monster]:   TCG_TYPE_MONSTER,
@@ -44,8 +34,6 @@ export function intToCardType(n: number, hasEffect: boolean): CardType {
   if (ct === undefined) throw new Error(`Unknown type int: ${n}`);
   return ct;
 }
-
-// ── Attribute ────────────────────────────────────────────────
 
 const ATTR_TO_INT: Record<Attribute, number> = {
   [Attribute.Light]: TCG_ATTR_LIGHT,
@@ -77,9 +65,6 @@ export function intToAttribute(n: number): Attribute {
   return a;
 }
 
-// ── Race ─────────────────────────────────────────────────────
-// Race is a plain number type — identity conversion, no fixed limit.
-
 export function raceToInt(r: Race): number {
   return r;
 }
@@ -87,8 +72,6 @@ export function raceToInt(r: Race): number {
 export function intToRace(n: number): Race {
   return n;
 }
-
-// ── Rarity ───────────────────────────────────────────────────
 
 const RARITY_TO_INT: Record<Rarity, number> = {
   [Rarity.Common]:    TCG_RARITY_COMMON,
@@ -118,9 +101,6 @@ export function intToRarity(n: number): Rarity {
   return r;
 }
 
-// ── Trigger ──────────────────────────────────────────────────
-// Effect triggers and trap triggers share the same string space in serialization
-
 const TRIGGER_STRINGS: ReadonlySet<string> = new Set([
   'onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive', 'onFlip',
   'onDealBattleDamage', 'onSentToGrave',
@@ -130,8 +110,6 @@ const TRIGGER_STRINGS: ReadonlySet<string> = new Set([
 export function isValidTrigger(s: string): s is (EffectTrigger | TrapTrigger) {
   return TRIGGER_STRINGS.has(s);
 }
-
-// ── SpellType ────────────────────────────────────────────────
 
 const SPELL_TYPE_STRINGS: ReadonlySet<string> = new Set(['normal', 'targeted', 'fromGrave', 'field']);
 
@@ -153,8 +131,6 @@ export function intToSpellType(n: number): SpellType {
   if (s === undefined) throw new Error(`Unknown spellType int: ${n}`);
   return s;
 }
-
-// ── TrapTrigger ─────────────────────────────────────────────
 
 const TRAP_TRIGGER_TO_INT: Record<string, number> = {
   onAttack: 1, onOwnMonsterAttacked: 2, onOpponentSummon: 3, manual: 4, onOpponentSpell: 5, onAnySummon: 6,

@@ -1380,7 +1380,6 @@ export class GameEngine {
     setTimeout(() => {
       aiTurn(this).catch(err => {
         EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
-        console.error('[EchoesOfSanguo] Unhandled error in aiTurn:', err);
         EchoesOfSanguo.downloadLog('ai_crash');
         // Recover: switch back to player so game isn't frozen
         this.state.activePlayer = 'player';

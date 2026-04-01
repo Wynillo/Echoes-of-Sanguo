@@ -5,8 +5,6 @@ import { SHOP_DATA } from '../../shop-data.js';
 import type { PackSlotDef, PackageDef, CardFilter, CardPoolDef } from '../../shop-data.js';
 import type { CardData } from '../../types.js';
 
-// ── Global rarity drop rates ────────────────────────────────
-
 /** Default drop-chance distribution used for any slot without an explicit rarity or distribution. */
 export const RARITY_DROP_RATES: Record<string, number> = {
   [Rarity.Common]:    0.60,
@@ -15,8 +13,6 @@ export const RARITY_DROP_RATES: Record<string, number> = {
   [Rarity.SuperRare]: 0.01,
   [Rarity.UltraRare]: 0.001,
 };
-
-// ── Data-driven rarity picker ───────────────────────────────
 
 function _pickRarityFromSlot(slot: PackSlotDef): Rarity {
   const dist = slot.distribution ?? (slot.rarity == null ? RARITY_DROP_RATES : undefined);
@@ -35,8 +31,6 @@ function _pickRarityFromSlot(slot: PackSlotDef): Rarity {
   return slot.rarity as Rarity;
 }
 
-// ── Expand slots into individual rarity picks ───────────────
-
 function _expandSlots(packDef: { slots: PackSlotDef[] }): Rarity[] {
   const rarities: Rarity[] = [];
   for (const slot of packDef.slots) {
@@ -46,8 +40,6 @@ function _expandSlots(packDef: { slots: PackSlotDef[] }): Rarity[] {
   }
   return rarities;
 }
-
-// ── Pity system ────────────────────────────────────────────
 
 /**
  * If no card in the array is Rare or better, replace one card with Rare.
@@ -67,8 +59,6 @@ function _applyPity(rarities: Rarity[]): Rarity[] {
   rarities[replaceIdx] = Rarity.Rare;
   return rarities;
 }
-
-// ── Card Pool Filtering ─────────────────────────────────────
 
 /**
  * Test whether a card matches a single CardFilter using AND logic:
@@ -147,8 +137,6 @@ export function isPackageUnlocked(pkg: PackageDef): boolean {
   }
   return false;
 }
-
-// ── Main public function ────────────────────────────────────
 
 /** Open a curated card package by ID. Uses the package's cardPool filter. */
 export function openPackage(packageId: string): CardData[] {

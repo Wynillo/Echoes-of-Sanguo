@@ -1,19 +1,5 @@
-// ============================================================
-// ECHOES OF SANGUO — Effect Serializer/Deserializer (TCG Format)
-// Converts CardEffectBlock ↔ compact string notation
-//
-// Format: "trigger:action1(args);action2(args)"
-// Examples:
-//   "onSummon:dealDamage(opponent,300)"
-//   "passive:passive_piercing()"
-//   "onSummon:buffField(200,{r=3})"
-//   "onAttack:dealDamage(opponent,attacker.effectiveATK*0.5f);cancelAttack()"
-// ============================================================
-
 import { type CardEffectBlock, type CardData, type CardFilter, type EffectCost, type EffectDescriptor, type EffectTrigger, type TrapTrigger, type ValueExpr, type StatTarget } from './types.js';
 import { isValidTrigger, intToAttribute, intToRace, attributeToInt, raceToInt, cardTypeToInt, intToCardType } from './enums.js';
-
-// ── ValueExpr Serialization ──────────────────────────────────
 
 function serializeValueExpr(v: ValueExpr): string {
   if (typeof v === 'number') return String(v);
@@ -38,9 +24,6 @@ function deserializeValueExpr(s: string): ValueExpr {
     round: m[3] === 'f' ? 'floor' : 'ceil',
   };
 }
-
-// ── CardFilter Serialization ─────────────────────────────────
-// Format: {r=3,a=1,maxAtk=1500,ct=1,id=card123,rnd=2}
 
 function serializeCardFilter(f: CardFilter): string {
   const parts: string[] = [];
@@ -84,8 +67,6 @@ function deserializeCardFilter(s: string): CardFilter {
 function isCardFilterEmpty(f: CardFilter): boolean {
   return Object.keys(f).length === 0;
 }
-
-// ── Action Serialization ─────────────────────────────────────
 
 const STAT_TARGETS = new Set<string>(['ownMonster', 'oppMonster', 'attacker', 'defender', 'summonedFC']);
 
@@ -196,8 +177,6 @@ function serializeAction(a: EffectDescriptor): string {
       throw new Error(`Unknown effect action type: ${(a as any).type}`);
   }
 }
-
-// ── Action Deserialization ───────────────────────────────────
 
 /** Parse comma-separated args, respecting {} blocks */
 function parseArgs(argsStr: string): string[] {
@@ -381,8 +360,6 @@ function deserializeAction(actionStr: string): EffectDescriptor {
       throw new Error(`Unknown action type: ${type}`);
   }
 }
-
-// ── Public API ───────────────────────────────────────────────
 
 function serializeCost(cost: EffectCost): string {
   const parts: string[] = [];

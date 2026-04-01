@@ -1,9 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — TCG Bridge
-// Connects the pure TCG loader to the game engine's mutable stores.
-// All side effects (store mutation, blob URL creation, etc.) happen here.
-// ============================================================
-
 import { loadTcgFile, TcgNetworkError, TcgFormatError } from '@wynillo/tcg-format';
 import JSZip from 'jszip';
 import type { TcgLoadResult, TcgParsedCard, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from '@wynillo/tcg-format';
@@ -22,7 +16,7 @@ import { TYPE_META } from './type-metadata.js';
 // Re-export error classes for consumers
 export { TcgNetworkError, TcgFormatError };
 
-// ── Mod Tracking ─────────────────────────────────────────────
+const rid = (numId: number): string => String(numId);
 
 interface LoadedMod {
   source: string;           // URL or label
@@ -32,13 +26,8 @@ interface LoadedMod {
 }
 const loadedMods: LoadedMod[] = [];
 
-// ── TcgParsedCard → CardData conversion ──────────────────────
-// Mirrors the old tcgCardToCardData() from tcg-loader.ts.
-// Cannot use a simple spread: spellType and trapTrigger are `number` in TcgParsedCard
-// but string-based types (SpellType, TrapTrigger) in CardData.
-
 function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
-  let parsedEffect: { effect?: any; effects?: any[] } = {};
+  let parsedEffect: Partial<Pick<CardData, 'effect' | 'effects'>> = {};
   if (p.effect) {
     if (!isValidEffectString(p.effect)) {
       warnings.push(`Card #${p.id}: effect string may contain unknown actions: "${p.effect}"`);
@@ -105,13 +94,10 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
   return card;
 }
 
-// ── applyOpponents ──────────────────────────────────────────
-
 function applyOpponents(
   tcgOpponents: TcgOpponentDeck[],
   oppDescs?: TcgOpponentDescription[],
 ): number[] {
-  const rid = (numId: number): string => String(numId);
   const addedOpponentIds: number[] = [];
   const oppDescMap = new Map<number, TcgOpponentDescription>();
   if (oppDescs) {
@@ -136,10 +122,7 @@ function applyOpponents(
   return addedOpponentIds;
 }
 
-// ── applyStarterDecks ───────────────────────────────────────
-
 function applyFusionRecipes(raw: Array<{ materials: number[]; result: number }>): void {
-  const rid = (numId: number): string => String(numId);
   const recipes: FusionRecipe[] = raw.map(r => ({
     materials: [rid(r.materials[0]), rid(r.materials[1])] as [string, string],
     result: rid(r.result),
@@ -148,7 +131,6 @@ function applyFusionRecipes(raw: Array<{ materials: number[]; result: number }>)
 }
 
 function applyStarterDecks(raw: Record<string, number[]>): void {
-  const rid = (numId: number): string => String(numId);
   for (const [raceKey, numIds] of Object.entries(raw)) {
     STARTER_DECKS[Number(raceKey)] = numIds.map(rid);
   }
@@ -159,12 +141,9 @@ function applyStarterDecks(raw: Record<string, number[]>): void {
   }
 }
 
-// ── applyFusionFormulas — moved from tcg-loader.ts ───────────
-
 const VALID_COMBO_TYPES = new Set<FusionComboType>(['race+race', 'race+attr', 'attr+attr']);
 
 function applyFusionFormulas(raw: TcgFusionFormula[], warnings: string[]): void {
-  const rid = (numId: number): string => String(numId);
   const converted: FusionFormula[] = [];
   for (const f of raw) {
     if (!VALID_COMBO_TYPES.has(f.comboType as FusionComboType)) {
@@ -181,9 +160,6 @@ function applyFusionFormulas(raw: TcgFusionFormula[], warnings: string[]): void 
   FUSION_FORMULAS.push(...converted);
 }
 
-// ── Image handling ───────────────────────────────────────────
-// Bridge creates blob URLs from raw ArrayBuffers (loader is environment-agnostic)
-
 const blobUrls: Map<number, string> = new Map();
 
 function applyImages(rawImages: Map<number, ArrayBuffer>): Map<number, string> {
@@ -199,8 +175,6 @@ export function revokeTcgImages(): void {
   blobUrls.clear();
 }
 
-// ── BridgeLoadResult ─────────────────────────────────────────
-
 export interface BridgeLoadResult {
   cards: TcgLoadResult['cards'];
   parsedCards: TcgLoadResult['parsedCards'];
@@ -209,8 +183,6 @@ export interface BridgeLoadResult {
   manifest?: TcgManifest;
   warnings: string[];
 }
-
-// ── Public API ───────────────────────────────────────────────
 
 export async function loadAndApplyTcg(
   source: string | ArrayBuffer,
@@ -247,7 +219,7 @@ export async function loadAndApplyTcg(
       result.warnings.push(`Card ${id} ("${parsed.name}") overwrites existing card "${CARD_DB[id].name}"`);
     }
     const card = parsedToCardData(parsed, result.warnings);
-    if ((raw as any).spirit) card.spirit = true;
+    if ((raw as Record<string, unknown>).spirit) card.spirit = true;
     CARD_DB[id] = card;
     mod.cardIds.push(id);
   }
@@ -318,10 +290,6 @@ export function unloadModCards(source: string): boolean {
 export function getLoadedMods(): readonly LoadedMod[] {
   return loadedMods;
 }
-
-// ── TCG Locale System ───────────────────────────────────────
-// Extracts unified locale files (locales/{lang}.json) from the .tcg ZIP
-// archive during load and caches them in memory.
 
 interface TcgLocale {
   cards?: Record<string, { name: string; description: string }>;

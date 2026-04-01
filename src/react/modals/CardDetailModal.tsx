@@ -49,7 +49,6 @@ export function CardDetailModal({ modal }: Props) {
     if (fc && (fc.permATKBonus || fc.tempATKBonus)) statsText += t('card_detail.atk_bonus');
   }
 
-  // ── Action buttons (only when action context is provided) ──
   const actions: React.ReactNode[] = [];
 
   if (state && index !== undefined && game) {
@@ -205,8 +204,6 @@ function actionBtn(label: string, handler: (() => void) | null, disabled = false
     </button>
   );
 }
-
-// ── Targeting helpers ──────────────────────────────────────
 
 type SetSel = (s: Partial<Selection>) => void;
 type OpenModal = (m: ModalState) => void;
