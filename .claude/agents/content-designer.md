@@ -6,7 +6,12 @@ description: >
   conditions, gauntlets, rewards, dialogue) or the shop system (designing booster
   packs, curated packages, slot distributions, card pool filters, pricing, unlock
   conditions). These systems are tightly coupled through progression.
-tools: Read, Grep, Glob, Edit, Write
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Edit
+  - Write
 model: sonnet
 ---
 

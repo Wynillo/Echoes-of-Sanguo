@@ -6,7 +6,13 @@ description: >
   card data, modifying fusion formulas, editing opponent decks, debugging format
   issues, working with TCG source files (in @wynillo/echoes-mod-base), or answering
   questions about the TCG archive structure and schemas.
-tools: Read, Grep, Glob, Bash, Edit, Write
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Edit
+  - Write
 model: sonnet
 ---
 

@@ -6,7 +6,13 @@ description: >
   behavior profiles, fixing AI decision bugs (wrong attack targets, poor spell
   timing, bad positioning), balancing opponent difficulty, or debugging the AI
   orchestrator turn flow.
-tools: Read, Grep, Glob, Bash, Edit, Write
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Edit
+  - Write
 model: sonnet
 ---
 

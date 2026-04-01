@@ -6,7 +6,12 @@ description: >
   locales/de.json, keeping TCG locale files in sync (card descriptions, opponent
   descriptions, race/attribute/card-type overrides), finding missing translation
   keys, or translating content between English and German.
-tools: Read, Grep, Glob, Edit, Write
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Edit
+  - Write
 model: haiku
 ---
 
