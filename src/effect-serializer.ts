@@ -201,7 +201,7 @@ function isFilterArg(s: string): boolean {
 }
 
 function deserializeAction(actionStr: string): EffectDescriptor {
-  const m = actionStr.match(/^(\w+)\(([^)]*(?:\{[^}]*\}[^)]*)*)\)$/);
+  const m = actionStr.match(/^(\w+)\((.*)\)$/);
   if (!m) throw new Error(`Invalid action syntax: ${actionStr}`);
   const type = m[1];
   const args = parseArgs(m[2]);
