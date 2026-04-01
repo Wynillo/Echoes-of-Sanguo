@@ -12,7 +12,6 @@ export default function SavePointScreen() {
   const { openModal }      = useModal();
   const { t } = useTranslation();
   const [savedMsg, setSavedMsg] = useState(false);
-<<<<<<< HEAD:src/react/screens/SavePointScreen.tsx
   const [isSaving, setIsSaving] = useState(false);
 
   function handleSave() {
