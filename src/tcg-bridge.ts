@@ -178,7 +178,7 @@ export function revokeTcgImages(): void {
 export interface BridgeLoadResult {
   cards: TcgLoadResult['cards'];
   parsedCards: TcgLoadResult['parsedCards'];
-  definitions: TcgLoadResult['definitions'];
+  localeOverrides: TcgLoadResult['localeOverrides'];
   images: Map<number, string>;   // card id → blob URL
   manifest?: TcgManifest;
   warnings: string[];
@@ -261,7 +261,7 @@ export async function loadAndApplyTcg(
   return {
     cards: result.cards,
     parsedCards: result.parsedCards,
-    definitions: result.definitions,
+    localeOverrides: result.localeOverrides,
     images,
     manifest: result.manifest,
     warnings: result.warnings,

@@ -108,6 +108,8 @@ All enum fields in the format use integers, not strings.
 | 3 | onOpponentSummon |
 | 4 | manual |
 | 5 | onOpponentSpell |
+| 6 | onAnySummon |
+| 7 | onOpponentTrap |
 
 ---
 
@@ -153,18 +155,20 @@ Array of card stat objects. All integer IDs must be positive and unique.
 | `race` | integer | monsters only | 1–12 |
 | `effect` | string | no | effect string, see Effects section |
 | `spellType` | integer | spells only | 1–4 |
-| `trapTrigger` | integer | traps only | 1–4 |
+| `trapTrigger` | integer | traps only | 1–7 |
 | `target` | string | targeted spells/traps | `ownMonster` \| `oppMonster` \| `attacker` \| `defender` \| `summonedFC` |
 | `atkBonus` | integer | equipment only | ATK bonus applied to equipped monster |
 | `defBonus` | integer | equipment only | DEF bonus applied to equipped monster |
 | `equipReqRace` | integer | equipment only | required race (1–12) for target monster |
 | `equipReqAttr` | integer | equipment only | required attribute (1–6) for target monster |
+| `name` | string | no | plaintext card name (recommended: use `locales/`) |
+| `description` | string | no | plaintext card description (recommended: use `locales/`) |
 
 ---
 
-### `cards_description.json`
+### `cards_description.json` _(deprecated in format v2)_
 
-Array mapping numeric card ID to display name and description. Must cover every card in `cards.json`.
+Array mapping numeric card ID to display name and description. In format v2+, use inline `name`/`description` fields on card entries in `cards.json` with optional `locales/` overrides instead.
 
 ```json
 [
