@@ -4,10 +4,12 @@
 // ============================================================
 
 import type { ValidationResult } from './types.js';
-import { TCG_TYPES, TCG_ATTRIBUTES, TCG_RARITIES, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_EQUIPMENT } from './types.js';
-const VALID_TYPES      = new Set(TCG_TYPES);
-const VALID_ATTRIBUTES = new Set(TCG_ATTRIBUTES);
-const VALID_RARITIES   = new Set(TCG_RARITIES);
+import { TCG_TYPES, TCG_ATTRIBUTES, TCG_RARITIES, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_EQUIPMENT, TCG_SPELL_TYPES, TCG_TRAP_TRIGGERS } from './types.js';
+const VALID_TYPES       = new Set(TCG_TYPES);
+const VALID_ATTRIBUTES  = new Set(TCG_ATTRIBUTES);
+const VALID_RARITIES    = new Set(TCG_RARITIES);
+const VALID_SPELL_TYPES = new Set(TCG_SPELL_TYPES);
+const VALID_TRAP_TRIGGERS = new Set(TCG_TRAP_TRIGGERS);
 
 function validateSingleCard(card: unknown, index: number): string[] {
   const errors: string[] = [];
@@ -120,6 +122,20 @@ function validateSingleCard(card: unknown, index: number): string[] {
   if (c.effect !== undefined && c.effect !== null) {
     if (typeof c.effect !== 'string') {
       errors.push(`${prefix}.effect: must be a string, got ${typeof c.effect}`);
+    }
+  }
+
+  // spellType: optional int 1-4
+  if (c.spellType !== undefined && c.spellType !== null) {
+    if (typeof c.spellType !== 'number' || !Number.isInteger(c.spellType) || !VALID_SPELL_TYPES.has(c.spellType as typeof TCG_SPELL_TYPES[number])) {
+      errors.push(`${prefix}.spellType: must be one of [1,2,3,4], got ${c.spellType}`);
+    }
+  }
+
+  // trapTrigger: optional int 1-7
+  if (c.trapTrigger !== undefined && c.trapTrigger !== null) {
+    if (typeof c.trapTrigger !== 'number' || !Number.isInteger(c.trapTrigger) || !VALID_TRAP_TRIGGERS.has(c.trapTrigger as typeof TCG_TRAP_TRIGGERS[number])) {
+      errors.push(`${prefix}.trapTrigger: must be one of [1,2,3,4,5,6,7], got ${c.trapTrigger}`);
     }
   }
 

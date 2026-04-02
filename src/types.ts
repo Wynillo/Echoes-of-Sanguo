@@ -12,6 +12,34 @@ export const TCG_TYPE_TRAP      = 4;
 export const TCG_TYPE_EQUIPMENT = 5;
 export const TCG_TYPES = [TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_EQUIPMENT] as const;
 
+// ── Spell Type ───────────────────────────────────────────────
+// 1=normal, 2=targeted, 3=fromGrave, 4=field
+export const TCG_SPELL_NORMAL      = 1;
+export const TCG_SPELL_TARGETED    = 2;
+export const TCG_SPELL_FROM_GRAVE  = 3;
+export const TCG_SPELL_FIELD       = 4;
+export const TCG_SPELL_TYPES = [TCG_SPELL_NORMAL, TCG_SPELL_TARGETED, TCG_SPELL_FROM_GRAVE, TCG_SPELL_FIELD] as const;
+
+// ── Trap Trigger ─────────────────────────────────────────────
+// 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual
+// 5=onOpponentSpell, 6=onAnySummon, 7=onOpponentTrap
+export const TCG_TRAP_ON_ATTACK               = 1;
+export const TCG_TRAP_ON_OWN_MONSTER_ATTACKED = 2;
+export const TCG_TRAP_ON_OPPONENT_SUMMON      = 3;
+export const TCG_TRAP_MANUAL                  = 4;
+export const TCG_TRAP_ON_OPPONENT_SPELL       = 5;
+export const TCG_TRAP_ON_ANY_SUMMON           = 6;
+export const TCG_TRAP_ON_OPPONENT_TRAP        = 7;
+export const TCG_TRAP_TRIGGERS = [
+  TCG_TRAP_ON_ATTACK,
+  TCG_TRAP_ON_OWN_MONSTER_ATTACKED,
+  TCG_TRAP_ON_OPPONENT_SUMMON,
+  TCG_TRAP_MANUAL,
+  TCG_TRAP_ON_OPPONENT_SPELL,
+  TCG_TRAP_ON_ANY_SUMMON,
+  TCG_TRAP_ON_OPPONENT_TRAP,
+] as const;
+
 // ── Attribute ────────────────────────────────────────────────
 export const TCG_ATTR_LIGHT = 1;
 export const TCG_ATTR_DARK  = 2;
@@ -57,8 +85,8 @@ export interface TcgCard {
   race?:      number;       // positive int (base set: 1-12), absent for Spells/Traps
   effect?:    string;       // serialized effect string
   spirit?:    boolean;      // true if card returns to hand at end of turn
-  spellType?:   number;    // 1=normal, 2=targeted, 3=fromGrave
-  trapTrigger?: number;    // 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual
+  spellType?:   number;    // 1=normal, 2=targeted, 3=fromGrave, 4=field
+  trapTrigger?: number;    // 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual, 5=onOpponentSpell, 6=onAnySummon, 7=onOpponentTrap
   target?:      string;    // targeting hint: 'ownMonster', 'oppMonster', etc.
   atkBonus?:    number;    // Equipment: ATK bonus applied to equipped monster
   defBonus?:    number;    // Equipment: DEF bonus applied to equipped monster
@@ -91,7 +119,7 @@ export interface TcgParsedCard {
   effect?:       string;     // raw serialized effect string (opaque at format level)
   spirit?:       boolean;    // true if card returns to hand at end of turn
   spellType?:    number;     // 1=normal, 2=targeted, 3=fromGrave, 4=field
-  trapTrigger?:  number;     // 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual
+  trapTrigger?:  number;     // 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual, 5=onOpponentSpell, 6=onAnySummon, 7=onOpponentTrap
   target?:       string;     // targeting hint: 'ownMonster', 'oppMonster', etc.
   atkBonus?:     number;
   defBonus?:     number;

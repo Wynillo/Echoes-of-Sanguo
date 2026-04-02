@@ -65,6 +65,8 @@ tests/
 | Concept | Values | Notes |
 |---------|--------|-------|
 | Card Types | 1=Monster, 2=Fusion, 3=Spell, 4=Trap, 5=Equipment | Monsters/Fusions have ATK/DEF/level; Spells have spellType; Traps have trapTrigger; Equipment has bonuses |
+| Spell Types | 1=normal, 2=targeted, 3=fromGrave, 4=field | Spells only |
+| Trap Triggers | 1=onAttack, 2=onOwnMonsterAttacked, 3=onOpponentSummon, 4=manual, 5=onOpponentSpell, 6=onAnySummon, 7=onOpponentTrap | Traps only |
 | Attributes | 1=Light, 2=Dark, 3=Fire, 4=Water, 5=Earth, 6=Wind | Optional on monsters/fusions |
 | Races | Base: 1-12 (Dragon, Spellcaster, Warrior, Beast, Plant, Rock, Phoenix, Undead, Aqua, Insect, Machine, Pyro); extensible by mods (20+) | Optional on monsters/fusions |
 | Rarities | 1=Common, 2=Uncommon, 4=Rare, 6=Super Rare, 8=Ultra Rare | Non-consecutive integers |
