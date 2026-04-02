@@ -13,6 +13,7 @@ import RaceFilterBar from '../components/RaceFilterBar.js';
 import type { CardData }   from '../../types.js';
 import styles from './DeckbuilderScreen.module.css';
 import { GAME_RULES } from '../../rules.js';
+import { GiCrossedSwords, GiShield } from 'react-icons/gi';
 
 const MAX_DECK = GAME_RULES.maxDeckSize;
 const MAX_COPIES = GAME_RULES.maxCardCopies;
@@ -356,22 +357,10 @@ export default function DeckbuilderScreen() {
                       {t('deckbuilder.table_name')}{sortIndicator('name')}
                     </th>
                     <th className={styles.sortable} onClick={() => toggleSort('atk')}>
-                      {t('deckbuilder.table_atk')}{sortIndicator('atk')}
-                    </th>
-                    <th className={styles.sortable} onClick={() => toggleSort('def')}>
-                      {t('deckbuilder.table_def')}{sortIndicator('def')}
-                    </th>
-                    <th className={styles.sortable} onClick={() => toggleSort('type')}>
-                      {t('deckbuilder.table_type')}{sortIndicator('type')}
-                    </th>
-                    <th className={styles.sortable} onClick={() => toggleSort('race')}>
-                      {t('deckbuilder.table_race')}{sortIndicator('race')}
+                      {t('deckbuilder.table_atkdef')}{sortIndicator('atk')}
                     </th>
                     <th className={styles.sortable} onClick={() => toggleSort('inDeck')}>
                       {t('deckbuilder.table_in_deck')}{sortIndicator('inDeck')}
-                    </th>
-                    <th className={styles.sortable} onClick={() => toggleSort('newest')}>
-                      {t('deckbuilder.table_new')}{sortIndicator('newest')}
                     </th>
                   </tr>
                 </thead>
@@ -381,7 +370,6 @@ export default function DeckbuilderScreen() {
                     const atMax      = isAtMax(card.id);
                     const full       = currentDeck.length >= MAX_DECK;
                     const dimmed     = activeTab === 'collection' && (atMax || full);
-                    const ownedCount = collectionCount[card.id] || 0;
                     const rarMeta    = getRarityById(card.rarity as number);
                     const rarColor   = rarMeta?.color ?? '#aaa';
                     const typeLbl    = card.type === CardType.Monster && card.effect
@@ -400,19 +388,24 @@ export default function DeckbuilderScreen() {
                         onDoubleClick={() => handleCardDoubleClick(card)}
                         ref={el => { if (el) attachHover(el, card, null); }}
                       >
-                        <td>{card.id}</td>
+                        <td>
+                          <div>{card.id}</div>
+                          {isNew(card.id) && <span className={styles.newBadge}>NEW</span>}
+                        </td>
                         <td>
                           <span style={{ color: rarColor }}>
                             {rarMeta?.value ?? '\u2014'}
                           </span>
                         </td>
-                        <td style={{ color: typeColor }}>{card.name}</td>
-                        <td>{card.atk !== undefined ? card.atk : '\u2014'}</td>
-                        <td>{card.def !== undefined ? card.def : '\u2014'}</td>
-                        <td style={{ color: typeColor }}>{typeLbl}</td>
-                        <td>{raceLbl}</td>
+                        <td>
+                          <div style={{ color: typeColor }}>{card.name}</div>
+                          <div className={styles.tableSubtext}>{typeLbl} {raceLbl}</div>
+                        </td>
+                        <td className={styles.tableAtkDef}>
+                          <div><GiCrossedSwords className={styles.statIcon} /> {card.atk ?? '\u2014'}</div>
+                          <div><GiShield className={styles.statIcon} /> {card.def ?? '\u2014'}</div>
+                        </td>
                         <td>{copies} / {maxCopiesFor(card.id)}</td>
-                        <td>{isNew(card.id) && <span className={styles.newBadge}>NEW</span>}</td>
                       </tr>
                     );
                   })}
