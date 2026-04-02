@@ -44,37 +44,30 @@ function multiplierForRank(rank: BadgeRank): number {
 function scorePOW(stats: DuelStats): number {
   let score = 50;
 
-  // Victory condition
   score += stats.endReason === 'lp_zero' ? 2 : -20;
 
-  // Turns
   score += rangeScore(stats.turns, [
-    [4, 12], [8, 8], [16, 0], [24, -8], [Infinity, -12],
+    [4, 14], [8, 8], [12, 2], [20, -4], [28, -10], [Infinity, -14],
   ]);
 
-  // Monsters played
-  score += rangeScore(stats.monstersPlayed, [
-    [3, 4], [6, 2], [10, 0], [15, -4], [Infinity, -8],
-  ]);
-
-  // Fusions performed (fusions = power)
   score += rangeScore(stats.fusionsPerformed, [
-    [0, -2], [2, 4], [4, 2], [Infinity, 0],
+    [0, -4], [1, 4], [3, 6], [5, 2], [Infinity, 0],
   ]);
 
-  // LP remaining
   score += rangeScore(stats.lpRemaining, [
-    [999, -4], [3999, 0], [6999, 2], [7999, 6], [Infinity, 8],
+    [999, -6], [3999, 0], [5999, 2], [7999, 6], [Infinity, 10],
   ]);
 
-  // Opponent LP remaining (lower = better for POW)
   score += rangeScore(stats.opponentLpRemaining, [
-    [0, 2], [999, 0], [Infinity, -4],
+    [0, 4], [999, 0], [Infinity, -6],
   ]);
 
-  // Cards drawn (fewer = faster game)
   score += rangeScore(stats.cardsDrawn, [
-    [5, 4], [10, 2], [20, 0], [30, -4], [Infinity, -8],
+    [5, 6], [10, 2], [15, 0], [25, -4], [Infinity, -8],
+  ]);
+
+  score += rangeScore(stats.monstersPlayed, [
+    [3, 2], [6, 0], [10, -2], [Infinity, -6],
   ]);
 
   return score;
@@ -89,42 +82,30 @@ function rankPOW(score: number): BadgeRank {
 function scoreTEC(stats: DuelStats): number {
   let score = 50;
 
-  // Victory condition — LP win is clean, deck out is sloppy
-  score += stats.endReason === 'lp_zero' ? 2 : -20;
+  score += stats.endReason === 'lp_zero' ? 2 : -10;
 
-  // Turns (fewer = more efficient)
-  score += rangeScore(stats.turns, [
-    [4, 12], [8, 8], [16, 0], [24, -8], [Infinity, -12],
-  ]);
-
-  // Spells activated (fewer = more technical)
   score += rangeScore(stats.spellsActivated, [
-    [0, 8], [2, 4], [4, 0], [8, -6], [Infinity, -12],
+    [0, -6], [1, 2], [3, 8], [5, 4], [8, 0], [Infinity, -6],
   ]);
 
-  // Traps activated (fewer = more technical, heavy penalty)
   score += rangeScore(stats.trapsActivated, [
-    [0, 6], [1, 0], [3, -10], [5, -18], [Infinity, -26],
+    [0, -4], [1, 4], [3, 8], [5, 2], [Infinity, -4],
   ]);
 
-  // Fusions performed (fewer = more technical)
   score += rangeScore(stats.fusionsPerformed, [
-    [0, 6], [2, 0], [4, -4], [8, -8], [Infinity, -12],
+    [0, -4], [1, 2], [3, 6], [5, 2], [Infinity, -2],
   ]);
 
-  // Monsters played (fewer = more efficient)
-  score += rangeScore(stats.monstersPlayed, [
-    [3, 8], [6, 2], [10, 0], [15, -6], [Infinity, -10],
-  ]);
-
-  // LP remaining (high = clean win)
   score += rangeScore(stats.lpRemaining, [
-    [999, -4], [3999, -2], [6999, 0], [7999, 4], [Infinity, 6],
+    [999, -4], [3999, 0], [5999, 2], [7999, 4], [Infinity, 6],
   ]);
 
-  // Graveyard size (fewer resources spent = more technical)
+  score += rangeScore(stats.turns, [
+    [4, 2], [8, 4], [12, 6], [16, 2], [24, -2], [Infinity, -6],
+  ]);
+
   score += rangeScore(stats.graveyardSize, [
-    [4, 8], [8, 4], [14, 0], [20, -6], [Infinity, -10],
+    [4, -2], [8, 2], [14, 4], [20, 0], [Infinity, -4],
   ]);
 
   return score;
