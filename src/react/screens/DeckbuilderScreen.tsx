@@ -437,7 +437,7 @@ export default function DeckbuilderScreen() {
                           <div><GiShield className={styles.statIcon} /> {card.def ?? '\u2014'}</div>
                         </td>
                         <td
-                          className={`${styles.deckCountCell}${copies > 0 ? ` ${styles.deckCountActive}` : ''}`}
+                          className={`${styles.deckCountCell}${copies >= maxCp && copies > 0 ? ` ${styles.deckCountMax}` : copies > 0 ? ` ${styles.deckCountActive}` : ''}${full && copies === 0 ? ` ${styles.deckCountDimmed}` : ''}`}
                           onClick={e => { e.stopPropagation(); cycleDeckCount(card.id); }}
                         >
                           <strong>{copies}</strong>/{maxCp}

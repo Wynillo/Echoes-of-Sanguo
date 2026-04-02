@@ -192,8 +192,17 @@
 }
 
 .deckCountActive {
+  color: var(--text);
+}
+
+.deckCountMax {
   color: var(--gold-light);
   border-color: var(--gold);
+}
+
+.deckCountDimmed {
+  opacity: 0.3; cursor: default !important;
+  pointer-events: none;
 }
 
 .newBadge {
