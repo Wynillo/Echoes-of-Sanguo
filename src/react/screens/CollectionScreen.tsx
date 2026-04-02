@@ -67,7 +67,7 @@ export default function CollectionScreen() {
       <div className={styles.grid}>
         {visibleCards.map(card => {
           const owned = countMap[card.id] || 0;
-          const rarColor = getRarityById(card.rarity)?.color ?? '#aaa';
+          const rarColor = getRarityById(card.rarity ?? 0)?.color ?? '#aaa';
           if (owned) {
             return (
               <div

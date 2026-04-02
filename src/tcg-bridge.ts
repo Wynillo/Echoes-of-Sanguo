@@ -219,7 +219,7 @@ export async function loadAndApplyTcg(
       result.warnings.push(`Card ${id} ("${parsed.name}") overwrites existing card "${CARD_DB[id].name}"`);
     }
     const card = parsedToCardData(parsed, result.warnings);
-    if ((raw as Record<string, unknown>).spirit) card.spirit = true;
+    if (raw.spirit) card.spirit = true;
     CARD_DB[id] = card;
     mod.cardIds.push(id);
   }
