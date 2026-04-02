@@ -7,12 +7,15 @@
 }
 
 .header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 16px;
+  display: flex; flex-direction: column;
   background: #151e38;
   border-bottom: 2px solid var(--border-glow);
   flex-shrink: 0;
-  flex-wrap: wrap;
+}
+
+.titleRow {
+  display: flex; align-items: center;
+  padding: 8px 12px;
   position: relative;
 }
 
@@ -20,32 +23,47 @@
   font-size: 0.8rem;
   padding: 6px 12px;
   flex-shrink: 0;
+  z-index: 1;
 }
 
 .title {
+  position: absolute; left: 0; right: 0;
+  text-align: center;
   font-size: 1.125rem; font-weight: bold;
-  color: var(--gold-light); letter-spacing: 2px;
+  color: var(--gold-light); letter-spacing: 3px;
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
-.tabs {
-  display: flex; gap: 0;
+.saveBtn {
+  margin-left: auto;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.tabRow {
+  display: flex;
 }
 
 .tabBtn {
+  flex: 1;
   background: #141e3c; color: var(--text-dim);
-  padding: 5px 14px; border: 1px solid var(--border);
-  font-size: 0.7rem; cursor: pointer;
+  padding: 10px 14px; border: none;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem; font-weight: 600; cursor: pointer;
   letter-spacing: 1px; text-transform: uppercase;
-  transition: color 0.15s, border-color 0.15s;
+  text-align: center;
+  transition: color 0.15s, background 0.15s;
 }
 
-.tabBtn:first-child { border-right: none; }
+.tabBtn:first-child { border-right: 1px solid var(--border); }
 
 .tabBtn:hover { color: var(--gold); }
 
 .tabBtn.activeTab {
-  background: #283c78; color: var(--gold-light);
-  border-color: var(--gold);
+  background: #1c3078; color: var(--gold-light);
+  border-top-color: var(--gold);
+  box-shadow: inset 0 2px 0 var(--gold), 0 0 12px rgba(200, 168, 80, 0.15);
 }
 
 .body {
