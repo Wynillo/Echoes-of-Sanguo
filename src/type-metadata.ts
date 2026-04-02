@@ -5,7 +5,8 @@ export interface RaceMeta {
   key:    string;   // stable PascalCase identifier (e.g. 'Dragon')
   value:  string;   // display label (localized)
   color:  string;   // primary display color (hex)
-  icon?:  string;   // emoji icon for filter buttons (optional)
+  icon?:  string;   // emoji or react-icons/gi identifier (e.g. 'GiWizardStaff')
+  emoji?: string;   // plain-text fallback for text-only contexts (e.g. <option>)
 }
 
 export interface AttributeMeta {
@@ -74,18 +75,18 @@ export function getAllRarities(): readonly RarityMeta[] { return TYPE_META.rarit
 
 export function initDefaults(): void {
   TYPE_META.races = [
-    { id: Race.Dragon,      key: 'Dragon',      value: 'Dragon',      color: '#8040c0', icon: '🐲' },
-    { id: Race.Spellcaster, key: 'Spellcaster', value: 'Spellcaster', color: '#6060c0', icon: '🔮' },
-    { id: Race.Warrior,     key: 'Warrior',     value: 'Warrior',     color: '#c09030', icon: '⚔️' },
-    { id: Race.Beast,       key: 'Beast',       value: 'Beast',       color: '#e07030', icon: '🐅' },
-    { id: Race.Plant,       key: 'Plant',       value: 'Plant',       color: '#40a050', icon: '🌿' },
-    { id: Race.Rock,        key: 'Rock',        value: 'Rock',        color: '#808060', icon: '🪨' },
-    { id: Race.Phoenix,     key: 'Phoenix',     value: 'Phoenix',     color: '#e06020', icon: '🔥' },
-    { id: Race.Undead,      key: 'Undead',      value: 'Undead',      color: '#804090', icon: '💀' },
-    { id: Race.Aqua,        key: 'Aqua',        value: 'Aqua',        color: '#3080b0', icon: '🌊' },
-    { id: Race.Insect,      key: 'Insect',      value: 'Insect',      color: '#90a040', icon: '🦋' },
-    { id: Race.Machine,     key: 'Machine',     value: 'Machine',     color: '#708090', icon: '⚙️' },
-    { id: Race.Pyro,        key: 'Pyro',        value: 'Pyro',        color: '#c03010', icon: '♨' },
+    { id: Race.Dragon,      key: 'Dragon',      value: 'Dragon',      color: '#8040c0', icon: 'GiSpikedDragonHead', emoji: '🐲' },
+    { id: Race.Spellcaster, key: 'Spellcaster', value: 'Spellcaster', color: '#6060c0', icon: 'GiWizardStaff',       emoji: '🔮' },
+    { id: Race.Warrior,     key: 'Warrior',     value: 'Warrior',     color: '#c09030', icon: 'GiCrossedSwords',     emoji: '⚔️' },
+    { id: Race.Beast,       key: 'Beast',       value: 'Beast',       color: '#e07030', icon: 'GiBearFace',          emoji: '🐅' },
+    { id: Race.Plant,       key: 'Plant',       value: 'Plant',       color: '#40a050', icon: 'GiVineLeaf',          emoji: '🌿' },
+    { id: Race.Rock,        key: 'Rock',        value: 'Rock',        color: '#808060', icon: 'GiStonePile',         emoji: '🪨' },
+    { id: Race.Phoenix,     key: 'Phoenix',     value: 'Phoenix',     color: '#e06020', icon: 'GiFireBreath',          emoji: '🔥' },
+    { id: Race.Undead,      key: 'Undead',      value: 'Undead',      color: '#804090', icon: 'GiSkullCrossedBones', emoji: '💀' },
+    { id: Race.Aqua,        key: 'Aqua',        value: 'Aqua',        color: '#3080b0', icon: 'GiWaterDrop',         emoji: '🌊' },
+    { id: Race.Insect,      key: 'Insect',      value: 'Insect',      color: '#90a040', icon: 'GiButterfly',         emoji: '🦋' },
+    { id: Race.Machine,     key: 'Machine',     value: 'Machine',     color: '#708090', icon: 'GiGears',             emoji: '⚙️' },
+    { id: Race.Pyro,        key: 'Pyro',        value: 'Pyro',        color: '#c03010', icon: 'GiFireBowl',          emoji: '♨' },
   ];
 
   TYPE_META.attributes = [

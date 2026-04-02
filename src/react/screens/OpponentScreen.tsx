@@ -6,6 +6,7 @@ import { useCampaign }    from '../contexts/CampaignContext.js';
 import { useGame }        from '../contexts/GameContext.js';
 import { OPPONENT_CONFIGS } from '../../cards.js';
 import { getRaceById } from '../../type-metadata.js';
+import RaceIcon from '../components/RaceIcon.js';
 import type { OpponentConfig } from '../../types.js';
 import styles from './OpponentScreen.module.css';
 
@@ -59,7 +60,7 @@ export default function OpponentScreen() {
             >
               <div className={styles.frame} style={{ borderColor: accent }}>
                 <div className={styles.art} style={{ background: `linear-gradient(135deg,${accent}44,#111830)` }}>
-                  <div className={styles.symbol}>{raceMeta?.icon ?? '?'}</div>
+                  <div className={styles.symbol}><RaceIcon icon={raceMeta?.icon} /></div>
                 </div>
               </div>
               <div className={styles.name}>{cfg.name}</div>

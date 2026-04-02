@@ -1,5 +1,6 @@
 import { Race } from '../../types.js';
 import { getAllRaces } from '../../type-metadata.js';
+import RaceIcon from './RaceIcon.js';
 import styles from './RaceFilterBar.module.css';
 
 interface RaceFilterBarProps {
@@ -23,7 +24,7 @@ export default function RaceFilterBar({ value, onChange }: RaceFilterBarProps) {
             key={rm.id}
             className={`${styles.btn}${value === rm.id ? ` ${styles.active}` : ''}`}
             onClick={() => onChange(rm.id as Race)}
-          >{rm.icon}</button>
+          ><RaceIcon icon={rm.icon} /></button>
         ))}
       </div>
 
@@ -39,7 +40,7 @@ export default function RaceFilterBar({ value, onChange }: RaceFilterBarProps) {
         <option value="all">🌐 All Races</option>
         {races.map(rm => (
           <option key={rm.id} value={String(rm.id)}>
-            {rm.icon} {rm.value}
+            {rm.emoji ?? rm.icon ?? ''} {rm.value}
           </option>
         ))}
       </select>

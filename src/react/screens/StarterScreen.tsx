@@ -5,6 +5,7 @@ import { useProgression } from '../contexts/ProgressionContext.js';
 import { Progression }    from '../../progression.js';
 import { STARTER_DECKS }  from '../../cards.js';
 import { getRaceById }    from '../../type-metadata.js';
+import RaceIcon from '../components/RaceIcon.js';
 import { Race } from '../../types.js';
 import styles from './StarterScreen.module.css';
 
@@ -59,7 +60,7 @@ export default function StarterScreen() {
               style={{ '--race-color': meta?.color ?? '#888' } as React.CSSProperties}
               onClick={() => setSelected(entry)}
             >
-              <div className={styles.raceIcon}>{meta?.icon ?? '?'}</div>
+              <div className={styles.raceIcon}><RaceIcon icon={meta?.icon} /></div>
               <div className={styles.raceName}>{t(`cards.race_${entry.key}`)}</div>
               <div className={styles.raceStyle}>{t(`starter.${entry.key}_style`, { defaultValue: '' })}</div>
             </div>
@@ -69,7 +70,7 @@ export default function StarterScreen() {
 
       <div className={styles.preview}>
         <p id="starter-preview-name">
-          {selectedMeta ? `${selectedMeta.icon} ${t(`cards.race_${selected!.key}`)}${t('starter.deck_suffix')}` : ''}
+          {selectedMeta ? `${selectedMeta.emoji ?? selectedMeta.icon ?? ''} ${t(`cards.race_${selected!.key}`)}${t('starter.deck_suffix')}` : ''}
         </p>
         <p id="starter-preview-desc">{selected ? t(`starter.${selected.key}_flavor`, { defaultValue: '' }) : ''}</p>
         {selected && (
