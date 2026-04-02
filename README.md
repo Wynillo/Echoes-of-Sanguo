@@ -1,6 +1,17 @@
-# Echoes of Sanguo
+# Echoes of Sanguo — Engine
 
-A browser-based trading card game inspired by **Yu-Gi-Oh! Forbidden Memories** — built with React 19, TypeScript 6.0, Vite 8, and a custom ZIP-based card format (.tcg).
+The game engine and runtime for **Echoes of Sanguo** — a browser-based TCG inspired by **Yu-Gi-Oh! Forbidden Memories**. Built with React 19, TypeScript 6, Vite 8. Loads card content from `.tcg` packs at runtime.
+
+---
+
+## Ecosystem
+
+| Repository | Role |
+|---|---|
+| **This repo (Engine)** | Game runtime, UI, effect system, AI, mod API |
+| [`@wynillo/tcg-format`](https://github.com/Wynillo/Echoes-of-Sanguo-TCG) | TCG archive format library (load / validate / pack `.tcg` files) |
+| [`@wynillo/echoes-mod-base`](https://github.com/Wynillo/Echoes-of-Sanguo-MOD-base) | Base card set & content (cards, opponents, campaign, shop, locales) |
+| `echoes-of-sanguo-mod-forbiddenmemories` *(coming soon)* | Alternative TCG pack based on Yu-Gi-Oh! Forbidden Memories |
 
 ---
 
@@ -18,91 +29,103 @@ Echoes of Sanguo is a 1v1 duel card game. Each player starts with **8000 Life Po
 
 ---
 
-## Features
-
-### 10 Monster Races
-Each race has a distinct playstyle and stat bias:
-
-| Race | Icon | Playstyle |
-|---|---|---|
-| Fire | 🔥 | Direct damage on summon/destruction |
-| Dragon | 🐲 | High ATK, targeting immunity |
-| Flying | 🦅 | Weaken opponents, hard to attack |
-| Stone | 🪨 | High DEF, strong healing |
-| Plant | 🌿 | LP recovery, staying power |
-| Warrior | ⚔️ | ATK buffs, piercing damage |
-| Magician | 🔮 | Card draw, board control |
-| Elf | ✨ | Permanently weaken enemy monsters |
-| Demon | 💀 | High damage, high-risk effects |
-| Water | 🌊 | Bounce, control, trap synergy |
-
-### 312 Cards
-| Type | Count |
-|---|---|
-| Monster | 245 |
-| Fusion Monster | 20 |
-| Spell | 28 |
-| Trap | 12 |
-| Equipment | 7 |
-| **Total** | **312** |
-
-**5 Rarity Levels:** Common · Uncommon · Rare · Super Rare · Ultra Rare
+## Engine Features
 
 ### Effect System
-Data-driven effect system with the following triggers:
-- `onSummon` — effect on summon
-- `onDestroyByBattle` — effect when destroyed in battle
-- `onDestroyByOpponent` — effect when destroyed by the opponent
-- `onFlip` — effect when flipped face-up
-- `passive` — continuous effect (`piercing`, `cannotBeTargeted`)
 
-Effects include: direct damage, LP healing, card draw, ATK/DEF buffs and debuffs, bounce, and piercing damage.
+Data-driven effect system with **60+ actions** and **7 triggers**. Effects are defined as strings in `.tcg` card data and executed by the `EFFECT_REGISTRY` at runtime.
+
+**Triggers:**
+
+| Trigger | Fires when... |
+|---|---|
+| `onSummon` | Monster is summoned to the field |
+| `onDestroyByBattle` | Monster is destroyed in battle |
+| `onDestroyByOpponent` | Monster is destroyed by the opponent (battle or effect) |
+| `onFlip` | Monster is flipped face-up |
+| `onDealBattleDamage` | Monster deals battle damage to the opponent |
+| `onSentToGrave` | Card is sent to the graveyard |
+| `passive` | Continuous effect while on the field |
+
+**Effect Actions (grouped by category):**
+
+| Category | Actions |
+|---|---|
+| **Damage / Heal** | `dealDamage`, `gainLP`, `reflectBattleDamage` |
+| **Draw / Search** | `draw`, `searchDeckToHand`, `peekTopCard`, `drawThenDiscard` |
+| **Stat Modification** | `buffField`, `debuffField`, `tempBuffField`, `tempDebuffField`, `tempAtkBonus`, `permAtkBonus`, `tempDefBonus`, `permDefBonus`, `halveAtk`, `doubleAtk`, `swapAtkDef` |
+| **Removal / Bounce** | `bounceStrongestOpp`, `bounceAttacker`, `bounceAllOppMonsters`, `bounceOppHandToDeck`, `destroyAttacker`, `destroyAllOpp`, `destroyAll`, `destroyWeakestOpp`, `destroyStrongestOpp`, `destroyByFilter`, `destroySummonedIf`, `destroyAndDamageBoth` |
+| **Graveyard** | `reviveFromGrave`, `reviveFromEitherGrave`, `salvageFromGrave`, `recycleFromGraveToDeck`, `shuffleGraveIntoDeck`, `sendTopCardsToGrave`, `sendTopCardsToGraveOpp` |
+| **Summon / Hand** | `specialSummonFromHand`, `specialSummonFromDeck`, `discardFromHand`, `discardOppHand`, `discardEntireHand`, `createTokens`, `excavateAndSummon` |
+| **Control** | `stealMonster`, `stealMonsterTemp`, `cancelAttack`, `cancelEffect`, `preventAttacks`, `preventBattleDamage`, `skipOppDraw`, `changePositionOpp`, `setFaceDown`, `flipAllOppFaceDown` |
+| **Spell / Trap Removal** | `destroyOppSpellTrap`, `destroyAllOppSpellTraps`, `destroyAllSpellTraps`, `destroyOppFieldSpell` |
+| **Passive Abilities** | `passive_piercing`, `passive_untargetable`, `passive_directAttack`, `passive_vsAttrBonus`, `passive_phoenixRevival`, `passive_indestructible`, `passive_effectImmune`, `passive_cantBeAttacked`, `passive_negateTraps`, `passive_negateSpells`, `passive_negateMonsterEffects` |
+| **Utility** | `tributeSelf`, `payCost`, `shuffleDeck`, `gameReset` |
 
 ### Fusion System
-Two monsters in hand can be fused directly. Fusion formulas produce powerful fusion monsters (Level 5–9, up to Ultra Rare).
 
-### Internationalization
-Fully translated into **German** and **English** via i18next.
+Two monsters in hand can be fused directly. Fusion formulas produce powerful fusion monsters (Level 5–9, up to Ultra Rare). Recipes are loaded from the `.tcg` pack.
 
-### Mobile App
-Android support via **Capacitor 8** — the web game runs natively on Android devices.
+### Mod API
 
----
+The engine exposes `window.EchoesOfSanguoMod` for runtime modding:
 
-## Progression
+| API | Description |
+|---|---|
+| `CARD_DB` | Live card database — register new cards directly |
+| `FUSION_RECIPES` | Fusion recipe registry |
+| `OPPONENT_CONFIGS` | Opponent configuration registry |
+| `STARTER_DECKS` | Starter deck definitions |
+| `EFFECT_REGISTRY` | Read-only view of all registered effect actions |
+| `registerEffect(name, handler)` | Register custom effect actions |
+| `loadModTcg(url)` | Load additional `.tcg` archives at runtime |
+| `unloadModCards(modId)` | Remove cards and opponents from a loaded mod |
+| `getLoadedMods()` | List all currently loaded mods |
+| `emitTrigger(event, context)` | Fire custom trigger events |
+| `addTriggerHook(event, handler)` | Subscribe to trigger events |
 
-### Progression Loop
+### TriggerBus
+
+Flexible event emitter for extensible hooks. Modders can subscribe to any named event with `on(event, handler)` and fire events with `emit(event, context)`. Supports arbitrary custom event names beyond the built-in triggers.
+
+### AI System
+
+The AI uses configurable behavior profiles that control decision-making:
+
+| Profile | Strategy |
+|---|---|
+| `default` | Balanced play |
+| `aggressive` | Prioritizes attacking and damage |
+| `defensive` | Prioritizes defense and survival |
+| `smart` | Evaluates board state more deeply |
+| `cheating` | Has access to hidden information |
+
+AI turn sequence: draw → main phase (fusions, summons, spells, traps) → battle phase (target selection) → end phase. Behavior profiles are assigned per opponent in the `.tcg` pack.
+
+### Campaign & Shop Systems
+
+The engine supports a **node-based campaign** system with duels, story nodes, gauntlet encounters, and unlock conditions. Campaign structure is defined in the loaded `.tcg` pack.
+
+The engine supports a **tiered shop** system with configurable packages, pricing, unlock conditions, and card pool filters. Shop configuration is defined in the loaded `.tcg` pack.
+
+### Progression
+
+All progress is stored client-side via `localStorage`. The engine manages the full gameplay loop:
+
 ```
-First launch → Choose starter deck (6 races available)
-  → Campaign mode → Progress through 7 chapters → Win duels → Earn Jade Coins
-  → Shop → Buy tiered card packages → Receive new cards
+First launch → Choose starter deck
+  → Campaign mode → Win duels → Earn Jade Coins
+  → Shop → Buy card packages → Receive new cards
   → Build collection → Unlock stronger opponents & new shop tiers
 ```
 
-### Campaign
-The campaign spans **7 chapters** with **39 duels**, story nodes, and gauntlet encounters:
+### Internationalization
 
-| Chapter | Theme | Nodes |
-|---|---|---|
-| Han Court | Tutorial / early duels | 9 (8 duels + 1 story) |
-| Tournament | Competitive arc | 5 (4 duels + 1 story) |
-| Return | Mid-game | 4 (3 duels + 1 story) |
-| Wu Xing | Elemental trials | 11 (11 duels) |
-| Betrayal | Story pivot | 2 (1 duel + 1 story) |
-| Endgame | Final challenges | 7 (6 duels + 1 story) |
-| Postgame | Bonus content | 1 (1 duel) |
+Fully translated into **German** and **English** via i18next. Card and UI translations are loaded from the `.tcg` pack and locale files.
 
-### Shop
+### Mobile App
 
-**Tiered Packages** (unlocked via campaign progression):
-| Package | Price | Unlock | Max ATK |
-|---|---|---|---|
-| Recruit's Supply | 250 ◈ | — | 1500 |
-| Soldier's Cache | 350 ◈ | Duel 3 | 1800 |
-| Officer's Bounty | 450 ◈ | Duel 8 | 2100 |
-| Commander's Vault | 550 ◈ | Gauntlet Qualifiers | 2500 |
-| Temple Relics | 650 ◈ | Duel 21 | 3000 |
-| Warlord's Arsenal | 800 ◈ | Duel 31 | All |
+Android support via **Capacitor 8** — the web game runs natively on Android devices.
 
 ---
 
@@ -111,10 +134,10 @@ The campaign spans **7 chapters** with **39 duels**, story nodes, and gauntlet e
 ```
 [Press Start Screen]
   → [Title Screen]
-    → First time: [Starter Deck Selection]  (once, 6 races to choose from)
+    → First time: [Starter Deck Selection]  (once, races defined in TCG pack)
     → "Campaign":    [Campaign Map]  → [Dialogue]  → [Opponent Selection]  → [Game Board]  → [Duel Result]
     → "Shop":        [Shop]  → [Pack Opening]
-    → "Collection":  [Collection Binder]  (312 cards, silhouette for missing)
+    → "Collection":  [Collection Binder]  (all cards from loaded TCG pack, silhouette for missing)
     → "Deckbuilder": [Deck Builder]  (own cards only, 40-card deck)
     → "Save Point":  [Save / Load]
 ```
@@ -143,7 +166,7 @@ The campaign spans **7 chapters** with **39 duels**, story nodes, and gauntlet e
 ## File Structure
 
 ```
-ECHOES-OF-SANGUO/
+ECHOES-OF-SANGUO-ENGINE/
 ├── index.html                  – Entry HTML (React root + CRT overlay)
 ├── package.json                – Dependencies & scripts
 ├── vite.config.js              – Vite build configuration
@@ -241,17 +264,6 @@ All progress data is stored in `localStorage` (prefixes `tcg_` and `eos_`):
 | `tcg_settings` | User settings |
 | `tcg_seen_cards` | Cards seen by the player |
 | `tcg_save_version` | Migration version |
-
----
-
-## AI
-
-The AI plays strategically according to a fixed priority:
-1. Summon fusion from hand (if possible)
-2. Play all monsters from hand
-3. Activate spell cards
-4. Set traps
-5. Attack: prefers monsters it can destroy; otherwise attacks directly
 
 ---
 
