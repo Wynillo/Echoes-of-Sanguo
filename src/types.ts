@@ -317,6 +317,34 @@ export interface ForegroundSprite {
   active: boolean;
 }
 
+// ── Game Rules ──────────────────────────────────────────
+
+export interface TcgGameRules {
+  startingLP:        number;   // life points at game start
+  maxLP:             number;   // hard cap on life points
+  handLimitDraw:     number;   // max hand size during draw phase
+  handLimitEnd:      number;   // max hand size at end of turn
+  fieldZones:        number;   // monster/spell-trap zone count per side
+  maxDeckSize:       number;   // maximum cards in a deck
+  maxCardCopies:     number;   // max copies of a single card per deck
+  drawPerTurn:       number;   // cards drawn per draw phase
+  handRefillSize:    number;   // hand size threshold for refill
+  refillHandEnabled: boolean;  // whether hand-refill mechanic is active
+}
+
+export const DEFAULT_GAME_RULES: TcgGameRules = {
+  startingLP:        8000,
+  maxLP:             99999,
+  handLimitDraw:     10,
+  handLimitEnd:      8,
+  fieldZones:        5,
+  maxDeckSize:       40,
+  maxCardCopies:     3,
+  drawPerTurn:       1,
+  handRefillSize:    5,
+  refillHandEnabled: true,
+};
+
 // ── Load result ──────────────────────────────────────────────
 
 export interface TcgLoadResult {
@@ -337,7 +365,7 @@ export interface TcgLoadResult {
     cardTypes?:  TcgCardTypesJson;
     rarities?:   TcgRaritiesJson;
   };
-  rules?:               Record<string, unknown>;
+  rules?:               TcgGameRules;
   shopData?:            TcgShopJson;
   rawShopBackgrounds?:  Map<string, ArrayBuffer>;    // background key -> raw image bytes
   campaignData?:        TcgCampaignJson;

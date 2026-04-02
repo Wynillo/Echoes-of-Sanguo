@@ -30,6 +30,7 @@ export type {
   TcgCardTypesJson,
   TcgRaritiesJson,
   TcgLocaleOverrides,
+  TcgGameRules,
   CampaignData,
   CampaignChapter,
   CampaignNode,
@@ -52,6 +53,7 @@ export {
   TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_BEAST, TCG_RACE_PLANT, TCG_RACE_ROCK,
   TCG_RACE_PHOENIX, TCG_RACE_UNDEAD, TCG_RACE_AQUA, TCG_RACE_INSECT, TCG_RACE_MACHINE, TCG_RACE_PYRO, TCG_RACES,
   TCG_RARITY_COMMON, TCG_RARITY_UNCOMMON, TCG_RARITY_RARE, TCG_RARITY_SUPER_RARE, TCG_RARITY_ULTRA_RARE, TCG_RARITIES,
+  DEFAULT_GAME_RULES,
 } from './types.js';
 
 // ── Validators ───────────────────────────────────────────────

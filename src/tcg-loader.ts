@@ -6,7 +6,7 @@
 // ============================================================
 
 import JSZip from 'jszip';
-import type { TcgCard, TcgCardDefinition, TcgParsedCard, TcgMeta, TcgModJson, TcgOpponentDeck, TcgFusionFormula, TcgLocaleOverrides, TcgShopJson, TcgCampaignJson, TcgLoadResult } from './types.js';
+import type { TcgCard, TcgCardDefinition, TcgParsedCard, TcgMeta, TcgModJson, TcgOpponentDeck, TcgFusionFormula, TcgLocaleOverrides, TcgShopJson, TcgCampaignJson, TcgGameRules, TcgLoadResult } from './types.js';
 import { validateTcgArchive, validateCampaignJson, validateFusionFormulasJson } from './tcg-validator.js';
 
 // ── Error Classes ───────────────────────────────────────────
@@ -193,7 +193,7 @@ export async function loadTcgFile(
   }
 
   // Load rules.json if present — return as raw data, no application
-  let rules: Record<string, unknown> | undefined;
+  let rules: TcgGameRules | undefined;
   const rulesFile = zip.file('rules.json');
   if (rulesFile) {
     try {
