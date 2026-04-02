@@ -37,13 +37,22 @@ function position(el: HTMLElement, mx: number, my: number) {
   el.style.top  = top  + 'px';
 }
 
-export function attachHover(el: HTMLElement, card: CardData, fc: FieldCard | null) {
+export function attachHover(el: HTMLElement, card: CardData, fc: FieldCard | null, delay = 400) {
   const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
   if (isTouchDevice) return;
-  el.addEventListener('mouseenter', e => showHoverPreview(card, fc, (e as MouseEvent).clientX, (e as MouseEvent).clientY));
-  el.addEventListener('mouseleave', hideHoverPreview);
-  el.addEventListener('mousemove',  e => {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let lastPos = { x: 0, y: 0 };
+  el.addEventListener('mouseenter', e => {
+    lastPos = { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
+    timer = setTimeout(() => showHoverPreview(card, fc, lastPos.x, lastPos.y), delay);
+  });
+  el.addEventListener('mouseleave', () => {
+    if (timer) { clearTimeout(timer); timer = null; }
+    hideHoverPreview();
+  });
+  el.addEventListener('mousemove', e => {
+    lastPos = { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
     const preview = document.getElementById('card-hover-preview');
-    if (preview && preview.style.opacity !== '0') position(preview as HTMLDivElement, (e as MouseEvent).clientX, (e as MouseEvent).clientY);
+    if (preview && preview.style.opacity !== '0') position(preview as HTMLDivElement, lastPos.x, lastPos.y);
   });
 }

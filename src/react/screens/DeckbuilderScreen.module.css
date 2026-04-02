@@ -152,9 +152,6 @@
   align-content: flex-start;
 }
 
-.collectionGrid.gridLarge { gap: 10px; }
-.collectionGrid.gridSmall { gap: 6px; }
-.collectionGrid.gridSmall :global(.card) { width: var(--card-w); height: var(--card-h); }
 
 .tableWrap {
   flex: 1; overflow: auto; padding: 0;

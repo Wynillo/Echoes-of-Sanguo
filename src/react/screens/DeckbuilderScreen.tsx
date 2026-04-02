@@ -18,7 +18,7 @@ import { GiCrossedSwords, GiShield } from 'react-icons/gi';
 const MAX_DECK = GAME_RULES.maxDeckSize;
 const MAX_COPIES = GAME_RULES.maxCardCopies;
 
-type ViewMode = 'large' | 'small' | 'table';
+type ViewMode = 'cards' | 'table';
 type ActiveTab = 'collection' | 'deck';
 type SortGroup = 'id' | 'rarity' | 'name' | 'atkdef' | 'inDeck';
 
@@ -34,7 +34,7 @@ export default function DeckbuilderScreen() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [visibleCount, setVisibleCount]       = useState(100);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [viewMode, setViewMode]               = useState<ViewMode>('small');
+  const [viewMode, setViewMode]               = useState<ViewMode>('cards');
   const [activeTab, setActiveTab]             = useState<ActiveTab>('collection');
   const [activeSort, setActiveSort]           = useState<{ group: SortGroup; step: number } | null>(null);
   const [toast, setToast]                     = useState(false);
@@ -326,15 +326,10 @@ export default function DeckbuilderScreen() {
             </div>
             <div className={styles.viewToggle}>
               <button
-                className={`${styles.viewBtn}${viewMode === 'large' ? ` ${styles.active}` : ''}`}
+                className={`${styles.viewBtn}${viewMode === 'cards' ? ` ${styles.active}` : ''}`}
                 title={t('deckbuilder.view_large')}
-                onClick={() => setViewMode('large')}
+                onClick={() => setViewMode('cards')}
               >⊞</button>
-              <button
-                className={`${styles.viewBtn}${viewMode === 'small' ? ` ${styles.active}` : ''}`}
-                title={t('deckbuilder.view_small')}
-                onClick={() => setViewMode('small')}
-              >⊟</button>
               <button
                 className={`${styles.viewBtn}${viewMode === 'table' ? ` ${styles.active}` : ''}`}
                 title={t('deckbuilder.view_table')}
@@ -343,9 +338,9 @@ export default function DeckbuilderScreen() {
             </div>
           </div>
 
-          {/* Card grid — Large or Small */}
-          {viewMode !== 'table' && (
-            <div className={`${styles.collectionGrid}${viewMode === 'large' ? ` ${styles.gridLarge}` : ` ${styles.gridSmall}`}`}>
+          {/* Card grid */}
+          {viewMode === 'cards' && (
+            <div className={styles.collectionGrid}>
               {visibleCards.map(card => {
                 const copies = copyMap[card.id] || 0;
                 const atMax  = isAtMax(card.id);
