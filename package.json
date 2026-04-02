@@ -1,6 +1,6 @@
 {
   "name": "@wynillo/tcg-format",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "TCG Format library for Echoes of Sanguo — load, validate, and pack .tcg archives",
   "type": "module",
   "main": "./dist/index.js",
