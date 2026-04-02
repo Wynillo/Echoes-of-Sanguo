@@ -9,6 +9,7 @@ import { Audio }        from '../../audio.js';
 import { CardType, Rarity } from '../../types.js';
 import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
+import RaceIcon from '../components/RaceIcon.js';
 import styles from './PackOpeningScreen.module.css';
 
 type Phase = 'pack' | 'reveal' | 'summary';
@@ -32,11 +33,11 @@ const SPARKLE_CONFIG: Record<number, { count: number; color: string; beams: numb
 
 /** Card type icons for mini strip */
 const TYPE_ICONS: Record<number, string> = {
-  [CardType.Monster]: '⚔',
-  [CardType.Fusion]: '★',
-  [CardType.Spell]: '✦',
-  [CardType.Trap]: '⚡',
-  [CardType.Equipment]: '🛡',
+  [CardType.Monster]: 'GiCrossedSwords',
+  [CardType.Fusion]: 'GiStarShuriken',
+  [CardType.Spell]: 'GiSparkles',
+  [CardType.Trap]: 'GiLightningTrio',
+  [CardType.Equipment]: 'GiShield',
 };
 
 /* ── Helpers ───────────────────────────────────────────────── */
@@ -366,7 +367,7 @@ export default function PackOpeningScreen() {
           <div ref={packRef} className={styles.packWrapper} onClick={handlePackTap}>
             <div className={styles.packFoil} />
             <div className={styles.packLabel}>
-              <div className={styles.packIcon}>🀄</div>
+              <div className={styles.packIcon}><RaceIcon icon="GiCardPlay" /></div>
               <div className={styles.packName}>{t('pack_opening.title')}</div>
             </div>
           </div>
@@ -466,7 +467,7 @@ export default function PackOpeningScreen() {
                   className={styles.miniCard}
                   style={{ '--rarity-color': rc, borderColor: rc } as React.CSSProperties}
                 >
-                  <span className={styles.miniCardIcon}>{icon}</span>
+                  <span className={styles.miniCardIcon}><RaceIcon icon={icon} /></span>
                 </div>
               );
             })}

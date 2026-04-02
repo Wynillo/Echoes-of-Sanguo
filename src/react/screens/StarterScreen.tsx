@@ -45,7 +45,7 @@ export default function StarterScreen() {
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
-        <div className={styles.rune}>✦</div>
+        <div className={styles.rune}><RaceIcon icon="GiSparkles" /></div>
         <h2 className={styles.title}>{t('starter.headline')}</h2>
         <p className={styles.subtitle}>{t('starter.subtitle')}</p>
       </div>

@@ -24,7 +24,7 @@ export default function RaceFilterBar({ value, onChange }: RaceFilterBarProps) {
             key={rm.id}
             className={`${styles.btn}${value === rm.id ? ` ${styles.active}` : ''}`}
             onClick={() => onChange(rm.id as Race)}
-          ><RaceIcon icon={rm.icon} /></button>
+          ><RaceIcon icon={rm.icon} color={rm.color} /></button>
         ))}
       </div>
 

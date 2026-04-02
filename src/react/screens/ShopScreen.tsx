@@ -11,6 +11,7 @@ import type { PackageDef, PackSlotDef } from '../../shop-data.js';
 import { Audio }               from '../../audio.js';
 import { Rarity } from '../../types.js';
 import type { CardData } from '../../types.js';
+import RaceIcon from '../components/RaceIcon.js';
 import styles from './ShopScreen.module.css';
 
 /** Compute total card count from slots. */
@@ -140,7 +141,7 @@ export default function ShopScreen() {
         <button className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('shop.back')}</button>
         <h2 className={styles.shopTitle}>{t('shop.title')}</h2>
         <div className={styles.coinsBar}>
-          <span className="coins-icon">◈</span>
+          <span className="coins-icon"><RaceIcon icon="GiTwoCoins" /></span>
           <span className={styles.coinsValue}>{coins.toLocaleString()}</span>
           <span className="coins-label">{t('common.coins')}</span>
         </div>
@@ -236,7 +237,7 @@ function PackageTile({ pkg, affordable, onBuy, onInfo }: PackageTileProps) {
       </div>
 
       <div className={styles.packBottom}>
-        <div className={styles.packPrice}>◈ {pkg.price.toLocaleString()}</div>
+        <div className={styles.packPrice}><RaceIcon icon="GiTwoCoins" /> {pkg.price.toLocaleString()}</div>
         <button className={styles.buyBtn} disabled={!affordable} onClick={() => onBuy(pkg.id)}>
           {t('shop.buy_btn')}
         </button>

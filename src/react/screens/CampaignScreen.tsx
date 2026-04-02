@@ -6,6 +6,7 @@ import { useCampaign }      from '../contexts/CampaignContext.js';
 import { useGame }           from '../contexts/GameContext.js';
 import { OPPONENT_CONFIGS }  from '../../cards.js';
 import type { CampaignNode, Chapter } from '../../campaign-types.js';
+import RaceIcon from '../components/RaceIcon.js';
 import styles from './CampaignScreen.module.css';
 
 function getUnlockHint(node: CampaignNode, t: TFunction): string {
@@ -24,14 +25,14 @@ function getUnlockHint(node: CampaignNode, t: TFunction): string {
 }
 
 const NODE_ICONS: Record<CampaignNode['type'], string> = {
-  duel:   '\u2694',   // crossed swords
-  story:  '\uD83D\uDCD6', // open book
-  reward: '\uD83C\uDF81', // gift
-  shop:   '\uD83D\uDED2', // shopping cart
-  branch: '\u2726',   // star
+  duel:   'GiCrossedSwords',
+  story:  'GiBookCover',
+  reward: 'GiPresent',
+  shop:   'GiShoppingCart',
+  branch: 'GiStarShuriken',
 };
 
-const GAUNTLET_ICON = '\uD83D\uDD25'; // fire — used for gauntlet duel nodes
+const GAUNTLET_ICON = 'GiFire';
 
 export default function CampaignScreen() {
   const { t } = useTranslation();
@@ -300,7 +301,7 @@ export default function CampaignScreen() {
                 title={state === 'locked' ? getUnlockHint(node, t) : `${t(`campaign.node_${node.id}`, node.id)}${node.rewards?.coins ? ` — +${node.rewards.coins} ${t('common.coins')}` : ''}${node.rewards?.cards?.length ? ` — +${node.rewards.cards.length} ${t('common.cards')}` : ''}`}
               >
                 <span className={styles.nodeIcon}>
-                  {node.gauntlet && node.gauntlet.length > 0 ? GAUNTLET_ICON : NODE_ICONS[node.type]}
+                  <RaceIcon icon={node.gauntlet && node.gauntlet.length > 0 ? GAUNTLET_ICON : NODE_ICONS[node.type]} />
                 </span>
                 <span className={labelClass}>
                   {t(`campaign.node_${node.id}`, node.id)}

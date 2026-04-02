@@ -6,6 +6,7 @@ import { Progression } from '../../progression.js';
 import type { DialogueScene, ForegroundSprite } from '@wynillo/tcg-format';
 import type { Screen } from '../contexts/ScreenContext.js';
 import type { OpponentConfig } from '../../types.js';
+import RaceIcon from '../components/RaceIcon.js';
 
 const POSITION_LEFT: Record<string, string> = {
   'far-left': '5%',
@@ -166,7 +167,7 @@ export default function DialogueScreen() {
           color: '#c8a96e', fontSize: '1.2rem',
           animation: 'pulse 1.2s ease-in-out infinite',
         }}>
-          {lineIndex < scene.dialogue.length - 1 ? '▶' : '✓'}
+          {lineIndex < scene.dialogue.length - 1 ? <RaceIcon icon="GiPlayButton" /> : <RaceIcon icon="GiCheckMark" />}
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { useModal }     from '../contexts/ModalContext.js';
 import { useSelection } from '../contexts/SelectionContext.js';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import { cleanupAttackAnimations } from '../hooks/useAttackAnimation.js';
+import RaceIcon from '../components/RaceIcon.js';
 
 import { OpponentField }   from './game/OpponentField.js';
 import { PlayerField }     from './game/PlayerField.js';
@@ -74,12 +75,12 @@ export default function GameScreen() {
           className="portrait-opts-btn"
           title="Optionen"
           onClick={() => openModal({ type: 'main-options' })}
-        >☰</button>
+        ><RaceIcon icon="GiHamburgerMenu" /></button>
 
         <div className="portrait-hud">
-          <span className="phud-lp phud-player">♥ {player.lp} <span className="phud-deck">🂠{player.deck?.length ?? 0}</span></span>
+          <span className="phud-lp phud-player"><RaceIcon icon="GiHearts" /> {player.lp} <span className="phud-deck"><RaceIcon icon="GiCardDraw" />{player.deck?.length ?? 0}</span></span>
           <span className="phud-phase">{lastOpponent?.name ?? t('game.phase_battle')}</span>
-          <span className="phud-lp phud-opp">♥ {opp.lp} <span className="phud-deck">🂠{opp.deck?.length ?? 0}</span></span>
+          <span className="phud-lp phud-opp"><RaceIcon icon="GiHearts" /> {opp.lp} <span className="phud-deck"><RaceIcon icon="GiCardDraw" />{opp.deck?.length ?? 0}</span></span>
         </div>
       </div>
 
@@ -100,14 +101,14 @@ export default function GameScreen() {
         {/* Left panel */}
         <div id="field-left">
           <button id="btn-options" title={t('title.options')} aria-label={t('title.options')} onClick={() => openModal({ type: 'main-options' })}>
-            <span className="btn-options-mobile" aria-hidden="true">☰</span>
+            <span className="btn-options-mobile" aria-hidden="true"><RaceIcon icon="GiHamburgerMenu" /></span>
             <span className="btn-options-desktop">OPTIONS</span>
           </button>
           <div id="field-effect-slot">
             {gameState?.opponent.field.fieldSpell ? (
               <div className="field-spell-active field-spell-opp" title={gameState.opponent.field.fieldSpell.card.name}
                 onClick={() => openModal({ type: 'card-detail', card: gameState.opponent.field.fieldSpell!.card })}>
-                <span className="field-spell-icon">&#x2726;</span>
+                <span className="field-spell-icon"><RaceIcon icon="GiSparkles" /></span>
                 <span className="field-spell-name">{gameState.opponent.field.fieldSpell.card.name}</span>
               </div>
             ) : (
@@ -116,7 +117,7 @@ export default function GameScreen() {
             {gameState?.player.field.fieldSpell ? (
               <div className="field-spell-active field-spell-own" title={gameState.player.field.fieldSpell.card.name}
                 onClick={() => openModal({ type: 'card-detail', card: gameState.player.field.fieldSpell!.card })}>
-                <span className="field-spell-icon">&#x2726;</span>
+                <span className="field-spell-icon"><RaceIcon icon="GiSparkles" /></span>
                 <span className="field-spell-name">{gameState.player.field.fieldSpell.card.name}</span>
               </div>
             ) : (
@@ -153,7 +154,7 @@ export default function GameScreen() {
             aria-label={`${t('game.grave_opp')} (${opp.graveyard.length})`}
             onClick={() => onGraveClick('opponent')}
           >
-            <span className="grave-icon-sym">🪦</span>
+            <span className="grave-icon-sym"><RaceIcon icon="GiTombstone" /></span>
             <span className="grave-icon-count">{opp.graveyard.length}</span>
           </button>
 
@@ -174,7 +175,7 @@ export default function GameScreen() {
             aria-label={`${t('game.grave_player')} (${player.graveyard.length})`}
             onClick={() => onGraveClick('player')}
           >
-            <span className="grave-icon-sym">🪦</span>
+            <span className="grave-icon-sym"><RaceIcon icon="GiTombstone" /></span>
             <span className="grave-icon-count">{player.graveyard.length}</span>
           </button>
         </div>
@@ -191,10 +192,10 @@ export default function GameScreen() {
         onClick={onPortraitPhase}
         aria-label={t('game.aria_next_phase')}
       >
-        {!isMyTurn ? '⏸'
-          : phase === 'main'   ? '⚔ BATTLE'
-          : phase === 'battle' ? '→ END'
-          : '⏭ NEXT'}
+        {!isMyTurn ? <RaceIcon icon="GiPauseButton" />
+          : phase === 'main'   ? <><RaceIcon icon="GiCrossedSwords" /> BATTLE</>
+          : phase === 'battle' ? <><RaceIcon icon="GiFastForwardButton" /> END</>
+          : <><RaceIcon icon="GiFastForwardButton" /> NEXT</>}
       </button>
 
       {!isMyTurn && (

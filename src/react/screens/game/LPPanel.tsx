@@ -1,4 +1,5 @@
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber.js';
+import RaceIcon from '../../components/RaceIcon.js';
 
 interface Props {
   playerLp:    number;
@@ -23,7 +24,7 @@ export function LPPanel({ playerLp, oppLp, playerDeck, oppDeck }: Props) {
             <div id="opp-lp-bar" className="lp-bar opp-lp-bar" style={{ width: lpPct(oppLp) }}></div>
           </div>
           <span className="lp-value" id="opp-lp" aria-live="polite" aria-label={`Opponent LP: ${oppLpDisplay}`}>{oppLpDisplay}</span>
-          <span className="lp-deck" id="opp-deck-count" aria-label={`Opponent deck: ${oppDeck} cards`}>🂠{oppDeck}</span>
+          <span className="lp-deck" id="opp-deck-count" aria-label={`Opponent deck: ${oppDeck} cards`}><RaceIcon icon="GiCardDraw" />{oppDeck}</span>
         </div>
       </div>
       <div className="lp-row player-lp-row">
@@ -33,7 +34,7 @@ export function LPPanel({ playerLp, oppLp, playerDeck, oppDeck }: Props) {
             <div id="player-lp-bar" className="lp-bar" style={{ width: lpPct(playerLp) }}></div>
           </div>
           <span className="lp-value" id="player-lp" aria-live="polite" aria-label={`Your LP: ${playerLpDisplay}`}>{playerLpDisplay}</span>
-          <span className="lp-deck" id="player-deck-count" aria-label={`Your deck: ${playerDeck} cards`}>🂠{playerDeck}</span>
+          <span className="lp-deck" id="player-deck-count" aria-label={`Your deck: ${playerDeck} cards`}><RaceIcon icon="GiCardDraw" />{playerDeck}</span>
         </div>
       </div>
     </div>

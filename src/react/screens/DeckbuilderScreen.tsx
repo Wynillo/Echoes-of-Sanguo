@@ -11,6 +11,7 @@ import { CardType, Race, Rarity } from '../../types.js';
 import { getAllRarities, getRarityById, getCardTypeById, getRaceById } from '../../type-metadata.js';
 import RaceFilterBar from '../components/RaceFilterBar.js';
 import type { CardData }   from '../../types.js';
+import RaceIcon from '../components/RaceIcon.js';
 import styles from './DeckbuilderScreen.module.css';
 import { GAME_RULES } from '../../rules.js';
 import { GiCrossedSwords, GiShield } from 'react-icons/gi';
@@ -329,12 +330,12 @@ export default function DeckbuilderScreen() {
                 className={`${styles.viewBtn}${viewMode === 'cards' ? ` ${styles.active}` : ''}`}
                 title={t('deckbuilder.view_large')}
                 onClick={() => setViewMode('cards')}
-              >⊞</button>
+              ><RaceIcon icon="GiStack" /></button>
               <button
                 className={`${styles.viewBtn}${viewMode === 'table' ? ` ${styles.active}` : ''}`}
                 title={t('deckbuilder.view_table')}
                 onClick={() => setViewMode('table')}
-              >☰</button>
+              ><RaceIcon icon="GiHamburgerMenu" /></button>
             </div>
           </div>
 

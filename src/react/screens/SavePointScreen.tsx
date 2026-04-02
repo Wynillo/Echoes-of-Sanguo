@@ -4,6 +4,7 @@ import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }       from '../contexts/ModalContext.js';
 import { Progression }    from '../../progression.js';
+import RaceIcon from '../components/RaceIcon.js';
 import styles from './SavePointScreen.module.css';
 
 export default function SavePointScreen() {
@@ -38,18 +39,18 @@ export default function SavePointScreen() {
         aria-label={t('title.options')}
         onClick={() => openModal({ type: 'main-options' })}
       >
-        <span className="btn-options-mobile" aria-hidden="true">☰</span>
+        <span className="btn-options-mobile" aria-hidden="true"><RaceIcon icon="GiHamburgerMenu" /></span>
         <span className="btn-options-desktop">OPTIONS</span>
       </button>
       <div className="title-bg"></div>
       <div className={styles.content}>
-        <div className="title-rune">★</div>
+        <div className="title-rune"><RaceIcon icon="GiStarShuriken" /></div>
         <h2 className={styles.title}>
           {t('save.headline')}
           {activeSlot !== null && <span className={styles.slotBadge}>{t('slots.slot_label', { num: activeSlot })}</span>}
         </h2>
         <div className={styles.coinsBar}>
-          <span className="coins-icon">◈</span>
+          <span className="coins-icon"><RaceIcon icon="GiTwoCoins" /></span>
           <span className={styles.coinsValue}>{coins.toLocaleString()}</span>
           <span className="coins-label">{t('common.coins')}</span>
         </div>
