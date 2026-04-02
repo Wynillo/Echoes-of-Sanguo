@@ -42,7 +42,7 @@ Data-driven effect system with **60+ actions** and **7 triggers**. Effects are d
 | `onSummon` | Monster is summoned to the field |
 | `onDestroyByBattle` | Monster is destroyed in battle |
 | `onDestroyByOpponent` | Monster is destroyed by the opponent (battle or effect) |
-| `onFlip` | Monster is flipped face-up |
+| `onFlipSummon` | Monster is flip summoned (manually or by attack) |
 | `onDealBattleDamage` | Monster deals battle damage to the opponent |
 | `onSentToGrave` | Card is sent to the graveyard |
 | `passive` | Continuous effect while on the field |

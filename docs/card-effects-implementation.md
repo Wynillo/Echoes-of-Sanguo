@@ -62,9 +62,9 @@ No engine changes — cards use existing actions.
 
 | Card | Effect |
 |------|--------|
-| Magician of Faith | `onFlip:salvageFromGrave({ct=3})` |
-| Morphing Jar | `onFlip:discardEntireHand(both);draw(self,5);draw(opponent,5)` |
-| Night Assailant | `onFlip:destroyStrongestOpp()` |
+| Magician of Faith | `onFlipSummon:salvageFromGrave({ct=3})` |
+| Morphing Jar | `onFlipSummon:discardEntireHand(both);draw(self,5);draw(opponent,5)` |
+| Night Assailant | `onFlipSummon:destroyStrongestOpp()` |
 | Apprentice Magician | `onDestroyByBattle:specialSummonFromDeck({maxLevel=2,r=2},faceDown,def)` |
 
 ---
@@ -153,8 +153,8 @@ No engine changes — cards use existing actions.
 | Card | Effect |
 |------|--------|
 | Scapegoat | Spell `onSummon:createTokens(sheep_token,4,def)` |
-| Fiber Jar | `onFlip:gameReset()` |
-| Cyber Jar | `onFlip:destroyAll();excavateAndSummon(5,4)` |
+| Fiber Jar | `onFlipSummon:gameReset()` |
+| Cyber Jar | `onFlipSummon:destroyAll();excavateAndSummon(5,4)` |
 | Tribe-Infecting Virus | `onSummon[cost:discard=1]:destroyAllOpp()` |
 | Tsukuyomi | Spirit + `onSummon:setFaceDown()` |
 | Sinister Serpent | `onSentToGrave:salvageFromGrave({ct=1})` |

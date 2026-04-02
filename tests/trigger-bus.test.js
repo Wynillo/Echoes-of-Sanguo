@@ -16,7 +16,7 @@ describe('TriggerBus', () => {
   it('does not call handler for a different event', () => {
     const handler = vi.fn();
     TriggerBus.on('onSummon', handler);
-    TriggerBus.emit('onFlip', { engine: {}, owner: 'player' });
+    TriggerBus.emit('onFlipSummon', { engine: {}, owner: 'player' });
     expect(handler).not.toHaveBeenCalled();
   });
 
@@ -42,10 +42,10 @@ describe('TriggerBus', () => {
     const h1 = vi.fn();
     const h2 = vi.fn();
     TriggerBus.on('onSummon', h1);
-    TriggerBus.on('onFlip', h2);
+    TriggerBus.on('onFlipSummon', h2);
     TriggerBus.clear();
     TriggerBus.emit('onSummon', { engine: {}, owner: 'player' });
-    TriggerBus.emit('onFlip', { engine: {}, owner: 'opponent' });
+    TriggerBus.emit('onFlipSummon', { engine: {}, owner: 'opponent' });
     expect(h1).not.toHaveBeenCalled();
     expect(h2).not.toHaveBeenCalled();
   });

@@ -776,7 +776,7 @@ const IMPL: Record<string, InternalImpl> = {
     if (!ctx.targetFC) return {};
     ctx.targetFC.faceDown = true;
     ctx.targetFC.position = 'def';
-    ctx.targetFC.hasFlipped = false;
+    ctx.targetFC.hasFlipSummoned = false;
     ctx.engine.addLog(`${ctx.targetFC.card.name} was set face-down!`);
     return {};
   },
@@ -788,7 +788,7 @@ const IMPL: Record<string, InternalImpl> = {
       if (fc && !fc.faceDown) {
         fc.faceDown = true;
         fc.position = 'def';
-        fc.hasFlipped = false;
+        fc.hasFlipSummoned = false;
       }
     }
     ctx.engine.addLog('All opponent monsters set face-down!');

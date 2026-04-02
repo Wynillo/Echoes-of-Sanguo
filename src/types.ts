@@ -2,7 +2,7 @@ export type Owner        = 'player' | 'opponent';
 export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
 export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell' | 'onAnySummon' | 'onOpponentTrap';
-export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip' | 'onDealBattleDamage' | 'onSentToGrave';
+export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlipSummon' | 'onDealBattleDamage' | 'onSentToGrave';
 export type SpellType    = 'normal' | 'targeted' | 'fromGrave' | 'field';
 
 // Monster covers both normal and effect cards; distinction via effect field.
@@ -426,7 +426,7 @@ export declare class FieldCard {
   position:         Position;
   faceDown:         boolean;
   hasAttacked:      boolean;
-  hasFlipped:       boolean;
+  hasFlipSummoned:  boolean;
   summonedThisTurn: boolean;
   tempATKBonus:     number;
   tempDEFBonus:     number;

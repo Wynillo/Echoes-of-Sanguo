@@ -143,7 +143,7 @@ However: duel rewards (100-1000 coins) vs pack prices (250-800 coins) means play
 
 ### Effect System Architecture
 - 41 data-driven effect types in EFFECT_REGISTRY
-- Triggers: onSummon, onDestroyByBattle, onDestroyByOpponent, onFlip, passive
+- Triggers: onSummon, onDestroyByBattle, onDestroyByOpponent, onFlipSummon, passive
 - 8 passive abilities: piercing, untargetable, directAttack, vsAttrBonus, phoenixRevival, indestructible, effectImmune, cantBeAttacked
 - Extensible design — new effects added to registry, not hardcoded
 

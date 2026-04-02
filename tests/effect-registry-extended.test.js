@@ -10,7 +10,7 @@ function makeFC(atk, def = 0, extras = {}) {
     position: 'atk',
     faceDown: false,
     hasAttacked: false,
-    hasFlipped: false,
+    hasFlipSummoned: false,
     summonedThisTurn: false,
     equippedCards: [],
     cannotBeTargeted: false,
@@ -324,12 +324,12 @@ describe('changePositionOpp', () => {
 
 describe('setFaceDown', () => {
   it('sets targetFC face-down in def position', async () => {
-    const fc = makeFC(1000, 500, { card: { name: 'Target', atk: 1000, def: 500, type: 1 }, position: 'atk', faceDown: false, hasFlipped: true });
+    const fc = makeFC(1000, 500, { card: { name: 'Target', atk: 1000, def: 500, type: 1 }, position: 'atk', faceDown: false, hasFlipSummoned: true });
     const e = mockEngine();
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'setFaceDown' }] }, ctx(e, 'player', { targetFC: fc }));
     expect(fc.faceDown).toBe(true);
     expect(fc.position).toBe('def');
-    expect(fc.hasFlipped).toBe(false);
+    expect(fc.hasFlipSummoned).toBe(false);
   });
 
   it('no-op without targetFC', async () => {
@@ -341,8 +341,8 @@ describe('setFaceDown', () => {
 
 describe('flipAllOppFaceDown', () => {
   it('sets all opp monsters face-down', async () => {
-    const fc1 = makeFC(1000, 0, { card: { name: 'A', atk: 1000, def: 0, type: 1 }, position: 'atk', faceDown: false, hasFlipped: true });
-    const fc2 = makeFC(500, 0, { card: { name: 'B', atk: 500, def: 0, type: 1 }, position: 'atk', faceDown: false, hasFlipped: true });
+    const fc1 = makeFC(1000, 0, { card: { name: 'A', atk: 1000, def: 0, type: 1 }, position: 'atk', faceDown: false, hasFlipSummoned: true });
+    const fc2 = makeFC(500, 0, { card: { name: 'B', atk: 500, def: 0, type: 1 }, position: 'atk', faceDown: false, hasFlipSummoned: true });
     const state = {
       player: { lp: 4000, deck: [], hand: [], field: { monsters: [null, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null }, graveyard: [] },
       opponent: { lp: 4000, deck: [], hand: [], field: { monsters: [fc1, fc2, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null }, graveyard: [] },
@@ -351,12 +351,12 @@ describe('flipAllOppFaceDown', () => {
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'flipAllOppFaceDown' }] }, ctx(e));
     expect(fc1.faceDown).toBe(true);
     expect(fc1.position).toBe('def');
-    expect(fc1.hasFlipped).toBe(false);
+    expect(fc1.hasFlipSummoned).toBe(false);
     expect(fc2.faceDown).toBe(true);
   });
 
   it('skips already face-down monsters', async () => {
-    const fc = makeFC(1000, 0, { card: { name: 'A', atk: 1000, def: 0, type: 1 }, position: 'def', faceDown: true, hasFlipped: false });
+    const fc = makeFC(1000, 0, { card: { name: 'A', atk: 1000, def: 0, type: 1 }, position: 'def', faceDown: true, hasFlipSummoned: false });
     const state = {
       player: { lp: 4000, deck: [], hand: [], field: { monsters: [null, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null }, graveyard: [] },
       opponent: { lp: 4000, deck: [], hand: [], field: { monsters: [fc, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null }, graveyard: [] },

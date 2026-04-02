@@ -68,7 +68,7 @@ describe('isValidEffectString — rejections', () => {
 
 describe('isValidEffectString — acceptances', () => {
   it('accepts all valid monster triggers', () => {
-    const triggers = ['onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive', 'onFlip', 'onDealBattleDamage', 'onSentToGrave'];
+    const triggers = ['onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive', 'onFlipSummon', 'onDealBattleDamage', 'onSentToGrave'];
     for (const t of triggers) {
       expect(isValidEffectString(`${t}:dealDamage(opponent,100)`)).toBe(true);
     }
@@ -318,7 +318,7 @@ describe('round-trips — action types', () => {
   });
 
   it('excavateAndSummon', () => {
-    rt({ trigger: 'onFlip', actions: [{ type: 'excavateAndSummon', count: 5, maxLevel: 4 }] });
+    rt({ trigger: 'onFlipSummon', actions: [{ type: 'excavateAndSummon', count: 5, maxLevel: 4 }] });
   });
 
   it('bounceOppHandToDeck', () => {

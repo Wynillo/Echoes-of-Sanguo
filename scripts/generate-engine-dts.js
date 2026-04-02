@@ -32,7 +32,7 @@ declare global {
   type Phase        = 'draw' | 'main' | 'battle' | 'end';
   type Position     = 'atk' | 'def';
   type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual';
-  type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlip';
+  type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlipSummon';
   type SpellType    = 'normal' | 'targeted' | 'fromGrave' | 'field';
 
   // ── Int-based Enums ───────────────────────────────────────────
