@@ -172,6 +172,30 @@
 .tableRowDimmed td { opacity: 0.4; cursor: default; }
 .tableRowDimmed:hover td { background: none; }
 
+.tableRowFlash td { animation: rowFlash 0.3s ease-out; }
+
+@keyframes rowFlash {
+  0%   { background: rgba(200, 168, 80, 0.35); }
+  100% { background: transparent; }
+}
+
+.deckCountCell {
+  text-align: center; cursor: pointer !important;
+  border: 1px solid var(--border); border-radius: 0;
+  padding: 4px 8px;
+  transition: color 0.15s, border-color 0.15s;
+  user-select: none;
+}
+
+.deckCountCell:hover {
+  border-color: var(--gold); background: #182860;
+}
+
+.deckCountActive {
+  color: var(--gold-light);
+  border-color: var(--gold);
+}
+
 .newBadge {
   background: #f97316; color: #fff;
   font-size: 9px; font-weight: bold;

@@ -38,6 +38,7 @@ export default function DeckbuilderScreen() {
   const [activeTab, setActiveTab]             = useState<ActiveTab>('collection');
   const [activeSort, setActiveSort]           = useState<{ group: SortGroup; step: number } | null>(null);
   const [toast, setToast]                     = useState(false);
+  const [flashRow, setFlashRow]               = useState<string | null>(null);
   const [seenCards, setSeenCards]             = useState<Set<string>>(() => Progression.getSeenCards());
 
   useEffect(() => {
@@ -196,6 +197,18 @@ export default function DeckbuilderScreen() {
     const next = [...currentDeck];
     next.splice(idx, 1);
     setCurrentDeck(next);
+  }
+
+  function cycleDeckCount(id: string) {
+    const copies = copyMap[id] || 0;
+    const max = maxCopiesFor(id);
+    if (copies >= max) {
+      setCurrentDeck(currentDeck.filter(cid => cid !== id));
+    } else if (currentDeck.length < MAX_DECK) {
+      setCurrentDeck([...currentDeck, id]);
+    }
+    setFlashRow(id);
+    setTimeout(() => setFlashRow(null), 300);
   }
 
   function saveDeck() {
@@ -396,10 +409,12 @@ export default function DeckbuilderScreen() {
                       ? (card.effect ? '#c8a850' : '#e8e8e8')
                       : (typeMeta?.color ?? '#aaa');
                     const raceLbl    = card.race ? (getRaceById(card.race)?.value ?? '') : '';
+                    const maxCp = maxCopiesFor(card.id);
+                    const isFlashing = flashRow === card.id;
                     return (
                       <tr
                         key={card.id}
-                        className={dimmed ? styles.tableRowDimmed : ''}
+                        className={`${dimmed ? styles.tableRowDimmed : ''}${isFlashing ? ` ${styles.tableRowFlash}` : ''}`}
                         onClick={() => handleCardClick(card)}
                         onDoubleClick={() => handleCardDoubleClick(card)}
                         ref={el => { if (el) attachHover(el, card, null); }}
@@ -421,7 +436,12 @@ export default function DeckbuilderScreen() {
                           <div><GiCrossedSwords className={styles.statIcon} /> {card.atk ?? '\u2014'}</div>
                           <div><GiShield className={styles.statIcon} /> {card.def ?? '\u2014'}</div>
                         </td>
-                        <td>{copies} / {maxCopiesFor(card.id)}</td>
+                        <td
+                          className={`${styles.deckCountCell}${copies > 0 ? ` ${styles.deckCountActive}` : ''}`}
+                          onClick={e => { e.stopPropagation(); cycleDeckCount(card.id); }}
+                        >
+                          <strong>{copies}</strong>/{maxCp}
+                        </td>
                       </tr>
                     );
                   })}
