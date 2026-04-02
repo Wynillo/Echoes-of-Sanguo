@@ -159,6 +159,8 @@ Array of card stat objects. All integer IDs must be positive and unique.
 | `target` | string | targeted spells/traps | `ownMonster` \| `oppMonster` \| `attacker` \| `defender` \| `summonedFC` |
 | `atkBonus` | integer | equipment only | ATK bonus applied to equipped monster |
 | `defBonus` | integer | equipment only | DEF bonus applied to equipped monster |
+| `name` | string | no | plaintext card name (recommended: use `locales/`) |
+| `description` | string | no | plaintext card description (recommended: use `locales/`) |
 | `equipReqRace` | integer | equipment only | required race (1–12) for target monster |
 | `equipReqAttr` | integer | equipment only | required attribute (1–6) for target monster |
 | `name` | string | no | plaintext card name (recommended: use `locales/`) |

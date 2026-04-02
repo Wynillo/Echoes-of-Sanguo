@@ -4,6 +4,9 @@ import {
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_EQUIPMENT,
   TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG_ATTR_WATER, TCG_ATTR_EARTH, TCG_ATTR_WIND,
   TCG_RARITY_COMMON, TCG_RARITY_UNCOMMON, TCG_RARITY_RARE, TCG_RARITY_SUPER_RARE, TCG_RARITY_ULTRA_RARE,
+  TCG_SPELL_NORMAL, TCG_SPELL_TARGETED, TCG_SPELL_FROM_GRAVE, TCG_SPELL_FIELD,
+  TCG_TRAP_ON_ATTACK, TCG_TRAP_ON_OWN_MONSTER_ATTACKED, TCG_TRAP_ON_OPPONENT_SUMMON,
+  TCG_TRAP_MANUAL, TCG_TRAP_ON_OPPONENT_SPELL, TCG_TRAP_ON_ANY_SUMMON, TCG_TRAP_ON_OPPONENT_TRAP,
 } from '@wynillo/tcg-format';
 
 const TYPE_TO_INT: Record<CardType, number> = {
@@ -117,8 +120,14 @@ export function isValidSpellType(s: string): s is SpellType {
   return SPELL_TYPE_STRINGS.has(s);
 }
 
-const SPELL_TYPE_TO_INT: Record<string, number> = { normal: 1, targeted: 2, fromGrave: 3, field: 4 };
-const INT_TO_SPELL_TYPE: Record<number, SpellType> = { 1: 'normal', 2: 'targeted', 3: 'fromGrave', 4: 'field' };
+const SPELL_TYPE_TO_INT: Record<string, number> = {
+  normal: TCG_SPELL_NORMAL, targeted: TCG_SPELL_TARGETED,
+  fromGrave: TCG_SPELL_FROM_GRAVE, field: TCG_SPELL_FIELD,
+};
+const INT_TO_SPELL_TYPE: Record<number, SpellType> = {
+  [TCG_SPELL_NORMAL]: 'normal', [TCG_SPELL_TARGETED]: 'targeted',
+  [TCG_SPELL_FROM_GRAVE]: 'fromGrave', [TCG_SPELL_FIELD]: 'field',
+};
 
 export function spellTypeToInt(s: SpellType): number {
   const n = SPELL_TYPE_TO_INT[s];
@@ -133,10 +142,16 @@ export function intToSpellType(n: number): SpellType {
 }
 
 const TRAP_TRIGGER_TO_INT: Record<string, number> = {
-  onAttack: 1, onOwnMonsterAttacked: 2, onOpponentSummon: 3, manual: 4, onOpponentSpell: 5, onAnySummon: 6, onOpponentTrap: 7,
+  onAttack: TCG_TRAP_ON_ATTACK, onOwnMonsterAttacked: TCG_TRAP_ON_OWN_MONSTER_ATTACKED,
+  onOpponentSummon: TCG_TRAP_ON_OPPONENT_SUMMON, manual: TCG_TRAP_MANUAL,
+  onOpponentSpell: TCG_TRAP_ON_OPPONENT_SPELL, onAnySummon: TCG_TRAP_ON_ANY_SUMMON,
+  onOpponentTrap: TCG_TRAP_ON_OPPONENT_TRAP,
 };
 const INT_TO_TRAP_TRIGGER: Record<number, TrapTrigger> = {
-  1: 'onAttack', 2: 'onOwnMonsterAttacked', 3: 'onOpponentSummon', 4: 'manual', 5: 'onOpponentSpell', 6: 'onAnySummon', 7: 'onOpponentTrap',
+  [TCG_TRAP_ON_ATTACK]: 'onAttack', [TCG_TRAP_ON_OWN_MONSTER_ATTACKED]: 'onOwnMonsterAttacked',
+  [TCG_TRAP_ON_OPPONENT_SUMMON]: 'onOpponentSummon', [TCG_TRAP_MANUAL]: 'manual',
+  [TCG_TRAP_ON_OPPONENT_SPELL]: 'onOpponentSpell', [TCG_TRAP_ON_ANY_SUMMON]: 'onAnySummon',
+  [TCG_TRAP_ON_OPPONENT_TRAP]: 'onOpponentTrap',
 };
 
 export function trapTriggerToInt(t: TrapTrigger): number {
