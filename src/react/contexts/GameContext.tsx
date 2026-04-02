@@ -44,7 +44,7 @@ function serializePlayerState(ps: PlayerState): SerializedPlayerState {
         position: fc.position,
         faceDown: fc.faceDown,
         hasAttacked: fc.hasAttacked,
-        hasFlipped: fc.hasFlipped,
+        hasFlipSummoned: fc.hasFlipSummoned,
         summonedThisTurn: fc.summonedThisTurn,
         tempATKBonus: fc.tempATKBonus,
         tempDEFBonus: fc.tempDEFBonus,

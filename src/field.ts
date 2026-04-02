@@ -6,7 +6,7 @@ export class FieldCard {
   position: Position;
   faceDown: boolean;
   hasAttacked: boolean;
-  hasFlipped: boolean;
+  hasFlipSummoned: boolean;
   summonedThisTurn: boolean;
   tempATKBonus: number;
   tempDEFBonus: number;
@@ -35,7 +35,7 @@ export class FieldCard {
     this.position   = position; // 'atk' | 'def'
     this.faceDown   = faceDown;
     this.hasAttacked= false;
-    this.hasFlipped = false;
+    this.hasFlipSummoned = false;
     this.summonedThisTurn = false; // FM-style: no summoning sickness
     this.tempATKBonus = 0;
     this.tempDEFBonus = 0;

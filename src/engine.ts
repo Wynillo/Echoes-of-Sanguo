@@ -12,7 +12,7 @@ export interface SerializedFieldCardData {
   position: Position;
   faceDown: boolean;
   hasAttacked: boolean;
-  hasFlipped: boolean;
+  hasFlipSummoned: boolean;
   summonedThisTurn: boolean;
   tempATKBonus: number;
   tempDEFBonus: number;
@@ -178,7 +178,7 @@ export class GameEngine {
           if (!m) return null;
           const fc = new FieldCard(CARD_DB[m.cardId], m.position, m.faceDown);
           fc.hasAttacked       = m.hasAttacked;
-          fc.hasFlipped        = m.hasFlipped;
+          fc.hasFlipSummoned        = m.hasFlipSummoned;
           fc.summonedThisTurn  = m.summonedThisTurn;
           fc.tempATKBonus      = m.tempATKBonus;
           fc.tempDEFBonus      = m.tempDEFBonus;
@@ -397,20 +397,22 @@ export class GameEngine {
     this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
     this.ui.playSfx?.('sfx_card_play');
     this._recalcFieldSpellBonuses(fc);
-    await this._triggerEffect(fc, owner, 'onSummon', zone);
-    TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
-    if (owner === 'player') {
-      const placedFC = this.state[owner].field.monsters[zone];
-      if (placedFC) {
-        const result = await this._autoActivateOpponentTraps('onOpponentSummon', placedFC);
-        if (result?.destroySummoned) {
-          this.state[owner].graveyard.push(placedFC.card);
-          this.state[owner].field.monsters[zone] = null;
-          this._removeEquipmentForMonster(owner, zone);
+    if (!faceDown) {
+      await this._triggerEffect(fc, owner, 'onSummon', zone);
+      TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+      if (owner === 'player') {
+        const placedFC = this.state[owner].field.monsters[zone];
+        if (placedFC) {
+          const result = await this._autoActivateOpponentTraps('onOpponentSummon', placedFC);
+          if (result?.destroySummoned) {
+            this.state[owner].graveyard.push(placedFC.card);
+            this.state[owner].field.monsters[zone] = null;
+            this._removeEquipmentForMonster(owner, zone);
+          }
         }
       }
+      await this._checkAnySummonTraps(owner, zone);
     }
-    await this._checkAnySummonTraps(owner, zone);
     this.ui.render(this.state);
     return true;
   }
@@ -425,8 +427,22 @@ export class GameEngine {
     if(fc.summonedThisTurn){ this.addLog('Cannot flip on the same turn!'); return false; }
     fc.faceDown = false;
     this.addLog(`${fc.card.name} is flipped face-up (Flip Summon)!`);
-    await this._triggerFlipEffect(fc, owner, zone);
-    TriggerBus.emit('onFlip', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    await this._triggerFlipSummonEffect(fc, owner, zone);
+    TriggerBus.emit('onFlipSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    await this._triggerEffect(fc, owner, 'onSummon', zone);
+    TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    if (owner === 'player') {
+      const placedFC = this.state[owner].field.monsters[zone];
+      if (placedFC) {
+        const result = await this._autoActivateOpponentTraps('onOpponentSummon', placedFC);
+        if (result?.destroySummoned) {
+          this.state[owner].graveyard.push(placedFC.card);
+          this.state[owner].field.monsters[zone] = null;
+          this._removeEquipmentForMonster(owner, zone);
+        }
+      }
+    }
+    await this._checkAnySummonTraps(owner, zone);
     this.ui.render(this.state);
     return true;
   }
@@ -926,8 +942,8 @@ export class GameEngine {
       attFC.faceDown = false;
       attFC.position = 'atk';
       this.addLog(`${attFC.card.name} is revealed (attack)!`);
-      await this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
-      TriggerBus.emit('onFlip', { engine: this, owner: attackerOwner, card: attFC.card, fieldCard: attFC, zone: attackerZone });
+      await this._triggerFlipSummonEffect(attFC, attackerOwner, attackerZone);
+      TriggerBus.emit('onFlipSummon', { engine: this, owner: attackerOwner, card: attFC.card, fieldCard: attFC, zone: attackerZone });
     }
     if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
 
@@ -1001,8 +1017,8 @@ export class GameEngine {
       attFC.faceDown = false;
       attFC.position = 'atk';
       this.addLog(`${attFC.card.name} is flipped face-up (Attack)!`);
-      await this._triggerFlipEffect(attFC, attackerOwner, attackerZone);
-      TriggerBus.emit('onFlip', { engine: this, owner: attackerOwner, card: attFC.card, fieldCard: attFC, zone: attackerZone });
+      await this._triggerFlipSummonEffect(attFC, attackerOwner, attackerZone);
+      TriggerBus.emit('onFlipSummon', { engine: this, owner: attackerOwner, card: attFC.card, fieldCard: attFC, zone: attackerZone });
     }
     if(attFC.position !== 'atk') return;
 
@@ -1039,8 +1055,25 @@ export class GameEngine {
     if(defFC.faceDown){
       defFC.faceDown = false;
       this.addLog(`${defFC.card.name} is revealed!`);
-      await this._triggerFlipEffect(defFC, defOwner, defZone);
-      TriggerBus.emit('onFlip', { engine: this, owner: defOwner, card: defFC.card, fieldCard: defFC, zone: defZone });
+      await this._triggerFlipSummonEffect(defFC, defOwner, defZone);
+      TriggerBus.emit('onFlipSummon', { engine: this, owner: defOwner, card: defFC.card, fieldCard: defFC, zone: defZone });
+      await this._triggerEffect(defFC, defOwner, 'onSummon', defZone);
+      TriggerBus.emit('onSummon', { engine: this, owner: defOwner, card: defFC.card, fieldCard: defFC, zone: defZone });
+      if (defOwner === 'player') {
+        const placedFC = this.state[defOwner].field.monsters[defZone];
+        if (placedFC) {
+          const result = await this._autoActivateOpponentTraps('onOpponentSummon', placedFC);
+          if (result?.destroySummoned) {
+            this.state[defOwner].graveyard.push(placedFC.card);
+            this.state[defOwner].field.monsters[defZone] = null;
+            this._removeEquipmentForMonster(defOwner, defZone);
+            this.ui.render(this.state);
+            return;
+          }
+        }
+      }
+      await this._checkAnySummonTraps(defOwner, defZone);
+      this.ui.render(this.state);
     }
 
     const defVal = defFC.combatValue();
@@ -1229,11 +1262,11 @@ export class GameEngine {
     }
   }
 
-  async _triggerFlipEffect(fc: FieldCard, owner: Owner, zone: number){
-    if(fc.hasFlipped) return;
-    fc.hasFlipped = true;
+  async _triggerFlipSummonEffect(fc: FieldCard, owner: Owner, zone: number){
+    if(fc.hasFlipSummoned) return;
+    fc.hasFlipSummoned = true;
     const card = fc.card;
-    const blocks = this._getEffectBlocks(card, 'onFlip');
+    const blocks = this._getEffectBlocks(card, 'onFlipSummon');
     if (blocks.length === 0) return;
     EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Flip Effect`);
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);

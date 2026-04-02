@@ -203,7 +203,7 @@ unsub();
 | Name | Payload fields |
 |---|---|
 | `onSummon` | `engine`, `owner`, `card`, `fieldCard`, `zone` |
-| `onFlip` | `engine`, `owner`, `card`, `fieldCard`, `zone` |
+| `onFlipSummon` | `engine`, `owner`, `card`, `fieldCard`, `zone` |
 | `onDestroyByBattle` | `engine`, `owner`, `card` |
 
 ### Custom trigger names
