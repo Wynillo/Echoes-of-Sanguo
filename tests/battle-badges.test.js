@@ -60,22 +60,35 @@ describe('calculateBattleBadges – POW scoring', () => {
   });
 
   it('penalizes deck-out victories for POW', () => {
-    const stats = makeStats({ endReason: 'deck_out' });
-    const badges = calculateBattleBadges(stats);
-    // Deck-out is -20 vs +2 for lp_zero → 22 point difference
     const lpStats = makeStats({ endReason: 'lp_zero' });
+    const deckOutStats = makeStats({ endReason: 'deck_out' });
     const lpBadges = calculateBattleBadges(lpStats);
-    expect(badges.pow.score).toBe(lpBadges.pow.score - 22);
+    const deckOutBadges = calculateBattleBadges(deckOutStats);
+    expect(lpBadges.pow.score - deckOutBadges.pow.score).toBe(22);
   });
 });
 
 // ── TEC tests ────────────────────────────────────────────────
 
 describe('calculateBattleBadges – TEC scoring', () => {
-  it('gives TEC-S for minimal-resource victory', () => {
+  it('gives TEC-S for tactical play with spells, traps, and fusions', () => {
+    const stats = makeStats({
+      turns: 10,
+      fusionsPerformed: 2,
+      spellsActivated: 2,
+      trapsActivated: 2,
+      lpRemaining: 6000,
+      graveyardSize: 12,
+      endReason: 'lp_zero',
+    });
+    const badges = calculateBattleBadges(stats);
+    expect(badges.tec.rank).toBe('S');
+    expect(badges.tec.score).toBeGreaterThanOrEqual(80);
+  });
+
+  it('penalizes TEC for using no spells or traps', () => {
     const stats = makeStats({
       turns: 3,
-      monstersPlayed: 2,
       fusionsPerformed: 0,
       spellsActivated: 0,
       trapsActivated: 0,
@@ -84,17 +97,16 @@ describe('calculateBattleBadges – TEC scoring', () => {
       endReason: 'lp_zero',
     });
     const badges = calculateBattleBadges(stats);
-    expect(badges.tec.rank).toBe('S');
-    expect(badges.tec.score).toBeGreaterThanOrEqual(80);
+    expect(badges.tec.rank).toBe('B');
+    expect(badges.tec.score).toBeLessThan(60);
   });
 
-  it('gives TEC-B for resource-heavy victory', () => {
+  it('gives TEC-B for excessive resource use', () => {
     const stats = makeStats({
       turns: 25,
-      monstersPlayed: 12,
       fusionsPerformed: 6,
-      spellsActivated: 7,
-      trapsActivated: 4,
+      spellsActivated: 9,
+      trapsActivated: 6,
       lpRemaining: 1000,
       graveyardSize: 22,
       endReason: 'lp_zero',
@@ -104,27 +116,27 @@ describe('calculateBattleBadges – TEC scoring', () => {
     expect(badges.tec.score).toBeLessThan(60);
   });
 
-  it('penalizes deck-out for TEC (-22 point swing)', () => {
-    const deckOutStats = makeStats({ endReason: 'deck_out' });
+  it('penalizes deck-out for TEC (-12 point swing)', () => {
     const lpStats = makeStats({ endReason: 'lp_zero' });
+    const deckOutStats = makeStats({ endReason: 'deck_out' });
     const lpScore = calculateBattleBadges(lpStats).tec.score;
     const deckOutScore = calculateBattleBadges(deckOutStats).tec.score;
-    // LP win gives +2, deck_out gives -20 → 22 point difference
-    expect(lpScore - deckOutScore).toBe(22);
+    expect(lpScore - deckOutScore).toBe(12);
   });
 });
 
 // ── Best rank & multiplier ───────────────────────────────────
 
 describe('calculateBattleBadges – best rank & multiplier', () => {
-  it('picks the best rank across both badges', () => {
-    // Fast dominant game → likely POW-S, TEC-S
+  it('picks the best rank across both badges (POW-S from fast win)', () => {
     const stats = makeStats({
       turns: 3, monstersPlayed: 2, fusionsPerformed: 1,
       spellsActivated: 0, trapsActivated: 0,
       cardsDrawn: 3, lpRemaining: 8000, graveyardSize: 2,
     });
     const badges = calculateBattleBadges(stats);
+    expect(badges.pow.rank).toBe('S');
+    expect(badges.tec.rank).toBe('B');
     expect(badges.best).toBe('S');
     expect(badges.coinMultiplier).toBe(2.5);
   });
@@ -141,16 +153,17 @@ describe('calculateBattleBadges – best rank & multiplier', () => {
     expect(badges.coinMultiplier).toBe(0.8);
   });
 
-  it('returns 1.0 multiplier for A-rank', () => {
-    // Moderate game → likely A range for at least one
+  it('returns S from TEC when tactical play is used', () => {
     const stats = makeStats({
-      turns: 6, monstersPlayed: 4, fusionsPerformed: 1,
-      cardsDrawn: 6, lpRemaining: 6000, opponentLpRemaining: 0,
+      turns: 10, monstersPlayed: 5, fusionsPerformed: 2,
+      spellsActivated: 3, trapsActivated: 2,
+      cardsDrawn: 10, lpRemaining: 7000, graveyardSize: 10,
+      opponentLpRemaining: 0,
     });
     const badges = calculateBattleBadges(stats);
-    // POW should be A or S; check multiplier is correct for the rank
-    if (badges.best === 'A') expect(badges.coinMultiplier).toBe(1.0);
-    else if (badges.best === 'S') expect(badges.coinMultiplier).toBe(2.5);
+    expect(badges.tec.rank).toBe('S');
+    expect(badges.best).toBe('S');
+    expect(badges.coinMultiplier).toBe(2.5);
   });
 });
 
