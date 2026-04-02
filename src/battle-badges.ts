@@ -2,7 +2,7 @@ import type { DuelStats } from './types.js';
 import { Rarity } from './types.js';
 import { CARD_DB } from './cards.js';
 import { RARITY_DROP_RATES } from './react/utils/pack-logic.js';
-import type { DuelRewardConfig, BadgeRank } from './reward-config.js';
+import type { DuelRewardConfig, BadgeRank, DropPoolEntry } from './reward-config.js';
 import { DEFAULT_REWARD_CONFIG, getRankEffect } from './reward-config.js';
 
 export type { BadgeRank } from './reward-config.js';
@@ -183,5 +183,26 @@ export function rollBadgeCardDrops(
     result.push(String(pick.id));
   }
 
+  return result;
+}
+
+export function rollFromDropPool(pool: DropPoolEntry[], count: number): string[] {
+  if (pool.length === 0) return [];
+
+  const totalWeight = pool.reduce((sum, e) => sum + e.weight, 0);
+  if (totalWeight <= 0) return [];
+
+  const result: string[] = [];
+  for (let i = 0; i < count; i++) {
+    let roll = Math.random() * totalWeight;
+    for (const entry of pool) {
+      roll -= entry.weight;
+      if (roll <= 0) {
+        result.push(entry.cardId);
+        break;
+      }
+    }
+    if (result.length <= i) result.push(pool[pool.length - 1].cardId);
+  }
   return result;
 }

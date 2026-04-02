@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateBattleBadges, rollBadgeCardDrops } from '../src/battle-badges.ts';
+import { calculateBattleBadges, rollBadgeCardDrops, rollFromDropPool } from '../src/battle-badges.ts';
 import { Rarity } from '../src/types.ts';
 
 // ── Helpers ────────────────────────────────────────────────
@@ -232,5 +232,43 @@ describe('rollBadgeCardDrops', () => {
   it('handles numeric deck IDs', () => {
     const drops = rollBadgeCardDrops([54, 55, 56], 2);
     expect(drops).toHaveLength(2);
+  });
+});
+
+describe('rollFromDropPool', () => {
+  it('returns the requested number of card IDs', () => {
+    const pool = [
+      { cardId: '10', weight: 100 },
+      { cardId: '20', weight: 50 },
+      { cardId: '30', weight: 1 },
+    ];
+    const drops = rollFromDropPool(pool, 3);
+    expect(drops).toHaveLength(3);
+    drops.forEach(id => expect(['10', '20', '30']).toContain(id));
+  });
+
+  it('returns empty array for empty pool', () => {
+    expect(rollFromDropPool([], 3)).toEqual([]);
+  });
+
+  it('returns empty array for zero-weight pool', () => {
+    expect(rollFromDropPool([{ cardId: '1', weight: 0 }], 3)).toEqual([]);
+  });
+
+  it('always picks the only entry when pool has one item', () => {
+    const pool = [{ cardId: '42', weight: 7 }];
+    const drops = rollFromDropPool(pool, 5);
+    expect(drops).toHaveLength(5);
+    drops.forEach(id => expect(id).toBe('42'));
+  });
+
+  it('respects weights (heavily weighted item dominates)', () => {
+    const pool = [
+      { cardId: 'common', weight: 9999 },
+      { cardId: 'rare', weight: 1 },
+    ];
+    const drops = rollFromDropPool(pool, 100);
+    const rareCount = drops.filter(id => id === 'rare').length;
+    expect(rareCount).toBeLessThan(10);
   });
 });

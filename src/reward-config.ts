@@ -3,6 +3,11 @@ import { Rarity } from './types.js';
 export type BadgeRank = 'S' | 'A' | 'B';
 export type RewardMode = 'campaign' | 'free' | 'both';
 
+export interface DropPoolEntry {
+  cardId: string;
+  weight: number;
+}
+
 export interface RankRewardEffect {
   coinMultiplier: number;
   cardDropCount: number;
@@ -12,6 +17,7 @@ export interface RankRewardEffect {
 export interface DuelRewardConfig {
   mode?: RewardMode;
   ranks: Record<BadgeRank, RankRewardEffect>;
+  dropPool?: DropPoolEntry[];
 }
 
 export const DEFAULT_REWARD_CONFIG: DuelRewardConfig = {

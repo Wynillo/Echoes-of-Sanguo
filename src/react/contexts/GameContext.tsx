@@ -9,7 +9,7 @@ import { useScreen } from './ScreenContext.js';
 import { useCampaign } from './CampaignContext.js';
 import { Audio } from '../../audio.js';
 import { OPPONENT_CONFIGS } from '../../cards.js';
-import { calculateBattleBadges, rollBadgeCardDrops } from '../../battle-badges.js';
+import { calculateBattleBadges, rollBadgeCardDrops, rollFromDropPool } from '../../battle-badges.js';
 import type { BattleBadges } from '../../battle-badges.js';
 import { resolveRewardConfig, getRankEffect } from '../../reward-config.js';
 import { computeCampaignDuelNav } from '../../campaign-duel-result.js';
@@ -182,7 +182,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         badges ? Math.round(base * badges.coinMultiplier) : base;
 
       const rollCardDrops = (): string[] => {
-        if (!badges || badges.cardDropCount <= 0 || !opponentCfg?.deckIds) return [];
+        if (!badges || badges.cardDropCount <= 0) return [];
+        if (rewardCfg.dropPool && rewardCfg.dropPool.length > 0) {
+          return rollFromDropPool(rewardCfg.dropPool, badges.cardDropCount);
+        }
+        if (!opponentCfg?.deckIds) return [];
         const effect = getRankEffect(rewardCfg, badges.best);
         return rollBadgeCardDrops(opponentCfg.deckIds, badges.cardDropCount, effect.rarityRates);
       };
@@ -280,7 +284,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               recordDuelResult: (id, won) => Progression.recordDuelResult(id, won),
               applyBadgeMultiplier,
               rollCardDrops: (count, rarityRates) => {
-                if (!opponentCfg?.deckIds || count <= 0) return [];
+                if (count <= 0) return [];
+                if (rewardCfg.dropPool && rewardCfg.dropPool.length > 0) {
+                  return rollFromDropPool(rewardCfg.dropPool, count);
+                }
+                if (!opponentCfg?.deckIds) return [];
                 return rollBadgeCardDrops(opponentCfg.deckIds, count, rarityRates);
               },
             },
