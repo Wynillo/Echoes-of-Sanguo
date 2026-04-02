@@ -26,7 +26,7 @@ describe('packTcgArchiveToBuffer', () => {
     const result = await loadTcgFile(buffer.buffer as ArrayBuffer, { lang: '' });
     expect(result.cards).toHaveLength(4);
     expect(result.parsedCards).toHaveLength(4);
-    expect(result.parsedCards[0].name).toBe('Azure Dragon');
+    expect(result.parsedCards[0].name).toBe('Ancient Dragon');
     expect(result.rawImages.size).toBe(4);
     expect(result.manifest?.formatVersion).toBe(2);
     expect(result.meta?.fusionRecipes).toHaveLength(1);

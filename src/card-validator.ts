@@ -139,6 +139,20 @@ function validateSingleCard(card: unknown, index: number): string[] {
     }
   }
 
+  // name: optional plaintext name
+  if (c.name !== undefined && c.name !== null) {
+    if (typeof c.name !== 'string') {
+      errors.push(`${prefix}.name: must be a string, got ${typeof c.name}`);
+    }
+  }
+
+  // description: optional plaintext description
+  if (c.description !== undefined && c.description !== null) {
+    if (typeof c.description !== 'string') {
+      errors.push(`${prefix}.description: must be a string, got ${typeof c.description}`);
+    }
+  }
+
   return errors;
 }
 

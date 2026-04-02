@@ -15,7 +15,7 @@ describe('loadTcgFile', () => {
 
     expect(result.cards).toHaveLength(4);
     expect(result.parsedCards).toHaveLength(4);
-    expect(result.definitions.size).toBeGreaterThan(0);
+    expect(result.localeOverrides.size).toBeGreaterThan(0);
     expect(result.rawImages.size).toBe(4);
     expect(result.manifest).toBeDefined();
     expect(result.manifest!.formatVersion).toBe(2);
@@ -23,13 +23,13 @@ describe('loadTcgFile', () => {
     expect(result.meta!.fusionRecipes).toHaveLength(1);
   });
 
-  it('returns parsed cards with merged definitions', async () => {
+  it('returns parsed cards with merged locale', async () => {
     const buffer = await packTcgArchiveToBuffer(FIXTURE_DIR);
     const result = await loadTcgFile(buffer.buffer as ArrayBuffer);
 
     const dragon = result.parsedCards.find(c => c.id === 1);
     expect(dragon).toBeDefined();
-    expect(dragon!.name).toBe('Azure Dragon');
+    expect(dragon!.name).toBe('Ancient Dragon');
     expect(dragon!.type).toBe(1);
     expect(dragon!.atk).toBe(1500);
     expect(dragon!.def).toBe(1200);
@@ -75,8 +75,8 @@ describe('loadTcgFile', () => {
 
   it('throws TcgFormatError on unsupported format version', async () => {
     const zip = new JSZip();
-    zip.file('cards.json', JSON.stringify([{ id: 1, type: 1, level: 4, rarity: 1 }]));
-    zip.file('cards_description.json', JSON.stringify([{ id: 1, name: 'X', description: 'Y' }]));
+    zip.file('cards.json', JSON.stringify([{ id: 1, type: 1, level: 4, rarity: 1, name: 'X', description: 'Y' }]));
+    zip.file('locales/en.json', JSON.stringify({ 'c1': 'X', 'c1d': 'Y' }));
     zip.file('manifest.json', JSON.stringify({ formatVersion: 999 }));
     zip.file('img/1.png', Buffer.from([0x89, 0x50, 0x4e, 0x47]));
     const buf = await zip.generateAsync({ type: 'arraybuffer' });
@@ -95,11 +95,9 @@ describe('loadTcgFile', () => {
   it('propagates spirit flag on parsed cards', async () => {
     const zip = new JSZip();
     zip.file('cards.json', JSON.stringify([
-      { id: 1, type: 1, level: 4, rarity: 1, atk: 1000, def: 800, spirit: true },
+      { id: 1, type: 1, level: 4, rarity: 1, atk: 1000, def: 800, spirit: true, name: 'Spirit Monster', description: 'A spirit' },
     ]));
-    zip.file('cards_description.json', JSON.stringify([
-      { id: 1, name: 'Spirit Monster', description: 'A spirit' },
-    ]));
+    zip.file('locales/en.json', JSON.stringify({ 'card_1_name': 'Spirit Monster', 'card_1_desc': 'A spirit' }));
     zip.file('manifest.json', JSON.stringify({ formatVersion: 2 }));
     zip.file('img/1.png', Buffer.from([0x89, 0x50, 0x4e, 0x47]));
     const buf = await zip.generateAsync({ type: 'arraybuffer' });

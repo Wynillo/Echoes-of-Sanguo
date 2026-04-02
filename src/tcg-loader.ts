@@ -63,14 +63,14 @@ async function loadMetadataFile<T extends { key: string; value: string }>(
 }
 
 /**
- * Build a TcgParsedCard by merging a TcgCard with its TcgCardDefinition.
+ * Build a TcgParsedCard by merging a TcgCard with locale overrides (i18n).
  * All numeric fields are kept as-is — no enum conversion.
  */
-function tcgCardToParsedCard(tc: TcgCard, def: TcgCardDefinition | undefined): TcgParsedCard {
+function tcgCardToParsedCard(tc: TcgCard, name: string, description: string): TcgParsedCard {
   const parsed: TcgParsedCard = {
     id:          tc.id,
-    name:        def?.name ?? `Card #${tc.id}`,
-    description: def?.description ?? '',
+    name:        name || `Card #${tc.id}`,
+    description: description || '',
     type:        tc.type,
     level:       tc.level,
     rarity:      tc.rarity,
@@ -134,7 +134,7 @@ export async function loadTcgFile(
     throw new TcgFormatError(`Invalid .tcg file:\n${result.errors.join('\n')}`);
   }
 
-  const { cards, definitions, opponentDescriptions, imageIds, manifest } = result.contents;
+  const { cards, opponentDescriptions, imageIds, manifest, localeOverrides } = result.contents;
   const warnings = result.warnings;
 
   // Validate format version from manifest
@@ -242,17 +242,25 @@ export async function loadTcgFile(
   }
   onProgress?.(65);
 
-  // Build TcgParsedCard[] — merge TcgCard with definition, keep ints as-is
+  // Build TcgParsedCard[] — merge TcgCard with locale overrides or plaintext
   const parsedCards: TcgParsedCard[] = [];
-  if (definitions.size === 0) {
-    warnings.push('No card definitions found in TCG archive');
-  }
-  const defs = definitions.get(lang) ?? (definitions.size > 0 ? definitions.values().next().value! : []);
-  const defMap = new Map<number, TcgCardDefinition>();
-  for (const d of defs) defMap.set(d.id, d);
+  const hasLocaleFiles = localeOverrides && localeOverrides.size > 0;
+  const localeData = hasLocaleFiles ? localeOverrides.get(lang) ?? (localeOverrides.size ? localeOverrides.values().next().value! : {}) : {};
 
   for (const tc of cards) {
-    parsedCards.push(tcgCardToParsedCard(tc, defMap.get(tc.id)));
+    let name = tc.name || '';
+    let description = tc.description || '';
+
+    // Wenn locale files vorhanden, warnen falls name/description fehlen
+    if (hasLocaleFiles && !name && !description) {
+      warnings.push(`Card id ${tc.id}: missing name and description`);
+    } else if (hasLocaleFiles && !name) {
+      warnings.push(`Card id ${tc.id}: missing name (description provided)`);
+    } else if (hasLocaleFiles && !description) {
+      warnings.push(`Card id ${tc.id}: missing description (name provided)`);
+    }
+
+    parsedCards.push(tcgCardToParsedCard(tc, name, description));
   }
   onProgress?.(75);
 
@@ -306,7 +314,7 @@ export async function loadTcgFile(
   return {
     cards,
     parsedCards,
-    definitions,
+    localeOverrides: localeOverrides ?? new Map(),
     rawImages,
     meta,
     manifest,

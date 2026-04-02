@@ -1,6 +1,0 @@
-[
-  { "id": 1, "name": "Azure Dragon", "description": "A mighty dragon of the east." },
-  { "id": 2, "name": "Iron Warrior", "description": "A steadfast warrior clad in dark armor." },
-  { "id": 3, "name": "Wisdom Scroll", "description": "Draw 2 cards from your deck." },
-  { "id": 4, "name": "Dragon Blade", "description": "A legendary blade forged in dragon fire." }
-]

@@ -92,6 +92,8 @@ export interface TcgCard {
   defBonus?:    number;    // Equipment: DEF bonus applied to equipped monster
   equipReqRace?: number;  // Equipment: required race for target monster
   equipReqAttr?: number;  // Equipment: required attribute (1-6) for target monster
+  name?:        string;    // plaintext name (recommended: use locales/)
+  description?: string;    // plaintext description (recommended: use locales/)
 }
 
 // ── Card Definition (localized) ──────────────────────────────
@@ -279,8 +281,8 @@ export interface TcgCardPool {
 
 export interface TcgPackDef {
   id: string;
-  name?: string;        // direct name (legacy)
-  desc?: string;        // direct description (legacy)
+  name?: string;        // direct name
+  desc?: string;        // direct description
   nameKey?: string;     // locale key for name (i18n)
   descKey?: string;     // locale key for description (i18n)
   price: number;
@@ -378,7 +380,7 @@ export const DEFAULT_GAME_RULES: TcgGameRules = {
 export interface TcgLoadResult {
   cards:                TcgCard[];
   parsedCards:          TcgParsedCard[];
-  definitions:          Map<string, TcgCardDefinition[]>;  // lang -> definitions
+  localeOverrides:      Map<string, Record<string, string>>;  // lang -> { key -> translated value }
   rawImages:            Map<number, ArrayBuffer>;           // card id -> raw PNG bytes (NOT blob URLs)
   meta?:                TcgMeta;
   manifest?:            TcgManifest;

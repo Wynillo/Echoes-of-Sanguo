@@ -10,8 +10,8 @@ function makeZip(files: Record<string, string | Buffer>): JSZip {
   return zip;
 }
 
-const VALID_CARD = JSON.stringify([{ id: 1, type: 1, level: 4, atk: 1000, def: 800, rarity: 1, attribute: 1, race: 1 }]);
-const VALID_DEF = JSON.stringify([{ id: 1, name: 'Test Card', description: 'A test card.' }]);
+const VALID_CARD = JSON.stringify([{ id: 1, type: 1, level: 4, atk: 1000, def: 800, rarity: 1, attribute: 1, race: 1, name: 'Test Card', description: 'A test card.' }]);
+const VALID_LOCALE = JSON.stringify({ 'card_1_name': 'Test Card', 'card_1_desc': 'A test card.' });
 const VALID_MANIFEST = JSON.stringify({ formatVersion: 2, name: 'Test' });
 // 1x1 white PNG bytes (minimal valid PNG)
 const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', 'base64');
@@ -20,7 +20,7 @@ describe('validateTcgArchive', () => {
   it('validates a minimal valid archive', async () => {
     const zip = makeZip({
       'cards.json': VALID_CARD,
-      'cards_description.json': VALID_DEF,
+      'locales/en.json': VALID_LOCALE,
       'manifest.json': VALID_MANIFEST,
       'img/1.png': TINY_PNG,
     });
@@ -32,7 +32,7 @@ describe('validateTcgArchive', () => {
 
   it('fails on missing cards.json', async () => {
     const zip = makeZip({
-      'cards_description.json': VALID_DEF,
+      'locales/en.json': VALID_LOCALE,
       'img/1.png': TINY_PNG,
     });
     const result = await validateTcgArchive(zip);
@@ -40,20 +40,10 @@ describe('validateTcgArchive', () => {
     expect(result.errors.some(e => e.includes('cards.json'))).toBe(true);
   });
 
-  it('fails on missing description file', async () => {
-    const zip = makeZip({
-      'cards.json': VALID_CARD,
-      'img/1.png': TINY_PNG,
-    });
-    const result = await validateTcgArchive(zip);
-    expect(result.valid).toBe(false);
-    expect(result.errors.some(e => e.includes('cards_description'))).toBe(true);
-  });
-
   it('fails on missing img/ folder', async () => {
     const zip = makeZip({
       'cards.json': VALID_CARD,
-      'cards_description.json': VALID_DEF,
+      'locales/en.json': VALID_LOCALE,
     });
     const result = await validateTcgArchive(zip);
     expect(result.valid).toBe(false);
@@ -63,7 +53,7 @@ describe('validateTcgArchive', () => {
   it('warns on missing images for cards', async () => {
     const zip = makeZip({
       'cards.json': VALID_CARD,
-      'cards_description.json': VALID_DEF,
+      'locales/en.json': VALID_LOCALE,
       'img/.gitkeep': '',
     });
     const result = await validateTcgArchive(zip);
@@ -71,34 +61,32 @@ describe('validateTcgArchive', () => {
     expect(result.warnings.some(w => w.includes('Missing image'))).toBe(true);
   });
 
-  it('cross-validates card IDs with definitions', async () => {
+  it('accepts plaintext name/description without locale files (with warning)', async () => {
     const cards = JSON.stringify([
-      { id: 1, type: 1, level: 4, rarity: 1 },
-      { id: 2, type: 1, level: 3, rarity: 1 },
+      { id: 1, type: 1, level: 4, rarity: 1, name: 'Dragon', description: 'A dragon card' },
     ]);
-    const defs = JSON.stringify([{ id: 1, name: 'Card 1', description: 'Desc' }]);
     const zip = makeZip({
       'cards.json': cards,
-      'cards_description.json': defs,
-      'img/1.png': TINY_PNG,
-      'img/2.png': TINY_PNG,
-    });
-    const result = await validateTcgArchive(zip);
-    expect(result.valid).toBe(false);
-    expect(result.errors.some(e => e.includes('Card id 2'))).toBe(true);
-  });
-
-  it('accepts localized description files', async () => {
-    const zip = makeZip({
-      'cards.json': VALID_CARD,
-      'cards_description.json': VALID_DEF,
-      'locales/de_cards_description.json': VALID_DEF,
-      'manifest.json': VALID_MANIFEST,
       'img/1.png': TINY_PNG,
     });
     const result = await validateTcgArchive(zip);
     expect(result.valid).toBe(true);
-    expect(result.contents!.definitions.size).toBe(2);
+    expect(result.warnings.some(w => w.includes('plaintext'))).toBe(true);
+  });
+
+  it('warns when using both plaintext and locale files', async () => {
+    const cards = JSON.stringify([
+      { id: 1, type: 1, level: 4, rarity: 1, name: 'Dragon', description: 'A dragon card' },
+    ]);
+    const locale = JSON.stringify({ 'card_1_name': 'Fire Dragon' });
+    const zip = makeZip({
+      'cards.json': cards,
+      'locales/en.json': locale,
+      'img/1.png': TINY_PNG,
+    });
+    const result = await validateTcgArchive(zip);
+    expect(result.valid).toBe(true);
+    expect(result.warnings.some(w => w.includes('locale files will be used'))).toBe(true);
   });
 });
 

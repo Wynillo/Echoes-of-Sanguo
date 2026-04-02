@@ -6,22 +6,21 @@
 import type JSZip from 'jszip';
 import type { TcgCard, TcgCardDefinition, TcgOpponentDescription, TcgManifest, ValidationResult } from './types.js';
 import { validateTcgCards } from './card-validator.js';
-import { validateTcgDefinitions } from './def-validator.js';
 import { validateTcgOpponentDescriptions } from './opp-desc-validator.js';
 
-/** Regex matching valid description file names: cards_description.json, xx_cards_description.json, or locales/xx_cards_description.json */
-const DESC_FILE_REGEX = /^(?:locales\/)?([a-z]{2}_)?cards_description\.json$/;
+/** Regex matching locale files: locales/en.json, locales/de.json, etc. */
+const LOCALE_FILE_REGEX = /^locales\/([a-z]{2})\.json$/;
 
-/** Regex matching opponent description files: opponents_description.json, xx_opponents_description.json, or locales/xx_opponents_description.json */
-const OPP_DESC_FILE_REGEX = /^(?:locales\/)?([a-z]{2}_)?opponents_description\.json$/;
+/** Regex matching opponent description files: opponents_description.json, xx_opponents_description.json */
+const OPP_DESC_FILE_REGEX = /^([a-z]{2}_)?opponents_description\.json$/;
 
 export interface TcgArchiveContents {
   cards: TcgCard[];
-  definitions: Map<string, TcgCardDefinition[]>;   // lang (or '') -> definitions
   opponentDescriptions: Map<string, TcgOpponentDescription[]>;  // lang (or '') -> opponent descriptions
   imageIds: Set<number>;                            // card ids that have images
   missingImageIds: number[];                        // card ids without images
   manifest?: TcgManifest;                           // parsed manifest.json if present
+  localeOverrides?: Map<string, Record<string, string>>;  // lang -> key->value for i18n mode
 }
 
 /**
@@ -54,32 +53,43 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
     errors.push(`cards.json: failed to parse JSON: ${e instanceof Error ? e.message : e}`);
   }
 
-  // 2. Check for description files (at least one required)
+  // 2. Check for locale files (optional)
   const allFiles = Object.keys(zip.files);
-  const descFiles = allFiles.filter(f => DESC_FILE_REGEX.test(f));
+  const localeFiles = allFiles.filter(f => LOCALE_FILE_REGEX.test(f));
 
-  if (descFiles.length === 0) {
-    errors.push('Missing required file: cards_description.json (or xx_cards_description.json)');
+  // Check what names/descriptions cards have
+  const hasPlainName = cards.some(c => c.name !== undefined && c.name !== null && c.name !== '');
+  const hasPlainDesc = cards.some(c => c.description !== undefined && c.description !== null && c.description !== '');
+  const hasLocaleFiles = localeFiles.length > 0;
+
+  // Validate locale files if present
+  const localeOverrides = new Map<string, Record<string, string>>();
+  if (hasLocaleFiles) {
+    for (const localeFile of localeFiles) {
+      const match = localeFile.match(LOCALE_FILE_REGEX);
+      const lang = match?.[1] ?? '';
+      try {
+        const localeJson = await zip.file(localeFile)!.async('string');
+        const localeData = JSON.parse(localeJson);
+        if (typeof localeData === 'object' && localeData !== null && !Array.isArray(localeData)) {
+          localeOverrides.set(lang, localeData as Record<string, string>);
+        } else {
+          warnings.push(`${localeFile}: must be a JSON object`);
+        }
+      } catch (e) {
+        warnings.push(`${localeFile}: failed to parse JSON: ${e instanceof Error ? e.message : e}`);
+      }
+    }
   }
 
-  // Parse and validate each description file
-  const definitions = new Map<string, TcgCardDefinition[]>();
-  for (const descFile of descFiles) {
-    const match = descFile.match(DESC_FILE_REGEX);
-    const lang = match?.[1]?.replace('_', '') ?? '';
+  // If using plaintext names/descriptions without locale files, warn
+  if ((hasPlainName || hasPlainDesc) && !hasLocaleFiles) {
+    warnings.push('Using plaintext name/description — consider using locales/ for i18n support');
+  }
 
-    try {
-      const descJson = await zip.file(descFile)!.async('string');
-      const descData = JSON.parse(descJson);
-      const descResult = validateTcgDefinitions(descData);
-      if (!descResult.valid) {
-        errors.push(...descResult.errors.map(e => `${descFile}: ${e}`));
-      }
-      warnings.push(...descResult.warnings);
-      if (descResult.valid) definitions.set(lang, descData as TcgCardDefinition[]);
-    } catch (e) {
-      errors.push(`${descFile}: failed to parse JSON: ${e instanceof Error ? e.message : e}`);
-    }
+  // If locale files exist, warn if there are also plaintext names/descriptions
+  if (localeOverrides.size > 0 && (hasPlainName || hasPlainDesc)) {
+    warnings.push('Archive has both plaintext name/description and locale files — locale files will be used');
   }
 
   // 3. Parse opponent description files (optional)
@@ -136,31 +146,6 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
     errors.push('Missing required folder: img/');
   }
 
-  // 5. Cross-validate: every card id must have a definition in at least one description file
-  if (cards.length > 0 && definitions.size > 0) {
-    const allDefinedIds = new Set<number>();
-    for (const defs of definitions.values()) {
-      for (const d of defs) allDefinedIds.add(d.id);
-    }
-
-    for (const card of cards) {
-      if (!allDefinedIds.has(card.id)) {
-        errors.push(`Card id ${card.id} has no matching entry in any cards_description file`);
-      }
-    }
-
-    // Also check for orphan definitions
-    const cardIds = new Set(cards.map(c => c.id));
-    for (const [lang, defs] of definitions) {
-      const file = lang ? `${lang}_cards_description.json` : 'cards_description.json';
-      for (const d of defs) {
-        if (!cardIds.has(d.id)) {
-          warnings.push(`${file}: definition for id ${d.id} has no matching card in cards.json`);
-        }
-      }
-    }
-  }
-
   // 6. Check images: img/{id}.png for each card
   const imageIds = new Set<number>();
   const missingImageIds: number[] = [];
@@ -198,7 +183,7 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
 
   const valid = errors.length === 0;
   const contents: TcgArchiveContents | undefined = valid
-    ? { cards, definitions, opponentDescriptions, imageIds, missingImageIds, manifest }
+    ? { cards, opponentDescriptions, imageIds, missingImageIds, manifest, localeOverrides }
     : undefined;
 
   return { valid, errors, warnings, contents };
@@ -245,8 +230,8 @@ export function validateShopJson(data: unknown, knownNodeIds?: Set<string>): str
           if (seenIds.has(pkg.id)) warnings.push(`${prefix}: duplicate package id "${pkg.id}"`);
           seenIds.add(pkg.id);
         }
-        const hasName = typeof pkg.name === 'string' || typeof pkg.nameKey === 'string';
-        if (!hasName) warnings.push(`${prefix}: missing "name" or "nameKey"`);
+         const hasName = typeof pkg.name === 'string';
+         if (!hasName) warnings.push(`${prefix}: missing "name"`);
         if (typeof pkg.price !== 'number' || pkg.price <= 0) warnings.push(`${prefix}: "price" must be a positive number`);
         if (!Array.isArray(pkg.slots) || !(pkg.slots as unknown[]).length) {
           warnings.push(`${prefix}: "slots" must be a non-empty array`);
