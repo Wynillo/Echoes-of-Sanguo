@@ -2,8 +2,10 @@ import type { DuelStats } from './types.js';
 import { Rarity } from './types.js';
 import { CARD_DB } from './cards.js';
 import { RARITY_DROP_RATES } from './react/utils/pack-logic.js';
+import type { DuelRewardConfig, BadgeRank } from './reward-config.js';
+import { DEFAULT_REWARD_CONFIG, getRankEffect } from './reward-config.js';
 
-export type BadgeRank = 'S' | 'A' | 'B';
+export type { BadgeRank } from './reward-config.js';
 export type BadgeCategory = 'POW' | 'TEC';
 
 export interface BadgeResult {
@@ -17,6 +19,7 @@ export interface BattleBadges {
   tec: BadgeResult;
   best: BadgeRank;
   coinMultiplier: number;
+  cardDropCount: number;
 }
 
 /** Pick the first matching range value. Ranges are [max, modifier] checked with <=. */
@@ -31,14 +34,6 @@ const RANK_ORDER: Record<BadgeRank, number> = { S: 3, A: 2, B: 1 };
 
 function bestRank(a: BadgeRank, b: BadgeRank): BadgeRank {
   return RANK_ORDER[a] >= RANK_ORDER[b] ? a : b;
-}
-
-function multiplierForRank(rank: BadgeRank): number {
-  switch (rank) {
-    case 'S': return 2.5;
-    case 'A': return 1.0;
-    case 'B': return 0.8;
-  }
 }
 
 function scorePOW(stats: DuelStats): number {
@@ -118,25 +113,29 @@ function rankTEC(score: number): BadgeRank {
   return 'B';
 }
 
-export function calculateBattleBadges(stats: DuelStats): BattleBadges {
+export function calculateBattleBadges(stats: DuelStats, rewardConfig?: DuelRewardConfig): BattleBadges {
   const powScore = scorePOW(stats);
   const tecScore = scoreTEC(stats);
 
   const pow: BadgeResult = { category: 'POW', rank: rankPOW(powScore), score: powScore };
   const tec: BadgeResult = { category: 'TEC', rank: rankTEC(tecScore), score: tecScore };
   const best = bestRank(pow.rank, tec.rank);
+  const effect = getRankEffect(rewardConfig ?? DEFAULT_REWARD_CONFIG, best);
 
-  return { pow, tec, best, coinMultiplier: multiplierForRank(best) };
+  return { pow, tec, best, coinMultiplier: effect.coinMultiplier, cardDropCount: effect.cardDropCount };
 }
 
 const RARITY_FALLBACK: Rarity[] = [
   Rarity.UltraRare, Rarity.SuperRare, Rarity.Rare, Rarity.Uncommon, Rarity.Common,
 ];
 
-function rollRarity(): Rarity {
+function rollRarity(customRates?: Partial<Record<Rarity, number>>): Rarity {
+  const rates = customRates
+    ? { ...RARITY_DROP_RATES, ...Object.fromEntries(Object.entries(customRates).map(([k, v]) => [k, v])) }
+    : RARITY_DROP_RATES;
   const r = Math.random();
   let cumulative = 0;
-  const entries = Object.entries(RARITY_DROP_RATES)
+  const entries = Object.entries(rates)
     .map(([k, v]) => [Number(k), v] as [number, number])
     .sort((a, b) => a[1] - b[1]);
   for (const [rarity, prob] of entries) {
@@ -150,7 +149,11 @@ function rollRarity(): Rarity {
  * Pick `count` random cards from the opponent's deck pool, weighted by rarity.
  * Falls back to lower rarities if no cards match the rolled rarity.
  */
-export function rollBadgeCardDrops(opponentDeckIds: (string | number)[], count: number): string[] {
+export function rollBadgeCardDrops(
+  opponentDeckIds: (string | number)[],
+  count: number,
+  customRarityRates?: Partial<Record<Rarity, number>>,
+): string[] {
   // De-duplicate deck IDs and resolve card data
   const uniqueIds = [...new Set(opponentDeckIds.map(String))];
   const cards = uniqueIds.map(id => CARD_DB[id]).filter(Boolean);
@@ -159,7 +162,7 @@ export function rollBadgeCardDrops(opponentDeckIds: (string | number)[], count: 
   const result: string[] = [];
 
   for (let i = 0; i < count; i++) {
-    const targetRarity = rollRarity();
+    const targetRarity = rollRarity(customRarityRates);
 
     // Find cards at target rarity, falling back to lower rarities
     const fallbackIdx = RARITY_FALLBACK.indexOf(targetRarity);

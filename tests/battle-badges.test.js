@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { calculateBattleBadges, rollBadgeCardDrops } from '../src/battle-badges.ts';
+import { Rarity } from '../src/types.ts';
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -164,6 +165,47 @@ describe('calculateBattleBadges – best rank & multiplier', () => {
     expect(badges.tec.rank).toBe('S');
     expect(badges.best).toBe('S');
     expect(badges.coinMultiplier).toBe(2.5);
+  });
+
+  it('includes cardDropCount from default config', () => {
+    const sStats = makeStats({
+      turns: 3, monstersPlayed: 2, fusionsPerformed: 1,
+      spellsActivated: 0, trapsActivated: 0,
+      cardsDrawn: 3, lpRemaining: 8000, graveyardSize: 2,
+    });
+    const sBadges = calculateBattleBadges(sStats);
+    expect(sBadges.best).toBe('S');
+    expect(sBadges.cardDropCount).toBe(3);
+
+    const bStats = makeStats({
+      turns: 30, monstersPlayed: 14, fusionsPerformed: 6,
+      spellsActivated: 10, trapsActivated: 5,
+      cardsDrawn: 30, lpRemaining: 500, graveyardSize: 25,
+      endReason: 'deck_out',
+    });
+    const bBadges = calculateBattleBadges(bStats);
+    expect(bBadges.best).toBe('B');
+    expect(bBadges.cardDropCount).toBe(0);
+  });
+
+  it('uses custom reward config when provided', () => {
+    const customConfig = {
+      ranks: {
+        S: { coinMultiplier: 3.0, cardDropCount: 5 },
+        A: { coinMultiplier: 1.5, cardDropCount: 2 },
+        B: { coinMultiplier: 1.0, cardDropCount: 1 },
+      },
+    };
+    const stats = makeStats({
+      turns: 30, monstersPlayed: 14, fusionsPerformed: 6,
+      spellsActivated: 10, trapsActivated: 5,
+      cardsDrawn: 30, lpRemaining: 500, graveyardSize: 25,
+      endReason: 'deck_out',
+    });
+    const badges = calculateBattleBadges(stats, customConfig);
+    expect(badges.best).toBe('B');
+    expect(badges.coinMultiplier).toBe(1.0);
+    expect(badges.cardDropCount).toBe(1);
   });
 });
 

@@ -314,6 +314,7 @@ export interface OpponentConfig {
   coinsLoss:   number;
   deckIds:     string[];
   behaviorId?: string;
+  rewardConfig?: import('./reward-config.js').DuelRewardConfig;
 }
 
 export interface PlayerState {

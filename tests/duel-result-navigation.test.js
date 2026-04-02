@@ -11,7 +11,7 @@ function makeOps(overrides = {}) {
     addCardsToCollection: vi.fn(),
     recordDuelResult: vi.fn(),
     applyBadgeMultiplier: (n) => n,
-    rollSRankDrops: () => [],
+    rollCardDrops: () => [],
     ...overrides,
   };
 }
@@ -41,6 +41,7 @@ const baseBadges = {
   tec: { category: 'TEC', rank: 'B', score: 50 },
   best: 'A',
   coinMultiplier: 1.5,
+  cardDropCount: 0,
 };
 
 describe('computeCampaignDuelNav', () => {
@@ -195,18 +196,26 @@ describe('computeCampaignDuelNav', () => {
     expect(ops.recordDuelResult).toHaveBeenCalledWith(42, true);
   });
 
-  it('includes S-rank card drops in rewards', () => {
+  it('includes card drops in rewards based on cardDropCount', () => {
     const ops = makeOps({
-      rollSRankDrops: () => ['bonus1', 'bonus2'],
+      rollCardDrops: () => ['bonus1', 'bonus2'],
       ownsCard: vi.fn().mockReturnValue(false),
     });
+    const badgesWithDrops = { ...baseBadges, best: 'S', cardDropCount: 2 };
+    const rewardConfig = {
+      ranks: {
+        S: { coinMultiplier: 2.5, cardDropCount: 2 },
+        A: { coinMultiplier: 1.0, cardDropCount: 0 },
+        B: { coinMultiplier: 0.8, cardDropCount: 0 },
+      },
+    };
     const nav = computeCampaignDuelNav(
       {
         result: 'victory',
         stats: baseStats,
-        badges: baseBadges,
+        badges: badgesWithDrops,
         opponentId: 1,
-        pending: { nodeId: 'n1', rewards: { cards: ['c1'] } },
+        pending: { nodeId: 'n1', rewards: { cards: ['c1'] }, rewardConfig },
       },
       ops,
     );

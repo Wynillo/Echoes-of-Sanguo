@@ -39,7 +39,7 @@ export default function DuelResultScreen() {
   const statsPanelRef = useRef<HTMLDivElement>(null);
   const oppStatsPanelRef = useRef<HTMLDivElement>(null);
   const badgesRef = useRef<HTMLDivElement>(null);
-  const badgeMultRef = useRef<HTMLDivElement>(null);
+
   const rewardsRef = useRef<HTMLDivElement>(null);
   const continueRef = useRef<HTMLParagraphElement>(null);
 
@@ -145,15 +145,6 @@ export default function DuelResultScreen() {
         y: 0, opacity: 1, duration: 0.4,
         ease: 'back.out(1.4)',
       }, 1.6);
-    }
-
-    // Badge multiplier text
-    if (badgeMultRef.current) {
-      gsap.set(badgeMultRef.current, { opacity: 0 });
-      tl.to(badgeMultRef.current, {
-        opacity: 1, duration: 0.3,
-        ease: 'power2.out',
-      }, 1.9);
     }
 
     // Rewards (victory only)
@@ -318,16 +309,6 @@ export default function DuelResultScreen() {
                   </span>
                 </div>
               ))}
-            </div>
-            <div
-              ref={badgeMultRef}
-              className={`${styles.badgeMultiplier} ${
-                badges.best === 'S' ? styles.multiplierS
-                : badges.best === 'A' ? styles.multiplierA
-                : styles.multiplierB
-              }`}
-            >
-              {t('duelResult.coin_multiplier', { multiplier: badges.coinMultiplier })}
             </div>
           </>
         )}

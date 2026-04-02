@@ -11,6 +11,7 @@ import { Audio } from '../../audio.js';
 import { OPPONENT_CONFIGS } from '../../cards.js';
 import { calculateBattleBadges, rollBadgeCardDrops } from '../../battle-badges.js';
 import type { BattleBadges } from '../../battle-badges.js';
+import { resolveRewardConfig, getRankEffect } from '../../reward-config.js';
 import { computeCampaignDuelNav } from '../../campaign-duel-result.js';
 
 interface GameCtx {
@@ -162,22 +163,29 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         extra?: Record<string, unknown>,
       ): Record<string, unknown> => ({ result: r, stats, ...extra });
 
-      // Compute battle badges on victory
-      const badges: BattleBadges | null = result === 'victory' && stats ? calculateBattleBadges(stats) : null;
+      // Campaign duel
+      const pending = pendingDuelRef.current;
 
-      /** Apply badge coin multiplier to a base amount */
+      const opponentCfg = opponentId
+        ? (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === opponentId)
+        : undefined;
+      const rewardCfg = resolveRewardConfig(
+        pending?.rewardConfig,
+        opponentCfg?.rewardConfig,
+        pending ? 'campaign' : 'free',
+      );
+
+      const badges: BattleBadges | null = result === 'victory' && stats
+        ? calculateBattleBadges(stats, rewardCfg) : null;
+
       const applyBadgeMultiplier = (base: number): number =>
         badges ? Math.round(base * badges.coinMultiplier) : base;
 
-      /** Roll S-rank card drops from opponent deck, returns card IDs or empty array */
-      const rollSRankDrops = (): string[] => {
-        if (!badges || badges.best !== 'S' || !opponentId) return [];
-        const cfg = (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === opponentId);
-        return cfg?.deckIds ? rollBadgeCardDrops(cfg.deckIds, 3) : [];
+      const rollCardDrops = (): string[] => {
+        if (!badges || badges.cardDropCount <= 0 || !opponentCfg?.deckIds) return [];
+        const effect = getRankEffect(rewardCfg, badges.best);
+        return rollBadgeCardDrops(opponentCfg.deckIds, badges.cardDropCount, effect.rarityRates);
       };
-
-      // Campaign duel
-      const pending = pendingDuelRef.current;
       if (pending) {
         // --- Gauntlet: back-to-back duels ---
         const gauntlet = pending.gauntletOpponents;
@@ -214,7 +222,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               Progression.markNodeComplete(pending.nodeId);
 
               // Badge-adjusted rewards
-              const badgeDrops = rollSRankDrops();
+              const badgeDrops = rollCardDrops();
               const adjustedRewards = { ...pending.rewards };
               if (adjustedRewards.coins) adjustedRewards.coins = applyBadgeMultiplier(adjustedRewards.coins);
               if (adjustedRewards.coins) Progression.addCoins(adjustedRewards.coins);
@@ -271,7 +279,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               addCardsToCollection: (ids) => Progression.addCardsToCollection(ids),
               recordDuelResult: (id, won) => Progression.recordDuelResult(id, won),
               applyBadgeMultiplier,
-              rollSRankDrops,
+              rollCardDrops: (count, rarityRates) => {
+                if (!opponentCfg?.deckIds || count <= 0) return [];
+                return rollBadgeCardDrops(opponentCfg.deckIds, count, rarityRates);
+              },
             },
           );
           refreshRef.current();
@@ -292,8 +303,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               coinsEarned = result === 'victory' ? applyBadgeMultiplier(cfg.coinsWin) : 0;
               Progression.addCoins(coinsEarned);
             }
-            // S-rank card drops
-            const badgeDrops = rollSRankDrops();
+            const badgeDrops = rollCardDrops();
             const newCardIds = badgeDrops.filter(id => !Progression.ownsCard(id));
             if (badgeDrops.length) Progression.addCardsToCollection(badgeDrops);
 

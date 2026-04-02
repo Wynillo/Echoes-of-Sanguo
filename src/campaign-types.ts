@@ -19,6 +19,7 @@ export interface CampaignNode {
   position: { x: number; y: number };  // for map rendering
   unlockCondition: UnlockCondition | null;  // null = always unlocked (start node)
   rewards?: NodeRewards;
+  rewardConfig?: import('./reward-config.js').DuelRewardConfig;
   dialogueKeys?: string[];    // i18n keys for story nodes
   preDialogue?: DialogueScene | null;
   postDialogue?: DialogueScene | null;
@@ -47,6 +48,7 @@ export interface PendingDuel {
   nodeId: string;
   completeOnLoss?: boolean;
   rewards?: NodeRewards;
+  rewardConfig?: import('./reward-config.js').DuelRewardConfig;
   postDialogue?: DialogueScene | null;
   /** Ordered opponent IDs for gauntlet (back-to-back duels, no saving between). */
   gauntletOpponents?: number[];

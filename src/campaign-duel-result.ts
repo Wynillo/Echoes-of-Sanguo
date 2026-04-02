@@ -1,7 +1,10 @@
 import type { DialogueScene } from '@wynillo/tcg-format';
 import type { DuelStats } from './types.js';
+import type { Rarity } from './types.js';
 import type { NodeRewards } from './campaign-types.js';
 import type { BattleBadges } from './battle-badges.js';
+import type { DuelRewardConfig } from './reward-config.js';
+import { getRankEffect } from './reward-config.js';
 
 export interface CampaignDuelNav {
   screen: 'duel-result' | 'dialogue' | 'campaign';
@@ -16,7 +19,7 @@ export interface CampaignDuelOps {
   addCardsToCollection: (ids: string[]) => void;
   recordDuelResult: (opponentId: number, won: boolean) => void;
   applyBadgeMultiplier: (base: number) => number;
-  rollSRankDrops: () => string[];
+  rollCardDrops: (count: number, rarityRates?: Partial<Record<Rarity, number>>) => string[];
 }
 
 export interface CampaignDuelInput {
@@ -28,6 +31,7 @@ export interface CampaignDuelInput {
     nodeId: string;
     completeOnLoss?: boolean;
     rewards?: NodeRewards;
+    rewardConfig?: DuelRewardConfig;
     postDialogue?: DialogueScene | null;
   };
 }
@@ -55,7 +59,11 @@ export function computeCampaignDuelNav(
       ops.markNodeComplete(pending.nodeId);
     }
 
-    const badgeDrops = result === 'victory' ? ops.rollSRankDrops() : [];
+    const dropCount = badges?.cardDropCount ?? 0;
+    const effect = badges && pending.rewardConfig ? getRankEffect(pending.rewardConfig, badges.best) : null;
+    const badgeDrops = result === 'victory' && dropCount > 0
+      ? ops.rollCardDrops(dropCount, effect?.rarityRates)
+      : [];
     const adjustedRewards: NodeRewards | undefined = pending.rewards
       ? { ...pending.rewards }
       : undefined;

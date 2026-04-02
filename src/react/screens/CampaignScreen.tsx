@@ -125,6 +125,7 @@ export default function CampaignScreen() {
               nodeId: node.id,
               completeOnLoss: node.completeOnLoss,
               rewards: node.rewards,
+              rewardConfig: node.rewardConfig,
               postDialogue: node.postDialogue ?? null,
               gauntletOpponents: node.gauntlet,
               gauntletIndex: 0,
@@ -148,6 +149,7 @@ export default function CampaignScreen() {
               nodeId: node.id,
               completeOnLoss: node.completeOnLoss,
               rewards: node.rewards,
+              rewardConfig: node.rewardConfig,
               postDialogue: node.postDialogue ?? null,
             });
             if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
