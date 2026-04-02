@@ -238,7 +238,6 @@ export default function DeckbuilderScreen() {
       <div className={styles.header}>
         <button id="btn-db-back" className={`btn-secondary ${styles.backBtn}`} onClick={() => navigateTo('save-point')}>{t('deckbuilder.back')}</button>
         <div className={styles.title}>{t('deckbuilder.title')}</div>
-        <div className={styles.count}>{t('deckbuilder.cards_count', { current: currentDeck.length, max: MAX_DECK })}</div>
         <button
           id="btn-db-save"
           className="btn-primary"
@@ -254,7 +253,7 @@ export default function DeckbuilderScreen() {
           <button
             className={`${styles.tabBtn}${activeTab === 'deck' ? ` ${styles.activeTab}` : ''}`}
             onClick={() => setActiveTab('deck')}
-          >{t('deckbuilder.tab_deck')}</button>
+          >{t('deckbuilder.tab_deck')} {currentDeck.length}/{MAX_DECK}</button>
         </div>
       </div>
 

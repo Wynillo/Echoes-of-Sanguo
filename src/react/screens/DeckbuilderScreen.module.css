@@ -27,13 +27,6 @@
   color: var(--gold-light); letter-spacing: 2px;
 }
 
-.count {
-  font-size: 0.875rem; color: var(--gold);
-  background: #1c3078;
-  border: 1px solid var(--border);
-  border-radius: 0; padding: 3px 10px;
-}
-
 .tabs {
   display: flex; gap: 0;
 }
