@@ -9,8 +9,9 @@ import { useScreen } from './ScreenContext.js';
 import { useCampaign } from './CampaignContext.js';
 import { Audio } from '../../audio.js';
 import { OPPONENT_CONFIGS } from '../../cards.js';
-import { calculateBattleBadges, rollBadgeCardDrops } from '../../battle-badges.js';
+import { calculateBattleBadges, rollBadgeCardDrops, rollFromDropPool } from '../../battle-badges.js';
 import type { BattleBadges } from '../../battle-badges.js';
+import { resolveRewardConfig, getRankEffect } from '../../reward-config.js';
 import { computeCampaignDuelNav } from '../../campaign-duel-result.js';
 
 interface GameCtx {
@@ -162,22 +163,33 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         extra?: Record<string, unknown>,
       ): Record<string, unknown> => ({ result: r, stats, ...extra });
 
-      // Compute battle badges on victory
-      const badges: BattleBadges | null = result === 'victory' && stats ? calculateBattleBadges(stats) : null;
+      // Campaign duel
+      const pending = pendingDuelRef.current;
 
-      /** Apply badge coin multiplier to a base amount */
+      const opponentCfg = opponentId
+        ? (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === opponentId)
+        : undefined;
+      const rewardCfg = resolveRewardConfig(
+        pending?.rewardConfig,
+        opponentCfg?.rewardConfig,
+        pending ? 'campaign' : 'free',
+      );
+
+      const badges: BattleBadges | null = result === 'victory' && stats
+        ? calculateBattleBadges(stats, rewardCfg) : null;
+
       const applyBadgeMultiplier = (base: number): number =>
         badges ? Math.round(base * badges.coinMultiplier) : base;
 
-      /** Roll S-rank card drops from opponent deck, returns card IDs or empty array */
-      const rollSRankDrops = (): string[] => {
-        if (!badges || badges.best !== 'S' || !opponentId) return [];
-        const cfg = (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === opponentId);
-        return cfg?.deckIds ? rollBadgeCardDrops(cfg.deckIds, 3) : [];
+      const rollCardDrops = (): string[] => {
+        if (!badges || badges.cardDropCount <= 0) return [];
+        if (rewardCfg.dropPool && rewardCfg.dropPool.length > 0) {
+          return rollFromDropPool(rewardCfg.dropPool, badges.cardDropCount);
+        }
+        if (!opponentCfg?.deckIds) return [];
+        const effect = getRankEffect(rewardCfg, badges.best);
+        return rollBadgeCardDrops(opponentCfg.deckIds, badges.cardDropCount, effect.rarityRates);
       };
-
-      // Campaign duel
-      const pending = pendingDuelRef.current;
       if (pending) {
         // --- Gauntlet: back-to-back duels ---
         const gauntlet = pending.gauntletOpponents;
@@ -189,32 +201,43 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             if (opponentId) Progression.recordDuelResult(opponentId, result === 'victory');
 
             if (result === 'victory' && gIdx + 1 < gauntlet.length) {
-              // More opponents remain — show transition, then start next duel
+              // More opponents remain — show result screen, then transition
               const nextOppId = gauntlet[gIdx + 1];
               const nextCfg = (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === nextOppId);
               const nextName = nextCfg?.name ?? `Opponent #${nextOppId}`;
 
-              // Update pending duel to advance gauntlet index
               const nextPending = { ...pending, gauntletIndex: gIdx + 1 };
               setPendingDuelRef.current(nextPending);
 
-              openModalRef.current({
-                type: 'gauntlet-transition',
-                duelIndex: gIdx + 1,
-                totalDuels: gauntlet.length,
-                nextOpponentName: nextName,
-                resolve: () => {
-                  openModalRef.current(null); // close modal
-                  startGameRef.current(nextCfg ?? null);
+              const badgeDrops = rollCardDrops();
+              const coinsEarned = opponentCfg?.coinsWin
+                ? applyBadgeMultiplier(opponentCfg.coinsWin) : 0;
+              if (coinsEarned) Progression.addCoins(coinsEarned);
+              const newCardIds = badgeDrops.filter(id => !Progression.ownsCard(id));
+              if (badgeDrops.length) Progression.addCardsToCollection(badgeDrops);
+
+              refreshRef.current();
+              navigateToRef.current('duel-result', resultData('victory', {
+                rewards: coinsEarned > 0 || badgeDrops.length > 0
+                  ? { coins: coinsEarned || undefined, cards: badgeDrops.length > 0 ? badgeDrops : undefined }
+                  : undefined,
+                badges,
+                newCardIds: newCardIds.length > 0 ? newCardIds : undefined,
+                nextScreen: 'gauntlet-next',
+                gauntletNext: {
+                  duelIndex: gIdx + 1,
+                  totalDuels: gauntlet.length,
+                  nextOpponentName: nextName,
+                  nextCfg,
                 },
-              });
+              }));
             } else if (result === 'victory') {
               // Final gauntlet duel won — complete node, give rewards
               setPendingDuelRef.current(null);
               Progression.markNodeComplete(pending.nodeId);
 
               // Badge-adjusted rewards
-              const badgeDrops = rollSRankDrops();
+              const badgeDrops = rollCardDrops();
               const adjustedRewards = { ...pending.rewards };
               if (adjustedRewards.coins) adjustedRewards.coins = applyBadgeMultiplier(adjustedRewards.coins);
               if (adjustedRewards.coins) Progression.addCoins(adjustedRewards.coins);
@@ -271,7 +294,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               addCardsToCollection: (ids) => Progression.addCardsToCollection(ids),
               recordDuelResult: (id, won) => Progression.recordDuelResult(id, won),
               applyBadgeMultiplier,
-              rollSRankDrops,
+              rollCardDrops: (count, rarityRates) => {
+                if (count <= 0) return [];
+                if (rewardCfg.dropPool && rewardCfg.dropPool.length > 0) {
+                  return rollFromDropPool(rewardCfg.dropPool, count);
+                }
+                if (!opponentCfg?.deckIds) return [];
+                return rollBadgeCardDrops(opponentCfg.deckIds, count, rarityRates);
+              },
             },
           );
           refreshRef.current();
@@ -292,8 +322,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               coinsEarned = result === 'victory' ? applyBadgeMultiplier(cfg.coinsWin) : 0;
               Progression.addCoins(coinsEarned);
             }
-            // S-rank card drops
-            const badgeDrops = rollSRankDrops();
+            const badgeDrops = rollCardDrops();
             const newCardIds = badgeDrops.filter(id => !Progression.ownsCard(id));
             if (badgeDrops.length) Progression.addCardsToCollection(badgeDrops);
 

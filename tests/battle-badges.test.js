@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { calculateBattleBadges, rollBadgeCardDrops } from '../src/battle-badges.ts';
+import { calculateBattleBadges, rollBadgeCardDrops, rollFromDropPool } from '../src/battle-badges.ts';
+import { Rarity } from '../src/types.ts';
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -165,6 +166,47 @@ describe('calculateBattleBadges – best rank & multiplier', () => {
     expect(badges.best).toBe('S');
     expect(badges.coinMultiplier).toBe(2.5);
   });
+
+  it('includes cardDropCount from default config', () => {
+    const sStats = makeStats({
+      turns: 3, monstersPlayed: 2, fusionsPerformed: 1,
+      spellsActivated: 0, trapsActivated: 0,
+      cardsDrawn: 3, lpRemaining: 8000, graveyardSize: 2,
+    });
+    const sBadges = calculateBattleBadges(sStats);
+    expect(sBadges.best).toBe('S');
+    expect(sBadges.cardDropCount).toBe(3);
+
+    const bStats = makeStats({
+      turns: 30, monstersPlayed: 14, fusionsPerformed: 6,
+      spellsActivated: 10, trapsActivated: 5,
+      cardsDrawn: 30, lpRemaining: 500, graveyardSize: 25,
+      endReason: 'deck_out',
+    });
+    const bBadges = calculateBattleBadges(bStats);
+    expect(bBadges.best).toBe('B');
+    expect(bBadges.cardDropCount).toBe(0);
+  });
+
+  it('uses custom reward config when provided', () => {
+    const customConfig = {
+      ranks: {
+        S: { coinMultiplier: 3.0, cardDropCount: 5 },
+        A: { coinMultiplier: 1.5, cardDropCount: 2 },
+        B: { coinMultiplier: 1.0, cardDropCount: 1 },
+      },
+    };
+    const stats = makeStats({
+      turns: 30, monstersPlayed: 14, fusionsPerformed: 6,
+      spellsActivated: 10, trapsActivated: 5,
+      cardsDrawn: 30, lpRemaining: 500, graveyardSize: 25,
+      endReason: 'deck_out',
+    });
+    const badges = calculateBattleBadges(stats, customConfig);
+    expect(badges.best).toBe('B');
+    expect(badges.coinMultiplier).toBe(1.0);
+    expect(badges.cardDropCount).toBe(1);
+  });
 });
 
 // ── Card drops ───────────────────────────────────────────────
@@ -190,5 +232,43 @@ describe('rollBadgeCardDrops', () => {
   it('handles numeric deck IDs', () => {
     const drops = rollBadgeCardDrops([54, 55, 56], 2);
     expect(drops).toHaveLength(2);
+  });
+});
+
+describe('rollFromDropPool', () => {
+  it('returns the requested number of card IDs', () => {
+    const pool = [
+      { cardId: '10', weight: 100 },
+      { cardId: '20', weight: 50 },
+      { cardId: '30', weight: 1 },
+    ];
+    const drops = rollFromDropPool(pool, 3);
+    expect(drops).toHaveLength(3);
+    drops.forEach(id => expect(['10', '20', '30']).toContain(id));
+  });
+
+  it('returns empty array for empty pool', () => {
+    expect(rollFromDropPool([], 3)).toEqual([]);
+  });
+
+  it('returns empty array for zero-weight pool', () => {
+    expect(rollFromDropPool([{ cardId: '1', weight: 0 }], 3)).toEqual([]);
+  });
+
+  it('always picks the only entry when pool has one item', () => {
+    const pool = [{ cardId: '42', weight: 7 }];
+    const drops = rollFromDropPool(pool, 5);
+    expect(drops).toHaveLength(5);
+    drops.forEach(id => expect(id).toBe('42'));
+  });
+
+  it('respects weights (heavily weighted item dominates)', () => {
+    const pool = [
+      { cardId: 'common', weight: 9999 },
+      { cardId: 'rare', weight: 1 },
+    ];
+    const drops = rollFromDropPool(pool, 100);
+    const rareCount = drops.filter(id => id === 'rare').length;
+    expect(rareCount).toBeLessThan(10);
   });
 });

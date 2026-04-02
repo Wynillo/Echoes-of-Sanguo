@@ -515,7 +515,6 @@
     "badge_rank_s": "S",
     "badge_rank_a": "A",
     "badge_rank_b": "B",
-    "coin_multiplier": "x{{multiplier}} Coins",
     "badge_cards_earned": "+{{count}} Card(s) from Enemy"
   },
   "status": {
