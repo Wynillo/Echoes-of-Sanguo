@@ -120,14 +120,15 @@ export default function PackOpeningScreen() {
   const [tapCount, setTapCount] = useState(0);
   const [tearing, setTearing] = useState(false);
   const [revealIndex, setRevealIndex] = useState(-1);
-  const [showFlash, setShowFlash] = useState(false);
   const [currentRarity, setCurrentRarity] = useState<number>(Rarity.Common);
   const skipRef = useRef(false);
+  const fastForwardRef = useRef(false);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
   const packRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
   const revealCardRef = useRef<HTMLDivElement>(null);
+  const flashRef = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
   const lightRaysRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
@@ -141,10 +142,15 @@ export default function PackOpeningScreen() {
 
   const handleSkip = useCallback(() => {
     if (phase === 'summary') return;
-    if (phase === 'pack' && !tearing) return; // don't skip during tap phase
-    skipRef.current = true;
-    tlRef.current?.kill();
-    setPhase('summary');
+    if (phase === 'pack' && !tearing) return;
+    if (phase === 'pack') {
+      skipRef.current = true;
+      tlRef.current?.kill();
+      setPhase('summary');
+      return;
+    }
+    fastForwardRef.current = true;
+    tlRef.current?.timeScale(8);
   }, [phase, tearing]);
 
   const handlePackTap = useCallback(() => {
@@ -191,35 +197,37 @@ export default function PackOpeningScreen() {
     });
     tlRef.current = tl;
 
-    // Final dramatic wobble before tear
-    tl.to(pack, { rotation: -8, scale: 1.08, duration: 0.12, ease: 'steps(3)' })
-      .to(pack, { rotation: 10, scale: 1.1, duration: 0.12, ease: 'steps(3)' })
-      .to(pack, { rotation: -12, scale: 1.12, duration: 0.12, ease: 'steps(3)' })
-      .to(pack, { rotation: 14, scale: 1.14, duration: 0.1, ease: 'steps(2)' })
-      .to(pack, { rotation: 0, scale: 1, duration: 0.08, ease: 'steps(2)' });
+    // Aggressive wobble before tear
+    tl.to(pack, { rotation: -15, scale: 1.12, duration: 0.05, ease: 'steps(2)' })
+      .to(pack, { rotation: 15, scale: 1.15, duration: 0.05, ease: 'steps(2)' })
+      .to(pack, { rotation: -20, scale: 1.18, duration: 0.05, ease: 'steps(2)' })
+      .to(pack, { rotation: 0, scale: 1, duration: 0.04, ease: 'steps(2)' });
 
     // Hide original, show halves
     tl.call(() => {
       gsap.set(pack, { visibility: 'hidden' });
       gsap.set([left, right], { visibility: 'visible' });
-    });
+    })
+      .addLabel('tear');
 
-    // Tear apart
-    tl.to(left, {
-      x: -130, rotation: -20, opacity: 0,
-      duration: 0.7, ease: 'steps(10)',
-    }, '+=0')
-      .to(right, {
-        x: 130, rotation: 20, opacity: 0,
-        duration: 0.7, ease: 'steps(10)',
-      }, '<');
+    // Flash at tear moment
+    tl.to(flashRef.current, { opacity: 1, duration: 0.05, ease: 'none' }, 'tear')
+      .to(flashRef.current, { opacity: 0, duration: 0.15, ease: 'power2.out' });
 
-    // Flash + screen shake
+    // Screen shake at tear moment
     tl.call(() => {
-      setShowFlash(true);
-      if (screenRef.current) shakeScreen(screenRef.current, 3, 0.3);
-    }, undefined, '-=0.25');
-    tl.to({}, { duration: 0.25 }); // wait for flash to fade
+      if (screenRef.current) shakeScreen(screenRef.current, 8, 0.2);
+    }, undefined, 'tear');
+
+    // Tear apart halves simultaneously with flash
+    tl.to(left, {
+      x: '-30vw', rotation: -45, opacity: 0,
+      duration: 0.4, ease: 'steps(6)',
+    }, 'tear')
+      .to(right, {
+        x: '30vw', rotation: 45, opacity: 0,
+        duration: 0.4, ease: 'steps(6)',
+      }, 'tear');
 
     return () => { tl.kill(); };
   }, [phase, tearing]);
@@ -262,6 +270,10 @@ export default function PackOpeningScreen() {
         currentTl = tl;
         tlRef.current = tl;
 
+        if (fastForwardRef.current) {
+          tl.timeScale(8);
+        }
+
         // Find the inner element for flip
         const innerEl = cardEl.querySelector(`.${styles.revealCardInner}`) as HTMLElement | null;
         const frontEl = cardEl.querySelector(`.${styles.revealCardFront}`) as HTMLElement | null;
@@ -283,7 +295,7 @@ export default function PackOpeningScreen() {
         // Card entrance: slide from top (face-down)
         tl.to(cardEl, {
           y: 0, opacity: 1, scale: 1,
-          duration: 0.45, ease: 'steps(8)',
+          duration: 0.3, ease: 'steps(6)',
         }, 0);
 
         // Brief pause before flip
@@ -303,9 +315,9 @@ export default function PackOpeningScreen() {
 
         // Screen shake for SR/UR at flip moment
         if (rarity >= Rarity.SuperRare && screenEl) {
-          const shakeIntensity = rarity === Rarity.UltraRare ? 5 : 3;
+          const shakeIntensity = rarity === Rarity.UltraRare ? 8 : 5;
           tl.call(() => {
-            shakeScreen(screenEl, shakeIntensity, 0.35);
+            shakeScreen(screenEl, shakeIntensity, 0.25);
           }, undefined, '-=0.1');
         }
 
@@ -328,10 +340,10 @@ export default function PackOpeningScreen() {
           tl.to(raysEl, { opacity: 0, duration: 0.2, ease: 'steps(3)' }, '<');
         }
 
-        // Shrink & move down to mini strip area
+        // Exit: card flies off-screen downward
         tl.to(cardEl, {
-          scale: 0.3, opacity: 0, y: '30vh',
-          duration: 0.3, ease: 'steps(5)',
+          scale: 0.3, opacity: 0, y: '120vh',
+          duration: 0.2, ease: 'steps(4)',
         });
 
         // Wait for timeline to complete
@@ -361,7 +373,7 @@ export default function PackOpeningScreen() {
   if (phase === 'pack') {
     return (
       <div ref={screenRef} className={styles.screen} onClick={tearing ? handleSkip : undefined}>
-        {showFlash && <div className={styles.flash} />}
+        <div ref={flashRef} className={styles.flash} />
         <div className={styles.packPhase}>
           <div ref={packRef} className={styles.packWrapper} onClick={handlePackTap}>
             <div className={styles.packFoil} />
