@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { useScreen } from '../contexts/ScreenContext.js';
+import { useModal } from '../contexts/ModalContext.js';
+import { useGame } from '../contexts/GameContext.js';
 import { Audio } from '../../audio.js';
 import { CARD_DB } from '../../cards.js';
 import { getRarityById, getCardTypeById } from '../../type-metadata.js';
@@ -19,6 +21,8 @@ interface Rewards {
 
 export default function DuelResultScreen() {
   const { screenData, navigateTo } = useScreen();
+  const { openModal } = useModal();
+  const { startGame } = useGame();
   const { t } = useTranslation();
 
   const result = (screenData?.result as 'victory' | 'defeat') ?? 'defeat';
@@ -72,6 +76,25 @@ export default function DuelResultScreen() {
       const next = screenData?.nextScreen as string | undefined;
       if (next === 'dialogue') {
         navigateTo('dialogue', screenData?.dialogueData as Record<string, unknown>);
+      } else if (next === 'gauntlet-next') {
+        const gn = screenData?.gauntletNext as {
+          duelIndex: number; totalDuels: number;
+          nextOpponentName: string; nextCfg: unknown;
+        } | undefined;
+        if (gn) {
+          openModal({
+            type: 'gauntlet-transition',
+            duelIndex: gn.duelIndex,
+            totalDuels: gn.totalDuels,
+            nextOpponentName: gn.nextOpponentName,
+            resolve: () => {
+              openModal(null);
+              startGame((gn.nextCfg ?? null) as import('../../types.js').OpponentConfig | null);
+            },
+          });
+        } else {
+          navigateTo('campaign');
+        }
       } else {
         navigateTo('campaign');
       }

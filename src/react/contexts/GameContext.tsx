@@ -201,25 +201,36 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             if (opponentId) Progression.recordDuelResult(opponentId, result === 'victory');
 
             if (result === 'victory' && gIdx + 1 < gauntlet.length) {
-              // More opponents remain — show transition, then start next duel
+              // More opponents remain — show result screen, then transition
               const nextOppId = gauntlet[gIdx + 1];
               const nextCfg = (OPPONENT_CONFIGS as OpponentConfig[]).find(c => c.id === nextOppId);
               const nextName = nextCfg?.name ?? `Opponent #${nextOppId}`;
 
-              // Update pending duel to advance gauntlet index
               const nextPending = { ...pending, gauntletIndex: gIdx + 1 };
               setPendingDuelRef.current(nextPending);
 
-              openModalRef.current({
-                type: 'gauntlet-transition',
-                duelIndex: gIdx + 1,
-                totalDuels: gauntlet.length,
-                nextOpponentName: nextName,
-                resolve: () => {
-                  openModalRef.current(null); // close modal
-                  startGameRef.current(nextCfg ?? null);
+              const badgeDrops = rollCardDrops();
+              const coinsEarned = opponentCfg?.coinsWin
+                ? applyBadgeMultiplier(opponentCfg.coinsWin) : 0;
+              if (coinsEarned) Progression.addCoins(coinsEarned);
+              const newCardIds = badgeDrops.filter(id => !Progression.ownsCard(id));
+              if (badgeDrops.length) Progression.addCardsToCollection(badgeDrops);
+
+              refreshRef.current();
+              navigateToRef.current('duel-result', resultData('victory', {
+                rewards: coinsEarned > 0 || badgeDrops.length > 0
+                  ? { coins: coinsEarned || undefined, cards: badgeDrops.length > 0 ? badgeDrops : undefined }
+                  : undefined,
+                badges,
+                newCardIds: newCardIds.length > 0 ? newCardIds : undefined,
+                nextScreen: 'gauntlet-next',
+                gauntletNext: {
+                  duelIndex: gIdx + 1,
+                  totalDuels: gauntlet.length,
+                  nextOpponentName: nextName,
+                  nextCfg,
                 },
-              });
+              }));
             } else if (result === 'victory') {
               // Final gauntlet duel won — complete node, give rewards
               setPendingDuelRef.current(null);
