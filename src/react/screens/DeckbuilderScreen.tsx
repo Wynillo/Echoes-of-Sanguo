@@ -20,8 +20,7 @@ const MAX_COPIES = GAME_RULES.maxCardCopies;
 
 type ViewMode = 'large' | 'small' | 'table';
 type ActiveTab = 'collection' | 'deck';
-type SortColumn = 'id' | 'rarity' | 'name' | 'atk' | 'def' | 'type' | 'race' | 'collection' | 'inDeck' | 'newest';
-type SortDir = 'asc' | 'desc';
+type SortGroup = 'id' | 'rarity' | 'name' | 'atkdef' | 'inDeck';
 
 export default function DeckbuilderScreen() {
   const { navigateTo }                        = useScreen();
@@ -37,8 +36,7 @@ export default function DeckbuilderScreen() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [viewMode, setViewMode]               = useState<ViewMode>('small');
   const [activeTab, setActiveTab]             = useState<ActiveTab>('collection');
-  const [sortColumn, setSortColumn]           = useState<SortColumn | null>(null);
-  const [sortDirection, setSortDirection]     = useState<SortDir>('asc');
+  const [activeSort, setActiveSort]           = useState<{ group: SortGroup; step: number } | null>(null);
   const [toast, setToast]                     = useState(false);
   const [seenCards, setSeenCards]             = useState<Set<string>>(() => Progression.getSeenCards());
 
@@ -120,37 +118,68 @@ export default function DeckbuilderScreen() {
   // Reset pagination when filters change
   useEffect(() => setVisibleCount(100), [typeFilter, raceFilter, rarityFilter, debouncedSearch, activeTab]);
 
-  // Sorting
-  const sortedCards = useMemo(() => {
-    if (!sortColumn) return displayedCards;
-    const sorted = [...displayedCards].sort((a, b) => {
-      let cmp = 0;
-      switch (sortColumn) {
-        case 'id':         cmp = Number(a.id) - Number(b.id); break;
-        case 'name':       cmp = a.name.localeCompare(b.name); break;
-        case 'atk':        cmp = (a.atk ?? -1) - (b.atk ?? -1); break;
-        case 'def':        cmp = (a.def ?? -1) - (b.def ?? -1); break;
-        case 'rarity':     cmp = (a.rarity ?? 0) - (b.rarity ?? 0); break;
-        case 'type':       cmp = a.type - b.type; break;
-        case 'race':       cmp = (a.race ?? 0) - (b.race ?? 0); break;
-        case 'collection': cmp = (collectionCount[a.id] || 0) - (collectionCount[b.id] || 0); break;
-        case 'inDeck':     cmp = (copyMap[a.id] || 0) - (copyMap[b.id] || 0); break;
-        case 'newest':     cmp = (isNew(a.id) ? 1 : 0) - (isNew(b.id) ? 1 : 0); break;
-      }
-      return sortDirection === 'asc' ? cmp : -cmp;
-    });
-    return sorted;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayedCards, sortColumn, sortDirection, collectionCount, copyMap, seenCards]);
-
-  const visibleCards = sortedCards.slice(0, visibleCount);
-
   // Refresh seen cards when collection changes (e.g. after returning from a duel)
   useEffect(() => {
     setSeenCards(Progression.getSeenCards());
   }, [collection]);
 
   function isNew(id: string) { return !seenCards.has(id); }
+
+  // Cycle-sort definitions per column group
+  const sortCycles = useMemo<Record<SortGroup, Array<{ indicator: string; compare: (a: CardData, b: CardData) => number }>>>(() => ({
+    id: [
+      { indicator: ' \u25B2', compare: (a, b) => Number(a.id) - Number(b.id) },
+      { indicator: ' \u25BC', compare: (a, b) => Number(b.id) - Number(a.id) },
+      { indicator: ' \u25B2', compare: (a, b) => (isNew(b.id) ? 1 : 0) - (isNew(a.id) ? 1 : 0) || Number(a.id) - Number(b.id) },
+    ],
+    rarity: [
+      { indicator: ' \u25B2', compare: (a, b) => (a.rarity ?? 0) - (b.rarity ?? 0) },
+      { indicator: ' \u25BC', compare: (a, b) => (b.rarity ?? 0) - (a.rarity ?? 0) },
+    ],
+    name: [
+      { indicator: ' \u25B2', compare: (a, b) => a.name.localeCompare(b.name) },
+      { indicator: ' \u25BC', compare: (a, b) => b.name.localeCompare(a.name) },
+      { indicator: ' \u25B2', compare: (a, b) => a.type - b.type || a.name.localeCompare(b.name) },
+      { indicator: ' \u25BC', compare: (a, b) => b.type - a.type || b.name.localeCompare(a.name) },
+      { indicator: ' \u25B2', compare: (a, b) => (a.race ?? 0) - (b.race ?? 0) || a.name.localeCompare(b.name) },
+      { indicator: ' \u25BC', compare: (a, b) => (b.race ?? 0) - (a.race ?? 0) || b.name.localeCompare(a.name) },
+    ],
+    atkdef: [
+      { indicator: ' \u25B2', compare: (a, b) => (a.atk ?? -1) - (b.atk ?? -1) },
+      { indicator: ' \u25BC', compare: (a, b) => (b.atk ?? -1) - (a.atk ?? -1) },
+      { indicator: ' \u25B2', compare: (a, b) => (a.def ?? -1) - (b.def ?? -1) },
+      { indicator: ' \u25BC', compare: (a, b) => (b.def ?? -1) - (a.def ?? -1) },
+    ],
+    inDeck: [
+      { indicator: ' \u25B2', compare: (a, b) => (copyMap[a.id] || 0) - (copyMap[b.id] || 0) },
+      { indicator: ' \u25BC', compare: (a, b) => (copyMap[b.id] || 0) - (copyMap[a.id] || 0) },
+    ],
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [seenCards, copyMap]);
+
+  const sortedCards = useMemo(() => {
+    if (!activeSort) return displayedCards;
+    const { group, step } = activeSort;
+    const mode = sortCycles[group][step];
+    if (!mode) return displayedCards;
+    return [...displayedCards].sort(mode.compare);
+  }, [displayedCards, activeSort, sortCycles]);
+
+  const visibleCards = sortedCards.slice(0, visibleCount);
+
+  function cycleSort(group: SortGroup) {
+    setActiveSort(prev => {
+      if (!prev || prev.group !== group) return { group, step: 0 };
+      const nextStep = prev.step + 1;
+      if (nextStep >= sortCycles[group].length) return null;
+      return { group, step: nextStep };
+    });
+  }
+
+  function sortIndicator(group: SortGroup) {
+    if (!activeSort || activeSort.group !== group) return '';
+    return sortCycles[group][activeSort.step]?.indicator ?? '';
+  }
 
   function addCard(id: string) {
     if (currentDeck.length >= MAX_DECK) return;
@@ -181,19 +210,6 @@ export default function DeckbuilderScreen() {
     setTimeout(() => setToast(false), 2000);
   }
 
-  function toggleSort(col: SortColumn) {
-    if (sortColumn === col) {
-      setSortDirection(d => d === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortColumn(col);
-      setSortDirection('asc');
-    }
-  }
-
-  function sortIndicator(col: SortColumn) {
-    if (sortColumn !== col) return '';
-    return sortDirection === 'asc' ? ' \u25B2' : ' \u25BC';
-  }
 
   // Card limit helper
   function maxCopiesFor(cardId: string) {
@@ -347,19 +363,19 @@ export default function DeckbuilderScreen() {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th className={styles.sortable} onClick={() => toggleSort('id')}>
+                    <th className={styles.sortable} onClick={() => cycleSort('id')}>
                       {t('deckbuilder.table_nr')}{sortIndicator('id')}
                     </th>
-                    <th className={styles.sortable} onClick={() => toggleSort('rarity')}>
+                    <th className={styles.sortable} onClick={() => cycleSort('rarity')}>
                       {t('deckbuilder.table_rarity')}{sortIndicator('rarity')}
                     </th>
-                    <th className={styles.sortable} onClick={() => toggleSort('name')}>
+                    <th className={styles.sortable} onClick={() => cycleSort('name')}>
                       {t('deckbuilder.table_name')}{sortIndicator('name')}
                     </th>
-                    <th className={styles.sortable} onClick={() => toggleSort('atk')}>
-                      {t('deckbuilder.table_atkdef')}{sortIndicator('atk')}
+                    <th className={styles.sortable} onClick={() => cycleSort('atkdef')}>
+                      {t('deckbuilder.table_atkdef')}{sortIndicator('atkdef')}
                     </th>
-                    <th className={styles.sortable} onClick={() => toggleSort('inDeck')}>
+                    <th className={styles.sortable} onClick={() => cycleSort('inDeck')}>
                       {t('deckbuilder.table_in_deck')}{sortIndicator('inDeck')}
                     </th>
                   </tr>
