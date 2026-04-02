@@ -71,6 +71,8 @@ export class GameEngine {
   _aiBehavior!: Required<AIBehavior>;
   _stats!: DuelStats;
   _duelEnded = false;
+  _chainDepth = 0;
+  static MAX_CHAIN_DEPTH = 6;
 
   constructor(uiCallbacks: UICallbacks){
     this.ui = uiCallbacks;
@@ -579,6 +581,26 @@ export class GameEngine {
     this.addLog(`${ownerLabel(owner)}: Trap ${fst.card.name} activated!`);
     this.ui.playSfx?.('sfx_trap');
     if(this.ui.showActivation) await this.ui.showActivation(fst.card, fst.card.description);
+
+    if (this._chainDepth < GameEngine.MAX_CHAIN_DEPTH) {
+      this._chainDepth++;
+      const counterOwner = owner === 'player' ? 'opponent' : 'player';
+      let counterResult: EffectSignal | null = null;
+      if (counterOwner === 'player') {
+        counterResult = await this._promptPlayerTraps('onOpponentTrap', ...args);
+      } else {
+        counterResult = await this._autoActivateOpponentTraps('onOpponentTrap', ...args);
+      }
+      this._chainDepth--;
+      if (counterResult?.cancelEffect) {
+        this.addLog(`${fst.card.name} was negated!`);
+        st.graveyard.push(fst.card);
+        st.field.spellTraps[zone] = null;
+        this.ui.render(this.state);
+        return {};
+      }
+    }
+
     let result: EffectSignal | null = null;
     if(fst.card.effect) {
       const ctx = this._buildTrapContext(owner, fst.card.trapTrigger, args);
@@ -919,11 +941,13 @@ export class GameEngine {
       if(trapResult?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(trapResult?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(trapResult && trapResult.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
       if(defFC){
         const trapResult2 = await this._promptPlayerTraps('onOwnMonsterAttacked', attFC, defFC);
         if(trapResult2?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
         if(trapResult2?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
         if(trapResult2 && trapResult2.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+        if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
       }
     }
 
@@ -932,14 +956,17 @@ export class GameEngine {
       if(oppTrap?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(oppTrap?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(oppTrap?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
       if(defFC){
         const oppTrap2 = await this._autoActivateOpponentTraps('onOwnMonsterAttacked', attFC, defFC);
         if(oppTrap2?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
         if(oppTrap2?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
         if(oppTrap2?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+        if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
       }
     }
 
+    if(!atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
     attFC.hasAttacked = true;
 
     if(!defFC){
@@ -984,6 +1011,7 @@ export class GameEngine {
       if(trapResult?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(trapResult?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(trapResult && trapResult.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(this._duelEnded || !this.state[attackerOwner].field.monsters[attackerZone]){ this.ui.render(this.state); return; }
     }
 
     if(attackerOwner === 'player'){
@@ -991,8 +1019,10 @@ export class GameEngine {
       if(oppTrap?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(oppTrap?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
       if(oppTrap?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(this._duelEnded || !this.state[attackerOwner].field.monsters[attackerZone]){ this.ui.render(this.state); return; }
     }
 
+    if(!this.state[attackerOwner].field.monsters[attackerZone]){ this.ui.render(this.state); return; }
     attFC.hasAttacked = true;
     this.addLog(`${attFC.card.name} greift direkt an!`);
     if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
@@ -1143,6 +1173,8 @@ export class GameEngine {
       ctx.defender = args[1];
     } else if(trapTrigger === 'onOpponentSummon' || trapTrigger === 'onAnySummon'){
       ctx.summonedFC = args[0];
+    } else if(trapTrigger === 'onOpponentTrap'){
+      ctx.attacker = args[0];
     }
     return ctx;
   }
