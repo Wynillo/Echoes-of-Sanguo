@@ -26,6 +26,14 @@ jobs:
           npm install
           npm run build
 
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: deploy
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          script: mkdir -p /var/www/sanguo
+
       - name: Deploy via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -36,7 +44,5 @@ jobs:
           target: "/var/www/sanguo"
           strip_components: 1
           rm: true
-          debug: true
-
       - name: Notify
         run: echo "Deployed ${{ github.ref_name }} to nightbeak.dev"
