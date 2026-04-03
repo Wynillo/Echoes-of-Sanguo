@@ -10,7 +10,6 @@ import { test, expect, Page } from '@playwright/test';
  */
 async function seedAndNavigateToDeckbuilder(page: Page) {
   await page.goto('/');
-
   await page.evaluate(() => {
     const collection = [
       { id: '1', count: 5 },
@@ -18,22 +17,25 @@ async function seedAndNavigateToDeckbuilder(page: Page) {
       { id: '3', count: 1 },
     ];
     const deck = ['1'];
-
-    localStorage.setItem('tcg_initialized', '1');
-    localStorage.setItem('tcg_starter_chosen', '"1"');
-    localStorage.setItem('tcg_save_version', '2');
-    localStorage.setItem('tcg_coins', '0');
-    localStorage.setItem('tcg_collection', JSON.stringify(collection));
-    localStorage.setItem('tcg_deck', JSON.stringify(deck));
-    localStorage.setItem('tcg_opponents', JSON.stringify({ 1: { unlocked: true, wins: 0, losses: 0 } }));
-    localStorage.setItem('tcg_seen_cards', JSON.stringify(['1', '2', '3']));
+    localStorage.setItem('tcg_active_slot', '1');
+    localStorage.setItem('tcg_s1_initialized', '1');
+    localStorage.setItem('tcg_s1_starter_chosen', '1');
+    localStorage.setItem('tcg_s1_save_version', '2');
+    localStorage.setItem('tcg_s1_jade_coins', '0');
+    localStorage.setItem('tcg_s1_collection', JSON.stringify(collection));
+    localStorage.setItem('tcg_s1_deck', JSON.stringify(deck));
+    localStorage.setItem('tcg_s1_opponents', JSON.stringify({ 1: { unlocked: true, wins: 0, losses: 0 } }));
+    localStorage.setItem('tcg_s1_seen_cards', JSON.stringify(['1', '2', '3']));
+    localStorage.setItem('tcg_slot_meta', JSON.stringify({
+      1: { starterRace: 'water', coins: 0, currentChapter: 'ch1', lastSaved: new Date().toISOString() }
+    }));
   });
-
   await page.goto('/');
   await page.getByText('PRESS ANY KEY').waitFor();
   await page.keyboard.press('Enter');
   await page.locator('#title-screen').waitFor();
   await page.getByRole('button', { name: 'Load Game' }).click();
+  await page.getByRole('button', { name: /Slot 1/i }).click();
   await page.getByRole('button', { name: 'Deckbuilder' }).click();
 }
 
