@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from '../i18n.js';
 import { Progression } from '../progression.js';
@@ -15,16 +15,17 @@ import PressStartScreen from './screens/PressStartScreen.js';
 import TitleScreen      from './screens/TitleScreen.js';
 import StarterScreen    from './screens/StarterScreen.js';
 import OpponentScreen   from './screens/OpponentScreen.js';
-import CampaignScreen   from './screens/CampaignScreen.js';
-import CollectionScreen from './screens/CollectionScreen.js';
-import ShopScreen       from './screens/ShopScreen.js';
-import PackOpeningScreen from './screens/PackOpeningScreen.js';
-import GameScreen       from './screens/GameScreen.js';
-import DeckbuilderScreen  from './screens/DeckbuilderScreen.js';
 import SavePointScreen   from './screens/SavePointScreen.js';
 import SaveSlotScreen    from './screens/SaveSlotScreen.js';
-import DuelResultScreen  from './screens/DuelResultScreen.js';
-import DialogueScreen    from './screens/DialogueScreen.js';
+
+const CampaignScreen   = lazy(() => import('./screens/CampaignScreen.js'));
+const CollectionScreen = lazy(() => import('./screens/CollectionScreen.js'));
+const ShopScreen       = lazy(() => import('./screens/ShopScreen.js'));
+const PackOpeningScreen = lazy(() => import('./screens/PackOpeningScreen.js'));
+const GameScreen       = lazy(() => import('./screens/GameScreen.js'));
+const DeckbuilderScreen = lazy(() => import('./screens/DeckbuilderScreen.js'));
+const DuelResultScreen  = lazy(() => import('./screens/DuelResultScreen.js'));
+const DialogueScreen    = lazy(() => import('./screens/DialogueScreen.js'));
 
 import { HoverPreview }        from './components/HoverPreview.js';
 import { CardActivationOverlay } from './components/CardActivationOverlay.js';
@@ -76,20 +77,22 @@ function Router() {
       {screen === 'title'        && <TitleScreen />}
       {screen === 'starter'      && <StarterScreen />}
       {screen === 'opponent'     && <OpponentScreen />}
-      {screen === 'campaign'     && <CampaignScreen />}
-      {screen === 'collection'   && <CollectionScreen />}
-      {screen === 'shop'         && <ShopScreen />}
-      {screen === 'pack-opening' && <PackOpeningScreen />}
-      {screen === 'game'         && (
-        <ErrorBoundary onReset={() => setScreen('title')}>
-          <GameScreen />
-        </ErrorBoundary>
-      )}
-      {screen === 'deckbuilder'  && <DeckbuilderScreen />}
+      <Suspense fallback={null}>
+        {screen === 'campaign'     && <CampaignScreen />}
+        {screen === 'collection'   && <CollectionScreen />}
+        {screen === 'shop'         && <ShopScreen />}
+        {screen === 'pack-opening' && <PackOpeningScreen />}
+        {screen === 'game'         && (
+          <ErrorBoundary onReset={() => setScreen('title')}>
+            <GameScreen />
+          </ErrorBoundary>
+        )}
+        {screen === 'deckbuilder'  && <DeckbuilderScreen />}
+        {screen === 'duel-result'   && <DuelResultScreen />}
+        {screen === 'dialogue'      && <DialogueScreen />}
+      </Suspense>
       {screen === 'save-point'   && <SavePointScreen />}
       {screen === 'save-slots'   && <SaveSlotScreen />}
-      {screen === 'duel-result'   && <DuelResultScreen />}
-      {screen === 'dialogue'      && <DialogueScreen />}
       <HoverPreview />
       <CardActivationOverlay />
       <AnimSkipOverlay />
