@@ -1,8 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 
-test.beforeEach(async ({ page }) => {
-  await page.evaluate(() => localStorage.clear());
-});
+
 
 async function passPressStart(page: Page) {
   await page.goto('/');
