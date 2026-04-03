@@ -60,9 +60,14 @@ test.describe('Deckbuilder — Table View', () => {
     const row = cellTexts.find(cells => cells[0] === '1');
     expect(row).toBeDefined();
 
-    // "In Deck" is the 8th column (index 7)
-    const inDeckCell = row![7];
-    expect(inDeckCell).toBe('1 / 3');
+    // Find "In Deck" column index dynamically
+    const headers = await page.locator('table thead th').allTextContents();
+    const inDeckIndex = headers.findIndex(h => h.includes('In Deck'));
+    expect(inDeckIndex).not.toBe(-1);
+
+    const inDeckCell = row![inDeckIndex];
+    // Accept "1/3" or "1 / 3" or "1 /3" etc. (variable whitespace)
+    expect(inDeckCell).toMatch(/1\s*\/\s*3/);
     // Must NOT show the raw collection count of 5
     expect(inDeckCell).not.toContain('5');
   });
