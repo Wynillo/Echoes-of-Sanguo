@@ -205,10 +205,32 @@ export async function loadAndApplyTcg(
 
   const lang = options?.lang ?? (typeof navigator !== 'undefined' ? navigator.language.substring(0, 2) : '');
   const result = await loadTcgFile(buffer, { lang, onProgress: options?.onProgress });
+  console.log('[tcg-bridge] loadTcgFile result keys:', Object.keys(result));
+  console.log('[tcg-bridge] result.opponents:', result.opponents ? `${result.opponents.length} opponents` : 'undefined');
+  console.log('[tcg-bridge] result has opponentDescriptions:', result.opponentDescriptions?.size ?? 0, 'locales');
   const mod: LoadedMod = {
     source: typeof source === 'string' ? source : '<ArrayBuffer>',
     cardIds: [], opponentIds: [], timestamp: Date.now(),
   };
+
+  // Manual fallback: if result.opponents is empty, try loading from raw JSON
+  if (!result.opponents || result.opponents.length === 0) {
+    console.warn('[tcg-bridge] loadTcgFile returned no opponents, attempting manual extraction...');
+    try {
+      const zip = await JSZip.loadAsync(buffer);
+      const oppFile = zip.file('opponents.json');
+      if (oppFile) {
+        const rawOpponents = JSON.parse(await oppFile.async('string')) as TcgOpponentDeck[];
+        console.log('[tcg-bridge] Manually extracted', rawOpponents.length, 'opponents from opponents.json');
+        // Pick the first available locale for descriptions
+        const firstDesc = result.opponentDescriptions?.values().next().value ?? undefined;
+        result.opponents = rawOpponents;
+        result.opponentDescriptions = result.opponentDescriptions ?? new Map();
+      }
+    } catch (e) {
+      console.error('[tcg-bridge] Failed to manually extract opponents:', e);
+    }
+  }
 
   // Convert TcgParsedCard[] → CardData[] with collision detection
   for (let i = 0; i < result.parsedCards.length; i++) {
@@ -250,9 +272,18 @@ export async function loadAndApplyTcg(
   const oppDescs = result.opponentDescriptions?.get(lang)
     ?? (result.opponentDescriptions?.size ? result.opponentDescriptions.values().next().value! : undefined);
 
+  console.log('[tcg-bridge] loadTcgFile result:', {
+    hasOpponents: !!result.opponents,
+    opponentCount: result.opponents?.length,
+    hasOppDescs: result.opponentDescriptions?.size,
+    lang,
+  });
   if (result.opponents) {
     const opponentIds = applyOpponents(result.opponents, oppDescs);
+    console.log('[tcg-bridge] Applied', opponentIds.length, 'opponents:', opponentIds);
     mod.opponentIds.push(...opponentIds);
+  } else {
+    console.warn('[tcg-bridge] No opponents found in TCG file!');
   }
   if (result.fusionFormulas) applyFusionFormulas(result.fusionFormulas, result.warnings);
 
@@ -306,16 +337,23 @@ const localeCache = new Map<string, TcgLocale>();
 async function extractExtraDataFromZip(buffer: ArrayBuffer): Promise<void> {
   const zip = await JSZip.loadAsync(buffer);
 
-  const starterDecksFile = zip.file('starterDecks.json');
+  // Try both root and tcg-src/ subdirectory for compatibility
+  const starterDecksFile = zip.file('starterDecks.json') ?? zip.file('tcg-src/starterDecks.json');
   if (starterDecksFile) {
     const raw: Record<string, number[]> = JSON.parse(await starterDecksFile.async('string'));
     applyStarterDecks(raw);
   }
 
-  const fusionRecipesFile = zip.file('fusion_recipes.json');
+  const fusionRecipesFile = zip.file('fusion_recipes.json') ?? zip.file('tcg-src/fusion_recipes.json');
   if (fusionRecipesFile) {
     const raw = JSON.parse(await fusionRecipesFile.async('string'));
     applyFusionRecipes(raw);
+  }
+
+  // Extract opponents.json from tcg-src/ if present
+  const opponentsFile = zip.file('tcg-src/opponents.json');
+  if (opponentsFile) {
+    console.log('[tcg-bridge] Found opponents.json in tcg-src/, will be loaded by loadTcgFile');
   }
 }
 
