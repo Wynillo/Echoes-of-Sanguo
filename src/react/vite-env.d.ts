@@ -1,13 +1,15 @@
 /// <reference types="vite/client" />
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>;
-  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
-
 declare global {
+  interface BeforeInstallPromptEvent extends Event {
+    prompt(): Promise<void>;
+    readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  }
+
   interface WindowEventMap {
     beforeinstallprompt: BeforeInstallPromptEvent;
     appinstalled: Event;
   }
 }
+
+export {};
