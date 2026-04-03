@@ -1266,7 +1266,7 @@ export class GameEngine {
     if(fc.hasFlipSummoned) return;
     fc.hasFlipSummoned = true;
     const card = fc.card;
-    const blocks = this._getEffectBlocks(card, 'onFlipSummon');
+    const blocks = [...this._getEffectBlocks(card, 'onFlipSummon'), ...this._getEffectBlocks(card, 'onFlip')];
     if (blocks.length === 0) return;
     EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Flip Effect`);
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);

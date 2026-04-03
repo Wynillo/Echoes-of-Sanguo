@@ -123,7 +123,7 @@ describe('setMonster', () => {
     expect(engine.state.player.normalSummonUsed).toBe(true);
   });
 
-  it('triggers onSummon effect even when set face-down', async () => {
+  it('does not trigger onSummon effect when set face-down', async () => {
     const { engine } = makeEngine();
     const effectCard = {
       id: 'TST_FD_EFF', name: 'FDEffect', type: CardType.Monster, atk: 800, def: 600,
@@ -133,7 +133,7 @@ describe('setMonster', () => {
     engine.state.player.hand.unshift(effectCard);
     const oppLP = engine.state.opponent.lp;
     await engine.setMonster('player', 0, 0);
-    expect(engine.state.opponent.lp).toBe(oppLP - 500);
+    expect(engine.state.opponent.lp).toBe(oppLP);
   });
 
   it('rejects an occupied zone', async () => {
