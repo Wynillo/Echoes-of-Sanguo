@@ -32,7 +32,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npm run copy:tcg
       - run: npm run build
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

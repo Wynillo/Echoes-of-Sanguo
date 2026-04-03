@@ -1,6 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
 
-// Dismiss the press-start screen by pressing a key, then wait for title screen.
+test.beforeEach(async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+});
+
 async function passPressStart(page: Page) {
   await page.goto('/');
   await expect(page.getByText('PRESS ANY KEY')).toBeVisible();
