@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useTranslation }   from 'react-i18next';
 import type { TFunction }   from 'i18next';
 import { useScreen }        from '../contexts/ScreenContext.js';
@@ -57,6 +57,31 @@ export default function CampaignScreen() {
   }, [chapters, progress.completedNodes]);
 
   const activeChapter: Chapter | undefined = chapters[activeChapterIdx];
+
+  // Auto-complete the starting story node (with no unlock condition) when first entering a chapter
+  // but still show dialogue if present. This prevents users from getting stuck.
+  // Tracks which chapters have been auto-initialized to avoid re-running.
+  const initializedChapters = useRef<Set<string>>(new Set());
+  
+  useEffect(() => {
+    if (!activeChapter || initializedChapters.current.has(activeChapter.id)) return;
+    
+    // Find the first story node with no unlock condition
+    const startNode = activeChapter.nodes.find(
+      n => n.unlockCondition === null && n.type === 'story' && !n.gauntlet
+    );
+    
+    if (startNode && !progress.completedNodes.includes(startNode.id)) {
+      // Complete the node immediately
+      completeNode(startNode.id);
+      // Show dialogue if it exists (user can read and dismiss)
+      if (startNode.dialogueKeys && startNode.dialogueKeys.length > 0) {
+        setDialogueNode(startNode);
+      }
+    }
+    initializedChapters.current.add(activeChapter.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChapter]); // Run when chapter changes (first time per chapter)
 
   function getNodeState(node: CampaignNode): 'completed' | 'available' | 'locked' {
     if (progress.completedNodes.includes(node.id)) return 'completed';
@@ -121,48 +146,54 @@ export default function CampaignScreen() {
           if (!ok) return;
           const firstOppId = node.gauntlet[0];
           const firstCfg = (OPPONENT_CONFIGS as import('../../types.js').OpponentConfig[]).find(c => c.id === firstOppId);
-          if (firstCfg) {
-            setPendingDuel({
-              nodeId: node.id,
-              completeOnLoss: node.completeOnLoss,
-              rewards: node.rewards,
-              rewardConfig: node.rewardConfig,
-              postDialogue: node.postDialogue ?? null,
-              gauntletOpponents: node.gauntlet,
-              gauntletIndex: 0,
+          if (!firstCfg) {
+            console.error(`[CampaignScreen] Failed to find opponent config for gauntlet node "${node.id}", opponent ${firstOppId}`);
+            window.alert(t('campaign.error_no_opponent', 'Cannot start duel: opponent configuration not found. Please check that the campaign data is loaded correctly.'));
+            return;
+          }
+          setPendingDuel({
+            nodeId: node.id,
+            completeOnLoss: node.completeOnLoss,
+            rewards: node.rewards,
+            rewardConfig: node.rewardConfig,
+            postDialogue: node.postDialogue ?? null,
+            gauntletOpponents: node.gauntlet,
+            gauntletIndex: 0,
+          });
+          if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
+            navigateTo('dialogue', {
+              scene: node.preDialogue,
+              nextScreen: 'game',
+              nextScreenData: { campaignOpponentConfig: firstCfg },
             });
-            if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
-              navigateTo('dialogue', {
-                scene: node.preDialogue,
-                nextScreen: 'game',
-                nextScreenData: { campaignOpponentConfig: firstCfg },
-              });
-            } else {
-              startGame(firstCfg);
-              navigateTo('game');
-            }
+          } else {
+            startGame(firstCfg);
+            navigateTo('game');
           }
         } else {
           // Standard single duel
           const opponent = getOpponentForNode(node.id);
-          if (opponent) {
-            setPendingDuel({
-              nodeId: node.id,
-              completeOnLoss: node.completeOnLoss,
-              rewards: node.rewards,
-              rewardConfig: node.rewardConfig,
-              postDialogue: node.postDialogue ?? null,
+          if (!opponent) {
+            console.error(`[CampaignScreen] Failed to find opponent config for duel node "${node.id}". Node data:`, node);
+            window.alert(t('campaign.error_no_opponent', 'Cannot start duel: opponent configuration not found. Please check that the campaign data is loaded correctly.'));
+            return;
+          }
+          setPendingDuel({
+            nodeId: node.id,
+            completeOnLoss: node.completeOnLoss,
+            rewards: node.rewards,
+            rewardConfig: node.rewardConfig,
+            postDialogue: node.postDialogue ?? null,
+          });
+          if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
+            navigateTo('dialogue', {
+              scene: node.preDialogue,
+              nextScreen: 'game',
+              nextScreenData: { campaignOpponentConfig: opponent },
             });
-            if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
-              navigateTo('dialogue', {
-                scene: node.preDialogue,
-                nextScreen: 'game',
-                nextScreenData: { campaignOpponentConfig: opponent },
-              });
-            } else {
-              startGame(opponent);
-              navigateTo('game');
-            }
+          } else {
+            startGame(opponent);
+            navigateTo('game');
           }
         }
         break;
