@@ -133,4 +133,23 @@ describe('loadTcgFile', () => {
     expect(progress.length).toBeGreaterThan(0);
     expect(progress[progress.length - 1]).toBe(100);
   });
+
+  it('resolves card name from locale when cards.json has no plaintext name', async () => {
+    const zip = new JSZip();
+    zip.file('cards.json', JSON.stringify([
+      { id: 1, type: 1, level: 4, rarity: 1, atk: 1000, def: 800 },
+      // no name or description fields
+    ]));
+    zip.file('locales/en.json', JSON.stringify({
+      'card_1_name': 'Locale Dragon',
+      'card_1_desc': 'A dragon from locale.',
+    }));
+    zip.file('manifest.json', JSON.stringify({ formatVersion: 2 }));
+    zip.file('img/1.png', Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+    const buf = await zip.generateAsync({ type: 'arraybuffer' });
+
+    const result = await loadTcgFile(buf, { lang: 'en' });
+    expect(result.parsedCards[0].name).toBe('Locale Dragon');
+    expect(result.parsedCards[0].description).toBe('A dragon from locale.');
+  });
 });

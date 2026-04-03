@@ -85,7 +85,6 @@ A `.tcg` file is a ZIP archive with the following structure:
 | File | Required | Description |
 |------|----------|-------------|
 | `cards.json` | Yes | Array of card data objects |
-| `cards_description.json` | Yes | Localized card names and descriptions |
 | `img/` | Yes (folder) | Card artwork PNGs (named by card ID, e.g. `1.png`) |
 | `manifest.json` | No | Format version, author, feature flags |
 | `meta.json` | No | Fusion recipes, opponent configs, starter decks |

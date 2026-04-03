@@ -100,6 +100,17 @@ describe('validateShopJson', () => {
     const warnings = validateShopJson('bad');
     expect(warnings.some(w => w.includes('JSON object'))).toBe(true);
   });
+
+  it('warns on invalid pack entries in packs array', () => {
+    const warnings = validateShopJson({
+      packs: [
+        { price: 0, slots: [] },   // missing id, zero price, empty slots
+      ],
+    });
+    expect(warnings.some(w => w.includes('packs[0]') && w.includes('"id"'))).toBe(true);
+    expect(warnings.some(w => w.includes('packs[0]') && w.includes('"price"'))).toBe(true);
+    expect(warnings.some(w => w.includes('packs[0]') && w.includes('"slots"'))).toBe(true);
+  });
 });
 
 describe('validateCampaignJson', () => {
@@ -111,6 +122,7 @@ describe('validateCampaignJson', () => {
           id: 'n1', type: 'duel', position: { x: 0, y: 0 },
           mapIcon: null, unlockCondition: null, rewards: null,
           opponentId: 1, isBoss: false,
+          preDialogue: null, postDialogue: null,
         }],
       }],
     };
@@ -133,6 +145,69 @@ describe('validateCampaignJson', () => {
   it('warns on missing chapters', () => {
     const warnings = validateCampaignJson({});
     expect(warnings.some(w => w.includes('chapters'))).toBe(true);
+  });
+
+  it('warns on duel node missing preDialogue and postDialogue', () => {
+    const campaign = {
+      chapters: [{
+        id: 'ch1', titleKey: 'chapter_1',
+        nodes: [{
+          id: 'n1', type: 'duel', position: { x: 0, y: 0 },
+          mapIcon: null, unlockCondition: null, rewards: null,
+          opponentId: 1, isBoss: false,
+          // preDialogue and postDialogue intentionally omitted
+        }],
+      }],
+    };
+    const warnings = validateCampaignJson(campaign);
+    expect(warnings.some(w => w.includes('preDialogue'))).toBe(true);
+    expect(warnings.some(w => w.includes('postDialogue'))).toBe(true);
+  });
+
+  it('warns on story node missing scene', () => {
+    const campaign = {
+      chapters: [{
+        id: 'ch1', titleKey: 'chapter_1',
+        nodes: [{
+          id: 'n1', type: 'story', position: { x: 0, y: 0 },
+          mapIcon: null, unlockCondition: null, rewards: null,
+          // scene intentionally omitted
+        }],
+      }],
+    };
+    const warnings = validateCampaignJson(campaign);
+    expect(warnings.some(w => w.includes('"scene"'))).toBe(true);
+  });
+
+  it('warns on shop node missing shopId', () => {
+    const campaign = {
+      chapters: [{
+        id: 'ch1', titleKey: 'chapter_1',
+        nodes: [{
+          id: 'n1', type: 'shop', position: { x: 0, y: 0 },
+          mapIcon: null, unlockCondition: null, rewards: null,
+          // shopId intentionally omitted
+        }],
+      }],
+    };
+    const warnings = validateCampaignJson(campaign);
+    expect(warnings.some(w => w.includes('"shopId"'))).toBe(true);
+  });
+
+  it('warns on branch node missing promptKey and options', () => {
+    const campaign = {
+      chapters: [{
+        id: 'ch1', titleKey: 'chapter_1',
+        nodes: [{
+          id: 'n1', type: 'branch', position: { x: 0, y: 0 },
+          mapIcon: null, unlockCondition: null, rewards: null,
+          // promptKey and options intentionally omitted
+        }],
+      }],
+    };
+    const warnings = validateCampaignJson(campaign);
+    expect(warnings.some(w => w.includes('"promptKey"'))).toBe(true);
+    expect(warnings.some(w => w.includes('"options"'))).toBe(true);
   });
 });
 

@@ -76,7 +76,6 @@ tests/
 
 A `.tcg` file is a ZIP archive containing:
 - `cards.json` (required) — card data array (supports `spirit: true` flag for spirit monsters)
-- `cards_description.json` (required) — localized card names/descriptions (can also live under `locales/`)
 - `img/` — card artwork PNGs (named by card ID)
 - `manifest.json` — format version, author, features
 - `mod.json` — mod metadata (id, name, version, author, type, compatibility)
@@ -88,6 +87,6 @@ A `.tcg` file is a ZIP archive containing:
 - `shop.json` — booster pack definitions (supports `nameKey`/`descKey` i18n keys and `cardPool` filters)
 - `fusion_formulas.json` — fusion recipe definitions
 - `rules.json` — game rules (opaque to format library)
-- `locales/` — locale override files (cards_description.json, opponents_description.json, en.json, de.json, etc.)
+- `locales/` — locale override files (en.json, de.json, etc.)
 - `ui/` — UI assets (shop backgrounds, etc.)
 - `races.json`, `attributes.json`, `card_types.json`, `rarities.json` — metadata lookups

@@ -1,6 +1,6 @@
 // ============================================================
 // ECHOES OF SANGUO — Card Definition Validator
-// Validates TcgCardDefinition[] from *cards_description.json
+// Validates TcgCardDefinition[] (standalone; not called by archive validator)
 // ============================================================
 
 import type { ValidationResult } from './types.js';
@@ -35,18 +35,20 @@ function validateSingleDefinition(def: unknown, index: number): string[] {
 }
 
 /**
- * Validate an array of TcgCardDefinition objects from a cards_description.json file
+ * Validate an array of TcgCardDefinition objects.
+ * Standalone export — not called by validateTcgArchive.
+ * Useful for consumers who validate definition arrays independently.
  */
 export function validateTcgDefinitions(data: unknown): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
   if (!Array.isArray(data)) {
-    return { valid: false, errors: ['cards_description.json must contain a JSON array'], warnings };
+    return { valid: false, errors: ['Card definitions must be a JSON array'], warnings };
   }
 
   if (data.length === 0) {
-    return { valid: false, errors: ['cards_description.json must contain at least one definition'], warnings };
+    return { valid: false, errors: ['Card definitions array must contain at least one entry'], warnings };
   }
 
   const seenIds = new Set<number>();
