@@ -4,6 +4,7 @@ import { useGame }   from '../contexts/GameContext.js';
 import { useSelection } from '../contexts/SelectionContext.js';
 import { Card }       from '../components/Card.js';
 import { highlightCardText } from '../utils/highlightCardText.js';
+import { EffectTextBlock } from '../components/EffectTextBlock.js';
 import { CardType, Attribute, isMonsterType, meetsEquipRequirement } from '../../types.js';
 import type { CardData, GameState } from '../../types.js';
 import type { FieldCard } from '../../field.js';
@@ -170,6 +171,7 @@ export function CardDetailModal({ modal }: Props) {
           <h2 id="detail-card-name">{card.name}</h2>
           <p className="detail-type">{[attrName, typeLabel].filter(Boolean).join(' · ')}{levelStr}</p>
           <p className="detail-desc">{card.description ? highlightCardText(card.description) : ''}</p>
+          <EffectTextBlock card={card} />
           {fusionHints.length > 0 && (
             <div className="detail-fusion-hints">
               <span className="fusion-hint-label">{t('card_detail.fusion_hint_label')}</span>

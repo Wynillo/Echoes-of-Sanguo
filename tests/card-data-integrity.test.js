@@ -7,6 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { CARD_DB } from '../src/cards.js';
 import { CardType } from '../src/types.js';
 import { isValidEffectString } from '../src/effect-serializer.js';
+import { buildCardEffectText } from '../src/effect-text-builder.js';
 import fs from 'fs';
 import path from 'path';
 import JSZip from 'jszip';
@@ -97,28 +98,40 @@ describe('No German text in card descriptions', () => {
 // ── Effect description consistency ──────────────────────────
 
 describe('Effect description consistency', () => {
-  it('effect monsters must have [Effect] or [Passive] tag in description', () => {
+  it('effect text builder produces output for all effect monsters', () => {
+    const stubT = (key, opts) => {
+      let result = key;
+      if (opts) {
+        for (const [k, v] of Object.entries(opts)) {
+          result = result.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), String(v));
+        }
+      }
+      return result;
+    };
     const violations = [];
     for (const card of allCards()) {
       if (card.type === CardType.Monster && card.effect) {
-        if (!card.description.startsWith('[Effect]') && !card.description.startsWith('[Passive]')) {
-          violations.push(`#${card.id} (${card.name}): "${card.description.substring(0, 60)}"`);
+        const lines = buildCardEffectText(card, stubT);
+        if (lines.length === 0) {
+          violations.push(`#${card.id} (${card.name}): effect text builder produced no output`);
         }
       }
     }
-    expect(violations, `${violations.length} effect monsters missing [Effect]/[Passive] tag:\n${violations.join('\n')}`).toHaveLength(0);
+    expect(violations, `${violations.length} effect monsters with empty builder output:\n${violations.join('\n')}`).toHaveLength(0);
   });
 
-  it('normal monsters must NOT have [Effect] or [Passive] tag', () => {
+  it('normal monsters have no effect blocks', () => {
     const violations = [];
     for (const card of allCards()) {
       if (card.type === CardType.Monster && !card.effect) {
-        if (card.description.startsWith('[Effect]') || card.description.startsWith('[Passive]')) {
-          violations.push(`#${card.id} (${card.name}): "${card.description.substring(0, 60)}"`);
+        const stubT = (key) => key;
+        const lines = buildCardEffectText(card, stubT);
+        if (lines.length > 0) {
+          violations.push(`#${card.id} (${card.name}): normal monster unexpectedly has effect blocks`);
         }
       }
     }
-    expect(violations, `${violations.length} normal monsters wrongly tagged:\n${violations.join('\n')}`).toHaveLength(0);
+    expect(violations, `${violations.length} normal monsters with unexpected effect blocks:\n${violations.join('\n')}`).toHaveLength(0);
   });
 
   it('all effect strings in cards.json are valid', () => {

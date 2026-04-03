@@ -895,6 +895,21 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 .kw-race    { font-weight: bold; }
 .kw-attr    { font-weight: bold; }
 
+.effect-text-block { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.7rem; line-height: 1.6; }
+.effect-text-line { margin: 2px 0; color: var(--text-dim); }
+.effect-segment-wrap { position: relative; display: inline; }
+.effect-segment-trigger { color: #ff9955; font-weight: bold; cursor: help; }
+.effect-segment-cost { color: #e06060; cursor: help; }
+.effect-segment-action { color: #aaccee; cursor: help; }
+.effect-segment-sep { color: var(--text-dim); }
+.effect-tooltip {
+  position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  background: #1a1a2e; color: #ddd; border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px; padding: 6px 10px; font-size: 0.65rem; line-height: 1.4;
+  white-space: nowrap; z-index: 9999; pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
 #trap-prompt-modal { max-width: 380px; text-align: center; }
 #trap-prompt-card { display: flex; justify-content: center; margin: 10px 0; }
 #trap-prompt-msg  { font-size: 0.75rem; color: var(--text); margin: 8px 0; }
