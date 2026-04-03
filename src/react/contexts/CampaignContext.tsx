@@ -31,7 +31,13 @@ const CampaignContext = createContext<CampaignCtx>({
 });
 
 export function CampaignProvider({ children }: { children: React.ReactNode }) {
-  const [progress, setProgress] = useState<CampaignProgress>(Progression.getCampaignProgress());
+  const [progress, setProgress] = useState<CampaignProgress>(() => {
+    try {
+      return Progression.getCampaignProgress();
+    } catch {
+      return { completedNodes: [], currentChapter: 'ch1' };
+    }
+  });
   const [pendingDuel, setPendingDuel] = useState<PendingDuel | null>(null);
   const { refresh } = useProgression();
 

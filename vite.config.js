@@ -5,14 +5,27 @@ import { copyFileSync, existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 function copyBaseTcg() {
+  const src = resolve('node_modules/@wynillo/echoes-mod-base/dist/base.tcg');
+  const dest = resolve('public/base.tcg');
+  let copied = false;
+
+  function copy() {
+    if (copied) return;
+    if (!existsSync(src)) {
+      throw new Error(`base.tcg not found: ${src}\nEnsure @wynillo/echoes-mod-base is installed.`);
+    }
+    copyFileSync(src, dest);
+    console.log('[copy-base-tcg] Copied base.tcg → public/base.tcg');
+    copied = true;
+  }
+
   return {
     name: 'copy-base-tcg',
     buildStart() {
-      const src = resolve('node_modules/@wynillo/echoes-mod-base/dist/base.tcg');
-      const dest = resolve('public/base.tcg');
-      if (existsSync(src)) {
-        copyFileSync(src, dest);
-      }
+      copy();
+    },
+    configureServer() {
+      copy();
     },
   };
 }
