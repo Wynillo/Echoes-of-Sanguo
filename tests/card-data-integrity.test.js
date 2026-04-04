@@ -26,7 +26,6 @@ async function readJsonFromZip(entryPath) {
 }
 
 const cardsJson = await readJsonFromZip('cards.json');
-const descsJson = await readJsonFromZip('locales/cards_description.json');
 
 function allCards() {
   return Object.values(CARD_DB);
@@ -35,39 +34,9 @@ function allCards() {
 // ── Source file integrity ───────────────────────────────────
 
 describe('TCG source file integrity', () => {
-  it('cards_description.json is an array', () => {
-    expect(Array.isArray(descsJson)).toBe(true);
-  });
-
-  it('every card in cards.json has a matching description entry', () => {
-    const descIds = new Set(descsJson.map(d => d.id));
-    for (const card of cardsJson) {
-      expect(descIds.has(card.id), `Card #${card.id} missing from cards_description.json`).toBe(true);
-    }
-  });
-
-  it('every description entry has a matching card', () => {
-    const cardIds = new Set(cardsJson.map(c => c.id));
-    for (const desc of descsJson) {
-      expect(cardIds.has(desc.id), `Description for id ${desc.id} has no matching card`).toBe(true);
-    }
-  });
-
   it('no duplicate IDs in cards.json', () => {
     const ids = cardsJson.map(c => c.id);
     expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  it('no duplicate IDs in cards_description.json', () => {
-    const ids = descsJson.map(d => d.id);
-    expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  it('all description entries have non-empty name and description', () => {
-    for (const desc of descsJson) {
-      expect(desc.name?.trim().length > 0, `Card #${desc.id} has empty name`).toBe(true);
-      expect(desc.description?.trim().length > 0, `Card #${desc.id} has empty description`).toBe(true);
-    }
   });
 });
 

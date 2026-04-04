@@ -8,16 +8,12 @@ import { CARD_DB, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS } from '../sr
 // ── Helpers ─────────────────────────────────────────────────
 
 const VALID_CARD = { id: 1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 };
-const VALID_DEF = { id: 1, name: 'Test Card', description: 'A test card' };
 const VALID_MANIFEST = { formatVersion: 2 };
 
 async function buildMinimalZip(overrides = {}) {
   const zip = new JSZip();
   if (overrides.cards !== null) {
     zip.file('cards.json', JSON.stringify(overrides.cards ?? [VALID_CARD]));
-  }
-  if (overrides.definitions !== null) {
-    zip.file('cards_description.json', JSON.stringify(overrides.definitions ?? [VALID_DEF]));
   }
   if (overrides.noImg !== true) {
     zip.folder('img');
@@ -60,7 +56,7 @@ describe('loadTcgFile (pure)', () => {
     expect(result.cards).toHaveLength(1);
     expect(result.parsedCards).toHaveLength(1);
     expect(result.parsedCards[0].id).toBe(1);
-    expect(result.parsedCards[0].name).toBe('Test Card');
+    expect(result.parsedCards[0].name).toBe('Card #1');
     expect(result.parsedCards[0].type).toBe(1);
     expect(result.rawImages).toBeInstanceOf(Map);
     expect(result.manifest?.formatVersion).toBe(2);
@@ -126,7 +122,7 @@ describe('loadAndApplyTcg (bridge)', () => {
     const result = await loadAndApplyTcg(buf);
     expect(result.cards).toHaveLength(1);
     expect(CARD_DB['1']).toBeDefined();
-    expect(CARD_DB['1'].name).toBe('Test Card');
+    expect(CARD_DB['1'].name).toBe('Card #1');
   });
 
   it('loads equipment card with atkBonus, defBonus, and equipRequirement', async () => {
@@ -135,10 +131,8 @@ describe('loadAndApplyTcg (bridge)', () => {
       atkBonus: 500, defBonus: 200,
       equipReqRace: 1, equipReqAttr: 3,
     };
-    const equipDef = { id: 10, name: 'Dragon Blade', description: 'Equip to a Dragon' };
     const buf = await buildMinimalZip({
       cards: [VALID_CARD, equipCard],
-      definitions: [VALID_DEF, equipDef],
     });
     const result = await loadAndApplyTcg(buf);
     expect(result.cards).toHaveLength(2);
@@ -153,12 +147,9 @@ describe('loadAndApplyTcg (bridge)', () => {
 
   it('warns on invalid effect string but loads card', async () => {
     const effectCard = { ...VALID_CARD, id: 2, effect: 'invalid_effect_string' };
-    const effectDef = { id: 2, name: 'Bad Effect', description: 'Has invalid effect' };
     const buf = await buildMinimalZip({
       cards: [VALID_CARD, effectCard],
-      definitions: [VALID_DEF, effectDef],
     });
-    // Bridge warns but continues loading — effects treated leniently
     const result = await loadAndApplyTcg(buf);
     expect(CARD_DB['2']).toBeDefined();
     expect(result.warnings.some(w => w.includes('effect'))).toBe(true);
