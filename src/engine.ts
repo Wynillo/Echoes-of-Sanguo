@@ -57,7 +57,7 @@ import { resolveAIBehavior } from './ai-behaviors.js';
 import { GAME_RULES } from './rules.js';
 import { EchoesOfSanguo, ownerLabel } from './debug-logger.js';
 import { FieldCard, FieldSpellTrap } from './field.js';
-import { aiTurn } from './ai-orchestrator.js';
+import { aiTurn, createEngineDependencies } from './ai-orchestrator.js';
 
 // Re-export for backwards compatibility
 export { EchoesOfSanguo } from './debug-logger.js';
@@ -147,7 +147,7 @@ export class GameEngine {
       this.state.phase = 'draw';
       this.ui.render(this.state);
       setTimeout(() => {
-        aiTurn(this).catch(err => {
+        aiTurn(createEngineDependencies(this)).catch(err => {
           EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
           this.state.activePlayer = 'player';
           this.state.phase = 'main';
@@ -227,7 +227,7 @@ export class GameEngine {
 
     if (this.state.activePlayer === 'opponent') {
       setTimeout(() => {
-        aiTurn(this).catch(err => {
+        aiTurn(createEngineDependencies(this)).catch(err => {
           EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
           this.state.activePlayer = 'player';
           this.state.phase = 'main';
@@ -1474,10 +1474,9 @@ export class GameEngine {
     this.ui.render(this.state);
 
     setTimeout(() => {
-      aiTurn(this).catch(err => {
+      aiTurn(createEngineDependencies(this)).catch(err => {
         EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
         EchoesOfSanguo.downloadLog('ai_crash');
-        // Recover: switch back to player so game isn't frozen
         this.state.activePlayer = 'player';
         this.state.phase = 'main';
         this.state.turn++;
