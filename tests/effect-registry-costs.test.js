@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { canPayCost, executeEffectBlock } from '../src/effect-registry.js';
 
 function mockEngine(overrides = {}) {
+  const removeEquipMock = vi.fn();
   const state = {
     player: {
       lp: 4000,
@@ -28,7 +29,19 @@ function mockEngine(overrides = {}) {
     addLog: vi.fn(),
     specialSummonFromGrave: vi.fn(),
     specialSummon: vi.fn(),
-    _removeEquipmentForMonster: vi.fn(),
+    chainTribute: vi.fn(async (owner, card) => {
+      const field = state[owner].field.monsters;
+      for (let i = 0; i < field.length; i++) {
+        if (field[i]?.card.id === card.id) {
+          field[i] = null;
+          state[owner].graveyard.push(card);
+          removeEquipMock(owner, i);
+          break;
+        }
+      }
+    }),
+    _removeEquipmentForMonster: removeEquipMock,
+    removeEquipmentForMonster: removeEquipMock,
     getState: vi.fn(() => state),
     _state: state,
     ...overrides,
@@ -90,7 +103,7 @@ describe('canPayCost', () => {
 
 describe('payCost (tested via executeEffectBlock)', () => {
   describe('lpHalf cost', () => {
-    it('deals half LP as damage (even LP)', () => {
+    it('deals half LP as damage (even LP)', async () => {
       const e = mockEngine();
       e._state.player.lp = 4000;
       const block = {
@@ -98,11 +111,11 @@ describe('payCost (tested via executeEffectBlock)', () => {
         actions: [{ type: 'dealDamage', target: 'opponent', value: 100 }],
         cost: { lpHalf: true },
       };
-      executeEffectBlock(block, ctx(e));
+      await executeEffectBlock(block, ctx(e));
       expect(e.dealDamage).toHaveBeenCalledWith('player', 2000);
     });
 
-    it('uses floor division for odd LP', () => {
+    it('uses floor division for odd LP', async () => {
       const e = mockEngine();
       e._state.player.lp = 4001;
       const block = {
@@ -110,11 +123,11 @@ describe('payCost (tested via executeEffectBlock)', () => {
         actions: [{ type: 'dealDamage', target: 'opponent', value: 100 }],
         cost: { lpHalf: true },
       };
-      executeEffectBlock(block, ctx(e));
+      await executeEffectBlock(block, ctx(e));
       expect(e.dealDamage).toHaveBeenCalledWith('player', 2000);
     });
 
-    it('costs 0 when LP is 1', () => {
+    it('costs 0 when LP is 1', async () => {
       const e = mockEngine();
       e._state.player.lp = 1;
       const block = {
@@ -122,13 +135,13 @@ describe('payCost (tested via executeEffectBlock)', () => {
         actions: [{ type: 'dealDamage', target: 'opponent', value: 100 }],
         cost: { lpHalf: true },
       };
-      executeEffectBlock(block, ctx(e));
+      await executeEffectBlock(block, ctx(e));
       expect(e.dealDamage).toHaveBeenCalledWith('player', 0);
     });
   });
 
   describe('fixed lp cost', () => {
-    it('deals exact LP damage', () => {
+    it('deals exact LP damage', async () => {
       const e = mockEngine();
       e._state.player.lp = 8000;
       const block = {
@@ -136,13 +149,13 @@ describe('payCost (tested via executeEffectBlock)', () => {
         actions: [{ type: 'dealDamage', target: 'opponent', value: 100 }],
         cost: { lp: 2000 },
       };
-      executeEffectBlock(block, ctx(e));
+      await executeEffectBlock(block, ctx(e));
       expect(e.dealDamage).toHaveBeenCalledWith('player', 2000);
     });
   });
 
   describe('discard cost', () => {
-    it('removes cards from hand and adds to graveyard', () => {
+    it('removes cards from hand and adds to graveyard', async () => {
       const e = mockEngine();
       e._state.player.hand = [{ id: 'A', name: 'A' }, { id: 'B', name: 'B' }, { id: 'C', name: 'C' }];
       const block = {
@@ -150,12 +163,12 @@ describe('payCost (tested via executeEffectBlock)', () => {
         actions: [{ type: 'dealDamage', target: 'opponent', value: 100 }],
         cost: { discard: 2 },
       };
-      executeEffectBlock(block, ctx(e));
+      await executeEffectBlock(block, ctx(e));
       expect(e._state.player.hand.length).toBe(1);
       expect(e._state.player.graveyard.length).toBe(2);
     });
 
-    it('does not error when discarding from empty hand', () => {
+    it('does not error when discarding from empty hand', async () => {
       const e = mockEngine();
       e._state.player.hand = [];
       e._state.player.lp = 9999;
@@ -164,12 +177,12 @@ describe('payCost (tested via executeEffectBlock)', () => {
         actions: [],
         cost: { discard: 0 },
       };
-      expect(() => executeEffectBlock(block, ctx(e))).not.toThrow();
+      await expect(executeEffectBlock(block, ctx(e))).resolves.not.toThrow();
     });
   });
 
   describe('tributeSelf cost', () => {
-    it('tributes matching monster from field', () => {
+    it('tributes matching monster from field', async () => {
       const e = mockEngine();
       const effectCard = {
         id: 'E1', name: 'EffectMon',
@@ -181,27 +194,27 @@ describe('payCost (tested via executeEffectBlock)', () => {
         actions: [{ type: 'dealDamage', target: 'opponent', value: 500 }],
         cost: { tributeSelf: true },
       };
-      executeEffectBlock(block, ctx(e));
+      await executeEffectBlock(block, ctx(e));
       expect(e._state.player.field.monsters[2]).toBeNull();
       expect(e._state.player.graveyard).toContain(effectCard);
       expect(e._removeEquipmentForMonster).toHaveBeenCalledWith('player', 2);
     });
 
-    it('does nothing if no matching monster on field', () => {
+    it('does nothing if no matching monster on field', async () => {
       const e = mockEngine();
       const block = {
         trigger: 'onSummon',
         actions: [{ type: 'dealDamage', target: 'opponent', value: 500 }],
         cost: { tributeSelf: true },
       };
-      executeEffectBlock(block, ctx(e));
+      await executeEffectBlock(block, ctx(e));
       expect(e._removeEquipmentForMonster).not.toHaveBeenCalled();
     });
   });
 });
 
 describe('executeEffectBlock cost integration', () => {
-  it('blocks execution when cost cannot be paid', () => {
+  it('blocks execution when cost cannot be paid', async () => {
     const e = mockEngine();
     e._state.player.lp = 500;
     const block = {
@@ -209,12 +222,12 @@ describe('executeEffectBlock cost integration', () => {
       actions: [{ type: 'dealDamage', target: 'opponent', value: 1000 }],
       cost: { lp: 1000 },
     };
-    const signal = executeEffectBlock(block, ctx(e));
+    const signal = await executeEffectBlock(block, ctx(e));
     expect(signal).toEqual({});
     expect(e.addLog).toHaveBeenCalledWith('Cannot pay effect cost!');
   });
 
-  it('pays cost then executes actions', () => {
+  it('pays cost then executes actions', async () => {
     const e = mockEngine();
     e._state.player.lp = 8000;
     const block = {
@@ -222,14 +235,14 @@ describe('executeEffectBlock cost integration', () => {
       actions: [{ type: 'dealDamage', target: 'opponent', value: 1000 }],
       cost: { lp: 2000 },
     };
-    executeEffectBlock(block, ctx(e));
+    await executeEffectBlock(block, ctx(e));
     // First call: cost payment, second call: effect action
     expect(e.dealDamage).toHaveBeenCalledTimes(2);
     expect(e.dealDamage).toHaveBeenCalledWith('player', 2000);
     expect(e.dealDamage).toHaveBeenCalledWith('opponent', 1000);
   });
 
-  it('merges signals from multiple actions', () => {
+  it('merges signals from multiple actions', async () => {
     const e = mockEngine();
     const block = {
       trigger: 'onSummon',
@@ -238,7 +251,7 @@ describe('executeEffectBlock cost integration', () => {
         { type: 'destroyAttacker' },
       ],
     };
-    const signal = executeEffectBlock(block, ctx(e));
+    const signal = await executeEffectBlock(block, ctx(e));
     expect(signal.cancelAttack).toBe(true);
     expect(signal.destroyAttacker).toBe(true);
   });
