@@ -1,0 +1,20 @@
+{
+  "formulas": [
+    {
+      "id": "dragon_spellcaster",
+      "comboType": "race+race",
+      "operand1": 1,
+      "operand2": 2,
+      "priority": 1,
+      "resultPool": [1]
+    },
+    {
+      "id": "dragon_fire_attr",
+      "comboType": "race+attr",
+      "operand1": 1,
+      "operand2": 3,
+      "priority": 2,
+      "resultPool": [1, 2]
+    }
+  ]
+}

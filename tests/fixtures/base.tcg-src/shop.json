@@ -1,0 +1,35 @@
+{
+  "packs": [
+    {
+      "id": "starter-pack",
+      "nameKey": "pack_starter_name",
+      "descKey": "pack_starter_desc",
+      "price": 100,
+      "icon": "pack_starter",
+      "color": "#4a90d9",
+      "slots": [
+        { "count": 5, "rarity": 1 },
+        { "count": 1, "rarity": 2 }
+      ],
+      "unlockCondition": null
+    },
+    {
+      "id": "dragon-pack",
+      "name": "Dragon Pack",
+      "desc": "Contains dragon cards",
+      "price": 200,
+      "icon": "pack_dragon",
+      "color": "#ff6b35",
+      "slots": [
+        { "count": 3, "rarity": 1 },
+        { "count": 2, "rarity": 2 }
+      ],
+      "cardPool": {
+        "include": { "races": [1] }
+      },
+      "unlockCondition": { "type": "nodeComplete", "nodeId": "ch1_boss" }
+    }
+  ],
+  "currency": { "nameKey": "currency_gold", "icon": "coin_gold" },
+  "backgrounds": { "chapter1": "ui/shop_bg_ch1.png" }
+}

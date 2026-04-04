@@ -49,3 +49,48 @@ describe('packTcgArchive', () => {
     }
   });
 });
+
+describe('round-trip with enriched fixtures', () => {
+  it('packs and loads all optional files preserving every field', async () => {
+    const buffer = await packTcgArchiveToBuffer(FIXTURE_DIR);
+    const result = await loadTcgFile(buffer, { lang: '' });
+
+    expect(result.cards).toHaveLength(4);
+    expect(result.parsedCards).toHaveLength(4);
+    expect(result.rawImages.size).toBe(4);
+    expect(result.manifest?.formatVersion).toBe(2);
+    expect(result.meta?.fusionRecipes).toHaveLength(1);
+    expect(result.starterDecks).toBeDefined();
+
+    expect(result.shopData).toBeDefined();
+    expect(result.shopData!.packs).toHaveLength(2);
+    expect(result.shopData!.packs[0].id).toBe('starter-pack');
+    expect(result.shopData!.currency!.nameKey).toBe('currency_gold');
+
+    expect(result.campaignData).toBeDefined();
+    expect(result.campaignData!.chapters).toHaveLength(1);
+    expect(result.campaignData!.chapters[0].id).toBe('chapter1');
+    expect(result.campaignData!.chapters[0].nodes).toHaveLength(3);
+
+    expect(result.opponents).toBeDefined();
+    expect(result.opponents).toHaveLength(2);
+    expect(result.opponents![0].name).toBe('Forest Guardian');
+    expect(result.opponents![1].name).toBe('Dragon Master');
+
+    expect(result.opponentDescriptions).toBeDefined();
+    const descs = result.opponentDescriptions!.get('');
+    expect(descs).toBeDefined();
+    expect(descs!.length).toBe(2);
+
+    expect(result.rules).toBeDefined();
+    expect(result.rules!.startingLP).toBe(8000);
+    expect(result.rules!.maxDeckSize).toBe(40);
+
+    expect(result.fusionFormulas).toBeDefined();
+    expect(result.fusionFormulas).toHaveLength(2);
+    expect(result.fusionFormulas![0].id).toBe('dragon_spellcaster');
+
+    expect(result.rawShopBackgrounds).toBeDefined();
+    expect(result.rawShopBackgrounds!.has('chapter1')).toBe(true);
+  });
+});

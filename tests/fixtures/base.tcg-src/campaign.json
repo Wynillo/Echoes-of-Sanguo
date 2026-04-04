@@ -1,0 +1,54 @@
+{
+  "chapters": [
+    {
+      "id": "chapter1",
+      "titleKey": "chapter1_title",
+      "nodes": [
+        {
+          "id": "ch1_duel1",
+          "type": "duel",
+          "position": { "x": 100, "y": 200 },
+          "mapIcon": "icon_duel",
+          "unlockCondition": null,
+          "rewards": { "coins": 50, "cards": null, "unlocks": null },
+          "opponentId": 1,
+          "isBoss": false,
+          "preDialogue": null,
+          "postDialogue": null
+        },
+        {
+          "id": "ch1_story1",
+          "type": "story",
+          "position": { "x": 200, "y": 200 },
+          "mapIcon": null,
+          "unlockCondition": { "type": "nodeComplete", "nodeId": "ch1_duel1" },
+          "rewards": null,
+          "scene": {
+            "background": "bg_forest",
+            "dialogue": [
+              {
+                "textKey": "ch1_story1_line1",
+                "speaker": "hero",
+                "portrait": "port_hero",
+                "side": "left",
+                "foregrounds": null
+              }
+            ]
+          }
+        },
+        {
+          "id": "ch1_boss",
+          "type": "duel",
+          "position": { "x": 300, "y": 200 },
+          "mapIcon": "icon_boss",
+          "unlockCondition": { "type": "nodeComplete", "nodeId": "ch1_story1" },
+          "rewards": { "coins": 100, "cards": ["1"], "unlocks": ["chapter2"] },
+          "opponentId": 2,
+          "isBoss": true,
+          "preDialogue": null,
+          "postDialogue": null
+        }
+      ]
+    }
+  ]
+}

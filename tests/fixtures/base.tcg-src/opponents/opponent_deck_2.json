@@ -1,0 +1,11 @@
+{
+  "id": 2,
+  "name": "Dragon Master",
+  "title": "Lord of Dragons",
+  "race": 1,
+  "flavor": "My dragons will reduce you to ashes!",
+  "coinsWin": 100,
+  "coinsLoss": 40,
+  "deckIds": [1, 1, 2, 2],
+  "behavior": "aggressive"
+}

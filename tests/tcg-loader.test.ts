@@ -138,7 +138,6 @@ describe('loadTcgFile', () => {
     const zip = new JSZip();
     zip.file('cards.json', JSON.stringify([
       { id: 1, type: 1, level: 4, rarity: 1, atk: 1000, def: 800 },
-      // no name or description fields
     ]));
     zip.file('locales/en.json', JSON.stringify({
       'card_1_name': 'Locale Dragon',
@@ -151,5 +150,85 @@ describe('loadTcgFile', () => {
     const result = await loadTcgFile(buf, { lang: 'en' });
     expect(result.parsedCards[0].name).toBe('Locale Dragon');
     expect(result.parsedCards[0].description).toBe('A dragon from locale.');
+  });
+
+  describe('full pipeline with enriched fixtures', () => {
+    it('loads shop.json with packs and backgrounds', async () => {
+      const buffer = await packTcgArchiveToBuffer(FIXTURE_DIR);
+      const result = await loadTcgFile(buffer);
+
+      expect(result.shopData).toBeDefined();
+      expect(result.shopData!.packs).toHaveLength(2);
+      expect(result.shopData!.packs[0].id).toBe('starter-pack');
+      expect(result.shopData!.packs[0].nameKey).toBe('pack_starter_name');
+      expect(result.shopData!.packs[1].name).toBe('Dragon Pack');
+      expect(result.shopData!.currency!.nameKey).toBe('currency_gold');
+      expect(result.rawShopBackgrounds).toBeDefined();
+      expect(result.rawShopBackgrounds!.has('chapter1')).toBe(true);
+    });
+
+    it('loads campaign.json with chapters and nodes', async () => {
+      const buffer = await packTcgArchiveToBuffer(FIXTURE_DIR);
+      const result = await loadTcgFile(buffer);
+
+      expect(result.campaignData).toBeDefined();
+      expect(result.campaignData!.chapters).toHaveLength(1);
+      expect(result.campaignData!.chapters[0].id).toBe('chapter1');
+      expect(result.campaignData!.chapters[0].nodes).toHaveLength(3);
+
+      const duelNode = result.campaignData!.chapters[0].nodes[0];
+      expect(duelNode.type).toBe('duel');
+      if (duelNode.type === 'duel') {
+        expect(duelNode.opponentId).toBe(1);
+        expect(duelNode.isBoss).toBe(false);
+      }
+    });
+
+    it('loads opponents from opponents/*.json', async () => {
+      const buffer = await packTcgArchiveToBuffer(FIXTURE_DIR);
+      const result = await loadTcgFile(buffer);
+
+      expect(result.opponents).toBeDefined();
+      expect(result.opponents).toHaveLength(2);
+      expect(result.opponents![0].id).toBe(1);
+      expect(result.opponents![0].name).toBe('Forest Guardian');
+      expect(result.opponents![0].race).toBe(4);
+      expect(result.opponents![0].behavior).toBe('defensive');
+      expect(result.opponents![1].id).toBe(2);
+      expect(result.opponents![1].name).toBe('Dragon Master');
+    });
+
+    it('loads opponentDescriptions from opponents_description.json', async () => {
+      const buffer = await packTcgArchiveToBuffer(FIXTURE_DIR);
+      const result = await loadTcgFile(buffer);
+
+      expect(result.opponentDescriptions).toBeDefined();
+      const descs = result.opponentDescriptions!.values().next().value;
+      expect(descs).toBeDefined();
+      expect(descs!.length).toBe(2);
+      expect(descs![0].name).toBe('Forest Guardian');
+    });
+
+    it('loads rules.json', async () => {
+      const buffer = await packTcgArchiveToBuffer(FIXTURE_DIR);
+      const result = await loadTcgFile(buffer);
+
+      expect(result.rules).toBeDefined();
+      expect(result.rules!.startingLP).toBe(8000);
+      expect(result.rules!.maxDeckSize).toBe(40);
+      expect(result.rules!.refillHandEnabled).toBe(true);
+    });
+
+    it('loads fusion_formulas.json', async () => {
+      const buffer = await packTcgArchiveToBuffer(FIXTURE_DIR);
+      const result = await loadTcgFile(buffer);
+
+      expect(result.fusionFormulas).toBeDefined();
+      expect(result.fusionFormulas).toHaveLength(2);
+      expect(result.fusionFormulas![0].id).toBe('dragon_spellcaster');
+      expect(result.fusionFormulas![0].comboType).toBe('race+race');
+      expect(result.fusionFormulas![0].operand1).toBe(1);
+      expect(result.fusionFormulas![0].operand2).toBe(2);
+    });
   });
 });
