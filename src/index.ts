@@ -59,19 +59,6 @@ export {
   DEFAULT_GAME_RULES,
 } from './types.js';
 
-// ── Validators ───────────────────────────────────────────────
-export { validateTcgCards } from './card-validator.js';
-export { validateTcgDefinitions } from './def-validator.js';
-export { validateTcgOpponentDescriptions } from './opp-desc-validator.js';
-export {
-  validateTcgArchive,
-  validateShopJson,
-  validateCampaignJson,
-  validateFusionFormulasJson,
-  validateOpponentDeck,
-} from './tcg-validator.js';
-export type { TcgArchiveContents } from './tcg-validator.js';
-
 // ── Loader ───────────────────────────────────────────────────
 export { loadTcgFile, TcgNetworkError, TcgFormatError } from './tcg-loader.js';
 
