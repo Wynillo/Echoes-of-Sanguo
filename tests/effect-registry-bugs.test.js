@@ -19,7 +19,7 @@ function mockEngine(overrides = {}) {
       graveyard: [],
     },
   };
-  return {
+  const mock = {
     dealDamage: vi.fn((target, amount) => {
       state[target].lp = Math.max(0, state[target].lp - amount);
     }),
@@ -28,16 +28,24 @@ function mockEngine(overrides = {}) {
     addLog: vi.fn(),
     specialSummonFromGrave: vi.fn(),
     specialSummon: vi.fn(),
+    chainTribute: vi.fn(),
+    _removeEquipmentForMonster: vi.fn(),
+    removeEquipmentForMonster: vi.fn(),
+    _removeFieldSpell: vi.fn(),
+    removeFieldSpell: vi.fn(),
+    getState: vi.fn(() => state),
+    _state: state,
     _removeEquipmentForMonster: vi.fn(),
     _removeFieldSpell: vi.fn(),
     getState: vi.fn(() => state),
     _state: state,
     ...overrides,
   };
+  return mock;
 }
 
 function ctx(engine, owner = 'player', extras = {}) {
-  return { engine, owner, ...extras };
+  return { engine, owner, state: engine._state, ...extras };
 }
 
 function makeFieldCard(card, opts = {}) {
