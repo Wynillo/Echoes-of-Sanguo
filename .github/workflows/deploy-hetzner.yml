@@ -27,7 +27,7 @@ jobs:
           npm run build
 
       - name: Deploy
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.HETZNER_HOST }}
           username: deploy
