@@ -84,3 +84,39 @@ test.describe('Deckbuilder — Table View', () => {
     expect(['auto', 'scroll']).toContain(overflowX);
   });
 });
+
+test.describe('Starter deck -> Collection integration', () => {
+  test('collection persists after removing all cards from deck (prevents bricking)', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.setItem('tcg_active_slot', '1');
+      localStorage.setItem('tcg_s1_initialized', '1');
+      localStorage.setItem('tcg_s1_starter_chosen', '1');
+      localStorage.setItem('tcg_s1_starter_race', '1');
+      localStorage.setItem('tcg_s1_save_version', '2');
+      localStorage.setItem('tcg_s1_jade_coins', '0');
+      localStorage.setItem('tcg_s1_collection', JSON.stringify([
+        { id: '1', count: 3 }, { id: '2', count: 2 }, { id: '3', count: 1 },
+      ]));
+      localStorage.setItem('tcg_s1_deck', JSON.stringify(['1', '2', '3']));
+      localStorage.setItem('tcg_s1_opponents', JSON.stringify({ 1: { unlocked: true, wins: 0, losses: 0 } }));
+      localStorage.setItem('tcg_s1_seen_cards', JSON.stringify(['1', '2', '3']));
+      localStorage.setItem('tcg_slot_meta', JSON.stringify({
+        1: { starterRace: 'water', coins: 0, currentChapter: 'ch1', lastSaved: new Date().toISOString() }
+      }));
+    });
+    await page.goto('/');
+    await page.getByText('PRESS ANY KEY').waitFor();
+    await page.keyboard.press('Enter');
+    await page.locator('#title-screen').waitFor();
+    await page.getByRole('button', { name: 'Load Game' }).click();
+    await page.getByRole('button', { name: /Slot 1/i }).click();
+    const colBefore = await page.evaluate(() => {
+      return JSON.parse(localStorage.getItem('tcg_s1_collection') || '[]');
+    });
+    expect(colBefore.length).toBeGreaterThanOrEqual(3);
+    expect(colBefore.find((c: {id: string}) => c.id === '1')?.count).toBe(3);
+    expect(colBefore.find((c: {id: string}) => c.id === '2')?.count).toBe(2);
+    expect(colBefore.find((c: {id: string}) => c.id === '3')?.count).toBe(1);
+  });
+});

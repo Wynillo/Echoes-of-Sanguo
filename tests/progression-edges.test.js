@@ -141,6 +141,33 @@ describe('starter deck selection', () => {
     expect(Progression.getStarterRace()).toBe('Warrior');
     expect(Progression.isFirstLaunch()).toBe(false);
   });
+
+  it('starter deck cards must be added to collection (prevents bricking)', () => {
+    const starterCards = ['1', '2', '3', '1', '1'];
+    Progression.markStarterChosen('Dragon');
+    Progression.addCardsToCollection(starterCards);
+    Progression.saveDeck(starterCards);
+    expect(Progression.cardCount('1')).toBe(3);
+    expect(Progression.cardCount('2')).toBe(1);
+    expect(Progression.cardCount('3')).toBe(1);
+    expect(Progression.ownsCard('1')).toBe(true);
+    expect(Progression.ownsCard('2')).toBe(true);
+    expect(Progression.ownsCard('3')).toBe(true);
+    expect(Progression.getDeck()).toEqual(starterCards);
+  });
+
+  it('player can rebuild deck after removing all cards (collection preserved)', () => {
+    const starterCards = ['1', '2', '3'];
+    Progression.markStarterChosen('Dragon');
+    Progression.addCardsToCollection(starterCards);
+    Progression.saveDeck(starterCards);
+    Progression.saveDeck([]);
+    expect(Progression.ownsCard('1')).toBe(true);
+    expect(Progression.ownsCard('2')).toBe(true);
+    expect(Progression.ownsCard('3')).toBe(true);
+    Progression.saveDeck(['1', '2', '3']);
+    expect(Progression.getDeck()).toEqual(['1', '2', '3']);
+  });
 });
 
 // ── Coins edge cases ─────────────────────────────────────────
