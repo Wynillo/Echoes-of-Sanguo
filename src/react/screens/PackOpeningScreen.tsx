@@ -262,11 +262,14 @@ export default function PackOpeningScreen() {
         });
 
         if (rarity >= Rarity.Rare) {
-          tl.fromTo(
-            scanlineTintRef.current!,
-            { opacity: 0 },
-            { opacity: 1, duration: 0.05, ease: 'none' },
-          ).to(scanlineTintRef.current!, { opacity: 0, duration: 0.3, ease: 'power2.in' });
+          const tintEl = scanlineTintRef.current;
+          if (tintEl) {
+            tl.fromTo(
+              tintEl,
+              { opacity: 0 },
+              { opacity: 1, duration: 0.05, ease: 'none' },
+            ).to(tintEl, { opacity: 0, duration: 0.3, ease: 'power2.in' });
+          }
         }
 
         // Screen shake for SR/UR at flip moment
