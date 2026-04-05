@@ -1107,6 +1107,65 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
 #options-modal { min-width: 320px; max-width: 420px; }
 #options-modal h2 { margin-bottom: 20px; }
 
+.options-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.options-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.875rem;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.options-tab:hover { color: var(--text); }
+.options-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.options-about { padding-top: 8px; }
+.about-section {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.about-section:last-of-type { border-bottom: none; }
+.about-section h3 {
+  font-size: 0.8125rem;
+  color: var(--gold);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.about-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+.about-label {
+  color: var(--text-dim);
+  font-size: 0.8125rem;
+}
+.about-value {
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.about-empty {
+  color: var(--text-dim);
+  font-size: 0.8125rem;
+  text-align: center;
+  padding: 16px 0;
+}
+
 .options-row {
   display: flex; flex-direction: column;
   gap: 6px; margin-bottom: 16px;

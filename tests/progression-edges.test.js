@@ -17,7 +17,7 @@ describe('resetAll', () => {
     Progression.addCardsToCollection(['1']);
     Progression.saveDeck(['1']);
     Progression.markStarterChosen('Dragon');
-    Progression.saveSettings({ lang: 'de', volMaster: 80, volMusic: 60, volSfx: 40, refillHand: true });
+    Progression.saveSettings({ lang: 'de', volMaster: 80, volMusic: 60, volSfx: 40 });
     Progression.markCardsAsSeen(['1', '2']);
 
     Progression.resetAll();
@@ -371,11 +371,11 @@ describe('opponents edge cases', () => {
 describe('settings', () => {
   it('getSettings returns defaults when no settings saved', () => {
     const s = Progression.getSettings();
-    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, refillHand: true });
+    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 });
   });
 
   it('saveSettings persists and getSettings retrieves', () => {
-    const custom = { lang: 'de', volMaster: 80, volMusic: 30, volSfx: 100, refillHand: false };
+    const custom = { lang: 'de', volMaster: 80, volMusic: 30, volSfx: 100 };
     Progression.saveSettings(custom);
     expect(Progression.getSettings()).toEqual(custom);
   });
@@ -383,7 +383,7 @@ describe('settings', () => {
   it('getSettings returns defaults for corrupted data', () => {
     localStorage.setItem('tcg_settings', '{{{bad');
     const s = Progression.getSettings();
-    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, refillHand: true });
+    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 });
   });
 });
 

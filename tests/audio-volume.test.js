@@ -98,7 +98,7 @@ describe('Audio.setVolumes', () => {
   it('reads initial volumes from saved Progression settings', async () => {
     // Save custom settings BEFORE importing (already reset above)
     localStorage.setItem('tcg_settings', JSON.stringify({
-      lang: 'en', volMaster: 75, volMusic: 25, volSfx: 90, refillHand: true,
+      lang: 'en', volMaster: 75, volMusic: 25, volSfx: 90,
     }));
 
     // Re-import to pick up the saved settings during _ensureContext

@@ -6,7 +6,7 @@
 // ============================================================
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './cards.js';
 import { EFFECT_REGISTRY, registerEffect } from './effect-registry.js';
-import { loadAndApplyTcg, unloadModCards, getLoadedMods } from './tcg-bridge.js';
+import { loadAndApplyTcg, unloadModCards, getLoadedMods, getCurrentManifest } from './tcg-bridge.js';
 import { TriggerBus } from './trigger-bus.js';
 
 declare global {
@@ -34,6 +34,8 @@ const modApi = {
   unloadModCards,
   /** List all currently loaded mods with their card IDs and load order. */
   getLoadedMods,
+  /** Get the manifest of the currently loaded TCG mod, or null if none loaded. */
+  getCurrentManifest,
   /** Fire effects with a custom trigger name. */
   emitTrigger: TriggerBus.emit,
   /** Subscribe to a trigger event (returns unsubscribe function). */

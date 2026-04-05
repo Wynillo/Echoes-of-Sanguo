@@ -19,12 +19,19 @@ export { TcgNetworkError, TcgFormatError };
 const rid = (numId: number): string => String(numId);
 
 interface LoadedMod {
-  source: string;           // URL or label
-  cardIds: string[];        // card IDs this mod added
-  opponentIds: number[];    // opponent IDs this mod added
+  source: string;
+  cardIds: string[];
+  opponentIds: number[];
   timestamp: number;
+  manifest?: TcgManifest;
 }
 const loadedMods: LoadedMod[] = [];
+
+let currentManifest: TcgManifest | null = null;
+
+export function getCurrentManifest(): TcgManifest | null {
+  return currentManifest;
+}
 
 function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
   let parsedEffect: Partial<Pick<CardData, 'effect' | 'effects'>> = {};
@@ -178,8 +185,7 @@ export function revokeTcgImages(): void {
 export interface BridgeLoadResult {
   cards: TcgLoadResult['cards'];
   parsedCards: TcgLoadResult['parsedCards'];
-  definitions: TcgLoadResult['definitions'];
-  images: Map<number, string>;   // card id → blob URL
+  images: Map<number, string>;
   manifest?: TcgManifest;
   warnings: string[];
 }
@@ -211,6 +217,7 @@ export async function loadAndApplyTcg(
   const mod: LoadedMod = {
     source: typeof source === 'string' ? source : '<ArrayBuffer>',
     cardIds: [], opponentIds: [], timestamp: Date.now(),
+    manifest: result.manifest,
   };
 
   // Manual fallback: if result.opponents is empty, try loading from raw JSON
@@ -288,11 +295,11 @@ export async function loadAndApplyTcg(
   if (result.fusionFormulas) applyFusionFormulas(result.fusionFormulas, result.warnings);
 
   loadedMods.push(mod);
+  currentManifest = result.manifest ?? null;
 
   return {
     cards: result.cards,
     parsedCards: result.parsedCards,
-    definitions: result.definitions,
     images,
     manifest: result.manifest,
     warnings: result.warnings,

@@ -386,9 +386,9 @@ export const Progression = (() => {
     return !!(ops[id] && ops[id].unlocked);
   }
 
-  interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; refillHand: boolean; }
+  interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; }
 
-  const SETTINGS_DEFAULTS: Settings = { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, refillHand: true };
+  const SETTINGS_DEFAULTS: Settings = { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 };
 
   function getSettings(): Settings {
     return { ...SETTINGS_DEFAULTS, ..._load(GLOBAL_KEYS.settings, SETTINGS_DEFAULTS) };
