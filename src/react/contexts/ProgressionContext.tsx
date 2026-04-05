@@ -39,6 +39,17 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
 
   const loadDeck = useCallback(() => {
     if (Progression.getActiveSlot() === null) return;
+
+    const repairCollection = (deckIds: string[]) => {
+      const col = Progression.getCollection();
+      const ownedSet = new Set(col.map(e => e.id));
+      const missing = deckIds.filter(id => !ownedSet.has(id));
+      if (missing.length > 0) {
+        Progression.addCardsToCollection(missing);
+        refresh();
+      }
+    };
+
     const saved = Progression.getDeck();
     if (saved && saved.length > 0) {
       const copyCounts: Record<string, number> = {};
@@ -54,11 +65,20 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
         }
         return true;
       }).slice(0, GAME_RULES.maxDeckSize);
+      repairCollection(sanitized);
       setCurrentDeck(sanitized);
       return;
     }
-    import('../../cards.js').then(m => setCurrentDeck([...m.PLAYER_DECK_IDS]));
-  }, []);
+    import('../../cards.js').then(m => {
+      const ids = [...m.PLAYER_DECK_IDS];
+      if (ids.length > 0) {
+        Progression.addCardsToCollection(ids);
+        Progression.saveDeck(ids);
+        refresh();
+      }
+      setCurrentDeck(ids);
+    });
+  }, [refresh]);
 
   useEffect(() => {
     Progression.init();
