@@ -13,6 +13,10 @@ function mockEngine(overrides = {}) {
     specialSummonFromGrave: vi.fn(),
     specialSummon: vi.fn(),
     _removeEquipmentForMonster: vi.fn(),
+    removeEquipmentForMonster: vi.fn(),
+    removeFieldSpell: vi.fn(),
+    removeFromHand: vi.fn(),
+    removeFromDeck: vi.fn(),
     getState: vi.fn(() => ({
       player: {
         lp: 4000,
@@ -132,38 +136,38 @@ describe('matchesFilter', () => {
 });
 
 describe('dealDamage', () => {
-  it('deals flat damage to opponent', () => {
+  it('deals flat damage to opponent', async () => {
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 500 }] },
       ctx(e),
     );
     expect(e.dealDamage).toHaveBeenCalledWith('opponent', 500);
   });
 
-  it('deals damage to self', () => {
+  it('deals damage to self', async () => {
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'self', value: 300 }] },
       ctx(e),
     );
     expect(e.dealDamage).toHaveBeenCalledWith('player', 300);
   });
 
-  it('resolves attacker.effectiveATK value expression', () => {
+  it('resolves attacker.effectiveATK value expression', async () => {
     const e = mockEngine();
     const attacker = { effectiveATK: () => 1800, card: { atk: 1800 } };
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onAttack', actions: [{ type: 'dealDamage', target: 'opponent', value: { from: 'attacker.effectiveATK', multiply: 0.5, round: 'floor' } }] },
       ctx(e, 'player', { attacker }),
     );
     expect(e.dealDamage).toHaveBeenCalledWith('opponent', 900);
   });
 
-  it('resolves summoned.atk value expression', () => {
+  it('resolves summoned.atk value expression', async () => {
     const e = mockEngine();
     const summonedFC = { card: { atk: 1500 } };
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: { from: 'summoned.atk', multiply: 0.5, round: 'floor' } }] },
       ctx(e, 'player', { summonedFC }),
     );
@@ -172,19 +176,19 @@ describe('dealDamage', () => {
 });
 
 describe('gainLP', () => {
-  it('heals flat LP', () => {
+  it('heals flat LP', async () => {
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'gainLP', target: 'self', value: 1000 }] },
       ctx(e),
     );
     expect(e.gainLP).toHaveBeenCalledWith('player', 1000);
   });
 
-  it('heals LP from attacker ATK expression', () => {
+  it('heals LP from attacker ATK expression', async () => {
     const e = mockEngine();
     const attacker = { effectiveATK: () => 2000, card: { atk: 2000 } };
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onAttack', actions: [{ type: 'gainLP', target: 'self', value: { from: 'attacker.effectiveATK', multiply: 0.5, round: 'floor' } }] },
       ctx(e, 'player', { attacker }),
     );
@@ -193,9 +197,9 @@ describe('gainLP', () => {
 });
 
 describe('draw', () => {
-  it('draws cards for self', () => {
+  it('draws cards for self', async () => {
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'draw', target: 'self', count: 2 }] },
       ctx(e),
     );
@@ -204,7 +208,7 @@ describe('draw', () => {
 });
 
 describe('buffField', () => {
-  it('buffs all own monsters matching race filter', () => {
+  it('buffs all own monsters matching race filter', async () => {
     const fm1 = { card: { race: 4 }, permATKBonus: 0 };
     const fm2 = { card: { race: 1 }, permATKBonus: 0 };
     const e = mockEngine({
@@ -213,7 +217,7 @@ describe('buffField', () => {
         opponent: { field: { monsters: [null, null, null, null, null] } },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'buffField', value: 200, filter: { race: 4 } }] },
       ctx(e),
     );
@@ -221,7 +225,7 @@ describe('buffField', () => {
     expect(fm2.permATKBonus).toBe(0);
   });
 
-  it('buffs all own monsters matching attribute filter', () => {
+  it('buffs all own monsters matching attribute filter', async () => {
     const fm1 = { card: { attribute: 5 }, permATKBonus: 0 };
     const fm2 = { card: { attribute: 4 }, permATKBonus: 0 };
     const e = mockEngine({
@@ -230,7 +234,7 @@ describe('buffField', () => {
         opponent: { field: { monsters: [null, null, null, null, null] } },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'buffField', value: 300, filter: { attr: 5 } }] },
       ctx(e),
     );
@@ -238,7 +242,7 @@ describe('buffField', () => {
     expect(fm2.permATKBonus).toBe(0);
   });
 
-  it('buffs all own monsters when no filter', () => {
+  it('buffs all own monsters when no filter', async () => {
     const fm1 = { card: { race: 1 }, permATKBonus: 0 };
     const fm2 = { card: { race: 2 }, permATKBonus: 0 };
     const e = mockEngine({
@@ -247,7 +251,7 @@ describe('buffField', () => {
         opponent: { field: { monsters: [null, null, null, null, null] } },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'buffField', value: 100 }] },
       ctx(e),
     );
@@ -257,7 +261,7 @@ describe('buffField', () => {
 });
 
 describe('debuffField', () => {
-  it('debuffs all opponent monsters', () => {
+  it('debuffs all opponent monsters', async () => {
     const fm = { card: {}, permATKBonus: 0, permDEFBonus: 0 };
     const e = mockEngine({
       getState: () => ({
@@ -265,7 +269,7 @@ describe('debuffField', () => {
         opponent: { field: { monsters: [fm, null, null, null, null] } },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'debuffField', atkD: 300, defD: 200 }] },
       ctx(e),
     );
@@ -275,7 +279,7 @@ describe('debuffField', () => {
 });
 
 describe('bounceStrongestOpp', () => {
-  it('bounces the strongest opponent monster to hand', () => {
+  it('bounces the strongest opponent monster to hand', async () => {
     const fm1 = { card: { name: 'Weak' }, effectiveATK: () => 500 };
     const fm2 = { card: { name: 'Strong' }, effectiveATK: () => 2000 };
     const oppHand = [];
@@ -286,7 +290,7 @@ describe('bounceStrongestOpp', () => {
         opponent: { field: { monsters }, hand: oppHand },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'bounceStrongestOpp' }] },
       ctx(e),
     );
@@ -296,7 +300,7 @@ describe('bounceStrongestOpp', () => {
 });
 
 describe('bounceAttacker', () => {
-  it('returns the attacking monster to its owner hand', () => {
+  it('returns the attacking monster to its owner hand', async () => {
     const attacker = { card: { name: 'Atk' } };
     const oppHand = [];
     const monsters = [attacker, null, null, null, null];
@@ -306,7 +310,7 @@ describe('bounceAttacker', () => {
         opponent: { field: { monsters }, hand: oppHand },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onAttack', actions: [{ type: 'bounceAttacker' }] },
       ctx(e, 'player', { attacker }),
     );
@@ -316,7 +320,7 @@ describe('bounceAttacker', () => {
 });
 
 describe('bounceAllOppMonsters', () => {
-  it('returns all opponent monsters to hand', () => {
+  it('returns all opponent monsters to hand', async () => {
     const fm1 = { card: { name: 'A' } };
     const fm2 = { card: { name: 'B' } };
     const oppHand = [];
@@ -327,7 +331,7 @@ describe('bounceAllOppMonsters', () => {
         opponent: { field: { monsters }, hand: oppHand },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onAttack', actions: [{ type: 'bounceAllOppMonsters' }] },
       ctx(e, 'player'),
     );
@@ -337,7 +341,7 @@ describe('bounceAllOppMonsters', () => {
 });
 
 describe('searchDeckToHand', () => {
-  it('searches deck for a card with matching filter', () => {
+  it('searches deck for a card with matching filter', async () => {
     const waterCard = { name: 'Wasserkarte', attribute: 4 };
     const fireCard = { name: 'Feuerkarte', attribute: 3 };
     const deck = [fireCard, waterCard];
@@ -348,7 +352,7 @@ describe('searchDeckToHand', () => {
         opponent: { deck: [], hand: [] },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'searchDeckToHand', filter: { attr: 4 } }] },
       ctx(e),
     );
@@ -358,30 +362,30 @@ describe('searchDeckToHand', () => {
 });
 
 describe('tempAtkBonus', () => {
-  it('applies temp ATK bonus to targeted monster', () => {
+  it('applies temp ATK bonus to targeted monster', async () => {
     const target = { tempATKBonus: 0 };
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'tempAtkBonus', target: 'ownMonster', value: 700 }] },
       ctx(e, 'player', { targetFC: target }),
     );
     expect(target.tempATKBonus).toBe(700);
   });
 
-  it('applies negative temp ATK bonus to attacker', () => {
+  it('applies negative temp ATK bonus to attacker', async () => {
     const attacker = { tempATKBonus: 0 };
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onAttack', actions: [{ type: 'tempAtkBonus', target: 'attacker', value: -800 }] },
       ctx(e, 'player', { attacker }),
     );
     expect(attacker.tempATKBonus).toBe(-800);
   });
 
-  it('applies temp ATK bonus to defender', () => {
+  it('applies temp ATK bonus to defender', async () => {
     const defender = { tempATKBonus: 0 };
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onOwnMonsterAttacked', actions: [{ type: 'tempAtkBonus', target: 'defender', value: 1000 }] },
       ctx(e, 'player', { defender }),
     );
@@ -390,30 +394,30 @@ describe('tempAtkBonus', () => {
 });
 
 describe('permAtkBonus', () => {
-  it('applies permanent ATK bonus with filter', () => {
+  it('applies permanent ATK bonus with filter', async () => {
     const target = { card: { attribute: 2 }, permATKBonus: 0 };
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: 2 } }] },
       ctx(e, 'player', { targetFC: target }),
     );
     expect(target.permATKBonus).toBe(500);
   });
 
-  it('skips if filter does not match', () => {
+  it('skips if filter does not match', async () => {
     const target = { card: { attribute: 3 }, permATKBonus: 0 };
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: 2 } }] },
       ctx(e, 'player', { targetFC: target }),
     );
     expect(target.permATKBonus).toBe(0);
   });
 
-  it('applies perm ATK debuff to summonedFC', () => {
+  it('applies perm ATK debuff to summonedFC', async () => {
     const summonedFC = { card: { name: 'Test' }, permATKBonus: 0 };
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'permAtkBonus', target: 'summonedFC', value: -500 }] },
       ctx(e, 'player', { summonedFC }),
     );
@@ -422,10 +426,10 @@ describe('permAtkBonus', () => {
 });
 
 describe('permDefBonus', () => {
-  it('applies permanent DEF debuff to summonedFC', () => {
+  it('applies permanent DEF debuff to summonedFC', async () => {
     const summonedFC = { card: { name: 'Test' }, permDEFBonus: 0 };
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'permDefBonus', target: 'summonedFC', value: -400 }] },
       ctx(e, 'player', { summonedFC }),
     );
@@ -434,10 +438,10 @@ describe('permDefBonus', () => {
 });
 
 describe('tempDefBonus', () => {
-  it('applies temp DEF bonus to defender', () => {
+  it('applies temp DEF bonus to defender', async () => {
     const defender = { tempDEFBonus: 0 };
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onOwnMonsterAttacked', actions: [{ type: 'tempDefBonus', target: 'defender', value: 1500 }] },
       ctx(e, 'player', { defender }),
     );
@@ -446,21 +450,21 @@ describe('tempDefBonus', () => {
 });
 
 describe('reviveFromGrave', () => {
-  it('calls specialSummonFromGrave with target card', () => {
+  it('calls specialSummonFromGrave with target card', async () => {
     const card = { id: '1', name: 'Test' };
     const e = mockEngine();
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'reviveFromGrave' }] },
       ctx(e, 'player', { targetCard: card }),
     );
-    expect(e.specialSummonFromGrave).toHaveBeenCalledWith('player', card);
+    expect(e.specialSummonFromGrave).toHaveBeenCalledWith('player', card, undefined);
   });
 });
 
 describe('cancelAttack', () => {
-  it('returns cancelAttack signal', () => {
+  it('returns cancelAttack signal', async () => {
     const e = mockEngine();
-    const signal = executeEffectBlock(
+    const signal = await executeEffectBlock(
       { trigger: 'onAttack', actions: [{ type: 'cancelAttack' }] },
       ctx(e),
     );
@@ -469,9 +473,9 @@ describe('cancelAttack', () => {
 });
 
 describe('destroyAttacker', () => {
-  it('returns destroyAttacker and cancelAttack signals', () => {
+  it('returns destroyAttacker and cancelAttack signals', async () => {
     const e = mockEngine();
-    const signal = executeEffectBlock(
+    const signal = await executeEffectBlock(
       { trigger: 'onAttack', actions: [{ type: 'destroyAttacker' }] },
       ctx(e),
     );
@@ -481,20 +485,20 @@ describe('destroyAttacker', () => {
 });
 
 describe('destroySummonedIf', () => {
-  it('destroys summoned monster if ATK >= threshold', () => {
+  it('destroys summoned monster if ATK >= threshold', async () => {
     const summonedFC = { card: { name: 'Big', atk: 2000 } };
     const e = mockEngine();
-    const signal = executeEffectBlock(
+    const signal = await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'destroySummonedIf', minAtk: 1000 }] },
       ctx(e, 'player', { summonedFC }),
     );
     expect(signal.destroySummoned).toBe(true);
   });
 
-  it('does not destroy if ATK < threshold', () => {
+  it('does not destroy if ATK < threshold', async () => {
     const summonedFC = { card: { name: 'Small', atk: 500 } };
     const e = mockEngine();
-    const signal = executeEffectBlock(
+    const signal = await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'destroySummonedIf', minAtk: 1000 }] },
       ctx(e, 'player', { summonedFC }),
     );
@@ -503,7 +507,7 @@ describe('destroySummonedIf', () => {
 });
 
 describe('destroyAllOpp', () => {
-  it('destroys all opponent monsters', () => {
+  it('destroys all opponent monsters', async () => {
     const fm1 = { card: { name: 'A' } };
     const fm2 = { card: { name: 'B' } };
     const oppGrave = [];
@@ -514,7 +518,7 @@ describe('destroyAllOpp', () => {
         opponent: { field: { monsters }, graveyard: oppGrave },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'destroyAllOpp' }] },
       ctx(e),
     );
@@ -524,7 +528,7 @@ describe('destroyAllOpp', () => {
 });
 
 describe('destroyAll', () => {
-  it('destroys all monsters on both sides', () => {
+  it('destroys all monsters on both sides', async () => {
     const pfm = { card: { name: 'P' } };
     const ofm = { card: { name: 'O' } };
     const pGrave = [];
@@ -537,7 +541,7 @@ describe('destroyAll', () => {
         opponent: { field: { monsters: oMons }, graveyard: oGrave },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'destroyAll' }] },
       ctx(e),
     );
@@ -549,7 +553,7 @@ describe('destroyAll', () => {
 });
 
 describe('sendTopCardsToGrave', () => {
-  it('mills own deck to graveyard', () => {
+  it('mills own deck to graveyard', async () => {
     const c1 = { name: 'A' };
     const c2 = { name: 'B' };
     const c3 = { name: 'C' };
@@ -561,7 +565,7 @@ describe('sendTopCardsToGrave', () => {
         opponent: { deck: [], graveyard: [] },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'sendTopCardsToGrave', count: 2 }] },
       ctx(e),
     );
@@ -571,7 +575,7 @@ describe('sendTopCardsToGrave', () => {
 });
 
 describe('discardOppHand', () => {
-  it('discards from opponent hand randomly', () => {
+  it('discards from opponent hand randomly', async () => {
     const c1 = { name: 'A' };
     const c2 = { name: 'B' };
     const oppHand = [c1, c2];
@@ -582,7 +586,7 @@ describe('discardOppHand', () => {
         opponent: { hand: oppHand, graveyard: oppGrave },
       }),
     });
-    executeEffectBlock(
+    await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'discardOppHand', count: 1 }] },
       ctx(e),
     );
@@ -592,9 +596,9 @@ describe('discardOppHand', () => {
 });
 
 describe('Multiple actions in one block', () => {
-  it('executes all actions and merges signals', () => {
+  it('executes all actions and merges signals', async () => {
     const e = mockEngine();
-    const signal = executeEffectBlock(
+    const signal = await executeEffectBlock(
       { trigger: 'onAttack', actions: [
         { type: 'dealDamage', target: 'opponent', value: 500 },
         { type: 'cancelAttack' },

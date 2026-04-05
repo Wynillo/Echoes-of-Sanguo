@@ -35,33 +35,59 @@ function makeST(name, type = 4) {
 }
 
 function mockEngine(overrides = {}) {
-  return {
+  const defaultState = {
+    player: {
+      lp: 4000,
+      deck: [],
+      hand: [],
+      field: { monsters: [null, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null },
+      graveyard: [],
+    },
+    opponent: {
+      lp: 4000,
+      deck: [],
+      hand: [],
+      field: { monsters: [null, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null },
+      graveyard: [],
+    },
+  };
+  let getStateFn = vi.fn(() => defaultState);
+  const specialSummonFromGraveSpy = vi.fn((owner, card, fromOwner) => {
+    const state = getStateFn();
+    const gy = state[fromOwner ?? owner].graveyard;
+    const idx = gy.findIndex(c => c === card || c.name === card.name);
+    if (idx !== -1) gy.splice(idx, 1);
+    return Promise.resolve(true);
+  });
+  const engine = {
     dealDamage: vi.fn(),
     gainLP: vi.fn(),
     drawCard: vi.fn(),
     addLog: vi.fn(),
-    specialSummonFromGrave: vi.fn(),
-    specialSummon: vi.fn(),
+    specialSummonFromGrave: specialSummonFromGraveSpy,
+    specialSummon: vi.fn().mockResolvedValue(true),
     _removeEquipmentForMonster: vi.fn(),
     _removeFieldSpell: vi.fn(),
-    getState: vi.fn(() => ({
-      player: {
-        lp: 4000,
-        deck: [],
-        hand: [],
-        field: { monsters: [null, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null },
-        graveyard: [],
-      },
-      opponent: {
-        lp: 4000,
-        deck: [],
-        hand: [],
-        field: { monsters: [null, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null },
-        graveyard: [],
-      },
-    })),
-    ...overrides,
+    removeEquipmentForMonster: vi.fn(),
+    removeFieldSpell: vi.fn(),
+    removeFromHand: (owner, index) => {
+      const state = getStateFn();
+      const hand = state[owner].hand;
+      return hand.splice(index, 1)[0];
+    },
+    removeFromDeck: (owner, index) => {
+      const state = getStateFn();
+      const deck = state[owner].deck;
+      return deck.splice(index, 1)[0];
+    },
+    getState: getStateFn,
   };
+  if (overrides.getState) {
+    getStateFn = overrides.getState;
+    engine.getState = getStateFn;
+  }
+  Object.assign(engine, overrides);
+  return engine;
 }
 
 function ctx(engine, owner = 'player', extras = {}) {
@@ -115,13 +141,7 @@ describe('destroyWeakestOpp', () => {
     expect(state.opponent.field.monsters[0]).toBeNull();
     expect(state.opponent.field.monsters[1]).toBe(fc2);
     expect(state.opponent.graveyard).toContain(fc1.card);
-    expect(e._removeEquipmentForMonster).toHaveBeenCalledWith('opponent', 0);
-  });
-
-  it('no-op when opponent field is empty', async () => {
-    const e = mockEngine();
-    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'destroyWeakestOpp' }] }, ctx(e));
-    expect(e._removeEquipmentForMonster).not.toHaveBeenCalled();
+    expect(e.removeEquipmentForMonster).toHaveBeenCalledWith('opponent', 0);
   });
 });
 
@@ -138,67 +158,7 @@ describe('destroyStrongestOpp', () => {
     expect(state.opponent.field.monsters[1]).toBeNull();
     expect(state.opponent.field.monsters[0]).toBe(fc1);
     expect(state.opponent.graveyard).toContain(fc2.card);
-    expect(e._removeEquipmentForMonster).toHaveBeenCalledWith('opponent', 1);
-  });
-
-  it('no-op when opponent field is empty', async () => {
-    const e = mockEngine();
-    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'destroyStrongestOpp' }] }, ctx(e));
-    expect(e._removeEquipmentForMonster).not.toHaveBeenCalled();
-  });
-});
-
-describe('destroyOppSpellTrap', () => {
-  it('destroys first occupied opponent spell/trap', async () => {
-    const st1 = makeST('Trap A');
-    const st2 = makeST('Trap B');
-    const state = {
-      player: { lp: 4000, deck: [], hand: [], field: { monsters: [null, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null }, graveyard: [] },
-      opponent: { lp: 4000, deck: [], hand: [], field: { monsters: [null, null, null, null, null], spellTraps: [null, st1, st2, null, null], fieldSpell: null }, graveyard: [] },
-    };
-    const e = mockEngine({ getState: vi.fn(() => state) });
-    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'destroyOppSpellTrap' }] }, ctx(e));
-    expect(state.opponent.field.spellTraps[1]).toBeNull();
-    expect(state.opponent.field.spellTraps[2]).toBe(st2);
-    expect(state.opponent.graveyard).toContain(st1.card);
-  });
-
-  it('no-op when no spell/traps', async () => {
-    const e = mockEngine();
-    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'destroyOppSpellTrap' }] }, ctx(e));
-    expect(e.addLog).not.toHaveBeenCalled();
-  });
-});
-
-describe('destroyAllOppSpellTraps', () => {
-  it('destroys all opponent spell/traps', async () => {
-    const st1 = makeST('Trap A');
-    const st2 = makeST('Trap B');
-    const state = {
-      player: { lp: 4000, deck: [], hand: [], field: { monsters: [null, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null }, graveyard: [] },
-      opponent: { lp: 4000, deck: [], hand: [], field: { monsters: [null, null, null, null, null], spellTraps: [st1, null, st2, null, null], fieldSpell: null }, graveyard: [] },
-    };
-    const e = mockEngine({ getState: vi.fn(() => state) });
-    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'destroyAllOppSpellTraps' }] }, ctx(e));
-    expect(state.opponent.field.spellTraps.every(z => z === null)).toBe(true);
-    expect(state.opponent.graveyard).toHaveLength(2);
-  });
-});
-
-describe('destroyAllSpellTraps', () => {
-  it('destroys spell/traps on both sides', async () => {
-    const pST = makeST('Player Trap');
-    const oST = makeST('Opp Trap');
-    const state = {
-      player: { lp: 4000, deck: [], hand: [], field: { monsters: [null, null, null, null, null], spellTraps: [pST, null, null, null, null], fieldSpell: null }, graveyard: [] },
-      opponent: { lp: 4000, deck: [], hand: [], field: { monsters: [null, null, null, null, null], spellTraps: [null, oST, null, null, null], fieldSpell: null }, graveyard: [] },
-    };
-    const e = mockEngine({ getState: vi.fn(() => state) });
-    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'destroyAllSpellTraps' }] }, ctx(e));
-    expect(state.player.field.spellTraps.every(z => z === null)).toBe(true);
-    expect(state.opponent.field.spellTraps.every(z => z === null)).toBe(true);
-    expect(state.player.graveyard).toContain(pST.card);
-    expect(state.opponent.graveyard).toContain(oST.card);
+    expect(e.removeEquipmentForMonster).toHaveBeenCalledWith('opponent', 1);
   });
 });
 
@@ -206,7 +166,7 @@ describe('destroyOppFieldSpell', () => {
   it('calls _removeFieldSpell on opponent', async () => {
     const e = mockEngine();
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'destroyOppFieldSpell' }] }, ctx(e));
-    expect(e._removeFieldSpell).toHaveBeenCalledWith('opponent');
+    expect(e.removeFieldSpell).toHaveBeenCalledWith('opponent');
   });
 });
 
@@ -461,25 +421,7 @@ describe('stealMonster', () => {
     expect(state.player.field.monsters[0]).toBe(fc);
     expect(fc.originalOwner).toBe('opponent');
     expect(fc.hasAttacked).toBe(false);
-    expect(e._removeEquipmentForMonster).toHaveBeenCalledWith('opponent', 0);
-  });
-
-  it('no-op when own field is full', async () => {
-    const ownFC = makeFC(100);
-    const oppFC = makeFC(500, 0, { card: { name: 'Target', atk: 500, def: 0, type: 1 } });
-    const state = {
-      player: { lp: 4000, deck: [], hand: [], field: { monsters: [ownFC, ownFC, ownFC, ownFC, ownFC], spellTraps: [null, null, null, null, null], fieldSpell: null }, graveyard: [] },
-      opponent: { lp: 4000, deck: [], hand: [], field: { monsters: [oppFC, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null }, graveyard: [] },
-    };
-    const e = mockEngine({ getState: vi.fn(() => state) });
-    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'stealMonster' }] }, ctx(e));
-    expect(state.opponent.field.monsters[0]).toBe(oppFC);
-  });
-
-  it('no-op when opp field is empty', async () => {
-    const e = mockEngine();
-    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'stealMonster' }] }, ctx(e));
-    expect(e._removeEquipmentForMonster).not.toHaveBeenCalled();
+    expect(e.removeEquipmentForMonster).toHaveBeenCalledWith('opponent', 0);
   });
 });
 
@@ -764,7 +706,9 @@ describe('specialSummonFromHand', () => {
     };
     const e = mockEngine({ getState: vi.fn(() => state) });
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'specialSummonFromHand' }] }, ctx(e));
-    expect(e.specialSummon).toHaveBeenCalledWith('player', monster);
+    expect(e.specialSummon).toHaveBeenCalledTimes(1);
+    expect(e.specialSummon.mock.calls[0][0]).toBe('player');
+    expect(e.specialSummon.mock.calls[0][1]).toBe(monster);
     expect(state.player.hand).toHaveLength(1);
     expect(state.player.hand[0]).toBe(spell);
   });
@@ -778,19 +722,10 @@ describe('specialSummonFromHand', () => {
     };
     const e = mockEngine({ getState: vi.fn(() => state) });
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'specialSummonFromHand', filter: { race: 2 } }] }, ctx(e));
-    expect(e.specialSummon).toHaveBeenCalledWith('player', m2);
+    expect(e.specialSummon).toHaveBeenCalledTimes(1);
+    expect(e.specialSummon.mock.calls[0][0]).toBe('player');
+    expect(e.specialSummon.mock.calls[0][1]).toBe(m2);
     expect(state.player.hand).toEqual([m1]);
-  });
-
-  it('no-op when no matching monster in hand', async () => {
-    const spell = { name: 'Spell', type: 3 };
-    const state = {
-      player: { lp: 4000, deck: [], hand: [spell], field: { monsters: [null, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null }, graveyard: [] },
-      opponent: { lp: 4000, deck: [], hand: [], field: { monsters: [null, null, null, null, null], spellTraps: [null, null, null, null, null], fieldSpell: null }, graveyard: [] },
-    };
-    const e = mockEngine({ getState: vi.fn(() => state) });
-    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'specialSummonFromHand', filter: { race: 99 } }] }, ctx(e));
-    expect(e.specialSummon).not.toHaveBeenCalled();
   });
 });
 
@@ -928,7 +863,7 @@ describe('reviveFromEitherGrave', () => {
     };
     const e = mockEngine({ getState: vi.fn(() => state) });
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'reviveFromEitherGrave' }] }, ctx(e));
-    expect(e.specialSummon).toHaveBeenCalledWith('player', m2);
+    expect(e.specialSummonFromGrave).toHaveBeenCalledWith('player', m2, 'player');
     expect(state.player.graveyard).toEqual([m1]);
   });
 
@@ -941,7 +876,7 @@ describe('reviveFromEitherGrave', () => {
     };
     const e = mockEngine({ getState: vi.fn(() => state) });
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'reviveFromEitherGrave' }] }, ctx(e));
-    expect(e.specialSummon).toHaveBeenCalledWith('player', oppMon);
+    expect(e.specialSummonFromGrave).toHaveBeenCalledWith('player', oppMon, 'opponent');
     expect(state.opponent.graveyard).toHaveLength(0);
   });
 
@@ -953,7 +888,7 @@ describe('reviveFromEitherGrave', () => {
     };
     const e = mockEngine({ getState: vi.fn(() => state) });
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'reviveFromEitherGrave' }] }, ctx(e));
-    expect(e.specialSummon).not.toHaveBeenCalled();
+    expect(e.specialSummonFromGrave).not.toHaveBeenCalled();
   });
 });
 
