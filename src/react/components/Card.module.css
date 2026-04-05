@@ -7,10 +7,15 @@
 }
 
 .nameShort {
-  font-size: 8px; font-weight: bold; color: var(--gold-light);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: clamp(9px, 1.8vw, 11px);
+  font-weight: bold;
+  color: var(--gold-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   min-width: 0;
   flex: 1;
+  line-height: 1.2;
 }
 
 .attrOrb {
@@ -24,9 +29,14 @@
 }
 
 .cardLevel {
-  font-size: 9px; color: var(--gold); text-align: center;
-  line-height: 1; padding: 1px 2px; min-height: 11px;
-  letter-spacing: -1px; flex-shrink: 0;
+  font-size: clamp(8px, 1.6vw, 10px);
+  color: var(--gold);
+  text-align: center;
+  line-height: 1;
+  padding: 1px 2px;
+  min-height: 11px;
+  letter-spacing: -1px;
+  flex-shrink: 0;
 }
 
 .cardArt {
@@ -70,15 +80,20 @@
 }
 
 .typeSubtype {
-  font-size: 7px; color: var(--text-dim);
+  font-size: clamp(6px, 1.4vw, 8px);
+  color: var(--text-dim);
   font-style: italic;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
 }
 
 .descText {
-  font-size: 7px; color: var(--text);
-  line-height: 1.3; overflow: hidden;
+  font-size: clamp(6px, 1.4vw, 8px);
+  color: var(--text);
+  line-height: 1.4;
+  overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -89,15 +104,17 @@
   padding: 2px 5px 3px;
   background: #000000;
   flex-shrink: 0;
-  min-height: 17px;
+  min-height: 18px;
   gap: 4px;
 }
 
-.atkVal { font-size: 9px; font-weight: bold; color: #ff9955; font-family: var(--font-stats); }
-.defVal { font-size: 9px; font-weight: bold; color: #55aaff; font-family: var(--font-stats); }
+.atkVal { font-size: clamp(8px, 1.6vw, 10px); font-weight: bold; color: #ff9955; font-family: var(--font-stats); }
+.defVal { font-size: clamp(8px, 1.6vw, 10px); font-weight: bold; color: #55aaff; font-family: var(--font-stats); }
 
 .statBuffed { color: #88ff88 !important; }
+.statBuffed::before { content: "▲ "; font-size: 8px; }
 .statNerfed { color: #ff6666 !important; }
+.statNerfed::before { content: "▼ "; font-size: 8px; }
 
 .cardStats.noStats { min-height: 0; padding: 0; }
 
@@ -125,17 +142,17 @@
 :global(.attr-light) .attrOrb { box-shadow: none; border: 1px solid #c09000; }
 :global(.attr-dark)  .attrOrb { box-shadow: none; border: 1px solid #7020a0; }
 
-:global(.opponent-side) .nameShort    { font-size: 7px; max-width: 40px; }
+:global(.opponent-side) .nameShort    { font-size: clamp(6px, 1.4vw, 8px); max-width: 40px; }
 :global(.opponent-side) .attrOrb      { width: 10px; height: 10px; font-size: 6px; }
-:global(.opponent-side) .cardLevel    { font-size: 6px; min-height: 8px; }
+:global(.opponent-side) .cardLevel    { font-size: clamp(5px, 1.2vw, 7px); min-height: 8px; }
 :global(.opponent-side) .rarityText   { font-size: 5px; }
 :global(.opponent-side) .raceBadge    { font-size: 5px; padding: 1px 2px; }
 :global(.opponent-side) .cardBody     { max-height: 24px; padding: 1px 3px; }
-:global(.opponent-side) .typeSubtype  { font-size: 5px; }
-:global(.opponent-side) .descText     { font-size: 5px; -webkit-line-clamp: 1; }
+:global(.opponent-side) .typeSubtype  { font-size: clamp(4px, 1vw, 6px); }
+:global(.opponent-side) .descText     { font-size: clamp(4px, 1vw, 6px); -webkit-line-clamp: 1; }
 :global(.opponent-side) .cardStats    { padding: 1px 3px 2px; min-height: 13px; }
 :global(.opponent-side) .atkVal,
-:global(.opponent-side) .defVal       { font-size: 8px; }
+:global(.opponent-side) .defVal       { font-size: clamp(6px, 1.4vw, 8px); }
 
 :global(.small-card) .cardArt { max-height: 80px; }
 :global(.small-card) .cardHeader { display: none; }

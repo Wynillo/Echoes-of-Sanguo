@@ -45,7 +45,8 @@ function SaveErrorToast() {
   }, []);
   if (!visible) return null;
   return (
-    <div role="alert" style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: '#501414', color: '#ff8888', padding: '10px 20px', borderRadius: 4, zIndex: 10000, fontFamily: 'monospace', fontSize: '0.875rem', border: '1px solid #802020' }}>
+    <div role="alert" aria-live="assertive" style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: '#501414', color: '#ff8888', padding: '12px 24px', borderRadius: 4, zIndex: 10000, fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid #802020', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span aria-hidden="true">⚠</span>
       {t('error.save_failed')}
     </div>
   );

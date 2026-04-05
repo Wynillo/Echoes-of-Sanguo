@@ -329,5 +329,31 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .title-bg {
+    animation: none !important;
+  }
+  
+  .title-rune {
+    animation: none !important;
+  }
+  
+  .hand-card.newly-drawn,
+  .field-card,
+  .fusion-result-pop {
+    animation: none !important;
+  }
+  
+  .card-activate-content,
+  .modal {
+    animation: none !important;
+    transform: none !important;
+  }
+  
+  .floating-phase-btn,
+  #btn-next-phase {
+    animation: none !important;
   }
 }

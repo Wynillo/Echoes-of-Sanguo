@@ -24,6 +24,14 @@ button:focus-visible, [role="button"]:focus-visible {
   outline-offset: 2px;
   box-shadow: 0 0 6px rgba(200, 168, 72, 0.4);
 }
+a:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+}
+[tabindex]:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+}
 .hand-card:focus-visible {
   transform: translateY(-14px) scale(1.08);
   z-index: 100;
@@ -1092,6 +1100,19 @@ button { cursor: pointer; border: none; font-family: inherit; transition: none; 
   }
 
   #card-hover-preview { display: none !important; }
+  
+  button:active, .btn-primary:active, .btn-secondary:active, .btn-menu:active {
+    transform: scale(0.97);
+    filter: brightness(1.15);
+  }
+  
+  .zone-slot:active {
+    transform: scale(0.96);
+  }
+  
+  .card:active {
+    transform: scale(0.98);
+  }
 }
 
 @media (max-width: 480px) {

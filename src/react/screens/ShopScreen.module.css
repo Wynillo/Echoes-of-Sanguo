@@ -56,8 +56,13 @@
 
 .backBtn {
   font-size: 0.8rem;
-  padding: 6px 12px;
+  padding: 8px 14px;
   flex-shrink: 0;
+  min-height: 44px;
+}
+
+.backBtn:active {
+  transform: scale(0.97);
 }
 
 .tabs {
@@ -81,16 +86,27 @@
   cursor: pointer;
   letter-spacing: 1px;
   transition: color 0.15s, background 0.15s;
+  min-height: 44px;
 }
 
 .tabBtn:first-child { border-right: none; }
 
 .tabBtn:hover { color: var(--gold); }
 
+.tabBtn:active {
+  background: #1a2840;
+  color: var(--gold);
+}
+
 .tabBtn.activeTab {
   background: #1a2840;
   color: #c8a84b;
   border-color: #c8a84b;
+}
+
+.tabBtn:focus-visible {
+  outline: 2px solid #c8a84b;
+  outline-offset: -2px;
 }
 
 .carousel {
@@ -116,8 +132,8 @@
 
 .arrowBtn {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   background: #111828;
   border: 2px solid #334;
   border-radius: 0;
@@ -141,9 +157,14 @@
   cursor: not-allowed;
 }
 
+.arrowBtn:active:not(:disabled) {
+  transform: scale(0.95);
+  background: #0d1520;
+}
+
 .dots {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   justify-content: center;
   margin-top: 12px;
   position: relative;
@@ -151,14 +172,19 @@
 }
 
 .dot {
-  width: 10px;
-  height: 10px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 1px solid #556;
   background: #334;
   cursor: pointer;
   padding: 0;
   transition: background 0.2s, border-color 0.2s;
+  margin: 13px;
+}
+
+.dot:active {
+  transform: scale(0.9);
 }
 
 .dot:hover { border-color: #c8a84b; }
@@ -206,17 +232,24 @@
   box-shadow: 0 0 12px color-mix(in srgb, var(--pack-color, #4060c0) 30%, transparent);
 }
 
+.packTile:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--pack-color, #4060c0) 50%, transparent);
+}
+
 .infoBtn {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   border-radius: 50%;
   border: 1.5px solid color-mix(in srgb, var(--pack-color, #4060c0) 60%, #667);
   background: rgba(0, 0, 0, 0.55);
   color: #c0d0e0;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -231,6 +264,16 @@
 .infoBtn:hover {
   background: var(--pack-color, #4060c0);
   color: #fff;
+}
+
+.infoBtn:active {
+  transform: scale(0.92);
+  background: color-mix(in srgb, var(--pack-color, #4060c0) 80%, #000);
+}
+
+.infoBtn:focus-visible {
+  outline: 2px solid #c8a84b;
+  outline-offset: 2px;
 }
 
 .packTop {
@@ -261,7 +304,7 @@
 
 .packCardCount {
   font-size: clamp(0.4rem, 1.2vw, 0.6rem);
-  color: #606880;
+  color: #7080a0;
   position: relative;
 }
 
@@ -298,9 +341,16 @@
   border: 1px solid #334;
   color: #c0d0e0;
   border-radius: 0;
-  padding: 2px 4px;
+  padding: 4px 8px;
   font-size: clamp(0.45rem, 1.2vw, 0.65rem);
   cursor: pointer;
+  min-height: 44px;
+}
+
+.raceSelect:focus {
+  outline: 2px solid #c8a84b;
+  outline-offset: 2px;
+  border-color: #c8a84b;
 }
 
 .buyBtn {
@@ -308,17 +358,23 @@
   border: 2px solid;
   border-color: #30a060 #0a2c18 #0a2c18 #30a060;
   color: var(--pack-color, #90b0e0);
-  padding: 3px 6px;
+  padding: 6px 8px;
   border-radius: 0;
   font-size: clamp(0.5rem, 1.4vw, 0.72rem);
   cursor: pointer;
   position: relative;
   width: 100%;
+  min-height: 32px;
 }
 
 .buyBtn:hover:not(:disabled) {
   background: #0e2e1c;
   color: #d0e8d8;
+}
+
+.buyBtn:active:not(:disabled) {
+  transform: scale(0.97);
+  background: #0a2018;
 }
 
 .buyBtn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -450,14 +506,20 @@
   border: 2px solid;
   border-color: #c8a84b #504020 #504020 #c8a84b;
   color: #c8a84b;
-  padding: 8px;
-  font-size: 0.8rem;
+  padding: 12px;
+  font-size: 0.85rem;
   cursor: pointer;
   margin-top: 8px;
+  min-height: 44px;
 }
 
 .infoCloseBtn:hover {
   background: #1a2840;
+}
+
+.infoCloseBtn:active {
+  transform: scale(0.98);
+  background: #0d1830;
 }
 
 .sectionTitle {
