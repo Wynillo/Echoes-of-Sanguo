@@ -236,188 +236,21 @@
   transform: rotateY(180deg);
 }
 
-.revealCardFront.sparkle {
-  animation: rareBorderGlow 0.8s ease-in-out 3;
-}
-
-.bgEffect {
+.scanlineTint {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 199;
+  z-index: 200;
   opacity: 0;
   will-change: opacity;
-}
-
-.bgUncommon {
-  background: radial-gradient(ellipse at center, rgba(40, 60, 120, 0.3) 0%, transparent 70%);
-  animation: bgPulse 2s ease-in-out infinite;
-}
-
-.bgRare {
-  background: radial-gradient(ellipse at center, rgba(80, 60, 180, 0.4) 0%, rgba(40, 30, 120, 0.2) 40%, transparent 70%);
-  animation: bgPulse 1.5s ease-in-out infinite;
-}
-
-.bgSuperRare {
-  background: radial-gradient(ellipse at center, rgba(200, 168, 75, 0.15) 0%, transparent 60%);
-}
-
-.bgUltraRare {
-  background: radial-gradient(ellipse at center, rgba(200, 100, 255, 0.15) 0%, transparent 60%);
-}
-
-.lightRaysContainer {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  width: 500px;
-  height: 500px;
-  pointer-events: none;
-  z-index: 198;
-  opacity: 0;
-  will-change: opacity, transform;
-}
-
-.lightRaysSR {
-  width: 100%;
-  height: 100%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    rgba(200, 168, 75, 0.15) 10deg,
-    transparent 20deg,
-    transparent 40deg,
-    rgba(200, 168, 75, 0.12) 50deg,
-    transparent 60deg,
-    transparent 80deg,
-    rgba(200, 168, 75, 0.15) 90deg,
-    transparent 100deg,
-    transparent 120deg,
-    rgba(200, 168, 75, 0.12) 130deg,
-    transparent 140deg,
-    transparent 160deg,
-    rgba(200, 168, 75, 0.15) 170deg,
-    transparent 180deg,
-    transparent 200deg,
-    rgba(200, 168, 75, 0.12) 210deg,
-    transparent 220deg,
-    transparent 240deg,
-    rgba(200, 168, 75, 0.15) 250deg,
-    transparent 260deg,
-    transparent 280deg,
-    rgba(200, 168, 75, 0.12) 290deg,
-    transparent 300deg,
-    transparent 320deg,
-    rgba(200, 168, 75, 0.15) 330deg,
-    transparent 340deg,
-    transparent 360deg
-  );
-  animation: lightRays 8s linear infinite;
-}
-
-.lightRaysUR {
-  width: 100%;
-  height: 100%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    rgba(255, 80, 80, 0.15) 10deg,
-    transparent 20deg,
-    transparent 30deg,
-    rgba(255, 200, 60, 0.15) 40deg,
-    transparent 50deg,
-    transparent 60deg,
-    rgba(100, 255, 100, 0.15) 70deg,
-    transparent 80deg,
-    transparent 90deg,
-    rgba(80, 160, 255, 0.15) 100deg,
-    transparent 110deg,
-    transparent 120deg,
-    rgba(200, 100, 255, 0.15) 130deg,
-    transparent 140deg,
-    transparent 160deg,
-    rgba(255, 80, 80, 0.15) 170deg,
-    transparent 180deg,
-    transparent 190deg,
-    rgba(255, 200, 60, 0.15) 200deg,
-    transparent 210deg,
-    transparent 220deg,
-    rgba(100, 255, 100, 0.15) 230deg,
-    transparent 240deg,
-    transparent 250deg,
-    rgba(80, 160, 255, 0.15) 260deg,
-    transparent 270deg,
-    transparent 280deg,
-    rgba(200, 100, 255, 0.15) 290deg,
-    transparent 300deg,
-    transparent 320deg,
-    rgba(255, 80, 80, 0.12) 330deg,
-    transparent 340deg,
-    transparent 360deg
-  );
-  animation: lightRays 6s linear infinite;
-}
-
-.sparkle-particle {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  left: 50%;
-  top: 50%;
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  background: linear-gradient(135deg, var(--sparkle-color, #ffd700) 0%, #fff8dc 50%, var(--sparkle-color, #ffd700) 100%);
-  box-shadow: 0 0 6px var(--sparkle-color, rgba(255, 215, 0, 0.8));
-  pointer-events: none;
-  will-change: transform, opacity;
-  animation: sparkleParticle 0.8s ease-out forwards;
-}
-
-.sparkle-particle-small {
-  composes: sparkle-particle;
-  width: 6px;
-  height: 6px;
-  box-shadow: 0 0 3px var(--sparkle-color, rgba(120, 160, 255, 0.6));
-}
-
-.sparkle-burst {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--sparkle-color, rgba(255, 215, 0, 0.5)) 0%, var(--sparkle-color, rgba(255, 215, 0, 0.1)) 40%, transparent 70%);
-  pointer-events: none;
-  animation: sparkleBurst 0.7s ease-out forwards;
-  z-index: -1;
-}
-
-.sparkle-burst-large {
-  composes: sparkle-burst;
-  width: 280px;
-  height: 280px;
-}
-
-.lightBeam {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 3px;
-  height: 200px;
-  background: linear-gradient(
+  background: repeating-linear-gradient(
     to bottom,
-    transparent 0%,
-    var(--sparkle-color, rgba(255, 215, 0, 0.6)) 30%,
-    var(--sparkle-color, rgba(255, 215, 0, 0.8)) 50%,
-    var(--sparkle-color, rgba(255, 215, 0, 0.6)) 70%,
-    transparent 100%
+    var(--scanline-color, rgba(255, 255, 255, 0.04)) 0px,
+    var(--scanline-color, rgba(255, 255, 255, 0.04)) 1px,
+    transparent 1px,
+    transparent 4px
   );
-  pointer-events: none;
-  transform-origin: center center;
-  animation: lightBeamFade 1.2s ease-out forwards;
 }
-
 
 .revealCounter {
   position: absolute;
@@ -466,6 +299,21 @@
   overflow-y: auto;
   width: 100%;
   height: 100%;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 3px,
+      rgba(255, 255, 255, 0.012) 3px,
+      rgba(255, 255, 255, 0.012) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 3px,
+      rgba(255, 255, 255, 0.008) 3px,
+      rgba(255, 255, 255, 0.008) 4px
+    );
 }
 
 .header { text-align: center; margin-bottom: 20px; }
@@ -488,15 +336,14 @@
 }
 
 .cardWrapper {
-  animation: packReveal 0.4s ease both;
+  animation: packReveal 0.3s steps(4) both;
   position: relative;
 }
 
 .newBadge {
   position: absolute;
   top: 4px; right: 4px;
-  background: #c8a84b;
-  color: #050a14;
+  font-family: monospace;
   font-size: 0.6rem;
   font-weight: bold;
   padding: 1px 5px;
@@ -530,4 +377,28 @@
   color: #405060;
   letter-spacing: 1px;
   animation: titlePulse 2s ease-in-out infinite;
+}
+
+/* Summary rarity pixel borders */
+.borderCommon    { box-shadow: inset 0 0 0 2px #555555; }
+.borderUncommon  { box-shadow: inset 0 0 0 2px #286e3a; }
+.borderRare      { box-shadow: inset 0 0 0 2px #3860cc; }
+.borderSuperRare { box-shadow: inset 0 0 0 2px #c8a84b; }
+.borderUltraRare { box-shadow: inset 0 0 0 2px #9030cc; }
+
+/* Rarity-coloured NEW badge variants */
+.newBadgeCommon    { background: #555555; color: #ffffff; }
+.newBadgeUncommon  { background: #286e3a; color: #ffffff; }
+.newBadgeRare      { background: #3860cc; color: #ffffff; }
+.newBadgeSuperRare { background: #c8a84b; color: #050a14; }
+.newBadgeUltraRare { background: #9030cc; color: #ffffff; }
+
+/* Rarity breakdown line below title */
+.breakdown {
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: #607090;
+  letter-spacing: 2px;
+  margin: 4px 0 0;
+  text-transform: uppercase;
 }
