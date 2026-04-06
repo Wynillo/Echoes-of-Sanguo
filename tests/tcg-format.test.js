@@ -11,9 +11,8 @@ import {
 import { serializeEffect, deserializeEffect, isValidEffectString } from '../src/effect-serializer.js';
 // Builder (engine-specific)
 import { cardDataToTcgCard, cardDataToTcgDef } from '../src/tcg-builder.js';
-// Validators & constants (from package)
+// Constants (from package)
 import {
-  validateTcgCards, validateTcgDefinitions,
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP,
   TCG_RARITY_COMMON, TCG_RARITY_ULTRA_RARE,
 } from '@wynillo/tcg-format';
@@ -191,7 +190,7 @@ describe('Effect Serializer', () => {
 
 // ── Card Validator Tests ────────────────────────────────────
 
-describe('Card Validator', () => {
+describe.skip('Card Validator (validators removed from @wynillo/tcg-format)', () => {
   const validMonster = { id: 1, level: 3, atk: 1000, def: 800, rarity: 1, type: 1, attribute: 3, race: 4 };
   const validSpell = { id: 2, level: 1, rarity: 1, type: 3, effect: 'onSummon:dealDamage(opponent,800)' };
   const validTrap = { id: 3, level: 1, rarity: 1, type: 4 };
@@ -273,7 +272,7 @@ describe('Card Validator', () => {
 
 // ── Definition Validator Tests ──────────────────────────────
 
-describe('Definition Validator', () => {
+describe.skip('Definition Validator (validators removed from @wynillo/tcg-format)', () => {
   it('validates correct definitions', () => {
     const result = validateTcgDefinitions([
       { id: 1, name: 'Fire Dragon', description: 'A fiery dragon' },
