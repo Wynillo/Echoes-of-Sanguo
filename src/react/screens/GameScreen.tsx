@@ -59,7 +59,8 @@ export default function GameScreen() {
     if (grave.length > 0) openModal({ type: 'card-detail', card: grave[grave.length - 1] });
   }
 
-  function onPortraitPhase() {
+  function onPortraitPhase(e: React.PointerEvent<HTMLButtonElement>) {
+    e.preventDefault();
     const game = gameRef.current;
     if (!game || !isMyTurn) return;
     hideDirectAndReset();
@@ -189,7 +190,7 @@ export default function GameScreen() {
         id="floating-phase-btn"
         className={`floating-phase-btn phase-${phase}${!isMyTurn ? ' waiting' : ''}`}
         disabled={!isMyTurn}
-        onClick={onPortraitPhase}
+        onPointerUp={onPortraitPhase}
         aria-label={t('game.aria_next_phase')}
       >
         {!isMyTurn ? <RaceIcon icon="GiPauseButton" />
