@@ -45,6 +45,9 @@
   "overrides": {
     "@asamuzakjp/css-color": "~4.1.2",
     "lru-cache": "~11.2.7",
+    "@babel/helper-compilation-targets": {
+      "lru-cache": "^5.1.1"
+    },
     "vite-plugin-pwa": {
       "vite": "$vite"
     },
