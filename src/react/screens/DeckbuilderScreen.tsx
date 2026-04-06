@@ -406,7 +406,9 @@ export default function DeckbuilderScreen() {
                     const typeColor  = card.type === CardType.Monster
                       ? (card.effect ? '#c8a850' : '#e8e8e8')
                       : (typeMeta?.color ?? '#aaa');
-                    const raceLbl    = card.race ? (getRaceById(card.race)?.value ?? '') : '';
+                    const raceMeta   = card.race ? getRaceById(card.race) : undefined;
+                    const raceLbl    = raceMeta?.value ?? '';
+                    const raceColor  = raceMeta?.color;
                     const maxCp = maxCopiesFor(card.id);
                     const isFlashing = flashRow === card.id;
                     return (
@@ -428,7 +430,7 @@ export default function DeckbuilderScreen() {
                         </td>
                         <td>
                           <div style={{ color: typeColor }}>{card.name}</div>
-                          <div className={styles.tableSubtext}>{typeLbl} {raceLbl}</div>
+                          <div className={styles.tableSubtext}>{typeLbl} {raceColor ? <span style={{ color: raceColor }}>{raceLbl}</span> : raceLbl}</div>
                         </td>
                         <td className={styles.tableAtkDef}>
                           <div><GiCrossedSwords className={styles.statIcon} /> {card.atk ?? '\u2014'}</div>
