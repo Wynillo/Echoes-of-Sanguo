@@ -72,8 +72,9 @@ function getNewBadgeClass(rarity: number, s: Record<string, string>): string {
 
 /* ── Helpers ───────────────────────────────────────────────── */
 
-/** Screen shake utility */
+/** Screen shake utility — returns a timeline that always resets to origin */
 function shakeScreen(screenEl: HTMLElement, intensity: number, duration: number) {
+  gsap.killTweensOf(screenEl, 'x,y');
   const tl = gsap.timeline();
   const steps = Math.floor(duration / 0.03);
   for (let i = 0; i < steps; i++) {
@@ -81,7 +82,7 @@ function shakeScreen(screenEl: HTMLElement, intensity: number, duration: number)
     const y = (Math.random() - 0.5) * 2 * intensity;
     tl.to(screenEl, { x, y, duration: 0.03, ease: 'none' });
   }
-  tl.to(screenEl, { x: 0, y: 0, duration: 0.05, ease: 'steps(2)' });
+  tl.to(screenEl, { x: 0, y: 0, duration: 0.05, ease: 'none' });
   return tl;
 }
 
@@ -224,7 +225,10 @@ export default function PackOpeningScreen() {
         duration: 0.4, ease: 'steps(6)',
       }, 'tear');
 
-    return () => { tl.kill(); };
+    return () => {
+      tl.kill();
+      if (screenRef.current) gsap.killTweensOf(screenRef.current);
+    };
   }, [phase, tearing]);
 
   useEffect(() => {
@@ -242,14 +246,18 @@ export default function PackOpeningScreen() {
         const card = sortedCards[i];
         const rarity = card.rarity ?? Rarity.Common;
 
-        // Update index to render the card
         setRevealIndex(i);
 
-        // Wait a tick for React to render
-        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        // Wait for React to commit the render and set refs
+        let cardEl: HTMLElement | null = null;
+        for (let attempt = 0; attempt < 10; attempt++) {
+          await new Promise(r => requestAnimationFrame(r));
+          if (cancelled || skipRef.current) break;
+          cardEl = revealCardRef.current;
+          if (cardEl) break;
+        }
         if (cancelled || skipRef.current) break;
 
-        const cardEl = revealCardRef.current;
         const screenEl = screenRef.current;
         if (!cardEl) continue;
 
@@ -352,6 +360,10 @@ export default function PackOpeningScreen() {
     return () => {
       cancelled = true;
       currentTl?.kill();
+      if (screenRef.current) {
+        gsap.killTweensOf(screenRef.current);
+        gsap.set(screenRef.current, { x: 0, y: 0 });
+      }
     };
   }, [phase, sortedCards]);
 
@@ -370,15 +382,11 @@ export default function PackOpeningScreen() {
           </div>
 
           {/* Tear halves (hidden until tear moment) */}
-          <div ref={leftRef} className={styles.packHalfLeft} style={{ visibility: 'hidden', position: 'absolute' }}>
-            <div className={styles.packHalfInner}>
-              <div className={styles.packFoil} />
-            </div>
+          <div ref={leftRef} className={styles.packHalfLeft} style={{ visibility: 'hidden' }}>
+            <div className={styles.packFoil} />
           </div>
-          <div ref={rightRef} className={styles.packHalfRight} style={{ visibility: 'hidden', position: 'absolute' }}>
-            <div className={styles.packHalfInner}>
-              <div className={styles.packFoil} />
-            </div>
+          <div ref={rightRef} className={styles.packHalfRight} style={{ visibility: 'hidden' }}>
+            <div className={styles.packFoil} />
           </div>
 
           {/* Tap prompt + dots */}
@@ -440,7 +448,7 @@ export default function PackOpeningScreen() {
           </div>
 
           <div className={styles.miniStrip}>
-            {sortedCards.slice(0, revealIndex).map((card, i) => {
+            {sortedCards.slice(0, Math.max(0, revealIndex)).map((card, i) => {
               const rc = getRarityById((card as any).rarity)?.color ?? '#aaa';
               const icon = TYPE_ICONS[card.type] ?? '?';
               return (

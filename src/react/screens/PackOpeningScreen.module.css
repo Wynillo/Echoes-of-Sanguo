@@ -113,35 +113,24 @@
 .packHalfLeft,
 .packHalfRight {
   position: absolute;
-  top: 0;
-  width: 50%;
-  height: 100%;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.packHalfLeft {
-  left: 0;
-  clip-path: polygon(0 0, 100% 0, 85% 50%, 100% 100%, 0 100%);
-}
-
-.packHalfRight {
-  right: 0;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 15% 50%);
-}
-
-.packHalfInner {
-  position: absolute;
-  top: 0;
+  top: calc(50% - 100px);
+  left: calc(50% - 70px);
   width: 140px;
   height: 200px;
   border-radius: 8px;
   background: linear-gradient(135deg, #1a1040 0%, #2a1860 30%, #3a2080 50%, #2a1860 70%, #1a1040 100%);
   border: 2px solid #c8a84b;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-.packHalfLeft .packHalfInner { left: 0; }
-.packHalfRight .packHalfInner { right: 0; }
+.packHalfLeft {
+  clip-path: polygon(0 0, 55% 0, 42% 50%, 55% 100%, 0 100%);
+}
+
+.packHalfRight {
+  clip-path: polygon(45% 0, 100% 0, 100% 100%, 45% 100%, 58% 50%);
+}
 
 .flash {
   position: fixed;
