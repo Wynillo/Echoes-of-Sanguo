@@ -46,7 +46,7 @@ function deserializeCardFilter(s: string): CardFilter {
   if (inner.trim() === '') return {};
   const filter: CardFilter = {};
   for (const pair of inner.split(',')) {
-    const [key, val] = pair.split('=');
+    const [key, val] = pair.split(/[=:]/);
     switch (key.trim()) {
       case 'r':        filter.race = intToRace(parseInt(val)); break;
       case 'a':        filter.attr = intToAttribute(parseInt(val)); break;
@@ -173,6 +173,12 @@ function serializeAction(a: EffectDescriptor): string {
     case 'createTokens':            return `createTokens(${a.tokenId},${a.count},${a.position})`;
     case 'gameReset':               return 'gameReset()';
     case 'excavateAndSummon':       return `excavateAndSummon(${a.count},${a.maxLevel})`;
+    // Mill & banish
+    case 'millOpp':                 return `millOpp(${(a as any).count})`;
+    case 'banishOppGy':             return 'banishOppGy()';
+    case 'negateAttack':            return 'negateAttack()';
+    case 'reflectDamage':           return `reflectDamage(${(a as any).multiplier})`;
+    case 'negate':                  return 'negate';
     default:
       throw new Error(`Unknown effect action type: ${(a as any).type}`);
   }
@@ -202,7 +208,14 @@ function isFilterArg(s: string): boolean {
 
 function deserializeAction(actionStr: string): EffectDescriptor {
   const m = actionStr.match(/^(\w+)\((.*)\)$/);
-  if (!m) throw new Error(`Invalid action syntax: ${actionStr}`);
+  if (!m) {
+    // Handle known bare action names without parentheses (e.g., "negate")
+    const bare = actionStr.trim();
+    if (bare === 'negate') {
+      return { type: bare } as any;
+    }
+    throw new Error(`Invalid action syntax: ${actionStr}`);
+  }
   const type = m[1];
   const args = parseArgs(m[2]);
 
@@ -240,7 +253,7 @@ function deserializeAction(actionStr: string): EffectDescriptor {
 
     // Search
     case 'searchDeckToHand':
-      return { type: 'searchDeckToHand', filter: deserializeCardFilter(args[0]) };
+      return { type: 'searchDeckToHand', filter: args.length > 0 && args[0] !== '' && isFilterArg(args[0]) ? deserializeCardFilter(args[0]) : {} };
 
     // Targeted stat modification
     case 'tempAtkBonus':
@@ -273,8 +286,8 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     // Graveyard & Deck manipulation
     case 'sendTopCardsToGrave':     return { type: 'sendTopCardsToGrave', count: parseInt(args[0]) };
     case 'sendTopCardsToGraveOpp':  return { type: 'sendTopCardsToGraveOpp', count: parseInt(args[0]) };
-    case 'salvageFromGrave':        return { type: 'salvageFromGrave', filter: deserializeCardFilter(args[0]) };
-    case 'recycleFromGraveToDeck':  return { type: 'recycleFromGraveToDeck', filter: deserializeCardFilter(args[0]) };
+    case 'salvageFromGrave':        return { type: 'salvageFromGrave', filter: args.length > 0 && args[0] !== '' && isFilterArg(args[0]) ? deserializeCardFilter(args[0]) : {} };
+    case 'recycleFromGraveToDeck':  return { type: 'recycleFromGraveToDeck', filter: args.length > 0 && args[0] !== '' && isFilterArg(args[0]) ? deserializeCardFilter(args[0]) : {} };
     case 'shuffleGraveIntoDeck':    return { type: 'shuffleGraveIntoDeck' };
     case 'shuffleDeck':             return { type: 'shuffleDeck' };
     case 'peekTopCard':             return { type: 'peekTopCard' };
@@ -302,7 +315,11 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     case 'passive_cantBeAttacked':  return { type: 'passive_cantBeAttacked' };
 
     // Spell/Trap destruction
-    case 'destroyOppSpellTrap':     return { type: 'destroyOppSpellTrap' };
+    case 'destroyOppSpellTrap': {
+      const desc: any = { type: 'destroyOppSpellTrap' };
+      if (args.length > 0 && args[0] !== '') desc.count = parseInt(args[0]);
+      return desc;
+    }
     case 'destroyAllOppSpellTraps': return { type: 'destroyAllOppSpellTraps' };
     case 'destroyAllSpellTraps':    return { type: 'destroyAllSpellTraps' };
     case 'destroyOppFieldSpell':    return { type: 'destroyOppFieldSpell' };
@@ -356,6 +373,16 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     case 'gameReset':               return { type: 'gameReset' };
     case 'excavateAndSummon':       return { type: 'excavateAndSummon', count: parseInt(args[0]), maxLevel: parseInt(args[1]) };
 
+    // Mill & banish
+    case 'millOpp':                 return { type: 'millOpp', count: parseInt(args[0]) } as any;
+    case 'banishOppGy':             return { type: 'banishOppGy' } as any;
+    // Combat negation
+    case 'negateAttack':            return { type: 'negateAttack' } as any;
+    // Reflect damage with multiplier
+    case 'reflectDamage':           return { type: 'reflectDamage', multiplier: args[0] } as any;
+    // Negate (standalone keyword for trap-like effects)
+    case 'negate':                  return { type: 'negate' } as any;
+
     default:
       throw new Error(`Unknown action type: ${type}`);
   }
@@ -392,6 +419,14 @@ export function serializeEffect(block: CardEffectBlock): string {
 }
 
 export function deserializeEffect(str: string): CardEffectBlock {
+  // Handle [cost:...]trigger:actions format (cost before trigger)
+  const costPrefixMatch = str.match(/^(\[cost:[^\]]+\])/);
+  let costFromPrefix: EffectCost | undefined;
+  if (costPrefixMatch) {
+    costFromPrefix = deserializeCost(costPrefixMatch[1]);
+    str = str.substring(costPrefixMatch[1].length);
+  }
+
   // Find the trigger:actions separator colon, skipping any colons inside [cost:...] brackets
   let colonIdx = -1;
   let bracketDepth = 0;
@@ -403,7 +438,7 @@ export function deserializeEffect(str: string): CardEffectBlock {
   if (colonIdx === -1) throw new Error(`Invalid effect string (no trigger separator): ${str}`);
 
   let triggerStr = str.substring(0, colonIdx);
-  let cost: EffectCost | undefined;
+  let cost: EffectCost | undefined = costFromPrefix;
 
   const costMatch = triggerStr.match(/^(.+?)(\[cost:[^\]]+\])$/);
   if (costMatch) {
@@ -413,13 +448,51 @@ export function deserializeEffect(str: string): CardEffectBlock {
 
   if (!isValidTrigger(triggerStr)) throw new Error(`Invalid trigger: ${triggerStr}`);
 
-  const actionsStr = str.substring(colonIdx + 1);
+  let actionsStr = str.substring(colonIdx + 1);
+
+  // Extract trailing [cost:...] from actions section
+  const trailingCostMatch = actionsStr.match(/;?\[cost:([^\]]+)\]$/);
+  if (trailingCostMatch) {
+    if (!cost) cost = deserializeCost(`[cost:${trailingCostMatch[1]}]`);
+    actionsStr = actionsStr.substring(0, actionsStr.length - trailingCostMatch[0].length);
+  }
+
   const actionParts = splitActions(actionsStr);
   const actions = actionParts.map(deserializeAction);
 
   const block: CardEffectBlock = { trigger: triggerStr as EffectTrigger | TrapTrigger, actions };
   if (cost) block.cost = cost;
   return block;
+}
+
+/** Split a block on ;trigger: boundaries into separate trigger:actions strings */
+function expandEmbeddedTriggers(block: string): string[] {
+  // Split action parts on ';' boundaries where the next part starts with a valid trigger + ':'
+  const parts = splitActions(block.substring(block.indexOf(':') + 1));
+  if (parts.length <= 1) return [block];
+
+  const triggerPart = block.substring(0, block.indexOf(':'));
+  const result: string[] = [];
+  let currentActions: string[] = [];
+
+  let currentTrigger = triggerPart;
+  for (const part of parts) {
+    // Check if this part starts with a trigger prefix like "passive:" or "onSummon:"
+    const triggerMatch = part.match(/^(\w+):/);
+    if (triggerMatch && isValidTrigger(triggerMatch[1])) {
+      if (currentActions.length > 0) {
+        result.push(`${currentTrigger}:${currentActions.join(';')}`);
+      }
+      currentTrigger = triggerMatch[1];
+      currentActions = [part.substring(triggerMatch[0].length)];
+    } else {
+      currentActions.push(part);
+    }
+  }
+  if (currentActions.length > 0) {
+    result.push(`${currentTrigger}:${currentActions.join(';')}`);
+  }
+  return result;
 }
 
 /** Split action string on ';' while respecting parentheses and braces */
@@ -441,7 +514,31 @@ function splitActions(s: string): string[] {
 
 /** Deserialize a pipe-delimited multi-block effect string (e.g. "passive:...|onDealBattleDamage:...") */
 export function deserializeEffects(str: string): CardEffectBlock[] {
-  return str.split('|').map(s => deserializeEffect(s.trim()));
+  const rawBlocks = str.split('|').map(s => s.trim());
+  const blocks: CardEffectBlock[] = [];
+  let lastTrigger = '';
+
+  for (const block of rawBlocks) {
+    // Check if this block has a trigger separator (colon at depth 0)
+    let hasColon = false;
+    let depth = 0;
+    for (let i = 0; i < block.length; i++) {
+      if (block[i] === '[' || block[i] === '(') depth++;
+      else if (block[i] === ']' || block[i] === ')') depth--;
+      else if (block[i] === ':' && depth === 0) { hasColon = true; break; }
+    }
+
+    const effectStr = hasColon ? block : `${lastTrigger}:${block}`;
+    // The block may contain ;trigger: patterns — expand into multiple blocks
+    const subBlocks = expandEmbeddedTriggers(effectStr);
+    for (const sub of subBlocks) {
+      const parsed = deserializeEffect(sub);
+      blocks.push(parsed);
+      lastTrigger = parsed.trigger;
+    }
+  }
+
+  return blocks;
 }
 
 /** Serialize multiple effect blocks into pipe-delimited format */
@@ -449,9 +546,12 @@ export function serializeEffects(blocks: CardEffectBlock[]): string {
   return blocks.map(serializeEffect).join('|');
 }
 
-/** Check if an effect string contains multiple blocks (pipe-delimited) */
+/** Check if an effect string contains multiple blocks (pipe-delimited or embedded triggers) */
 export function isMultiBlockEffect(str: string): boolean {
-  return str.includes('|');
+  if (str.includes('|')) return true;
+  // Check for ;trigger: pattern (embedded trigger boundaries)
+  const expanded = expandEmbeddedTriggers(str);
+  return expanded.length > 1;
 }
 
 /**
@@ -460,23 +560,20 @@ export function isMultiBlockEffect(str: string): boolean {
  * Multi-block strings set card.effects (array) and card.effect to the first block.
  */
 export function parseEffectString(str: string, card: Partial<Pick<CardData, 'effect' | 'effects'>>): void {
-  if (isMultiBlockEffect(str)) {
-    const blocks = deserializeEffects(str);
+  // Always go through deserializeEffects to handle all multi-block patterns
+  const blocks = deserializeEffects(str);
+  if (blocks.length > 1) {
     card.effects = blocks;
     card.effect = blocks[0];
   } else {
-    card.effect = deserializeEffect(str);
+    card.effect = blocks[0];
   }
 }
 
 /** Validate effect string syntax without full deserialization */
 export function isValidEffectString(str: string): boolean {
   try {
-    if (str.includes('|')) {
-      deserializeEffects(str);
-    } else {
-      deserializeEffect(str);
-    }
+    deserializeEffects(str);
     return true;
   } catch {
     return false;

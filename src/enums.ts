@@ -105,6 +105,7 @@ const TRIGGER_STRINGS: ReadonlySet<string> = new Set([
   'onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive', 'onFlipSummon', 'onFlip',
   'onDealBattleDamage', 'onSentToGrave',
   'onAttack', 'onOwnMonsterAttacked', 'onOpponentSummon', 'manual', 'onOpponentSpell', 'onAnySummon',
+  'onOppCardEffect', 'onOpponentDraw',
 ]);
 
 export function isValidTrigger(s: string): s is (EffectTrigger | TrapTrigger) {
