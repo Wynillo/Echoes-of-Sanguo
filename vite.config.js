@@ -43,15 +43,6 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [
           {
-            urlPattern: /base\.tcg$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'eos-tcg-data',
-              expiration: { maxEntries: 2 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
             urlPattern: /\/audio\/.*\.mp3$/,
             handler: 'CacheFirst',
             options: {

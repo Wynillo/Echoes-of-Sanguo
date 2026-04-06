@@ -1,4 +1,5 @@
 import { loadAndApplyTcg, type BridgeLoadResult } from './tcg-bridge.js';
+import { ENGINE_VERSION } from './version.js';
 
 const DB_NAME = 'eos-tcg-cache';
 const STORE_NAME = 'tcg-files';
@@ -19,7 +20,7 @@ function openDb(): Promise<IDBDatabase> {
   });
 }
 
-async function getCachedTcg(): Promise<{ sha: string; data: ArrayBuffer } | null> {
+async function getCachedTcg(): Promise<{ sha: string; data: ArrayBuffer; engineVersion?: string } | null> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readonly');
@@ -33,7 +34,7 @@ async function setCachedTcg(sha: string, data: ArrayBuffer): Promise<void> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).put({ sha, data }, CACHE_KEY);
+    tx.objectStore(STORE_NAME).put({ sha, data, engineVersion: ENGINE_VERSION }, CACHE_KEY);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
@@ -87,10 +88,13 @@ export async function loadCachedOrBundled(
 
   try {
     const cached = await getCachedTcg();
-    if (cached) {
+    if (cached && cached.engineVersion === ENGINE_VERSION) {
       console.log('[tcg-update] Loading cached base.tcg (commit', cached.sha.slice(0, 7) + ')');
       result = await loadAndApplyTcg(cached.data, options);
     } else {
+      if (cached) {
+        console.log('[tcg-update] Engine version changed, ignoring stale cache');
+      }
       result = await loadAndApplyTcg(bundledUrl, options);
     }
   } catch (e) {
@@ -98,7 +102,12 @@ export async function loadCachedOrBundled(
     result = await loadAndApplyTcg(bundledUrl, options);
   }
 
+  cleanupSwTcgCache();
   checkForUpdate().catch((e) => console.warn('[tcg-update] Background update check failed:', e));
 
   return result;
+}
+
+function cleanupSwTcgCache(): void {
+  caches.delete('eos-tcg-data').catch(() => {});
 }
