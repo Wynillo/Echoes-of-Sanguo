@@ -225,12 +225,12 @@ describe('rollBadgeCardDrops', () => {
 
   it('de-duplicates deck IDs before picking', () => {
     // Even with dupes, should still return valid picks
-    const drops = rollBadgeCardDrops(['54', '54', '54', '55', '55'], 3);
+    const drops = rollBadgeCardDrops(['1', '1', '1', '2', '2'], 3);
     expect(drops).toHaveLength(3);
   });
 
   it('handles numeric deck IDs', () => {
-    const drops = rollBadgeCardDrops([54, 55, 56], 2);
+    const drops = rollBadgeCardDrops([1, 2, 3], 2);
     expect(drops).toHaveLength(2);
   });
 });

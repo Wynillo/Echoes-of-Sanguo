@@ -1,0 +1,108 @@
+{
+  "cards": [
+    { "id": "1",  "name": "Iron Knight",       "type": 1, "race": 4, "attribute": 5, "atk": 1200, "def": 1000, "rarity": 1, "level": 3, "description": "A sturdy knight." },
+    { "id": "2",  "name": "Shadow Mage",       "type": 1, "race": 2, "attribute": 2, "atk": 1100, "def":  900, "rarity": 1, "level": 3, "description": "A dark sorcerer." },
+    { "id": "3",  "name": "Fire Drake",        "type": 1, "race": 1, "attribute": 3, "atk": 1300, "def":  800, "rarity": 2, "level": 4, "description": "A young dragon." },
+    { "id": "4",  "name": "Stone Golem",       "type": 1, "race": 6, "attribute": 5, "atk": 1000, "def": 1500, "rarity": 1, "level": 3, "description": "A stone guardian." },
+    { "id": "5",  "name": "Wind Serpent",      "type": 1, "race": 1, "attribute": 6, "atk": 1400, "def":  600, "rarity": 2, "level": 4, "description": "A swift dragon." },
+    { "id": "6",  "name": "Aqua Spirit",       "type": 1, "race": 9, "attribute": 4, "atk":  800, "def": 1100, "rarity": 1, "level": 2, "description": "A water spirit." },
+    { "id": "7",  "name": "Dark Warrior",      "type": 1, "race": 3, "attribute": 2, "atk": 1500, "def": 1200, "rarity": 2, "level": 4, "description": "A dark swordsman." },
+    { "id": "8",  "name": "Phoenix Chick",     "type": 1, "race": 7, "attribute": 3, "atk":  900, "def":  500, "rarity": 1, "level": 2, "description": "A baby phoenix." },
+    { "id": "9",  "name": "Rock Beetle",       "type": 1, "race": 10,"attribute": 5, "atk":  700, "def": 1300, "rarity": 1, "level": 2, "description": "A hard-shelled bug." },
+    { "id": "10", "name": "Thunder Beast",     "type": 1, "race": 4, "attribute": 1, "atk": 1600, "def": 1000, "rarity": 4, "level": 5, "description": "A lightning beast." },
+    { "id": "11", "name": "Vine Whip",         "type": 1, "race": 5, "attribute": 5, "atk":  600, "def":  800, "rarity": 1, "level": 2, "description": "A living vine." },
+    { "id": "12", "name": "Lava Golem",        "type": 1, "race": 12,"attribute": 3, "atk": 1800, "def":  500, "rarity": 4, "level": 5, "description": "A molten creature." },
+    { "id": "13", "name": "Steel Automaton",   "type": 1, "race": 11,"attribute": 5, "atk": 1700, "def": 1400, "rarity": 4, "level": 5, "description": "A steel machine." },
+    { "id": "14", "name": "Undead Soldier",    "type": 1, "race": 8, "attribute": 2, "atk": 1000, "def":  900, "rarity": 1, "level": 3, "description": "A risen warrior." },
+    { "id": "15", "name": "Elder Dragon",      "type": 1, "race": 1, "attribute": 3, "atk": 2500, "def": 2000, "rarity": 6, "level": 7, "description": "An ancient dragon." },
+    { "id": "16", "name": "Grand Warrior",     "type": 1, "race": 3, "attribute": 1, "atk": 2600, "def": 2100, "rarity": 6, "level": 7, "description": "A legendary swordsman." },
+    { "id": "17", "name": "Swamp Beast",       "type": 1, "race": 4, "attribute": 4, "atk":  500, "def":  400, "rarity": 1, "level": 1, "description": "A swamp creature." },
+    { "id": "18", "name": "Forest Sprite",     "type": 1, "race": 5, "attribute": 6, "atk":  400, "def":  600, "rarity": 1, "level": 1, "description": "A tiny forest spirit." },
+    { "id": "19", "name": "Bone Archer",       "type": 1, "race": 8, "attribute": 2, "atk": 1100, "def":  700, "rarity": 2, "level": 3, "description": "A skeletal archer." },
+    { "id": "20", "name": "Crystal Mage",      "type": 1, "race": 2, "attribute": 1, "atk": 1900, "def": 1500, "rarity": 4, "level": 6, "description": "A crystal sorcerer." },
+    { "id": "21", "name": "Sky Dragon",        "type": 1, "race": 1, "attribute": 6, "atk": 1100, "def":  900, "rarity": 1, "level": 3, "description": "A small flying dragon." },
+    { "id": "22", "name": "Blade Warrior",     "type": 1, "race": 3, "attribute": 5, "atk": 1000, "def":  800, "rarity": 1, "level": 3, "description": "A sword fighter." },
+
+    { "id": "101", "name": "Dragon Knight",    "type": 2, "race": 1, "attribute": 3, "atk": 2400, "def": 2000, "rarity": 6, "level": 7, "description": "A dragon-riding warrior." },
+    { "id": "102", "name": "Storm Dragon",     "type": 2, "race": 1, "attribute": 6, "atk": 3100, "def": 2500, "rarity": 8, "level": 9, "description": "A dragon of storms." },
+    { "id": "103", "name": "Dark Paladin",     "type": 2, "race": 3, "attribute": 2, "atk": 2800, "def": 2300, "rarity": 8, "level": 8, "description": "A dark magic knight." },
+    { "id": "104", "name": "Stone Emperor",    "type": 2, "race": 6, "attribute": 5, "atk": 2600, "def": 3000, "rarity": 6, "level": 8, "description": "An emperor of rock." },
+    { "id": "105", "name": "Flame Phoenix",    "type": 2, "race": 7, "attribute": 3, "atk": 2200, "def": 1800, "rarity": 6, "level": 7, "description": "A reborn fire bird." },
+
+    { "id": "201", "name": "Healing Light",    "type": 3, "rarity": 1, "level": 1, "description": "Restore 500 LP.", "effect": "manual:gainLP(self,500)" },
+    { "id": "202", "name": "Flame Burst",      "type": 3, "rarity": 2, "level": 1, "description": "Deal 800 damage.", "effect": "manual:dealDamage(opponent,800)" },
+    { "id": "203", "name": "Card Draw",        "type": 3, "rarity": 4, "level": 1, "description": "Draw 2 cards.", "effect": "manual:draw(self,2)" },
+
+    { "id": "301", "name": "Mirror Force",     "type": 4, "rarity": 4, "level": 1, "description": "Destroy the attacker.", "effect": "onAttack:destroyAttacker()" },
+    { "id": "302", "name": "Trap Hole",        "type": 4, "rarity": 2, "level": 1, "description": "Destroy if ATK >= 1500.", "effect": "onOpponentSummon:destroySummonedIf(1500)" }
+  ],
+
+  "fusionRecipes": [
+    { "materials": ["4", "5"], "result": "101" },
+    { "materials": ["3", "7"], "result": "103" },
+    { "materials": ["8", "15"], "result": "105" }
+  ],
+
+  "fusionFormulas": [
+    {
+      "id": "dragon_warrior",
+      "comboType": "race+race",
+      "operand1": 1,
+      "operand2": 3,
+      "priority": 10,
+      "resultPool": ["101", "102"]
+    },
+    {
+      "id": "rock_undead",
+      "comboType": "race+race",
+      "operand1": 6,
+      "operand2": 8,
+      "priority": 8,
+      "resultPool": ["104"]
+    },
+    {
+      "id": "fire_wind",
+      "comboType": "attr+attr",
+      "operand1": 3,
+      "operand2": 6,
+      "priority": 5,
+      "resultPool": ["105"]
+    }
+  ],
+
+  "opponents": [
+    {
+      "id": 1,
+      "name": "Test Opponent",
+      "title": "The Challenger",
+      "race": "krieger",
+      "flavor": "A test opponent.",
+      "coinsWin": 100,
+      "coinsLoss": 10,
+      "deckIds": ["1","1","2","2","3","3","4","4","5","5","6","6","7","7","8","8","9","9","10","10","11","11","12","12","13","13","14","14","17","17","18","18","19","19","201","201","301","301","302","302"]
+    }
+  ],
+
+  "starterDecks": {
+    "1": ["1","1","2","2","3","3","4","4","5","5","6","6","7","7","8","8","9","9","10","10","11","11","12","12","13","13","14","14","17","17","18","18","19","19","201","201","301","301","302","302"]
+  },
+
+  "shopData": {
+    "packages": [
+      {
+        "id": "basic_pack",
+        "nameKey": "shop.basic_pack",
+        "price": 100,
+        "slots": [{ "count": 5, "maxRarity": 4 }],
+        "cardPool": { "include": { "maxAtk": 1500 } }
+      },
+      {
+        "id": "premium_pack",
+        "nameKey": "shop.premium_pack",
+        "price": 300,
+        "slots": [{ "count": 5 }]
+      }
+    ],
+    "packs": []
+  }
+}
