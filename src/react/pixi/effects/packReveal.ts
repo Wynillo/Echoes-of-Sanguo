@@ -1,11 +1,12 @@
-import { Application, BlurFilter, Container, Graphics } from 'pixi.js';
+import { Application, Container, Graphics } from 'pixi.js';
 import { Rarity } from '../../../types.js';
+import { fxManager } from '../fxManager.js';
 
 export interface RarityConfig {
   particleCount: number;
   beamCount: number;
   palette: number[];
-  bloomStrength: number;
+  bloomRadius: number;
   spiral: boolean;
 }
 
@@ -14,21 +15,21 @@ export const RARITY_CONFIG: Record<number, RarityConfig> = {
     particleCount: 60,
     beamCount: 4,
     palette: [0x7090ff, 0x4060cc, 0xa0c0ff, 0xffffff, 0x8888ff],
-    bloomStrength: 0,
+    bloomRadius: 0,
     spiral: false,
   },
   [Rarity.SuperRare]: {
     particleCount: 120,
     beamCount: 6,
     palette: [0xffd700, 0xffaa00, 0xfff0a0, 0xffffff, 0xff8800],
-    bloomStrength: 15,
+    bloomRadius: 120,
     spiral: false,
   },
   [Rarity.UltraRare]: {
     particleCount: 180,
     beamCount: 8,
     palette: [0xe070ff, 0x9030cc, 0xff80ff, 0xffffff, 0xc040ff, 0xff60ff],
-    bloomStrength: 30,
+    bloomRadius: 160,
     spiral: true,
   },
 };
@@ -67,6 +68,8 @@ export function runPackReveal(
   if (!cfg) { onDone(); return () => {}; }
 
   let stopped = false;
+  const mobile = fxManager.mobile;
+  const scale = mobile ? 0.5 : 1;
 
   const rect = cardEl.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
@@ -81,13 +84,12 @@ export function runPackReveal(
 
   let bloom: Graphics | null = null;
   let bloomAlpha = 0;
-  if (cfg.bloomStrength > 0) {
+  if (cfg.bloomRadius > 0) {
     bloom = new Graphics();
-    bloom.circle(cx, cy, 100).fill({ color: cfg.palette[0] });
-    bloom.alpha = 0.6;
-    bloom.filters = [new BlurFilter({ strength: cfg.bloomStrength })];
+    bloom.circle(cx, cy, cfg.bloomRadius).fill({ color: cfg.palette[0] });
+    bloom.alpha = 0.4;
     container.addChild(bloom);
-    bloomAlpha = 0.6;
+    bloomAlpha = 0.4;
   }
 
   const beamContainer = new Container();
@@ -96,19 +98,21 @@ export function runPackReveal(
   const beamG = new Graphics();
   beamContainer.addChild(beamG);
 
-  const beams: Beam[] = Array.from({ length: cfg.beamCount }, (_, i) => ({
-    angle: (i / cfg.beamCount) * Math.PI * 2 + Math.random() * 0.4,
+  const beamCount = Math.ceil(cfg.beamCount * scale);
+  const beams: Beam[] = Array.from({ length: beamCount }, (_, i) => ({
+    angle: (i / beamCount) * Math.PI * 2 + Math.random() * 0.4,
     alpha: 0.7,
     decay: 0.01 + Math.random() * 0.005,
     color: pick(cfg.palette),
-    length: 320 + Math.random() * 120,
+    length: (320 + Math.random() * 120) * (mobile ? 0.7 : 1),
     halfWidth: 12 + Math.random() * 14,
   }));
 
   const SIZES = [2, 3, 3, 4, 4, 6];
   const SHAPES: Particle['shape'][] = ['square', 'square', 'square', 'cross', 'diamond'];
 
-  const particles: Particle[] = Array.from({ length: cfg.particleCount }, () => {
+  const particleCount = Math.ceil(cfg.particleCount * scale);
+  const particles: Particle[] = Array.from({ length: particleCount }, () => {
     const angle = Math.random() * Math.PI * 2;
     const speed = 2 + Math.random() * 6;
     return {
@@ -124,9 +128,10 @@ export function runPackReveal(
   });
 
   const SPIRAL_PALETTE = [0xff6060, 0xffcc00, 0x60ff60, 0x60a0ff, 0xe070ff];
+  const spiralCount = mobile ? 16 : 40;
   const spiralParticles: Particle[] = cfg.spiral
-    ? Array.from({ length: 40 }, (_, i) => {
-        const angle = (i / 40) * Math.PI * 2;
+    ? Array.from({ length: spiralCount }, (_, i) => {
+        const angle = (i / spiralCount) * Math.PI * 2;
         const r = 55 + Math.random() * 20;
         const tangent = angle + Math.PI / 2;
         const speed = 2.5 + Math.random() * 2;

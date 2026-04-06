@@ -53,7 +53,7 @@ describe('RARITY_CONFIG', () => {
     const { RARITY_CONFIG } = await import('../src/react/pixi/effects/packReveal.js');
     expect(RARITY_CONFIG[4 /* Rarity.Rare */].particleCount).toBe(60);
     expect(RARITY_CONFIG[4 /* Rarity.Rare */].beamCount).toBe(4);
-    expect(RARITY_CONFIG[4 /* Rarity.Rare */].bloomStrength).toBe(0);
+    expect(RARITY_CONFIG[4 /* Rarity.Rare */].bloomRadius).toBe(0);
     expect(RARITY_CONFIG[4 /* Rarity.Rare */].spiral).toBe(false);
   });
 
@@ -61,7 +61,7 @@ describe('RARITY_CONFIG', () => {
     const { RARITY_CONFIG } = await import('../src/react/pixi/effects/packReveal.js');
     expect(RARITY_CONFIG[6 /* Rarity.SuperRare */].particleCount).toBe(120);
     expect(RARITY_CONFIG[6 /* Rarity.SuperRare */].beamCount).toBe(6);
-    expect(RARITY_CONFIG[6 /* Rarity.SuperRare */].bloomStrength).toBeGreaterThan(0);
+    expect(RARITY_CONFIG[6 /* Rarity.SuperRare */].bloomRadius).toBeGreaterThan(0);
     expect(RARITY_CONFIG[6 /* Rarity.SuperRare */].spiral).toBe(false);
   });
 
@@ -69,7 +69,7 @@ describe('RARITY_CONFIG', () => {
     const { RARITY_CONFIG } = await import('../src/react/pixi/effects/packReveal.js');
     expect(RARITY_CONFIG[8 /* Rarity.UltraRare */].particleCount).toBe(180);
     expect(RARITY_CONFIG[8 /* Rarity.UltraRare */].beamCount).toBe(8);
-    expect(RARITY_CONFIG[8 /* Rarity.UltraRare */].bloomStrength).toBeGreaterThan(RARITY_CONFIG[6 /* Rarity.SuperRare */].bloomStrength);
+    expect(RARITY_CONFIG[8 /* Rarity.UltraRare */].bloomRadius).toBeGreaterThan(RARITY_CONFIG[6 /* Rarity.SuperRare */].bloomRadius);
     expect(RARITY_CONFIG[8 /* Rarity.UltraRare */].spiral).toBe(true);
   });
 });
