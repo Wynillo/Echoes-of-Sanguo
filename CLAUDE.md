@@ -11,7 +11,6 @@ npm test               # Vitest unit/integration tests
 npm run test:watch     # Vitest watch mode
 npm run test:coverage  # Coverage report (v8)
 npm run test:e2e       # Playwright E2E (auto-starts dev server)
-npm run copy:tcg       # Copy base.tcg from @wynillo/echoes-mod-base into public/
 npm run generate:engine-dts  # Generate eos-engine.d.ts for modders
 npm run build:android  # Build + Capacitor sync for Android
 npm run cap:sync       # Sync Capacitor changes
@@ -34,6 +33,10 @@ The engine communicates with the UI only through the `UICallbacks` interface. Ke
 - No comments that restate what the code does — code must be self-documenting
 - Only comment to explain *why*, not *what*
 - ES module imports use `.js` extension in paths (TypeScript with bundler resolution)
+
+## CI/CD
+
+The deploy pipeline (`deploy.yml`) must not be broken. It runs agnix validation on CLAUDE.md and agent configs — any referenced npm scripts must exist in package.json.
 
 ## Reference
 

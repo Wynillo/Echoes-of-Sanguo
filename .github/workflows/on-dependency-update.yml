@@ -26,8 +26,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: npm run copy:tcg
-
       - run: npm test
 
       - name: Bump patch version and push tag

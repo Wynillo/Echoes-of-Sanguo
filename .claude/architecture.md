@@ -56,7 +56,7 @@ tests/                 — Vitest unit/integration tests (.test.js)
 tests-e2e/             — Playwright E2E tests
 css/                   — Tailwind + custom CSS + animations
 locales/               — i18next translations: en.json, de.json
-public/base.tcg        — Compiled TCG data file (copied from @wynillo/echoes-mod-base via npm run copy:tcg)
+public/base.tcg        — Compiled TCG data file (auto-copied from @wynillo/echoes-mod-base by the Vite plugin during build/dev)
 docs/tcg-format.md     — Full TCG archive format spec
 ```
 
