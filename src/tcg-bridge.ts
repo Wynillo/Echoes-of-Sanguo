@@ -1,5 +1,6 @@
 import { loadTcgFile, TcgNetworkError, TcgFormatError } from '@wynillo/tcg-format';
 import JSZip from 'jszip';
+import i18next from 'i18next';
 import type { TcgLoadResult, TcgParsedCard, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from '@wynillo/tcg-format';
 import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
 import { CardType, Rarity } from './types.js';
@@ -392,7 +393,7 @@ async function extractLocalesFromZip(buffer: ArrayBuffer): Promise<void> {
   await Promise.all(promises);
 }
 
-function applyLocaleToStores(locale: TcgLocale): void {
+function applyLocaleToStores(locale: TcgLocale, lang: string): void {
   if (locale.cards) {
     for (const [id, trans] of Object.entries(locale.cards)) {
       const card = CARD_DB[id];
@@ -414,15 +415,23 @@ function applyLocaleToStores(locale: TcgLocale): void {
     }
   }
 
+  const cardsPatch: Record<string, string> = {};
+
   if (locale.races) {
     for (const meta of TYPE_META.races) {
-      if (locale.races[meta.key]) meta.value = locale.races[meta.key];
+      if (locale.races[meta.key]) {
+        meta.value = locale.races[meta.key];
+        cardsPatch[`race_${meta.key}`] = locale.races[meta.key];
+      }
     }
   }
 
   if (locale.attributes) {
     for (const meta of TYPE_META.attributes) {
-      if (locale.attributes[meta.key]) meta.value = locale.attributes[meta.key];
+      if (locale.attributes[meta.key]) {
+        meta.value = locale.attributes[meta.key];
+        cardsPatch[`attr_${meta.key.toLowerCase()}`] = locale.attributes[meta.key];
+      }
     }
   }
 
@@ -441,6 +450,10 @@ function applyLocaleToStores(locale: TcgLocale): void {
       }
     }
   }
+
+  if (Object.keys(cardsPatch).length > 0) {
+    i18next.addResourceBundle(lang, 'translation', { cards: cardsPatch }, true, true);
+  }
 }
 
 /**
@@ -450,6 +463,7 @@ function applyLocaleToStores(locale: TcgLocale): void {
  * Locales are extracted from the .tcg archive during loadAndApplyTcg().
  */
 export async function reloadTcgLocale(lang: string): Promise<void> {
-  const locale = localeCache.get(lang) ?? localeCache.get('en');
-  if (locale) applyLocaleToStores(locale);
+  const effectiveLang = localeCache.has(lang) ? lang : 'en';
+  const locale = localeCache.get(effectiveLang);
+  if (locale) applyLocaleToStores(locale, effectiveLang);
 }
