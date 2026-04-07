@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import { copyFileSync, existsSync } from 'node:fs'
+import { copyFileSync, existsSync, readFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 import { resolve } from 'node:path'
 
@@ -36,9 +36,27 @@ const commitHash = (() => {
   catch { return 'unknown'; }
 })();
 
+function resolveGitHubPackageCommit(pkgName) {
+  try {
+    const pkgJsonPath = resolve(`node_modules/${pkgName}/package.json`);
+    if (!existsSync(pkgJsonPath)) return '';
+    const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf-8'));
+    const resolved = pkg._resolved || '';
+    const match = resolved.match(/#([a-f0-9]+)$/);
+    return match ? match[1].slice(0, 7) : '';
+  } catch {
+    return '';
+  }
+}
+
+const tcgFormatBuild = resolveGitHubPackageCommit('@wynillo/tcg-format');
+const modBaseBuild = resolveGitHubPackageCommit('@wynillo/echoes-mod-base');
+
 export default defineConfig({
   define: {
     __ENGINE_BUILD__: JSON.stringify(commitHash),
+    __TCG_FORMAT_BUILD__: JSON.stringify(tcgFormatBuild),
+    __MOD_BASE_BUILD__: JSON.stringify(modBaseBuild),
   },
   plugins: [
     react(),
