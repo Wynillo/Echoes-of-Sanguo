@@ -7,7 +7,7 @@ import { Audio } from '../../audio.js';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import i18n from '../../i18n.js';
 import { reloadTcgLocale, getCurrentManifest, getLoadedMods } from '../../tcg-bridge.js';
-import { ENGINE_VERSION, TCG_FORMAT_VERSION } from '../../version.js';
+import { ENGINE_VERSION, TCG_FORMAT_VERSION, ENGINE_BUILD } from '../../version.js';
 
 type Tab = 'settings' | 'about';
 
@@ -182,6 +182,10 @@ export function OptionsModal() {
             <div className="about-row">
               <span className="about-label">{t('options.about_tcg_format')}</span>
               <span className="about-value">{manifest?.formatVersion ?? TCG_FORMAT_VERSION}</span>
+            </div>
+            <div className="about-row">
+              <span className="about-label">{t('options.about_build')}</span>
+              <span className="about-value">{ENGINE_BUILD}</span>
             </div>
           </div>
 

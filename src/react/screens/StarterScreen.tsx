@@ -61,7 +61,7 @@ export default function StarterScreen() {
               onClick={() => setSelected(entry)}
             >
               <div className={styles.raceIcon}><RaceIcon icon={meta?.icon} /></div>
-              <div className={styles.raceName}>{t(`cards.race_${entry.key}`)}</div>
+              <div className={styles.raceName}>{meta?.value ?? entry.key}</div>
               <div className={styles.raceStyle}>{t(`starter.${entry.key}_style`, { defaultValue: '' })}</div>
             </div>
           );
@@ -70,7 +70,7 @@ export default function StarterScreen() {
 
       <div className={styles.preview}>
         <p id="starter-preview-name">
-          {selectedMeta ? `${selectedMeta.emoji ?? selectedMeta.icon ?? ''} ${t(`cards.race_${selected!.key}`)}${t('starter.deck_suffix')}` : ''}
+          {selectedMeta ? `${selectedMeta.emoji ?? selectedMeta.icon ?? ''} ${selectedMeta.value}${t('starter.deck_suffix')}` : ''}
         </p>
         <p id="starter-preview-desc">{selected ? t(`starter.${selected.key}_flavor`, { defaultValue: '' }) : ''}</p>
         {selected && (

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { copyFileSync, existsSync } from 'node:fs'
+import { execSync } from 'node:child_process'
 import { resolve } from 'node:path'
 
 function copyBaseTcg() {
@@ -30,7 +31,15 @@ function copyBaseTcg() {
   };
 }
 
+const commitHash = (() => {
+  try { return execSync('git rev-parse --short HEAD').toString().trim(); }
+  catch { return 'unknown'; }
+})();
+
 export default defineConfig({
+  define: {
+    __ENGINE_BUILD__: JSON.stringify(commitHash),
+  },
   plugins: [
     react(),
     copyBaseTcg(),
