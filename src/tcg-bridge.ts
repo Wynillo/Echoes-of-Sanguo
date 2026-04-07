@@ -80,8 +80,14 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
     catch { warnings.push(`Card #${p.id}: invalid spellType int ${p.spellType}`); }
   }
   if (p.trapTrigger) {
-    try { card.trapTrigger = intToTrapTrigger(p.trapTrigger); }
-    catch { warnings.push(`Card #${p.id}: invalid trapTrigger int ${p.trapTrigger}`); }
+    if (typeof p.trapTrigger === 'string' && isTrapTrigger(p.trapTrigger)) {
+      card.trapTrigger = p.trapTrigger;
+    } else if (typeof p.trapTrigger === 'number') {
+      try { card.trapTrigger = intToTrapTrigger(p.trapTrigger); }
+      catch { warnings.push(`Card #${p.id}: invalid trapTrigger int ${p.trapTrigger}`); }
+    } else {
+      warnings.push(`Card #${p.id}: invalid trapTrigger value ${p.trapTrigger}`);
+    }
   }
   if (!card.trapTrigger && type === CardType.Trap && card.effect) {
     const trigger = card.effect.trigger;
