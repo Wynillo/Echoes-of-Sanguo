@@ -43,4 +43,4 @@ Read `docs/tcg-format.md` at the start of any task requiring format details. For
 1. Always read relevant source files first
 2. Ensure IDs are unique, enums correct, effects parse correctly
 3. Keep files in sync (new card → add to `locales/cards_description.json` too)
-4. Run `npm run copy:tcg` to update base.tcg after dependency changes
+4. The Vite build auto-copies base.tcg from @wynillo/echoes-mod-base — no manual copy step needed
