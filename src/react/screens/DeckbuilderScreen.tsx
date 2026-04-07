@@ -345,8 +345,7 @@ export default function DeckbuilderScreen() {
               {visibleCards.map(card => {
                 const copies = copyMap[card.id] || 0;
                 const atMax  = isAtMax(card.id);
-                const full   = currentDeck.length >= MAX_DECK;
-                const dimmed = activeTab === 'collection' && (atMax || full);
+                const dimmed = activeTab === 'collection' && atMax;
                 return (
                   <div
                     key={card.id}
@@ -395,8 +394,7 @@ export default function DeckbuilderScreen() {
                   {visibleCards.map(card => {
                     const copies     = copyMap[card.id] || 0;
                     const atMax      = isAtMax(card.id);
-                    const full       = currentDeck.length >= MAX_DECK;
-                    const dimmed     = activeTab === 'collection' && (atMax || full);
+                    const dimmed     = activeTab === 'collection' && atMax;
                     const rarMeta    = getRarityById(card.rarity as number);
                     const rarColor   = rarMeta?.color ?? '#aaa';
                     const typeLbl    = card.type === CardType.Monster && card.effect
@@ -437,7 +435,7 @@ export default function DeckbuilderScreen() {
                           <div><GiShield className={styles.statIcon} /> {card.def ?? '\u2014'}</div>
                         </td>
                         <td
-                          className={`${styles.deckCountCell}${copies >= maxCp && copies > 0 ? ` ${styles.deckCountMax}` : copies > 0 ? ` ${styles.deckCountActive}` : ''}${full && copies === 0 ? ` ${styles.deckCountDimmed}` : ''}`}
+                          className={`${styles.deckCountCell}${copies >= maxCp && copies > 0 ? ` ${styles.deckCountMax}` : copies > 0 ? ` ${styles.deckCountActive}` : ''}`}
                           onClick={e => { e.stopPropagation(); cycleDeckCount(card.id); }}
                         >
                           <strong>{copies}</strong>/{maxCp}
