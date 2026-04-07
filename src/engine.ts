@@ -485,6 +485,7 @@ export class GameEngine {
     this._recalcFieldSpellBonuses(fc);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    await this._checkAnySummonTraps(owner, zone);
     this.ui.render(this.state);
     return true;
   }

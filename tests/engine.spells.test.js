@@ -355,6 +355,25 @@ describe('specialSummonFromGrave', () => {
     expect(fc).not.toBeNull();
     expect(engine.state.player.graveyard.find(c => c.id === 'TST_MON')).toBeUndefined();
   });
+
+  it('checks summon traps when reviving from graveyard', async () => {
+    const { engine } = makeEngine();
+    const graveCard = { ...CARD.monsterB };
+    engine.state.player.graveyard.push(graveCard);
+
+    const summonTrap = {
+      id: 'TST_SUMMON_TRAP', name: 'TrapHole', type: CardType.Trap,
+      description: 'Destroy if ATK >= 1000', trapTrigger: 'onAnySummon',
+      effect: { trigger: 'onAnySummon', actions: [{ type: 'destroySummonedIf', minAtk: 1000 }] },
+    };
+    engine.state.opponent.field.spellTraps[0] = new FieldSpellTrap(summonTrap, true);
+
+    await engine.specialSummonFromGrave('player', graveCard);
+
+    const fc = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_MON2');
+    expect(fc).toBeUndefined();
+    expect(engine.state.player.graveyard.find(c => c.id === 'TST_MON2')).toBeDefined();
+  });
 });
 
 // ── activateFieldSpell ──────────────────────────────────────
