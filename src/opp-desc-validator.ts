@@ -1,8 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — Opponent Description Validator
-// Validates TcgOpponentDescription[] from *opponents_description.json
-// ============================================================
-
 import type { ValidationResult } from './types.js';
 
 function validateSingleOppDesc(desc: unknown, index: number): string[] {

@@ -1,8 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — TCG Archive Validator
-// Validates the structure and content of a .tcg (ZIP) file
-// ============================================================
-
 import type JSZip from 'jszip';
 import type { TcgCard, TcgOpponentDescription, TcgManifest, ValidationResult } from './types.js';
 import { validateTcgCards } from './card-validator.js';
@@ -63,7 +58,7 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
   try {
     const cardsJson = await cardsFile.async('string');
     const cardsData = JSON.parse(cardsJson);
-    const cardsResult = validateTcgCards(cardsData, { validRarities: customRarityIds });
+    const cardsResult = validateTcgCards(cardsData);
     if (!cardsResult.valid) {
       errors.push(...cardsResult.errors.map(e => `cards.json: ${e}`));
     }
@@ -148,7 +143,7 @@ export async function validateTcgArchive(zip: JSZip): Promise<ValidationResult &
               warnings.push(`${metaFile}[${i}] must be an object`);
               continue;
             }
-            for (const field of ['id', 'key', 'value', 'color']) {
+            for (const field of ['id', 'key', 'color']) {
               if (!(field in item)) warnings.push(`${metaFile}[${i}] missing required field '${field}'`);
             }
             if (typeof item.id !== 'number') warnings.push(`${metaFile}[${i}].id must be a number`);

@@ -1,17 +1,10 @@
-// ============================================================
-// ECHOES OF SANGUO — Card JSON Validator
-// Validates TcgCard[] from cards.json
-// ============================================================
-
 import type { ValidationResult } from './types.js';
-import { TCG_TYPES, TCG_ATTRIBUTES, TCG_RARITIES, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_EQUIPMENT, TCG_SPELL_TYPES, TCG_TRAP_TRIGGERS, TCG_TRAP_TRIGGER_NAME_TO_ID } from './types.js';
+import { TCG_TYPES, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_EQUIPMENT, TCG_SPELL_TYPES, TCG_TRAP_TRIGGERS, TCG_TRAP_TRIGGER_NAME_TO_ID } from './types.js';
 const VALID_TYPES       = new Set(TCG_TYPES);
-const VALID_ATTRIBUTES  = new Set(TCG_ATTRIBUTES);
-const VALID_RARITIES    = new Set(TCG_RARITIES);
 const VALID_SPELL_TYPES = new Set(TCG_SPELL_TYPES);
 const VALID_TRAP_TRIGGERS = new Set(TCG_TRAP_TRIGGERS);
 
-function validateSingleCard(card: unknown, index: number, validRarities: Set<number>): string[] {
+function validateSingleCard(card: unknown, index: number): string[] {
   const errors: string[] = [];
   const prefix = `cards[${index}]`;
 
@@ -83,7 +76,7 @@ function validateSingleCard(card: unknown, index: number, validRarities: Set<num
       }
     }
     if (c.equipReqAttr !== undefined && c.equipReqAttr !== null) {
-      if (typeof c.equipReqAttr !== 'number' || !VALID_ATTRIBUTES.has(c.equipReqAttr as typeof TCG_ATTRIBUTES[number])) {
+      if (typeof c.equipReqAttr !== 'number') {
         errors.push(`${prefix}.equipReqAttr: must be a valid attribute, got ${c.equipReqAttr}`);
       }
     }
@@ -99,17 +92,20 @@ function validateSingleCard(card: unknown, index: number, validRarities: Set<num
     }
   }
 
-  // rarity: required int in valid set (extensible via rarities.json)
-  if (typeof c.rarity !== 'number' || !validRarities.has(c.rarity)) {
-    errors.push(`${prefix}.rarity: must be one of [${[...validRarities].sort((a, b) => a - b).join(',')}], got ${c.rarity}`);
-  }
-
-  // attribute: optional int 1-6
-  if (c.attribute !== undefined && c.attribute !== null) {
-    if (typeof c.attribute !== 'number' || !VALID_ATTRIBUTES.has(c.attribute as typeof TCG_ATTRIBUTES[number])) {
-      errors.push(`${prefix}.attribute: must be one of [${[...VALID_ATTRIBUTES].join(',')}], got ${c.attribute}`);
+  // rarity: positive int (extensible)
+  if (c.rarity !== undefined && c.rarity !== null) {
+    if (typeof c.race !== 'number' || !Number.isInteger(c.race) || c.race < 1) {
+      errors.push(`${prefix}.rarity:  must be a positive integer, got ${c.rarity}`);
     }
   }
+
+  // attribute: positive int (extensible)
+  if (c.attribute !== undefined && c.attribute !== null) {
+    if (typeof c.attribute !== 'number' || !Number.isInteger(c.attribute) || c.attribute < 1) {
+      errors.push(`${prefix}.attribute:  must be a positive integer, got ${c.attribute}`);
+    }
+  }
+
 
   // race: optional positive int (extensible — mods can define races beyond the base 12)
   if (c.race !== undefined && c.race !== null) {
@@ -168,12 +164,10 @@ function validateSingleCard(card: unknown, index: number, validRarities: Set<num
  * Validate an array of TcgCard objects from cards.json
  */
 export function validateTcgCards(
-  data: unknown,
-  options?: { validRarities?: Set<number> },
+  data: unknown
 ): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
-  const rarities = options?.validRarities ?? VALID_RARITIES;
 
   if (!Array.isArray(data)) {
     return { valid: false, errors: ['cards.json must contain a JSON array'], warnings };
@@ -186,7 +180,7 @@ export function validateTcgCards(
   // Validate each card
   const seenIds = new Set<number>();
   for (let i = 0; i < data.length; i++) {
-    const cardErrors = validateSingleCard(data[i], i, rarities);
+    const cardErrors = validateSingleCard(data[i], i);
     errors.push(...cardErrors);
 
     // Check for duplicate IDs

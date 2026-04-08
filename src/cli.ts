@@ -1,9 +1,4 @@
 #!/usr/bin/env node
-// ============================================================
-// ECHOES OF SANGUO — TCG Format CLI
-// Usage: tcg-format <command> [options]
-// ============================================================
-
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';

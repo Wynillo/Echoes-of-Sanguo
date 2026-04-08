@@ -1,8 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — TCG Archive Packer
-// Packs a source folder into a distributable .tcg (ZIP) archive.
-// ============================================================
-
 import { readFile, writeFile, readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import JSZip from 'jszip';

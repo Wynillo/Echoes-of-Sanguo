@@ -115,9 +115,7 @@ export async function loadTcgFile(
     if (!response.ok) throw new TcgNetworkError(source, response.status);
     buffer = await response.arrayBuffer();
   } else if (ArrayBuffer.isView(source)) {
-    // Handle Uint8Array / Buffer — slice to the correct byte range to avoid
-    // Node.js Buffer pooling issues where .buffer is larger than the data.
-    buffer = source.buffer.slice(source.byteOffset, source.byteOffset + source.byteLength);
+    buffer = new Uint8Array(source).buffer;
   } else {
     buffer = source;
   }
@@ -140,16 +138,6 @@ export async function loadTcgFile(
 
   const { cards, opponentDescriptions, imageIds, manifest, localeOverrides } = result.contents;
   const warnings = result.warnings;
-
-  // Validate format version from manifest
-  if (manifest && manifest.formatVersion > SUPPORTED_FORMAT_VERSION) {
-    throw new TcgFormatError(
-      `TCG format version mismatch: archive is v${manifest.formatVersion}, ` +
-      `loader supports up to v${SUPPORTED_FORMAT_VERSION}. ` +
-      `Please update the game engine or regenerate base.tcg with \`npm run generate:tcg\`.`
-    );
-  }
-  onProgress?.(20);
 
   // Extract images as raw ArrayBuffers (environment-agnostic — no blob URLs)
   const rawImages = new Map<number, ArrayBuffer>();
@@ -274,15 +262,6 @@ export async function loadTcgFile(
   typeMeta.attributes = await loadMetadataFile(zip, 'attributes.json', lang, warnings) ?? undefined;
   typeMeta.cardTypes = await loadMetadataFile(zip, 'card_types.json', lang, warnings) ?? undefined;
 
-  // Rarities have no locale overrides
-  const raritiesZipFile = zip.file('rarities.json');
-  if (raritiesZipFile) {
-    try {
-      typeMeta.rarities = JSON.parse(await raritiesZipFile.async('string'));
-    } catch {
-      warnings.push('rarities.json: failed to parse, using defaults');
-    }
-  }
   onProgress?.(85);
 
   // Load campaign.json if present

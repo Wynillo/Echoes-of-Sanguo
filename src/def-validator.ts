@@ -1,8 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — Card Definition Validator
-// Validates TcgCardDefinition[] (standalone; not called by archive validator)
-// ============================================================
-
 import type { ValidationResult } from './types.js';
 
 function validateSingleDefinition(def: unknown, index: number): string[] {

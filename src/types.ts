@@ -1,8 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — .tcg File Format Types
-// Int-based enums for the portable card exchange format
-// ============================================================
-
 // ── Card Type ────────────────────────────────────────────────
 // 1=Monster (normal+effect), 2=Fusion, 3=Spell, 4=Trap, 5=Equipment
 export const TCG_TYPE_MONSTER   = 1;
@@ -57,40 +52,8 @@ export const TCG_TRAP_TRIGGER_NAME_TO_ID: Record<string, number> = {
   onOpponentDraw:        TCG_TRAP_ON_OPPONENT_DRAW,
 };
 
-// ── Attribute ────────────────────────────────────────────────
-export const TCG_ATTR_LIGHT = 1;
-export const TCG_ATTR_DARK  = 2;
-export const TCG_ATTR_FIRE  = 3;
-export const TCG_ATTR_WATER = 4;
-export const TCG_ATTR_EARTH = 5;
-export const TCG_ATTR_WIND  = 6;
-export const TCG_ATTRIBUTES = [TCG_ATTR_LIGHT, TCG_ATTR_DARK, TCG_ATTR_FIRE, TCG_ATTR_WATER, TCG_ATTR_EARTH, TCG_ATTR_WIND] as const;
-
-// ── Race ─────────────────────────────────────────────────────
-export const TCG_RACE_DRAGON      = 1;
-export const TCG_RACE_SPELLCASTER = 2;
-export const TCG_RACE_WARRIOR     = 3;
-export const TCG_RACE_BEAST       = 4;
-export const TCG_RACE_PLANT       = 5;
-export const TCG_RACE_ROCK        = 6;
-export const TCG_RACE_PHOENIX     = 7;
-export const TCG_RACE_UNDEAD      = 8;
-export const TCG_RACE_AQUA        = 9;
-export const TCG_RACE_INSECT      = 10;
-export const TCG_RACE_MACHINE     = 11;
-export const TCG_RACE_PYRO        = 12;
-export const TCG_RACES = [TCG_RACE_DRAGON, TCG_RACE_SPELLCASTER, TCG_RACE_WARRIOR, TCG_RACE_BEAST, TCG_RACE_PLANT, TCG_RACE_ROCK, TCG_RACE_PHOENIX, TCG_RACE_UNDEAD, TCG_RACE_AQUA, TCG_RACE_INSECT, TCG_RACE_MACHINE, TCG_RACE_PYRO] as const;
-
-// ── Rarity (1-8 range) ──────────────────────────────────────
-export const TCG_RARITY_COMMON     = 1;
-export const TCG_RARITY_UNCOMMON   = 2;
-export const TCG_RARITY_RARE       = 4;
-export const TCG_RARITY_SUPER_RARE = 6;
-export const TCG_RARITY_ULTRA_RARE = 8;
-export const TCG_RARITIES = [TCG_RARITY_COMMON, TCG_RARITY_UNCOMMON, TCG_RARITY_RARE, TCG_RARITY_SUPER_RARE, TCG_RARITY_ULTRA_RARE] as const;
 
 // ── Card Schema ──────────────────────────────────────────────
-
 export interface TcgCard {
   id:         number;
   level:      number;       // 1-12
@@ -114,7 +77,6 @@ export interface TcgCard {
 }
 
 // ── Card Definition (localized) ──────────────────────────────
-
 export interface TcgCardDefinition {
   id:          number;
   name:        string;
@@ -123,7 +85,6 @@ export interface TcgCardDefinition {
 
 // ── Parsed Card (flat merge of TcgCard + TcgCardDefinition) ──
 // Wire-format ints are left as-is; the engine bridge handles int→enum/string conversion.
-
 export interface TcgParsedCard {
   id:            number;
   name:          string;     // from TcgCardDefinition for the requested locale
@@ -147,7 +108,6 @@ export interface TcgParsedCard {
 }
 
 // ── Opponent Deck (opponents/opponent_deck_N.json inside base.tcg) ──
-
 export interface TcgOpponentDeck {
   id:        number;
   name:      string;
@@ -161,7 +121,6 @@ export interface TcgOpponentDeck {
 }
 
 // ── Opponent Description (localized) ────────────────────────────
-
 export interface TcgOpponentDescription {
   id:     number;
   name:   string;
@@ -170,7 +129,6 @@ export interface TcgOpponentDescription {
 }
 
 // ── Manifest (format versioning & feature flags) ────────────────
-
 export interface TcgManifest {
   formatVersion: number;
   name?: string;
@@ -180,7 +138,6 @@ export interface TcgManifest {
 }
 
 // ── Races JSON ───────────────────────────────────────────────
-
 export interface TcgRaceEntry {
   id:     number;
   key:    string;
@@ -191,7 +148,6 @@ export interface TcgRaceEntry {
 export type TcgRacesJson = TcgRaceEntry[];
 
 // ── Attributes JSON ──────────────────────────────────────────
-
 export interface TcgAttributeEntry {
   id:      number;
   key:     string;
@@ -202,7 +158,6 @@ export interface TcgAttributeEntry {
 export type TcgAttributesJson = TcgAttributeEntry[];
 
 // ── Card Types JSON ──────────────────────────────────────────
-
 export interface TcgCardTypeEntry {
   id:    number;
   key:   string;
@@ -212,7 +167,6 @@ export interface TcgCardTypeEntry {
 export type TcgCardTypesJson = TcgCardTypeEntry[];
 
 // ── Rarities JSON ────────────────────────────────────────────
-
 export interface TcgRarityEntry {
   id:    number;
   key:   string;
@@ -222,7 +176,6 @@ export interface TcgRarityEntry {
 export type TcgRaritiesJson = TcgRarityEntry[];
 
 // ── Mod Metadata (mod.json) ─────────────────────────────────
-
 export interface TcgModJson {
   id:           string;
   name:         string;
@@ -246,7 +199,6 @@ export interface TcgModJson {
 export type TcgLocaleOverrides = Record<string, string>;
 
 // ── Fusion Formulas (type-based, Forbidden Memories style) ──
-
 export interface TcgFusionFormula {
   id:         string;
   comboType:  string;    // 'race+race' | 'race+attr' | 'attr+attr'
@@ -263,7 +215,6 @@ export interface TcgMeta {
 }
 
 // ── Validation result ────────────────────────────────────────
-
 export interface ValidationResult {
   valid:    boolean;
   errors:   string[];
@@ -271,7 +222,6 @@ export interface ValidationResult {
 }
 
 // ── Shop JSON schema ─────────────────────────────────────────
-
 export interface TcgPackSlot {
   count: number;
   rarity?: number;
@@ -318,7 +268,6 @@ export interface TcgShopJson {
 }
 
 // ── Campaign JSON ────────────────────────────────────────────
-
 export interface CampaignData { chapters: CampaignChapter[]; }
 export type TcgCampaignJson = CampaignData;
 
@@ -365,7 +314,6 @@ export interface ForegroundSprite {
 }
 
 // ── Game Rules ──────────────────────────────────────────
-
 export interface TcgGameRules {
   startingLP:        number;   // life points at game start
   maxLP:             number;   // hard cap on life points
@@ -393,7 +341,6 @@ export const DEFAULT_GAME_RULES: TcgGameRules = {
 };
 
 // ── Load result ──────────────────────────────────────────────
-
 export interface TcgLoadResult {
   cards:                TcgCard[];
   parsedCards:          TcgParsedCard[];
