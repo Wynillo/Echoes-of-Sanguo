@@ -5,7 +5,7 @@
 import type { CardData } from './types.js';
 import { CardType } from './types.js';
 import type { TcgCard, TcgCardDefinition, TcgManifest, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson } from '@wynillo/tcg-format';
-import { cardTypeToInt, attributeToInt, raceToInt, rarityToInt, spellTypeToInt, trapTriggerToInt } from './enums.js';
+import { cardTypeToInt, trapTriggerToInt } from './enums.js';
 import { serializeEffect } from './effect-serializer.js';
 import type { RaceMeta, AttributeMeta, CardTypeMeta, RarityMeta } from './type-metadata.js';
 
@@ -14,23 +14,22 @@ export function cardDataToTcgCard(card: CardData, numId: number): TcgCard {
   const tc: TcgCard = {
     id:     numId,
     level:  card.level ?? 1,
-    rarity: card.rarity ? rarityToInt(card.rarity) : 1,
+    rarity: card.rarity ? card.rarity : 1,
     type:   cardTypeToInt(card.type),
   };
   if (isMonster) {
     if (card.atk !== undefined) tc.atk = card.atk;
     if (card.def !== undefined) tc.def = card.def;
-    if (card.attribute)         tc.attribute = attributeToInt(card.attribute);
-    if (card.race)              tc.race = raceToInt(card.race);
+    if (card.attribute !== undefined) tc.attribute = card.attribute;
+    if (card.race !== undefined) tc.race = card.race;
   }
   if (card.effect) tc.effect = serializeEffect(card.effect);
-  if (card.spellType)   tc.spellType   = spellTypeToInt(card.spellType);
   if (card.trapTrigger) tc.trapTrigger = trapTriggerToInt(card.trapTrigger);
   if (card.target)      tc.target      = card.target;
   if (card.atkBonus !== undefined) tc.atkBonus = card.atkBonus;
   if (card.defBonus !== undefined) tc.defBonus = card.defBonus;
-  if (card.equipRequirement?.race) tc.equipReqRace = raceToInt(card.equipRequirement.race);
-  if (card.equipRequirement?.attr) tc.equipReqAttr = attributeToInt(card.equipRequirement.attr);
+  if (card.equipRequirement?.race) tc.equipReqRace = card.equipRequirement.race;
+  if (card.equipRequirement?.attr) tc.equipReqAttr = card.equipRequirement.attr;
   return tc;
 }
 
@@ -39,16 +38,6 @@ export function cardDataToTcgDef(card: CardData, numId: number): TcgCardDefiniti
     id:          numId,
     name:        card.name,
     description: card.description ?? '',
-  };
-}
-
-/**
- * Create a default TcgManifest with sensible defaults.
- */
-export function buildManifest(overrides?: Partial<TcgManifest>): TcgManifest {
-  return {
-    formatVersion: 2,
-    ...overrides,
   };
 }
 

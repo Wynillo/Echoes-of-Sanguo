@@ -1,5 +1,4 @@
 import { Application, Container } from 'pixi.js';
-import { Rarity } from '../../types.js';
 import { runPackReveal } from './effects/packReveal.js';
 
 let _app: Application | null = null;
@@ -36,7 +35,7 @@ export const fxManager = {
   },
 
   packReveal(rarity: number, cardEl: HTMLElement): void {
-    if (!_app || rarity < Rarity.Rare) return;
+    if (!_app || rarity < 4) return;
     const c = new Container();
     _app.stage.addChild(c);
     _containers.add(c);

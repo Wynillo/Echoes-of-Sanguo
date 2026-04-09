@@ -1,5 +1,4 @@
 import { Application, Container, Graphics } from 'pixi.js';
-import { Rarity } from '../../../types.js';
 import { fxManager } from '../fxManager.js';
 
 export interface RarityConfig {
@@ -11,21 +10,21 @@ export interface RarityConfig {
 }
 
 export const RARITY_CONFIG: Record<number, RarityConfig> = {
-  [Rarity.Rare]: {
+  [4]: {
     particleCount: 60,
     beamCount: 4,
     palette: [0x7090ff, 0x4060cc, 0xa0c0ff, 0xffffff, 0x8888ff],
     bloomRadius: 0,
     spiral: false,
   },
-  [Rarity.SuperRare]: {
+  [6]: {
     particleCount: 120,
     beamCount: 6,
     palette: [0xffd700, 0xffaa00, 0xfff0a0, 0xffffff, 0xff8800],
     bloomRadius: 120,
     spiral: false,
   },
-  [Rarity.UltraRare]: {
+  [8]: {
     particleCount: 180,
     beamCount: 8,
     palette: [0xe070ff, 0x9030cc, 0xff80ff, 0xffffff, 0xc040ff, 0xff60ff],

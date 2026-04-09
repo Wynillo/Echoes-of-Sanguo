@@ -1,6 +1,6 @@
 import { EchoesOfSanguo } from './debug-logger.js';
 import { GAME_RULES } from './rules.js';
-import { CardType, Attribute, isMonsterType } from './types.js';
+import { CardType, isMonsterType } from './types.js';
 import type { AIBehavior, AIGoal, BoardSnapshot, CardData, Owner, Position, TrapTrigger, GameState, PlayerState } from './types.js';
 import type { FieldCard } from './field.js';
 import { checkFusion, CARD_DB, FUSION_RECIPES } from './cards.js';
@@ -20,12 +20,9 @@ import {
   planAttacks,
   pickEquipTarget,
   pickDebuffTarget,
-  pickBestGraveyardMonster,
-  pickSpellBuffTarget,
   aiCombatValue,
   aiEffectiveATK,
   aiEffectiveDEF,
-  type AttackPlan,
 } from './ai-behaviors.js';
 
 interface TurnContext {
@@ -225,8 +222,6 @@ async function aiMainPhase(deps: AIDependencies): Promise<void> {
     isWinning:  computeBoardThreat(snap) > 0,
   };
 
-  await _activateFieldSpells(deps);
-
   EchoesOfSanguo.log('AI', 'Main Phase – checking fusion chain...');
   if(!ai.normalSummonUsed && bh.fusionFirst){
     const bestChain = _findSmartFusionChain(ai.hand, bh.fusionMinATK, plr.field.monsters, ctx.activeGoal, ai.field.monsters);
@@ -321,19 +316,6 @@ async function aiMainPhase(deps: AIDependencies): Promise<void> {
   await _activateSpells(deps, ctx);
 }
 
-async function _activateFieldSpells(deps: AIDependencies): Promise<void> {
-  const ai = deps.getOpponentState();
-  for (let i = 0; i < ai.hand.length; i++) {
-    const card = ai.hand[i];
-    if (card.type === CardType.Spell && card.spellType === 'field' && !ai.field.fieldSpell) {
-      EchoesOfSanguo.log('SPELL', `Activating ${card.name} (field spell – pre-summon)`);
-      await deps.delay(300);
-      await deps.activateFieldSpell('opponent', i);
-      break;
-    }
-  }
-}
-
 async function _activateSpells(deps: AIDependencies, ctx: TurnContext): Promise<void> {
   const ai  = deps.getOpponentState();
   const plr = deps.getPlayerState();
@@ -359,7 +341,6 @@ async function _activateSpells(deps: AIDependencies, ctx: TurnContext): Promise<
       if(card.type !== CardType.Spell) continue;
       let activated = false;
 
-      if(card.spellType === 'normal'){
         const actions = card.effect?.actions ?? [];
         const dealsDamage = actions.some(a => a.type === 'dealDamage');
         const heals = actions.some(a => a.type === 'gainLP');
@@ -396,32 +377,6 @@ async function _activateSpells(deps: AIDependencies, ctx: TurnContext): Promise<
           EchoesOfSanguo.log('SPELL', `Activating ${card.name} (normal)`);
           await deps.delay(300); await deps.activateSpell('opponent', i); activated = true;
         }
-      } else if(card.spellType === 'targeted'){
-        if(card.target === 'ownDarkMonster'){
-          const t = ai.field.monsters.find(m => m && m.card.attribute===Attribute.Dark);
-          if(t){
-            EchoesOfSanguo.log('SPELL', `Activating ${card.name} → target: ${t.card.name}`);
-            await deps.delay(300); await deps.activateSpell('opponent', i, t); activated = true;
-          }
-        } else if(card.target === 'ownMonster'){
-          const target = pickSpellBuffTarget(ai.field.monsters, plr.field.monsters);
-          if(target){
-            EchoesOfSanguo.log('SPELL', `Activating ${card.name} → target: ${target.card.name} (smart pick)`);
-            await deps.delay(300); await deps.activateSpell('opponent', i, target); activated = true;
-          }
-        }
-      } else if(card.spellType === 'field'){
-        if(!ai.field.fieldSpell){
-          EchoesOfSanguo.log('SPELL', `Activating ${card.name} (field spell)`);
-          await deps.delay(300); await deps.activateFieldSpell('opponent', i); activated = true;
-        }
-      } else if(card.spellType === 'fromGrave'){
-        const bestGM = pickBestGraveyardMonster(ai.graveyard, plr.field.monsters);
-        if(bestGM && ai.field.monsters.some(z => z === null)){
-          EchoesOfSanguo.log('SPELL', `Activating ${card.name} → reviving ${bestGM.name} (smart pick, ATK:${bestGM.atk})`);
-          await deps.delay(300); await deps.activateSpell('opponent', i, bestGM); activated = true;
-        }
-      }
       if(activated){ spellActivated = true; break; }
     }
   }

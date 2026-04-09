@@ -1,8 +1,3 @@
-// ============================================================
-// Card Data Integrity Tests
-// Ensures card descriptions match actual card data and contain
-// no localization bugs (mixed languages, wrong metadata, etc.)
-// ============================================================
 import { describe, it, expect } from 'vitest';
 import { CARD_DB } from '../src/cards.js';
 import { CardType } from '../src/types.js';

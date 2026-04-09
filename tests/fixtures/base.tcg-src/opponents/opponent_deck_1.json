@@ -1,0 +1,11 @@
+{
+  "id": 1,
+  "name": "Forest Guardian",
+  "title": "Protector of the Woods",
+  "race": 4,
+  "flavor": "The forest shall not fall while I stand.",
+  "coinsWin": 50,
+  "coinsLoss": 20,
+  "deckIds": [1, 2, 3],
+  "behavior": "defensive"
+}

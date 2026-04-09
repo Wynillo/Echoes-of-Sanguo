@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CARD_DB } from '../src/cards.js';
-import { Rarity, Race, CardType } from '../src/types.js';
+import { CardType } from '../src/types.js';
 import { RARITY_DROP_RATES, openPackage, buildCardPool } from '../src/react/utils/pack-logic.js';
 import { SHOP_DATA } from '../src/shop-data.js';
 import { Progression } from '../src/progression.js';
@@ -15,9 +15,7 @@ describe('RARITY_DROP_RATES', () => {
   });
 
   it('contains all five rarities', () => {
-    expect(Object.keys(RARITY_DROP_RATES).map(Number).sort((a, b) => a - b)).toEqual([
-      Rarity.Common, Rarity.Uncommon, Rarity.Rare, Rarity.SuperRare, Rarity.UltraRare,
-    ]);
+    expect(Object.keys(RARITY_DROP_RATES).map(Number).sort((a, b) => a - b)).toEqual([1, 2, 4, 6, 8]);
   });
 });
 
@@ -87,10 +85,10 @@ describe('buildCardPool', () => {
   });
 
   it('filters by maxRarity', () => {
-    const pool = buildCardPool({ include: { maxRarity: Rarity.Rare } });
+    const pool = buildCardPool({ include: { maxRarity: 4 } });
     for (const card of pool) {
-      const rarity = card.rarity ?? Rarity.Common;
-      expect(rarity).toBeLessThanOrEqual(Rarity.Rare);
+      const rarity = card.rarity ?? 1;
+      expect(rarity).toBeLessThanOrEqual(4);
     }
   });
 });

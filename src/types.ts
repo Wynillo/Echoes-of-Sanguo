@@ -3,7 +3,6 @@ export type Phase        = 'draw' | 'main' | 'battle' | 'end';
 export type Position     = 'atk' | 'def';
 export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell' | 'onAnySummon' | 'onOpponentTrap' | 'onOppCardEffect' | 'onOpponentDraw';
 export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlipSummon' | 'onFlip' | 'onDealBattleDamage' | 'onSentToGrave';
-export type SpellType    = 'normal' | 'targeted' | 'fromGrave' | 'field';
 
 // Monster covers both normal and effect cards; distinction via effect field.
 export enum CardType {
@@ -14,41 +13,9 @@ export enum CardType {
   Equipment = 5,
 }
 
-export enum Attribute {
-  Light = 1,
-  Dark  = 2,
-  Fire  = 3,
-  Water = 4,
-  Earth = 5,
-  Wind  = 6,
-}
-
+export type Attribute = number;
 export type Race = number;
-export const Race = {
-  Dragon:      1,
-  Spellcaster: 2,
-  Warrior:     3,
-  Beast:       4,
-  Plant:       5,
-  Rock:        6,
-  Phoenix:     7,
-  Undead:      8,
-  Aqua:        9,
-  Insect:      10,
-  Machine:     11,
-  Pyro:        12,
-} as const;
-
-export enum Rarity {
-  Common    = 1,
-  Uncommon  = 2,
-  Rare      = 4,
-  SuperRare = 6,
-  UltraRare = 8,
-}
-
-/** @deprecated Use Rarity enum instead */
-export type RarityLevel = Rarity;
+export type Rarity = number;
 
 export function isEffectMonster(card: CardData): boolean {
   return card.type === CardType.Monster && !!card.effect;
@@ -60,11 +27,6 @@ export function isMonsterType(type: CardType): boolean {
 
 export function isEquipmentType(type: CardType): boolean {
   return type === CardType.Equipment;
-}
-
-export interface VsAttrBonus {
-  attr: Attribute;
-  atk:  number;
 }
 
 export type ValueExpr =
@@ -92,78 +54,83 @@ export interface CardFilter {
  * Modders can extend this via declaration merging to add custom effect types.
  */
 export interface EffectDescriptorMap {
-  dealDamage:            { target: 'opponent' | 'self'; value: ValueExpr };
-  gainLP:               { target: 'opponent' | 'self'; value: number | ValueExpr };
-  draw:                 { target: 'self' | 'opponent'; count: number };
-  buffField:            { value: number; filter?: CardFilter };
-  tempBuffField:        { value: number; filter?: CardFilter };
-  debuffField:          { atkD: number; defD: number };
-  tempDebuffField:      { atkD: number; defD?: number };
-  bounceStrongestOpp:   {};
-  bounceAttacker:       {};
-  bounceAllOppMonsters: {};
-  searchDeckToHand:     { filter: CardFilter };
-  tempAtkBonus:         { target: StatTarget; value: number };
-  permAtkBonus:         { target: StatTarget; value: number; filter?: CardFilter };
-  tempDefBonus:         { target: StatTarget; value: number };
-  permDefBonus:         { target: StatTarget; value: number };
-  reviveFromGrave:      {};
-  cancelAttack:         {};
-  cancelEffect:         {};
-  destroyAttacker:      {};
-  destroySummonedIf:    { minAtk: number };
-  destroyAllOpp:        {};
-  destroyAll:           {};
-  destroyWeakestOpp:    {};
-  destroyStrongestOpp:  {};
-  sendTopCardsToGrave:    { count: number };
-  sendTopCardsToGraveOpp: { count: number };
-  salvageFromGrave:       { filter: CardFilter };
-  recycleFromGraveToDeck: { filter: CardFilter };
-  shuffleGraveIntoDeck:   {};
-  shuffleDeck:            {};
-  peekTopCard:            {};
-  specialSummonFromHand:  { filter?: CardFilter };
-  discardFromHand:      { count: number };
-  discardOppHand:       { count: number };
-  passive_piercing:          {};
-  passive_untargetable:      {};
-  passive_directAttack:      {};
-  passive_vsAttrBonus:  { attr: Attribute; atk: number };
-  passive_phoenixRevival:    {};
-  passive_indestructible:    {};
-  passive_effectImmune:      {};
-  passive_cantBeAttacked:    {};
-  destroyOppSpellTrap:       {};
-  destroyAllOppSpellTraps:   {};
-  destroyAllSpellTraps:      {};
-  destroyOppFieldSpell:      {};
-  changePositionOpp:         {};
-  setFaceDown:               {};
-  flipAllOppFaceDown:        {};
-  destroyByFilter:           { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' };
-  halveAtk:                  { target: StatTarget };
-  doubleAtk:                 { target: StatTarget };
-  swapAtkDef:                { side: 'self' | 'opponent' | 'all' };
-  specialSummonFromDeck:     { filter: CardFilter; faceDown?: boolean; position?: Position };
-  reflectBattleDamage:       {};
-  stealMonster:              {};
-  skipOppDraw:               {};
-  discardEntireHand:         { target: 'self' | 'opponent' | 'both' };
-  destroyAndDamageBoth:      { side: 'opponent' | 'self' };
-  preventBattleDamage:       {};
-  passive_negateTraps:       {};
-  passive_negateSpells:      {};
+  dealDamage:                   { target: 'opponent' | 'self'; value: ValueExpr };
+  gainLP:                       { target: 'opponent' | 'self'; value: number | ValueExpr };
+  draw:                         { target: 'self' | 'opponent'; count: number };
+  buffField:                    { value: number; filter?: CardFilter };
+  tempBuffField:                { value: number; filter?: CardFilter };
+  debuffField:                  { atkD: number; defD: number };
+  tempDebuffField:              { atkD: number; defD?: number };
+  bounceStrongestOpp:           {};
+  bounceAttacker:               {};
+  bounceAllOppMonsters:         {};
+  searchDeckToHand:             { filter: CardFilter };
+  tempAtkBonus:                 { target: StatTarget; value: number };
+  permAtkBonus:                 { target: StatTarget; value: number; filter?: CardFilter };
+  tempDefBonus:                 { target: StatTarget; value: number };
+  permDefBonus:                 { target: StatTarget; value: number };
+  reviveFromGrave:              {};
+  cancelAttack:                 {};
+  cancelEffect:                 {};
+  destroyAttacker:              {};
+  destroySummonedIf:            { minAtk: number };
+  destroyAllOpp:                {};
+  destroyAll:                   {};
+  destroyWeakestOpp:            {};
+  destroyStrongestOpp:          {};
+  sendTopCardsToGrave:          { count: number };
+  sendTopCardsToGraveOpp:       { count: number };
+  salvageFromGrave:             { filter: CardFilter };
+  recycleFromGraveToDeck:       { filter: CardFilter };
+  shuffleGraveIntoDeck:         {};
+  shuffleDeck:                  {};
+  peekTopCard:                  {};
+  specialSummonFromHand:        { filter?: CardFilter };
+  discardFromHand:              { count: number };
+  discardOppHand:               { count: number };
+  passive_piercing:             {};
+  passive_untargetable:         {};
+  passive_directAttack:         {};
+  passive_vsAttrBonus:          { attr: Attribute; atk: number };
+  passive_phoenixRevival:       {};
+  passive_indestructible:       {};
+  passive_effectImmune:         {};
+  passive_cantBeAttacked:       {};
+  destroyOppSpellTrap:          {};
+  destroyAllOppSpellTraps:      {};
+  destroyAllSpellTraps:         {};
+  destroyOppFieldSpell:         {};
+  changePositionOpp:            {};
+  setFaceDown:                  {};
+  flipAllOppFaceDown:           {};
+  destroyByFilter:              { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' };
+  halveAtk:                     { target: StatTarget };
+  doubleAtk:                    { target: StatTarget };
+  swapAtkDef:                   { side: 'self' | 'opponent' | 'all' };
+  specialSummonFromDeck:        { filter: CardFilter; faceDown?: boolean; position?: Position };
+  reflectBattleDamage:          {};
+  stealMonster:                 {};
+  skipOppDraw:                  {};
+  discardEntireHand:            { target: 'self' | 'opponent' | 'both' };
+  destroyAndDamageBoth:         { side: 'opponent' | 'self' };
+  preventBattleDamage:          {};
+  passive_negateTraps:          {};
+  passive_negateSpells:         {};
   passive_negateMonsterEffects: {};
-  stealMonsterTemp:          {};
-  reviveFromEitherGrave:     {};
-  drawThenDiscard:           { drawCount: number; discardCount: number };
-  bounceOppHandToDeck:       { count: number };
-  tributeSelf:               {};
-  preventAttacks:            { turns: number };
-  createTokens:              { tokenId: string; count: number; position: Position };
-  gameReset:                 {};
-  excavateAndSummon:         { count: number; maxLevel: number };
+  stealMonsterTemp:             {};
+  reviveFromEitherGrave:        {};
+  drawThenDiscard:              { drawCount: number; discardCount: number };
+  bounceOppHandToDeck:          { count: number };
+  tributeSelf:                  {};
+  preventAttacks:               { turns: number };
+  createTokens:                 { tokenId: string; count: number; position: Position };
+  gameReset:                    {};
+  excavateAndSummon:            { count: number; maxLevel: number };
+  millOpp:                      { count: number; } ;
+  banishOppGy:                  {};
+  negateAttack:                 {};
+  reflectDamage:                { multiplier:number };
+  negate:                       {};
 }
 
 export type EffectDescriptor = {
@@ -251,7 +218,6 @@ export interface CardData {
   effect?:      CardEffectBlock;
   effects?:     CardEffectBlock[];
   spirit?:      boolean;
-  spellType?:   SpellType;
   trapTrigger?: TrapTrigger;
   target?:      string;
   atkBonus?:    number;
@@ -305,14 +271,14 @@ export type AIGoalId =
 
 export interface AIGoal {
   id:             AIGoalId;
-  alignmentBonus: number;  // added to actions matching this goal
-  switchTurn?:    number;  // if set, deactivate goal at this turn number
+  alignmentBonus: number;
+  switchTurn?:    number;
 }
 
 export interface BoardSnapshot {
   aiLP:            number;
   plrLP:           number;
-  aiMonsterPower:  number;  // sum of effectiveATK of AI field monsters
+  aiMonsterPower:  number;
   plrMonsterPower: number;
   aiHandSize:      number;
   plrHandSize:     number;
@@ -327,8 +293,8 @@ export interface AIBehavior {
   spellRules?:              Record<string, AISpellRule>;
   defaultSpellActivation?:  'always' | 'never' | 'smart';
   goal?:                    AIGoal;
-  lookaheadDepth?:          number;  // 0 = disabled, 1 = one-step lookahead
-  gamma?:                   number;  // discount factor 0.0–1.0
+  lookaheadDepth?:          number;
+  gamma?:                   number;
   peekDeckCards?:           number;
   knowsPlayerHand?:         boolean;
   peekPlayerDeck?:          number;
@@ -451,7 +417,6 @@ export interface OpponentRecord {
 
 // Forward declarations — implemented in field.ts / engine.ts.
 // Used in type signatures above before the class files are loaded.
-
 export declare class FieldCard {
   constructor(card: CardData, position?: Position, faceDown?: boolean);
   card:             CardData;
@@ -470,7 +435,6 @@ export declare class FieldCard {
   piercing:         boolean;
   cannotBeTargeted: boolean;
   canDirectAttack:  boolean;
-  vsAttrBonus:      VsAttrBonus | null;
   phoenixRevival:   boolean;
   indestructible:   boolean;
   effectImmune:     boolean;

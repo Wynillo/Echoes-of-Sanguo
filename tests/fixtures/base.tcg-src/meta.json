@@ -1,0 +1,8 @@
+{
+  "fusionRecipes": [
+    { "materials": [1, 2], "result": 1 }
+  ],
+  "starterDecks": {
+    "1": [1, 2, 3, 4]
+  }
+}

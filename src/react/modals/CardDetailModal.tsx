@@ -5,9 +5,8 @@ import { useSelection } from '../contexts/SelectionContext.js';
 import { Card }       from '../components/Card.js';
 import { highlightCardText } from '../utils/highlightCardText.js';
 import { EffectTextBlock } from '../components/EffectTextBlock.js';
-import { CardType, Attribute, isMonsterType, meetsEquipRequirement } from '../../types.js';
+import { CardType, isMonsterType, meetsEquipRequirement } from '../../types.js';
 import type { CardData, GameState } from '../../types.js';
-import type { FieldCard } from '../../field.js';
 import type { GameEngine } from '../../engine.js';
 import { getAttrById } from '../../type-metadata.js';
 import { getFusionHints } from '../../cards.js';
@@ -86,30 +85,11 @@ export function CardDetailModal({ modal }: Props) {
     }
 
     if (isSp && phase === 'main' && source === 'field-spell') {
-      if (card.spellType === 'targeted' || card.spellType === 'fromGrave') {
-        actions.push(actionBtn(t('card_action.activate'), () => {
-          startFieldSpellTargeting(card, index, state, game, setSel, openModal, closeModal, t);
-        }));
-      } else {
         actions.push(actionBtn(t('card_action.activate'), () => {
           game.activateSpellFromField('player', index);
           closeModal();
         }));
-      }
-    } else if (isSp && card.spellType === 'field' && phase === 'main') {
-      actions.push(actionBtn(t('card_action.activate_field_spell', 'Activate Field Spell'), () => {
-        game.activateFieldSpell('player', index);
-        closeModal();
-      }));
     } else if (isSp && phase === 'main') {
-      actions.push(actionBtn(t('card_action.activate'), () => {
-        if (card.spellType === 'targeted' || card.spellType === 'fromGrave') {
-          startSpellTargeting(card, index, state, game, setSel, openModal, closeModal, t);
-        } else {
-          game.activateSpell('player', index);
-          closeModal();
-        }
-      }));
       actions.push(actionBtn(t('card_action.set_spell'), () => {
         setSel({ mode: 'place-spell', placeHandIndex: index, hint: t('card_action.hint_choose_spell_zone') });
         closeModal();
@@ -211,50 +191,6 @@ type SetSel = (s: Partial<Selection>) => void;
 type OpenModal = (m: ModalState) => void;
 import type { TFunction } from 'i18next';
 type TFunc = TFunction;
-
-function startSpellTargeting(card: CardData, handIndex: number, state: GameState, game: GameEngine, setSel: SetSel, openModal: OpenModal, close: () => void, t: TFunc) {
-  if (card.spellType === 'targeted' && card.target === 'ownMonster') {
-    const targets = state.player.field.monsters
-      .map((fc, i) => ({ fc, zone: i }))
-      .filter((e): e is { fc: FieldCard; zone: number } => e.fc !== null);
-    if (!targets.length) { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); close(); return; }
-    if (targets.length === 1) { game.activateSpell('player', handIndex, targets[0].fc); close(); return; }
-    setSel({ mode: 'spell-target', spellHandIndex: handIndex, spellCard: card, hint: t('card_action.hint_spell_own') });
-    close();
-  } else if (card.spellType === 'targeted' && card.target === 'ownDarkMonster') {
-    const fc = state.player.field.monsters.find(m => m && m.card.attribute === Attribute.Dark);
-    if (fc) { game.activateSpell('player', handIndex, fc); }
-    else { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); }
-    close();
-  } else if (card.spellType === 'fromGrave') {
-    const monsters = state.player.graveyard.filter(c => isMonsterType(c.type));
-    if (!monsters.length) { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); close(); return; }
-    close();
-    openModal({ type: 'grave-select', cards: monsters, resolve: (chosen) => game.activateSpell('player', handIndex, chosen) });
-  }
-}
-
-function startFieldSpellTargeting(card: CardData, zone: number, state: GameState, game: GameEngine, setSel: SetSel, openModal: OpenModal, close: () => void, t: TFunc) {
-  if (card.spellType === 'targeted' && card.target === 'ownMonster') {
-    const targets = state.player.field.monsters
-      .map((fc, i) => ({ fc, zone: i }))
-      .filter((e): e is { fc: FieldCard; zone: number } => e.fc !== null);
-    if (!targets.length) { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); close(); return; }
-    if (targets.length === 1) { game.activateSpellFromField('player', zone, targets[0].fc); close(); return; }
-    setSel({ mode: 'field-spell-target', spellFieldZone: zone, spellCard: card, hint: t('card_action.hint_spell_own') });
-    close();
-  } else if (card.spellType === 'targeted' && card.target === 'ownDarkMonster') {
-    const fc = state.player.field.monsters.find(m => m && m.card.attribute === Attribute.Dark);
-    if (fc) { game.activateSpellFromField('player', zone, fc); }
-    else { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); }
-    close();
-  } else if (card.spellType === 'fromGrave') {
-    const monsters = state.player.graveyard.filter(c => isMonsterType(c.type));
-    if (!monsters.length) { game.addLog(t('card_action.no_valid_targets', 'No valid targets.')); close(); return; }
-    close();
-    openModal({ type: 'grave-select', cards: monsters, resolve: (chosen) => game.activateSpellFromField('player', zone, chosen) });
-  }
-}
 
 function startTrapTargeting(card: CardData, handIndex: number, _state: GameState, _game: GameEngine, setSel: SetSel, close: () => void, t: TFunc) {
   if (card.target === 'oppMonster') {

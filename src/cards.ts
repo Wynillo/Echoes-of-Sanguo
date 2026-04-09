@@ -1,12 +1,11 @@
 import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
-import { CardType, Rarity, isMonsterType } from './types.js';
+import { CardType, isMonsterType } from './types.js';
 import {
   getRaceByKey, getAttrByKey, getRarityById, getRaceById, getAttrById,
   TYPE_META,
 } from './type-metadata.js';
 
 export const TYPE = CardType;
-export const RARITY = Rarity;
 
 /** @deprecated Use getRarityById() from type-metadata.ts instead */
 export const RARITY_COLOR: Record<number, string> = new Proxy({} as Record<number, string>, {

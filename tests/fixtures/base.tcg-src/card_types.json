@@ -1,0 +1,5 @@
+[
+  { "id": 1, "key": "monster", "value": "Monster", "color": "#aa8844" },
+  { "id": 3, "key": "spell", "value": "Spell", "color": "#44aa44" },
+  { "id": 5, "key": "equipment", "value": "Equipment", "color": "#aa44aa" }
+]

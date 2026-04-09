@@ -1,5 +1,4 @@
 import { CARD_DB } from '../../cards.js';
-import { Rarity } from '../../types.js';
 import { Progression } from '../../progression.js';
 import { SHOP_DATA } from '../../shop-data.js';
 import type { PackSlotDef, PackageDef, CardFilter, CardPoolDef } from '../../shop-data.js';
@@ -7,11 +6,11 @@ import type { CardData } from '../../types.js';
 
 /** Default drop-chance distribution used for any slot without an explicit rarity or distribution. */
 export const RARITY_DROP_RATES: Record<string, number> = {
-  [Rarity.Common]:    0.60,
-  [Rarity.Uncommon]:  0.30,
-  [Rarity.Rare]:      0.089,
-  [Rarity.SuperRare]: 0.01,
-  [Rarity.UltraRare]: 0.001,
+  [1]:    0.60,
+  [2]:  0.30,
+  [4]:      0.089,
+  [6]: 0.01,
+  [8]: 0.001,
 };
 
 function _pickRarityFromSlot(slot: PackSlotDef): Rarity {
@@ -46,7 +45,7 @@ function _expandSlots(packDef: { slots: PackSlotDef[] }): Rarity[] {
  * Prefers replacing Uncommon over Common (highest rarity below Rare first).
  */
 function _applyPity(rarities: Rarity[]): Rarity[] {
-  if (rarities.some(r => r >= Rarity.Rare)) return rarities;
+  if (rarities.some(r => r >= 4)) return rarities;
 
   let replaceIdx = 0;
   let bestRarity = -1;
@@ -56,7 +55,7 @@ function _applyPity(rarities: Rarity[]): Rarity[] {
       replaceIdx = i;
     }
   }
-  rarities[replaceIdx] = Rarity.Rare;
+  rarities[replaceIdx] = 4;
   return rarities;
 }
 
@@ -71,7 +70,7 @@ function _matchesFilter(card: CardData, f: CardFilter): boolean {
   if (f.races?.length && card.race !== undefined && !f.races.includes(card.race)) return false;
   if (f.attributes?.length && card.attribute !== undefined && !f.attributes.includes(card.attribute)) return false;
   if (f.spellTypes?.length && card.spellType !== undefined && !f.spellTypes.includes(card.spellType)) return false;
-  const rarity = card.rarity ?? Rarity.Common;
+  const rarity = card.rarity ?? 1;
   if (f.maxRarity !== undefined && rarity > f.maxRarity) return false;
   if (f.minRarity !== undefined && rarity < f.minRarity) return false;
   if (f.maxAtk !== undefined && card.atk !== undefined && card.atk > f.maxAtk) return false;
@@ -147,17 +146,17 @@ export function openPackage(packageId: string): CardData[] {
   const rarities = _applyPity(_expandSlots(pkg));
 
   return rarities.map(rarity => {
-    let candidates = pool.filter(c => (c.rarity ?? Rarity.Common) === rarity);
+    let candidates = pool.filter(c => (c.rarity ?? 1) === rarity);
     // Fallback chain if pool has no cards at this rarity
     const fallbacks: Partial<Record<Rarity, Rarity>> = {
-      [Rarity.UltraRare]: Rarity.SuperRare,
-      [Rarity.SuperRare]: Rarity.Rare,
-      [Rarity.Rare]:      Rarity.Uncommon,
-      [Rarity.Uncommon]:  Rarity.Common,
+      [8]: 6,
+      [6]: 4,
+      [4]:      2,
+      [2]:  1,
     };
     while (!candidates.length && fallbacks[rarity]) {
       rarity = fallbacks[rarity]!;
-      candidates = pool.filter(c => (c.rarity ?? Rarity.Common) === rarity);
+      candidates = pool.filter(c => (c.rarity ?? 1) === rarity);
     }
     if (!candidates.length) candidates = pool.length ? pool : Object.values(CARD_DB) as CardData[];
     return candidates[Math.floor(Math.random() * candidates.length)];

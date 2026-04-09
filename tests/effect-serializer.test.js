@@ -9,11 +9,9 @@ import {
   isMultiBlockEffect,
   parseEffectString,
 } from '../src/effect-serializer.js';
-import { CardType, Attribute, Race } from '../src/types.js';
-import { attributeToInt, raceToInt, cardTypeToInt } from '../src/enums.js';
+import { CardType } from '../src/types.js';
 
 // ── isValidEffectString — rejection cases ────────────────────
-
 describe('isValidEffectString — rejections', () => {
   it('rejects empty string', () => {
     expect(isValidEffectString('')).toBe(false);
@@ -290,7 +288,7 @@ describe('round-trips — action types', () => {
   });
 
   it('specialSummonFromHand with filter', () => {
-    rt({ trigger: 'onSummon', actions: [{ type: 'specialSummonFromHand', filter: { race: Race.Dragon } }] });
+    rt({ trigger: 'onSummon', actions: [{ type: 'specialSummonFromHand', filter: { race: 1 } }] });
   });
 
   it('destroyByFilter — mode only', () => {
@@ -310,7 +308,7 @@ describe('round-trips — action types', () => {
   });
 
   it('permAtkBonus with filter', () => {
-    rt({ trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 300, filter: { attr: Attribute.Dark } }] });
+    rt({ trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 300, filter: { attr: 2 } }] });
   });
 
   it('createTokens', () => {
@@ -365,8 +363,8 @@ describe('round-trips — action types', () => {
     rt({ trigger: 'onOpponentSummon', actions: [{ type: 'destroySummonedIf', minAtk: 1000 }] });
   });
 
-  it('passive_vsAttrBonus round-trips attr enum', () => {
-    rt({ trigger: 'passive', actions: [{ type: 'passive_vsAttrBonus', attr: Attribute.Fire, atk: 300 }] });
+  it('passive_vsAttrBonus round-trips attr value', () => {
+    rt({ trigger: 'passive', actions: [{ type: 'passive_vsAttrBonus', attr: 2, atk: 300 }] });
   });
 
   it('halveAtk', () => {
@@ -390,7 +388,7 @@ describe('round-trips — action types', () => {
   });
 
   it('recycleFromGraveToDeck with filter', () => {
-    rt({ trigger: 'onSummon', actions: [{ type: 'recycleFromGraveToDeck', filter: { race: Race.Warrior } }] });
+    rt({ trigger: 'onSummon', actions: [{ type: 'recycleFromGraveToDeck', filter: { race: 3 } }] });
   });
 
   it('salvageFromGrave with filter', () => {
@@ -408,8 +406,8 @@ describe('CardFilter round-trips', () => {
 
   it('filter with all fields', () => {
     rtFilter({
-      race: Race.Dragon,
-      attr: Attribute.Fire,
+      race: 1,
+      attr: 2,
       cardType: CardType.Monster,
       maxAtk: 2000,
       minAtk: 500,
@@ -421,11 +419,11 @@ describe('CardFilter round-trips', () => {
   });
 
   it('filter with single race field', () => {
-    rtFilter({ race: Race.Spellcaster });
+    rtFilter({ race: 1 });
   });
 
   it('filter with single attr field', () => {
-    rtFilter({ attr: Attribute.Light });
+    rtFilter({ attr: 1 });
   });
 
   it('filter with single cardType field', () => {

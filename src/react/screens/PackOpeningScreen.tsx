@@ -6,7 +6,7 @@ import { useModal }    from '../contexts/ModalContext.js';
 import { getRarityById } from '../../type-metadata.js';
 import { Card } from '../components/Card.js';
 import { Audio }        from '../../audio.js';
-import { CardType, Rarity } from '../../types.js';
+import { CardType, } from '../../types.js';
 import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
 import RaceIcon from '../components/RaceIcon.js';
@@ -18,17 +18,17 @@ type Phase = 'pack' | 'reveal' | 'summary';
 const TAPS_TO_OPEN = 3;
 
 const HOLD_BY_RARITY: Record<number, number> = {
-  [Rarity.Common]:    0.5,
-  [Rarity.Uncommon]:  0.5,
-  [Rarity.Rare]:      0.8,
-  [Rarity.SuperRare]: 1.2,
-  [Rarity.UltraRare]: 1.6,
+  [4]: 0.5,
+  [5]: 0.5,
+  [6]: 0.8,
+  [7]: 1.2,
+  [8]: 1.6,
 };
 
 const SCANLINE_COLORS: Record<number, string> = {
-  [Rarity.Rare]:      'rgba(112, 144, 255, 0.08)',
-  [Rarity.SuperRare]: 'rgba(255, 215, 0, 0.06)',
-  [Rarity.UltraRare]: 'rgba(224, 112, 255, 0.08)',
+  [4]: 'rgba(112, 144, 255, 0.08)',
+  [5]: 'rgba(255, 215, 0, 0.06)',
+  [6]: 'rgba(224, 112, 255, 0.08)',
 };
 
 /** Card type icons for mini strip */
@@ -41,31 +41,31 @@ const TYPE_ICONS: Record<number, string> = {
 };
 
 const RARITY_LABELS: Record<number, string> = {
-  [Rarity.Common]:    'C',
-  [Rarity.Uncommon]:  'U',
-  [Rarity.Rare]:      'R',
-  [Rarity.SuperRare]: 'SR',
-  [Rarity.UltraRare]: 'UR',
+  [4]:    'C',
+  [5]:  'U',
+  [6]:      'R',
+  [7]: 'SR',
+  [8]: 'UR',
 };
 
 function getRarityBorderClass(rarity: number, s: Record<string, string>): string {
   switch (rarity) {
-    case Rarity.Common:    return s.borderCommon;
-    case Rarity.Uncommon:  return s.borderUncommon;
-    case Rarity.Rare:      return s.borderRare;
-    case Rarity.SuperRare: return s.borderSuperRare;
-    case Rarity.UltraRare: return s.borderUltraRare;
+    case 4:    return s.borderCommon;
+    case 5:  return s.borderUncommon;
+    case 6:      return s.borderRare;
+    case 7: return s.borderSuperRare;
+    case 8: return s.borderUltraRare;
     default: return '';
   }
 }
 
 function getNewBadgeClass(rarity: number, s: Record<string, string>): string {
   switch (rarity) {
-    case Rarity.Common:    return s.newBadgeCommon;
-    case Rarity.Uncommon:  return s.newBadgeUncommon;
-    case Rarity.Rare:      return s.newBadgeRare;
-    case Rarity.SuperRare: return s.newBadgeSuperRare;
-    case Rarity.UltraRare: return s.newBadgeUltraRare;
+    case 4:    return s.newBadgeCommon;
+    case 5:  return s.newBadgeUncommon;
+    case 6:      return s.newBadgeRare;
+    case 7: return s.newBadgeSuperRare;
+    case 8: return s.newBadgeUltraRare;
     default: return s.newBadgeCommon;
   }
 }
@@ -103,7 +103,7 @@ export default function PackOpeningScreen() {
   const rarityBreakdown = useMemo(() => {
     const counts = new Map<number, number>();
     for (const card of sortedCards) {
-      const r = card.rarity ?? Rarity.Common;
+      const r = card.rarity ?? 4;
       counts.set(r, (counts.get(r) ?? 0) + 1);
     }
     return [...counts.entries()]
@@ -244,7 +244,7 @@ export default function PackOpeningScreen() {
         if (cancelled || skipRef.current) break;
 
         const card = sortedCards[i];
-        const rarity = card.rarity ?? Rarity.Common;
+        const rarity = card.rarity ?? 4;
 
         setRevealIndex(i);
 
@@ -300,7 +300,7 @@ export default function PackOpeningScreen() {
         }, undefined, '-=0.2');
 
         tl.call(() => {
-          if (rarity >= Rarity.Rare && cardEl) {
+          if (rarity >= 4 && cardEl) {
             fxManager.packReveal(rarity, cardEl);
             const tintEl = scanlineTintRef.current;
             if (tintEl) {
@@ -312,7 +312,7 @@ export default function PackOpeningScreen() {
           }
         });
 
-        if (rarity >= Rarity.Rare) {
+        if (rarity >= 4) {
           const tintEl = scanlineTintRef.current;
           if (tintEl) {
             tl.fromTo(
@@ -324,8 +324,8 @@ export default function PackOpeningScreen() {
         }
 
         // Screen shake for SR/UR at flip moment
-        if (rarity >= Rarity.SuperRare && screenEl) {
-          const shakeIntensity = rarity === Rarity.UltraRare ? 8 : 5;
+        if (rarity >= 7 && screenEl) {
+          const shakeIntensity = rarity === 8 ? 8 : 5;
           tl.call(() => {
             shakeScreen(screenEl, shakeIntensity, 0.25);
           }, undefined, '-=0.1');
@@ -484,7 +484,7 @@ export default function PackOpeningScreen() {
         <div className={styles.grid}>
           {sortedCards.map((card, i) => {
             const isNew = !ownedBefore.has(card.id);
-            const rarity = card.rarity ?? Rarity.Common;
+            const rarity = card.rarity ?? 4;
             return (
               <div
                 key={i}

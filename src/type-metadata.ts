@@ -5,7 +5,7 @@ export interface RaceMeta {
   key:    string;   // stable PascalCase identifier (e.g. 'Dragon')
   value:  string;   // display label (localized)
   color:  string;   // primary display color (hex)
-  icon:   string;   // react-icons/gi identifier (e.g. 'GiWizardStaff')
+  icon?:   string;   // react-icons/gi identifier (e.g. 'GiWizardStaff')
 }
 
 export interface AttributeMeta {
@@ -73,46 +73,6 @@ export function getAllRaces(): readonly RaceMeta[] { return TYPE_META.races; }
 export function getAllRarities(): readonly RarityMeta[] { return TYPE_META.rarities; }
 
 export function initDefaults(): void {
-  TYPE_META.races = [
-    { id: Race.Dragon,      key: 'Dragon',      value: 'Dragon',      color: '#8040c0', icon: 'GiSpikedDragonHead' },
-    { id: Race.Spellcaster, key: 'Spellcaster', value: 'Spellcaster', color: '#6060c0', icon: 'GiWizardStaff' },
-    { id: Race.Warrior,     key: 'Warrior',     value: 'Warrior',     color: '#c09030', icon: 'GiCrossedSwords' },
-    { id: Race.Beast,       key: 'Beast',       value: 'Beast',       color: '#e07030', icon: 'GiBearFace' },
-    { id: Race.Plant,       key: 'Plant',       value: 'Plant',       color: '#40a050', icon: 'GiVineLeaf' },
-    { id: Race.Rock,        key: 'Rock',        value: 'Rock',        color: '#808060', icon: 'GiStonePile' },
-    { id: Race.Phoenix,     key: 'Phoenix',     value: 'Phoenix',     color: '#e06020', icon: 'GiFireBreath' },
-    { id: Race.Undead,      key: 'Undead',      value: 'Undead',      color: '#804090', icon: 'GiSkullCrossedBones' },
-    { id: Race.Aqua,        key: 'Aqua',        value: 'Aqua',        color: '#3080b0', icon: 'GiWaterDrop' },
-    { id: Race.Insect,      key: 'Insect',      value: 'Insect',      color: '#90a040', icon: 'GiButterfly' },
-    { id: Race.Machine,     key: 'Machine',     value: 'Machine',     color: '#708090', icon: 'GiGears' },
-    { id: Race.Pyro,        key: 'Pyro',        value: 'Pyro',        color: '#c03010', icon: 'GiFireBowl' },
-  ];
-
-  TYPE_META.attributes = [
-    { id: Attribute.Light, key: 'Light', value: 'Light', color: '#c09000', symbol: '☀' },
-    { id: Attribute.Dark,  key: 'Dark',  value: 'Dark',  color: '#7020a0', symbol: '☽' },
-    { id: Attribute.Fire,  key: 'Fire',  value: 'Fire',  color: '#c0300a', symbol: '♨' },
-    { id: Attribute.Water, key: 'Water', value: 'Water', color: '#1a6aaa', symbol: '◎' },
-    { id: Attribute.Earth, key: 'Earth', value: 'Earth', color: '#6a7030', symbol: '◆' },
-    { id: Attribute.Wind,  key: 'Wind',  value: 'Wind',  color: '#4a6080', symbol: '∿' },
-  ];
-
-  TYPE_META.rarities = [
-    { id: Rarity.Common,    key: 'Common',    value: 'Common',     color: '#aaa' },
-    { id: Rarity.Uncommon,  key: 'Uncommon',  value: 'Uncommon',   color: '#7ec8e3' },
-    { id: Rarity.Rare,      key: 'Rare',      value: 'Rare',       color: '#f5c518' },
-    { id: Rarity.SuperRare, key: 'SuperRare', value: 'Super Rare', color: '#c084fc' },
-    { id: Rarity.UltraRare, key: 'UltraRare', value: 'Ultra Rare', color: '#f97316' },
-  ];
-
-  TYPE_META.cardTypes = [
-    { id: CardType.Monster, key: 'Monster', value: 'Monster',        color: '#c8a850' },
-    { id: CardType.Fusion,  key: 'Fusion',  value: 'Fusion Monster', color: '#a050c0' },
-    { id: CardType.Spell,   key: 'Spell',   value: 'Spell',          color: '#1dc0a0' },
-    { id: CardType.Trap,      key: 'Trap',      value: 'Trap',            color: '#bc2060' },
-    { id: CardType.Equipment, key: 'Equipment', value: 'Equipment',       color: '#e08030' },
-  ];
-
   rebuildIndices();
 }
 

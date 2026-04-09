@@ -4,7 +4,6 @@ import {
   resolveRewardConfig,
   getRankEffect,
 } from '../src/reward-config.ts';
-import { Rarity } from '../src/types.ts';
 
 describe('DEFAULT_REWARD_CONFIG', () => {
   it('matches legacy hardcoded values', () => {
@@ -98,7 +97,7 @@ describe('getRankEffect', () => {
   it('returns the correct effect for each rank', () => {
     const config = {
       ranks: {
-        S: { coinMultiplier: 3.0, cardDropCount: 5, rarityRates: { [Rarity.Rare]: 0.5 } },
+        S: { coinMultiplier: 3.0, cardDropCount: 5, rarityRates: { [4]: 0.5 } },
         A: { coinMultiplier: 1.5, cardDropCount: 1 },
         B: { coinMultiplier: 0.8, cardDropCount: 0 },
       },
@@ -106,7 +105,7 @@ describe('getRankEffect', () => {
 
     expect(getRankEffect(config, 'S').coinMultiplier).toBe(3.0);
     expect(getRankEffect(config, 'S').cardDropCount).toBe(5);
-    expect(getRankEffect(config, 'S').rarityRates).toEqual({ [Rarity.Rare]: 0.5 });
+    expect(getRankEffect(config, 'S').rarityRates).toEqual({ [4]: 0.5 });
     expect(getRankEffect(config, 'A').cardDropCount).toBe(1);
     expect(getRankEffect(config, 'B').rarityRates).toBeUndefined();
   });

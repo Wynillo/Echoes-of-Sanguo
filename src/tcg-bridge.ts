@@ -3,10 +3,10 @@ import JSZip from 'jszip';
 import i18next from 'i18next';
 import type { TcgLoadResult, TcgParsedCard, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from '@wynillo/tcg-format';
 import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
-import { CardType, Rarity } from './types.js';
+import { CardType } from './types.js';
 import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from './cards.js';
-import { intToCardType, intToAttribute, intToRace, intToRarity, intToSpellType, intToTrapTrigger, isTrapTrigger } from './enums.js';
-import { deserializeEffect, isValidEffectString, parseEffectString } from './effect-serializer.js';
+import { intToTrapTrigger, isTrapTrigger } from './enums.js';
+import { isValidEffectString, parseEffectString } from './effect-serializer.js';
 import { applyRules } from './rules.js';
 import { applyTypeMeta } from './type-metadata.js';
 import { applyShopData, SHOP_DATA, type ShopData } from './shop-data.js';
@@ -47,39 +47,22 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
     }
   }
 
-  let type = CardType.Monster;  // fallback
-  try { type = intToCardType(p.type, !!p.effect); }
-  catch { warnings.push(`Card #${p.id}: unknown type int ${p.type}, defaulting to Monster`); }
-
-  let rarity = Rarity.Common;  // fallback
-  try { rarity = intToRarity(p.rarity); }
-  catch { warnings.push(`Card #${p.id}: unknown rarity int ${p.rarity}, defaulting to Common`); }
-
   const card: CardData = {
     id:          String(p.id),
     name:        p.name,
-    type,
+    type:        p.type,
     description: p.description,
     level:       p.level ?? undefined,
-    rarity,
+    rarity:      p.rarity,
   };
 
   if (p.atk !== undefined) card.atk = p.atk;
   if (p.def !== undefined) card.def = p.def;
-  if (p.attribute !== undefined && p.attribute > 0) {
-    try { card.attribute = intToAttribute(p.attribute); }
-    catch { warnings.push(`Card #${p.id}: invalid attribute ${p.attribute}`); }
-  }
-  if (p.race !== undefined && p.race > 0) {
-    try { card.race = intToRace(p.race); }
-    catch { warnings.push(`Card #${p.id}: invalid race ${p.race}`); }
-  }
+  if (p.attribute !== undefined && p.attribute > 0) card.attribute = p.attribute;
+  if (p.race !== undefined && p.race > 0) card.race = p.race; 
   if (parsedEffect.effect)   card.effect  = parsedEffect.effect;
   if (parsedEffect.effects)  card.effects = parsedEffect.effects;
-  if (p.spellType) {
-    try { card.spellType = intToSpellType(p.spellType); }
-    catch { warnings.push(`Card #${p.id}: invalid spellType int ${p.spellType}`); }
-  }
+
   if (p.trapTrigger) {
     if (typeof p.trapTrigger === 'string' && isTrapTrigger(p.trapTrigger)) {
       card.trapTrigger = p.trapTrigger;
@@ -90,21 +73,23 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
       warnings.push(`Card #${p.id}: invalid trapTrigger value ${p.trapTrigger}`);
     }
   }
-  if (!card.trapTrigger && type === CardType.Trap && card.effect) {
+
+  if (!card.trapTrigger && p.type === CardType.Trap && card.effect) {
     const trigger = card.effect.trigger;
     if (isTrapTrigger(trigger)) card.trapTrigger = trigger;
   }
+
   if (p.target)      card.target      = p.target;
   if (p.atkBonus !== undefined) card.atkBonus = p.atkBonus;
   if (p.defBonus !== undefined) card.defBonus = p.defBonus;
   if (p.equipReqRace !== undefined || p.equipReqAttr !== undefined) {
     card.equipRequirement = {};
     if (p.equipReqRace !== undefined) {
-      try { card.equipRequirement.race = intToRace(p.equipReqRace); }
+      try { card.equipRequirement.race = p.equipReqRace; }
       catch { warnings.push(`Card #${p.id}: invalid equipReqRace ${p.equipReqRace}`); }
     }
     if (p.equipReqAttr !== undefined) {
-      try { card.equipRequirement.attr = intToAttribute(p.equipReqAttr); }
+      try { card.equipRequirement.attr = p.equipReqAttr; }
       catch { warnings.push(`Card #${p.id}: invalid equipReqAttr ${p.equipReqAttr}`); }
     }
   }
@@ -128,7 +113,7 @@ function applyOpponents(
       id:         o.id,
       name:       desc?.name ?? o.name,
       title:      desc?.title ?? o.title,
-      race:       intToRace(o.race),
+      race:       o.race,
       flavor:     desc?.flavor ?? o.flavor,
       coinsWin:   o.coinsWin,
       coinsLoss:  o.coinsLoss,

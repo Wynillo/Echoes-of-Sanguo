@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import JSZip from 'jszip';
-import { loadTcgFile, TcgNetworkError, TcgFormatError } from '@wynillo/tcg-format';
+import { loadTcgFile, TcgFormatError } from '@wynillo/tcg-format';
 import { loadAndApplyTcg, revokeTcgImages } from '../src/tcg-bridge.js';
 import { CARD_DB, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS } from '../src/cards.js';
 
@@ -111,7 +111,6 @@ describe('loadTcgFile (pure)', () => {
 });
 
 // ── Bridge tests (with side effects) ────────────────────────
-
 describe('loadAndApplyTcg (bridge)', () => {
   beforeEach(() => {
     clearGameStores();
@@ -125,11 +124,10 @@ describe('loadAndApplyTcg (bridge)', () => {
     expect(CARD_DB['1'].name).toBe('Card #1');
   });
 
-  it('loads equipment card with atkBonus, defBonus, and equipRequirement', async () => {
+  it('loads equipment card with atkBonus, defBonus', async () => {
     const equipCard = {
       id: 10, type: 5, level: 1, rarity: 4,
       atkBonus: 500, defBonus: 200,
-      equipReqRace: 1, equipReqAttr: 3,
     };
     const buf = await buildMinimalZip({
       cards: [VALID_CARD, equipCard],
@@ -140,9 +138,6 @@ describe('loadAndApplyTcg (bridge)', () => {
     expect(card).toBeDefined();
     expect(card.atkBonus).toBe(500);
     expect(card.defBonus).toBe(200);
-    expect(card.equipRequirement).toBeDefined();
-    expect(card.equipRequirement.race).toBe(1); // Dragon
-    expect(card.equipRequirement.attr).toBe(3); // Fire
   });
 
   it('infers trapTrigger from effect string when not set in TCG data', async () => {

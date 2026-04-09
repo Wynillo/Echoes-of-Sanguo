@@ -1,7 +1,7 @@
 {
-  "name": "game2",
+  "name": "eos-engine",
   "version": "1.2.0",
-  "description": "Ein browser-basiertes Sammelkartenspiel im Stil von Yu-Gi-Oh! Forbidden Memories – TypeScript + Vite, ohne Frontend-Framework.",
+  "description": "Ein browser-basiertes Sammelkartenspiel im Stil von Yu-Gi-Oh! Forbidden Memories",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github-echoes:Wynillo/echoes-of-sanguo.git"
+    "url": "git@github.com:Wynillo/Echoes-of-Sanguo-ENGINE.git"
   },
   "keywords": [],
   "author": "",

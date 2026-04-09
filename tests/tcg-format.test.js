@@ -1,12 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
 // Enum converters (engine-specific)
-import {
-  cardTypeToInt, intToCardType,
-  attributeToInt, intToAttribute,
-  raceToInt, intToRace,
-  rarityToInt, intToRarity,
-} from '../src/enums.js';
+import { cardTypeToInt, intToCardType } from '../src/enums.js';
 // Effect serializer (engine-specific)
 import { serializeEffect, deserializeEffect, isValidEffectString } from '../src/effect-serializer.js';
 // Builder (engine-specific)
@@ -16,7 +11,7 @@ import {
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP,
   TCG_RARITY_COMMON, TCG_RARITY_ULTRA_RARE,
 } from '@wynillo/tcg-format';
-import { CardType, Attribute, Race, Rarity } from '../src/types.js';
+import { CardType } from '../src/types.js';
 
 // ── Enum Converter Tests ────────────────────────────────────
 
@@ -46,43 +41,6 @@ describe('Enum Converters', () => {
     });
   });
 
-  describe('Attribute', () => {
-    it('round-trips all attributes', () => {
-      for (const attr of [Attribute.Fire, Attribute.Water, Attribute.Earth, Attribute.Wind, Attribute.Light, Attribute.Dark]) {
-        const n = attributeToInt(attr);
-        expect(intToAttribute(n)).toBe(attr);
-        expect(n).toBeGreaterThanOrEqual(1);
-        expect(n).toBeLessThanOrEqual(6);
-      }
-    });
-  });
-
-  describe('Race', () => {
-    it('round-trips all races', () => {
-      const races = [Race.Dragon, Race.Spellcaster, Race.Warrior, Race.Beast, Race.Plant, Race.Rock, Race.Phoenix, Race.Undead, Race.Aqua, Race.Insect, Race.Machine, Race.Pyro];
-      for (const race of races) {
-        const n = raceToInt(race);
-        expect(intToRace(n)).toBe(race);
-        expect(n).toBeGreaterThanOrEqual(1);
-        expect(n).toBeLessThanOrEqual(12);
-      }
-    });
-  });
-
-  describe('Rarity', () => {
-    it('round-trips all rarities', () => {
-      const rarities = [Rarity.Common, Rarity.Uncommon, Rarity.Rare, Rarity.SuperRare, Rarity.UltraRare];
-      for (const r of rarities) {
-        const n = rarityToInt(r);
-        expect(intToRarity(n)).toBe(r);
-      }
-    });
-
-    it('uses 1-8 range', () => {
-      expect(rarityToInt(Rarity.Common)).toBe(1);
-      expect(rarityToInt(Rarity.UltraRare)).toBe(8);
-    });
-  });
 });
 
 // ── Effect Serializer Tests ─────────────────────────────────
@@ -126,19 +84,19 @@ describe('Effect Serializer', () => {
   });
 
   it('serializes buffField with race filter', () => {
-    const block = { trigger: 'onSummon', actions: [{ type: 'buffField', value: 200, filter: { race: Race.Pyro } }] };
+    const block = { trigger: 'onSummon', actions: [{ type: 'buffField', value: 200, filter: { race: 3 } }] };
     const s = serializeEffect(block);
-    expect(s).toBe(`onSummon:buffField(200,{r=${raceToInt(Race.Pyro)}})`);
+    expect(s).toBe('onSummon:buffField(200,{r=3})');
   });
 
   it('serializes passive_vsAttrBonus', () => {
-    const block = { trigger: 'passive', actions: [{ type: 'passive_vsAttrBonus', attr: Attribute.Dark, atk: 500 }] };
+    const block = { trigger: 'passive', actions: [{ type: 'passive_vsAttrBonus', attr: 2, atk: 500 }] };
     const s = serializeEffect(block);
-    expect(s).toBe(`passive:passive_vsAttrBonus(${attributeToInt(Attribute.Dark)},500)`);
+    expect(s).toBe('passive:passive_vsAttrBonus(2,500)');
   });
 
   it('serializes permAtkBonus with filter', () => {
-    const block = { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: Attribute.Dark } }] };
+    const block = { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: 2 } }] };
     const s = serializeEffect(block);
     expect(s).toContain('permAtkBonus(ownMonster,500,{a=');
   });
@@ -322,7 +280,7 @@ describe('TCG Builder', () => {
   it('converts a monster CardData to TcgCard', () => {
     const card = {
       id: '1', name: 'Feuersalamander', type: CardType.Monster,
-      attribute: Attribute.Fire, race: Race.Beast, rarity: Rarity.Common, level: 3, atk: 1000, def: 800,
+      level: 3, atk: 1000, def: 800,
       description: 'A fire salamander',
     };
     const tc = cardDataToTcgCard(card, 1);
@@ -331,9 +289,6 @@ describe('TCG Builder', () => {
     expect(tc.level).toBe(3);
     expect(tc.atk).toBe(1000);
     expect(tc.def).toBe(800);
-    expect(tc.rarity).toBe(TCG_RARITY_COMMON);
-    expect(tc.attribute).toBe(attributeToInt(Attribute.Fire));
-    expect(tc.race).toBe(raceToInt(Race.Beast));
     expect(tc.effect).toBeUndefined();
   });
 
@@ -365,7 +320,7 @@ describe('TCG Builder', () => {
     const card = {
       id: '306', name: 'Flame Sword', type: CardType.Equipment,
       description: 'A sword imbued with fire',
-      rarity: Rarity.Rare, atkBonus: 500, defBonus: 0,
+      rarity: 4, atkBonus: 500, defBonus: 0,
     };
     const tc = cardDataToTcgCard(card, 306);
     expect(tc.id).toBe(306);
@@ -382,20 +337,17 @@ describe('TCG Builder', () => {
     const card = {
       id: '307', name: 'Dragon Armor', type: CardType.Equipment,
       description: 'Armor for dragons only',
-      rarity: Rarity.SuperRare, atkBonus: 300, defBonus: 600,
-      equipRequirement: { race: Race.Dragon, attr: Attribute.Fire },
+      rarity: 4, atkBonus: 300, defBonus: 600
     };
     const tc = cardDataToTcgCard(card, 307);
     expect(tc.atkBonus).toBe(300);
     expect(tc.defBonus).toBe(600);
-    expect(tc.equipReqRace).toBe(raceToInt(Race.Dragon));
-    expect(tc.equipReqAttr).toBe(attributeToInt(Attribute.Fire));
   });
 
   it('omits equipRequirement fields when not present', () => {
     const card = {
       id: '1', name: 'Basic Sword', type: CardType.Equipment,
-      description: 'A basic sword', rarity: Rarity.Common, atkBonus: 200, defBonus: 0,
+      description: 'A basic sword', rarity: 1, atkBonus: 200, defBonus: 0,
     };
     const tc = cardDataToTcgCard(card, 1);
     expect(tc.equipReqRace).toBeUndefined();

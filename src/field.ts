@@ -1,5 +1,5 @@
 import { extractPassiveFlags } from './effect-registry.js';
-import type { CardData, Owner, Position, VsAttrBonus } from './types.js';
+import type { CardData, Owner, Position } from './types.js';
 
 export class FieldCard {
   card: CardData;
@@ -18,7 +18,6 @@ export class FieldCard {
   piercing: boolean;
   cannotBeTargeted: boolean;
   canDirectAttack: boolean;
-  vsAttrBonus: VsAttrBonus | null;
   phoenixRevival: boolean;
   indestructible: boolean;
   effectImmune: boolean;
@@ -49,7 +48,6 @@ export class FieldCard {
     this.piercing = false;
     this.cannotBeTargeted = false;
     this.canDirectAttack  = false;
-    this.vsAttrBonus     = null;
     this.phoenixRevival  = false;
     this.indestructible  = false;
     this.effectImmune    = false;
@@ -61,7 +59,6 @@ export class FieldCard {
       if (flags.piercing)        this.piercing = true;
       if (flags.cannotBeTargeted) this.cannotBeTargeted = true;
       if (flags.canDirectAttack) this.canDirectAttack = true;
-      if (flags.vsAttrBonus)     this.vsAttrBonus = flags.vsAttrBonus;
       if (flags.phoenixRevival)  this.phoenixRevival = true;
       if (flags.indestructible)  this.indestructible = true;
       if (flags.effectImmune)    this.effectImmune = true;

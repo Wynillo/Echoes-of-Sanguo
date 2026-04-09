@@ -1,0 +1,10 @@
+{
+  "card_1_name": "Ancient Dragon",
+  "card_1_desc": "A powerful dragon from ancient times.",
+  "card_2_name": "Dark Knight",
+  "card_2_desc": "A knight wielding dark powers.",
+  "card_3_name": "Power Draw",
+  "card_3_desc": "Draw 2 cards from your deck.",
+  "card_4_name": "Flame Sword",
+  "card_4_desc": "A sword that increases ATK by 300 and DEF by 200."
+}

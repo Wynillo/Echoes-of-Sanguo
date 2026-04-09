@@ -9,7 +9,6 @@ import { openPackage, isPackageUnlocked, buildCardPool } from '../utils/pack-log
 import { SHOP_DATA } from '../../shop-data.js';
 import type { PackageDef, PackSlotDef } from '../../shop-data.js';
 import { Audio }               from '../../audio.js';
-import { Rarity } from '../../types.js';
 import type { CardData } from '../../types.js';
 import RaceIcon from '../components/RaceIcon.js';
 import styles from './ShopScreen.module.css';
@@ -36,7 +35,7 @@ function computeDistribution(slots: PackSlotDef[]): { rarity: number; guaranteed
         map.set(r, entry);
       }
     } else {
-      const r = slot.rarity ?? Rarity.Common;
+      const r = slot.rarity ?? 4;
       const entry = map.get(r) ?? { guaranteed: 0, chancePct: 0 };
       entry.guaranteed += slot.count;
       map.set(r, entry);
@@ -52,7 +51,7 @@ function computeDistribution(slots: PackSlotDef[]): { rarity: number; guaranteed
 function countByRarity(cards: CardData[]): { rarity: number; count: number }[] {
   const map = new Map<number, number>();
   for (const c of cards) {
-    const r = c.rarity ?? Rarity.Common;
+    const r = c.rarity ?? 4;
     map.set(r, (map.get(r) ?? 0) + 1);
   }
   return Array.from(map.entries())

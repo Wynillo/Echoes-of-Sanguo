@@ -1,0 +1,4 @@
+[
+  { "id": 1, "key": "light", "value": "Light", "color": "#ffffaa" },
+  { "id": 2, "key": "dark", "value": "Dark", "color": "#333366" }
+]

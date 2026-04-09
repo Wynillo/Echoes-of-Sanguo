@@ -1,5 +1,5 @@
 import { type CardEffectBlock, type CardData, type CardFilter, type EffectCost, type EffectDescriptor, type EffectTrigger, type TrapTrigger, type ValueExpr, type StatTarget } from './types.js';
-import { isValidTrigger, intToAttribute, intToRace, attributeToInt, raceToInt, cardTypeToInt, intToCardType } from './enums.js';
+import { isValidTrigger, intToCardType } from './enums.js';
 
 function serializeValueExpr(v: ValueExpr): string {
   if (typeof v === 'number') return String(v);
@@ -27,9 +27,9 @@ function deserializeValueExpr(s: string): ValueExpr {
 
 function serializeCardFilter(f: CardFilter): string {
   const parts: string[] = [];
-  if (f.race     !== undefined) parts.push(`r=${raceToInt(f.race)}`);
-  if (f.attr     !== undefined) parts.push(`a=${attributeToInt(f.attr)}`);
-  if (f.cardType !== undefined) parts.push(`ct=${cardTypeToInt(f.cardType)}`);
+  if (f.race     !== undefined) parts.push(`r=${f.race}`);
+  if (f.attr     !== undefined) parts.push(`a=${f.attr}`);
+  if (f.cardType !== undefined) parts.push(`ct=${f.cardType}`);
   if (f.cardId   !== undefined) parts.push(`id=${f.cardId}`);
   if (f.maxAtk   !== undefined) parts.push(`maxAtk=${f.maxAtk}`);
   if (f.minAtk   !== undefined) parts.push(`minAtk=${f.minAtk}`);
@@ -48,8 +48,8 @@ function deserializeCardFilter(s: string): CardFilter {
   for (const pair of inner.split(',')) {
     const [key, val] = pair.split(/[=:]/);
     switch (key.trim()) {
-      case 'r':        filter.race = intToRace(parseInt(val)); break;
-      case 'a':        filter.attr = intToAttribute(parseInt(val)); break;
+      case 'r':        filter.race = parseInt(val); break;
+      case 'a':        filter.attr = parseInt(val); break;
       case 'ct':       filter.cardType = intToCardType(parseInt(val), false); break;
       case 'id':       filter.cardId = val.trim(); break;
       case 'maxAtk':   filter.maxAtk = parseInt(val); break;
@@ -127,7 +127,7 @@ function serializeAction(a: EffectDescriptor): string {
     case 'passive_piercing':        return 'passive_piercing()';
     case 'passive_untargetable':    return 'passive_untargetable()';
     case 'passive_directAttack':    return 'passive_directAttack()';
-    case 'passive_vsAttrBonus':     return `passive_vsAttrBonus(${attributeToInt(a.attr)},${a.atk})`;
+    case 'passive_vsAttrBonus':     return `passive_vsAttrBonus(${a.attr},${a.atk})`;
     case 'passive_phoenixRevival':  return 'passive_phoenixRevival()';
     case 'passive_indestructible':  return 'passive_indestructible()';
     case 'passive_effectImmune':    return 'passive_effectImmune()';
@@ -308,7 +308,7 @@ function deserializeAction(actionStr: string): EffectDescriptor {
     case 'passive_untargetable':    return { type: 'passive_untargetable' };
     case 'passive_directAttack':    return { type: 'passive_directAttack' };
     case 'passive_vsAttrBonus':
-      return { type: 'passive_vsAttrBonus', attr: intToAttribute(parseInt(args[0])), atk: parseInt(args[1]) };
+      return { type: 'passive_vsAttrBonus', attr: parseInt(args[0]), atk: parseInt(args[1]) };
     case 'passive_phoenixRevival':  return { type: 'passive_phoenixRevival' };
     case 'passive_indestructible':  return { type: 'passive_indestructible' };
     case 'passive_effectImmune':    return { type: 'passive_effectImmune' };

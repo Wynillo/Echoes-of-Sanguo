@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GameEngine, FieldCard } from '../src/engine.ts';
-import { CardType, Race, Attribute, meetsEquipRequirement } from '../src/types.ts';
+import { CardType, meetsEquipRequirement } from '../src/types.ts';
 import { CARD_DB, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from '../src/cards.js';
 import { pickEquipTarget, pickDebuffTarget } from '../src/ai-behaviors.ts';
 
@@ -43,13 +43,13 @@ function placeMonster(engine, owner, cardDef, zone = 0) {
 
 const DRAGON_FIRE = {
   id: 'EQ_TST1', name: 'Fire Dragon', type: CardType.Monster,
-  atk: 1500, def: 1000, race: Race.Dragon, attribute: Attribute.Fire,
+  atk: 1500, def: 1000, race: 1, attribute: 2,
   description: 'Test dragon',
 };
 
 const WARRIOR_EARTH = {
   id: 'EQ_TST2', name: 'Earth Warrior', type: CardType.Monster,
-  atk: 1200, def: 900, race: Race.Warrior, attribute: Attribute.Earth,
+  atk: 1200, def: 900, race: 3, attribute: 1,
   description: 'Test warrior',
 };
 
@@ -61,19 +61,19 @@ const EQUIP_NO_REQ = {
 const EQUIP_RACE_DRAGON = {
   id: 'EQ_TST11', name: 'Dragon Blade', type: CardType.Equipment,
   atkBonus: 700, defBonus: 300, description: 'Dragon only',
-  equipRequirement: { race: Race.Dragon },
+  equipRequirement: { race: 1 },
 };
 
 const EQUIP_ATTR_FIRE = {
   id: 'EQ_TST12', name: 'Flame Armor', type: CardType.Equipment,
   atkBonus: 600, description: 'Fire only',
-  equipRequirement: { attr: Attribute.Fire },
+  equipRequirement: { attr: 2 },
 };
 
 const EQUIP_BOTH = {
   id: 'EQ_TST13', name: 'Dragon Flame Gauntlet', type: CardType.Equipment,
   atkBonus: 900, description: 'Fire Dragon only',
-  equipRequirement: { race: Race.Dragon, attr: Attribute.Fire },
+  equipRequirement: { race: 1, attr: 2 },
 };
 
 // ── meetsEquipRequirement ───────────────────────────────────
@@ -105,12 +105,12 @@ describe('meetsEquipRequirement', () => {
   });
 
   it('returns false when only race matches (both required)', () => {
-    const dragonWater = { ...DRAGON_FIRE, attribute: Attribute.Water };
+    const dragonWater = { ...DRAGON_FIRE, attribute: 1 };
     expect(meetsEquipRequirement(EQUIP_BOTH, dragonWater)).toBe(false);
   });
 
   it('returns false when only attribute matches (both required)', () => {
-    const warriorFire = { ...WARRIOR_EARTH, attribute: Attribute.Fire };
+    const warriorFire = { ...WARRIOR_EARTH, attribute: 2 };
     expect(meetsEquipRequirement(EQUIP_BOTH, warriorFire)).toBe(false);
   });
 });
