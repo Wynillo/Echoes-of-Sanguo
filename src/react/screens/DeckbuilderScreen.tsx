@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScreen }      from '../contexts/ScreenContext.js';
 import { useProgression } from '../contexts/ProgressionContext.js';
@@ -79,7 +79,7 @@ export default function DeckbuilderScreen() {
   }, [currentDeck]);
 
   // Filter helper shared between collection and deck tabs
-  function matchesFilters(c: CardData): boolean {
+  const matchesFilters = useCallback((c: CardData): boolean => {
     return (
       (typeFilter === 'all'
         || (typeFilter === 'monster' && c.type === CardType.Monster && !c.effect)
@@ -91,15 +91,14 @@ export default function DeckbuilderScreen() {
       (rarityFilter === 'all' || c.rarity === rarityFilter) &&
       (!debouncedSearch || c.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
     );
-  }
+  }, [typeFilter, raceFilter, rarityFilter, debouncedSearch]);
 
   // Collection tab: all owned non-fusion cards, filtered
   const collectionCards = useMemo(() => (Object.values(CARD_DB) as CardData[]).filter(c =>
     c.type !== CardType.Fusion &&
     (!ownedIds || ownedIds.has(c.id)) &&
     matchesFilters(c)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [ownedIds, typeFilter, raceFilter, rarityFilter, debouncedSearch]);
+  ), [ownedIds, matchesFilters]);
 
   // Deck tab: unique cards in current deck, filtered
   const deckCards = useMemo(() => {
@@ -112,8 +111,7 @@ export default function DeckbuilderScreen() {
       if (card && matchesFilters(card)) cards.push(card);
     });
     return cards;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDeck, typeFilter, raceFilter, rarityFilter, debouncedSearch]);
+  }, [currentDeck, matchesFilters]);
 
   const displayedCards = activeTab === 'collection' ? collectionCards : deckCards;
 
@@ -156,7 +154,6 @@ export default function DeckbuilderScreen() {
       { indicator: ' \u25B2', compare: (a, b) => (copyMap[a.id] || 0) - (copyMap[b.id] || 0) },
       { indicator: ' \u25BC', compare: (a, b) => (copyMap[b.id] || 0) - (copyMap[a.id] || 0) },
     ],
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [seenCards, copyMap]);
 
   const sortedCards = useMemo(() => {

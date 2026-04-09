@@ -66,22 +66,18 @@ export default function CampaignScreen() {
   useEffect(() => {
     if (!activeChapter || initializedChapters.current.has(activeChapter.id)) return;
     
-    // Find the first story node with no unlock condition
     const startNode = activeChapter.nodes.find(
       n => n.unlockCondition === null && n.type === 'story' && !n.gauntlet
     );
     
     if (startNode && !progress.completedNodes.includes(startNode.id)) {
-      // Complete the node immediately
       completeNode(startNode.id);
-      // Show dialogue if it exists (user can read and dismiss)
       if (startNode.dialogueKeys && startNode.dialogueKeys.length > 0) {
         setDialogueNode(startNode);
       }
     }
     initializedChapters.current.add(activeChapter.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeChapter]); // Run when chapter changes (first time per chapter)
+  }, [activeChapter, progress.completedNodes, completeNode]);
 
   function getNodeState(node: CampaignNode): 'completed' | 'available' | 'locked' {
     if (progress.completedNodes.includes(node.id)) return 'completed';

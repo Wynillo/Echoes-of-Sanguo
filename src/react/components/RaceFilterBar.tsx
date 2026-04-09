@@ -1,6 +1,7 @@
 import { Race } from '../../types.js';
 import { getAllRaces } from '../../type-metadata.js';
 import RaceIcon from './RaceIcon.js';
+import { GiGlobe } from 'react-icons/gi';
 import styles from './RaceFilterBar.module.css';
 
 interface RaceFilterBarProps {
@@ -18,7 +19,7 @@ export default function RaceFilterBar({ value, onChange }: RaceFilterBarProps) {
         <button
           className={`${styles.btn}${value === 'all' ? ` ${styles.active}` : ''}`}
           onClick={() => onChange('all')}
-        >🌐</button>
+        ><GiGlobe /></button>
         {races.map(rm => (
           <button
             key={rm.id}
@@ -37,10 +38,10 @@ export default function RaceFilterBar({ value, onChange }: RaceFilterBarProps) {
           onChange(v === 'all' ? 'all' : Number(v) as Race);
         }}
       >
-        <option value="all">🌐 All Races</option>
+        <option value="all">All Races</option>
         {races.map(rm => (
           <option key={rm.id} value={String(rm.id)}>
-            {rm.emoji ?? rm.icon ?? ''} {rm.value}
+            {rm.value}
           </option>
         ))}
       </select>
