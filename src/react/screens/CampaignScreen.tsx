@@ -158,7 +158,7 @@ export default function CampaignScreen() {
                 gauntletOpponents: node.gauntlet!,
                 gauntletIndex: 0,
               });
-              if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
+              if (node.preDialogue && node.preDialogue.dialogue?.length > 0) {
                 navigateTo('dialogue', {
                   scene: node.preDialogue,
                   nextScreen: 'game',
