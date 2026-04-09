@@ -163,25 +163,9 @@ function applyFusionFormulas(raw: TcgFusionFormula[], warnings: string[]): void 
   FUSION_FORMULAS.push(...converted);
 }
 
-const blobUrls: Map<number, string> = new Map();
-
-function applyImages(rawImages: Map<number, ArrayBuffer>): Map<number, string> {
-  for (const [id, buf] of rawImages) {
-    const url = URL.createObjectURL(new Blob([buf], { type: 'image/png' }));
-    blobUrls.set(id, url);
-  }
-  return new Map(blobUrls);
-}
-
-export function revokeTcgImages(): void {
-  for (const url of blobUrls.values()) URL.revokeObjectURL(url);
-  blobUrls.clear();
-}
-
 export interface BridgeLoadResult {
   cards: TcgLoadResult['cards'];
   parsedCards: TcgLoadResult['parsedCards'];
-  images: Map<number, string>;
   manifest?: TcgManifest;
   warnings: string[];
 }
@@ -249,9 +233,6 @@ export async function loadAndApplyTcg(
     mod.cardIds.push(id);
   }
 
-  // Convert raw ArrayBuffers → blob URLs
-  const images = applyImages(result.rawImages);
-
   // Apply game-specific side effects
   if (result.typeMeta?.races)      applyTypeMeta({ races: result.typeMeta.races });
   if (result.typeMeta?.attributes) applyTypeMeta({ attributes: result.typeMeta.attributes });
@@ -296,7 +277,6 @@ export async function loadAndApplyTcg(
   return {
     cards: result.cards,
     parsedCards: result.parsedCards,
-    images,
     manifest: result.manifest,
     warnings: result.warnings,
   };

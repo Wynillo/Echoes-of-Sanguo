@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import JSZip from 'jszip';
 import { loadTcgFile, TcgFormatError } from '@wynillo/tcg-format';
-import { loadAndApplyTcg, revokeTcgImages } from '../src/tcg-bridge.js';
+import { loadAndApplyTcg } from '../src/tcg-bridge.js';
 import { CARD_DB, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS } from '../src/cards.js';
 
 // ── Helpers ─────────────────────────────────────────────────
@@ -213,22 +213,5 @@ describe('loadAndApplyTcg (bridge)', () => {
     });
     await loadAndApplyTcg(buf);
     expect(STARTER_DECKS[1]).toEqual(['1', '1', '1']);
-  });
-});
-
-describe('revokeTcgImages', () => {
-  it('calls revokeObjectURL for each image', () => {
-    const original = URL.revokeObjectURL;
-    const revoked = [];
-    URL.revokeObjectURL = (url) => revoked.push(url);
-    try {
-      // Create some mock blob URLs via the bridge's internal state
-      // We test the bridge export directly
-      revokeTcgImages();
-      // Since no images were loaded, nothing to revoke
-      expect(revoked).toEqual([]);
-    } finally {
-      URL.revokeObjectURL = original;
-    }
   });
 });
