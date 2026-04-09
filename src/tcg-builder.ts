@@ -1,10 +1,6 @@
-// ============================================================
-// ECHOES OF SANGUO — TCG Builder
-// Converts CardData → TcgCard / TcgCardDefinition for export
-// ============================================================
 import type { CardData } from './types.js';
 import { CardType } from './types.js';
-import type { TcgCard, TcgCardDefinition, TcgManifest, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson } from '@wynillo/tcg-format';
+import type { TcgCard, TcgCardDefinition, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson } from '@wynillo/tcg-format';
 import { cardTypeToInt, trapTriggerToInt } from './enums.js';
 import { serializeEffect } from './effect-serializer.js';
 import type { RaceMeta, AttributeMeta, CardTypeMeta, RarityMeta } from './type-metadata.js';
