@@ -84,10 +84,10 @@ export interface TypeMetaData {
 }
 
 export function applyTypeMeta(data: TypeMetaData): void {
-  if (data.races)      TYPE_META.races      = data.races;
-  if (data.attributes) TYPE_META.attributes = data.attributes;
-  if (data.rarities)   TYPE_META.rarities   = data.rarities;
-  if (data.cardTypes)  TYPE_META.cardTypes  = data.cardTypes;
+  if (data.races)      TYPE_META.races      = data.races.map(r => r.value ? r : { ...r, value: r.key });
+  if (data.attributes) TYPE_META.attributes = data.attributes.map(a => a.value ? a : { ...a, value: a.key });
+  if (data.rarities)   TYPE_META.rarities   = data.rarities.map(r => r.value ? r : { ...r, value: r.key });
+  if (data.cardTypes)  TYPE_META.cardTypes  = data.cardTypes.map(c => c.value ? c : { ...c, value: c.key });
   rebuildIndices();
 }
 
