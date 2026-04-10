@@ -185,7 +185,7 @@ export default function CampaignScreen() {
             rewardConfig: node.rewardConfig,
             postDialogue: node.postDialogue ?? null,
           });
-          if (node.preDialogue && node.preDialogue.dialogue.length > 0) {
+          if (node.preDialogue && node.preDialogue.dialogue?.length > 0) {
             navigateTo('dialogue', {
               scene: node.preDialogue,
               nextScreen: 'game',
