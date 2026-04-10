@@ -87,7 +87,7 @@ export function computeCampaignDuelNav(
     ops.recordDuelResult(opponentId, result === 'victory');
   }
 
-  if (result === 'victory' && pending.postDialogue && pending.postDialogue.dialogue.length > 0) {
+  if (result === 'victory' && pending.postDialogue && pending.postDialogue.dialogue?.length > 0) {
     return {
       screen: 'duel-result',
       data: resultData('victory', {
@@ -115,7 +115,7 @@ export function computeCampaignDuelNav(
     };
   }
 
-  if (isComplete && pending.postDialogue && pending.postDialogue.dialogue.length > 0) {
+  if (isComplete && pending.postDialogue && pending.postDialogue.dialogue?.length > 0) {
     return {
       screen: 'dialogue',
       data: {
