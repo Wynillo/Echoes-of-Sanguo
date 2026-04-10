@@ -16,29 +16,25 @@
 .titleRow {
   display: flex; align-items: center;
   padding: 8px 12px;
-  position: relative;
 }
 
 .backBtn {
   font-size: 0.8rem;
   padding: 6px 12px;
   flex-shrink: 0;
-  z-index: 1;
 }
 
 .title {
-  position: absolute; left: 0; right: 0;
+  flex: 1; min-width: 0;
   text-align: center;
   font-size: 1.125rem; font-weight: bold;
   color: var(--gold-light); letter-spacing: 3px;
   text-transform: uppercase;
-  pointer-events: none;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
 .saveBtn {
-  margin-left: auto;
   flex-shrink: 0;
-  z-index: 1;
 }
 
 .tabRow {
