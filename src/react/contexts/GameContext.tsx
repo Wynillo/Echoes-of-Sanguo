@@ -292,7 +292,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             {
               markNodeComplete: (id) => Progression.markNodeComplete(id),
               nodeExists: (id) => !!getNode(id),
-              addCoins: (n) => Progression.addCoins(n),
+              addCurrency: (currencyId, amount) => {
+                const slot = Progression.getActiveSlot();
+                if (slot) {
+                  import('../../currencies.js').then(({ addCurrency }) => {
+                    addCurrency(slot, currencyId, amount);
+                  });
+                }
+              },
               ownsCard: (id) => Progression.ownsCard(id),
               addCardsToCollection: (ids) => Progression.addCardsToCollection(ids),
               recordDuelResult: (id, won) => Progression.recordDuelResult(id, won),
