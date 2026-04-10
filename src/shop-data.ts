@@ -17,14 +17,14 @@ export interface CardPoolDef {
   exclude?: CardFilter;   // Cards matching ALL exclude fields are removed from the pool
 }
 
-/** Condition that must be true for a package to appear as purchasable in the shop. */
+/** Condition that must be true for a pack to appear as purchasable in the shop. */
 export type UnlockCondition =
   | { type: 'nodeComplete'; nodeId: string }
   | { type: 'winsCount'; count: number }
   | null;
 
-/** A thematically curated card package with a filtered pool and optional unlock condition. */
-export interface PackageDef {
+/** A thematically curated card pack with a filtered pool and optional unlock condition. */
+export interface PackDef {
   id: string;
   name: string;
   desc: string;
@@ -45,28 +45,14 @@ export interface PackSlotDef {
   distribution?: Record<string, number>; // rarity int -> probability
 }
 
-export interface PackDef {
-  id: string;
-  name: string;
-  desc: string;
-  price: number;
-  icon: string;
-  color: string;
-  slots: PackSlotDef[];
-  filter?: string;                      // 'byRace' or undefined
-  cardPool?: CardPoolDef;               // optional card pool filter (same as packages)
-}
-
 export interface ShopData {
   packs: PackDef[];
-  packages: PackageDef[];
   currency: { nameKey: string; icon: string };
   backgrounds: Record<string, string>;  // chapter key -> resolved URL
 }
 
 export const SHOP_DATA: ShopData = {
   backgrounds: {},
-  packages: [],
   packs: [],
   currency: { nameKey: 'common.coins', icon: '\u25c8' },
 };
@@ -78,9 +64,6 @@ export const SHOP_DATA: ShopData = {
 export function applyShopData(data: Partial<ShopData>): void {
   if (data.packs) {
     SHOP_DATA.packs = data.packs;
-  }
-  if (data.packages) {
-    SHOP_DATA.packages = data.packages;
   }
   if (data.currency) {
     Object.assign(SHOP_DATA.currency, data.currency);

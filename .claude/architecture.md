@@ -38,7 +38,7 @@ src/
   campaign-types.ts    — CampaignData, Chapter, CampaignNode, UnlockCondition, NodeRewards
   campaign-store.ts    — Campaign state persistence
   progression.ts       — Player progression and unlock logic
-  shop-data.ts         — PackDef, PackageDef, PackSlotDef, CardFilter
+  shop-data.ts         — PackDef, PackSlotDef, CardFilter
   mod-api.ts           — window.EchoesOfSanguoMod public API for modders
   i18n.ts              — i18next setup
   react/
