@@ -5,9 +5,9 @@ import { useProgression } from '../contexts/ProgressionContext.js';
 import { useCampaign }    from '../contexts/CampaignContext.js';
 import { Progression }    from '../../progression.js';
 import { getRarityById } from '../../type-metadata.js';
-import { openPackage, isPackageUnlocked, buildCardPool } from '../utils/pack-logic.js';
+import { openPack, isPackUnlocked, buildCardPool } from '../utils/pack-logic.js';
 import { SHOP_DATA } from '../../shop-data.js';
-import type { PackageDef, PackSlotDef } from '../../shop-data.js';
+import type { PackDef, PackSlotDef } from '../../shop-data.js';
 import { Audio }               from '../../audio.js';
 import type { CardData } from '../../types.js';
 import RaceIcon from '../components/RaceIcon.js';
@@ -79,14 +79,14 @@ export default function ShopScreen() {
 
   const [page, setPage] = useState(0);
   const itemsPerPage = useItemsPerPage();
-  const [infoTarget, setInfoTarget] = useState<{ pack: PackageDef } | null>(null);
+  const [infoTarget, setInfoTarget] = useState<{ pack: PackDef } | null>(null);
 
   // Touch swipe tracking
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
 
-  const unlockedPackages = SHOP_DATA.packages.filter(pkg => isPackageUnlocked(pkg));
-  const items = unlockedPackages;
+  const unlockedPacks = SHOP_DATA.packs.filter(pkg => isPackUnlocked(pkg));
+  const items = unlockedPacks;
   const totalPages = Math.ceil(items.length / itemsPerPage);
 
   // Reset page when items per page changes
@@ -110,20 +110,20 @@ export default function ShopScreen() {
     }
   }, [goPage, page]);
 
-  function buyPackage(packageId: string) {
-    const pkg = SHOP_DATA.packages.find(p => p.id === packageId);
+  function buyPack(packId: string) {
+    const pkg = SHOP_DATA.packs.find(p => p.id === packId);
     if (!pkg || coins < pkg.price) return;
     if (!Progression.spendCoins(pkg.price)) return;
     Audio.playSfx('sfx_coin');
     const preOpen = Progression.getCollection();
-    const cards   = openPackage(packageId);
+    const cards   = openPack(packId);
     Progression.addCardsToCollection(cards.map((c: CardData) => c.id));
     Progression.updateSlotMeta();
     refresh();
     navigateTo('pack-opening', { cards, preOpen });
   }
 
-  function showInfo(pack: PackageDef) {
+  function showInfo(pack: PackDef) {
     setInfoTarget({ pack });
   }
 
@@ -162,14 +162,14 @@ export default function ShopScreen() {
           className={styles.carouselTrack}
           style={{ '--items-per-page': itemsPerPage } as React.CSSProperties}
         >
-          {(visibleItems as PackageDef[]).map(pkg => {
+          {(visibleItems as PackDef[]).map(pkg => {
             const affordable = coins >= pkg.price;
             return (
-              <PackageTile
+              <PackTile
                 key={pkg.id}
                 pkg={pkg}
                 affordable={affordable}
-                onBuy={buyPackage}
+                onBuy={buyPack}
                 onInfo={() => showInfo(pkg)}
               />
             );
@@ -212,14 +212,14 @@ export default function ShopScreen() {
   );
 }
 
-interface PackageTileProps {
-  pkg: PackageDef;
+interface PackTileProps {
+  pkg: PackDef;
   affordable: boolean;
-  onBuy: (packageId: string) => void;
+  onBuy: (packId: string) => void;
   onInfo: () => void;
 }
 
-function PackageTile({ pkg, affordable, onBuy, onInfo }: PackageTileProps) {
+function PackTile({ pkg, affordable, onBuy, onInfo }: PackTileProps) {
   const { t } = useTranslation();
 
   return (
@@ -246,7 +246,7 @@ function PackageTile({ pkg, affordable, onBuy, onInfo }: PackageTileProps) {
 }
 
 interface PackInfoModalProps {
-  pack: PackageDef;
+  pack: PackDef;
   onClose: () => void;
 }
 

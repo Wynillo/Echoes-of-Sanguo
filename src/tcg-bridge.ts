@@ -407,7 +407,7 @@ function applyLocaleToStores(locale: TcgLocale, lang: string): void {
   }
 
   if (locale.shop) {
-    for (const pkg of SHOP_DATA.packages) {
+    for (const pkg of SHOP_DATA.packs) {
       const trans = locale.shop[pkg.id];
       if (trans) {
         pkg.name = trans.name;

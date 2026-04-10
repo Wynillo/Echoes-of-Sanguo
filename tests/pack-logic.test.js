@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CARD_DB } from '../src/cards.js';
 import { CardType } from '../src/types.js';
-import { RARITY_DROP_RATES, openPackage, buildCardPool } from '../src/react/utils/pack-logic.js';
+import { RARITY_DROP_RATES, openPack, buildCardPool } from '../src/react/utils/pack-logic.js';
 import { SHOP_DATA } from '../src/shop-data.js';
 import { Progression } from '../src/progression.js';
 
@@ -19,29 +19,29 @@ describe('RARITY_DROP_RATES', () => {
   });
 });
 
-// ── openPackage ──────────────────────────────────────────
+// ── openPack ──────────────────────────────────────────
 
-describe('openPackage', () => {
+describe('openPack', () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
   it('returns empty array for unknown package ID', () => {
-    const cards = openPackage('nonexistent');
+    const cards = openPack('nonexistent');
     expect(cards).toHaveLength(0);
   });
 
   it('returns correct number of cards for each package', () => {
-    for (const pkg of SHOP_DATA.packages) {
-      const cards = openPackage(pkg.id);
+    for (const pkg of SHOP_DATA.packs) {
+      const cards = openPack(pkg.id);
       const expectedCount = pkg.slots.reduce((sum, s) => sum + s.count, 0);
       expect(cards).toHaveLength(expectedCount);
     }
   });
 
   it('all returned cards are valid CardData objects from CARD_DB', () => {
-    for (const pkg of SHOP_DATA.packages) {
-      const cards = openPackage(pkg.id);
+    for (const pkg of SHOP_DATA.packs) {
+      const cards = openPack(pkg.id);
       for (const card of cards) {
         expect(card).toHaveProperty('id');
         expect(card).toHaveProperty('name');
@@ -52,12 +52,12 @@ describe('openPackage', () => {
   });
 
   it('respects cardPool maxAtk filter', () => {
-    const pkg = SHOP_DATA.packages.find(p => p.cardPool?.include?.maxAtk);
+    const pkg = SHOP_DATA.packs.find(p => p.cardPool?.include?.maxAtk);
     if (!pkg) return; // skip if no package has maxAtk filter
     const maxAtk = pkg.cardPool.include.maxAtk;
     // Open many times to get a good sample
     for (let i = 0; i < 20; i++) {
-      const cards = openPackage(pkg.id);
+      const cards = openPack(pkg.id);
       for (const card of cards) {
         if (card.atk !== undefined) {
           expect(card.atk).toBeLessThanOrEqual(maxAtk);

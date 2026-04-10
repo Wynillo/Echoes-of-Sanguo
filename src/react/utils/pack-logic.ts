@@ -1,7 +1,7 @@
 import { CARD_DB } from '../../cards.js';
 import { Progression } from '../../progression.js';
 import { SHOP_DATA } from '../../shop-data.js';
-import type { PackSlotDef, PackageDef, CardFilter, CardPoolDef } from '../../shop-data.js';
+import type { PackSlotDef, PackDef, CardFilter, CardPoolDef } from '../../shop-data.js';
 import type { CardData } from '../../types.js';
 
 /** Default drop-chance distribution used for any slot without an explicit rarity or distribution. */
@@ -125,7 +125,7 @@ export function buildCardPool(cardPool: CardPoolDef | undefined): CardData[] {
 }
 
 /** Check whether a package's unlockCondition is satisfied. */
-export function isPackageUnlocked(pkg: PackageDef): boolean {
+export function isPackUnlocked(pkg: PackDef): boolean {
   const cond = pkg.unlockCondition;
   if (!cond) return true;
   if (cond.type === 'nodeComplete') return Progression.isNodeComplete(cond.nodeId);
@@ -138,8 +138,8 @@ export function isPackageUnlocked(pkg: PackageDef): boolean {
 }
 
 /** Open a curated card package by ID. Uses the package's cardPool filter. */
-export function openPackage(packageId: string): CardData[] {
-  const pkg = SHOP_DATA.packages.find(p => p.id === packageId);
+export function openPack(packId: string): CardData[] {
+  const pkg = SHOP_DATA.packs.find(p => p.id === packId);
   if (!pkg) return [];
 
   const pool = buildCardPool(pkg.cardPool);

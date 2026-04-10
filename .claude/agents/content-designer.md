@@ -27,10 +27,10 @@ Specialist for campaign and shop content: campaign graph model, shop pack/packag
 ## Key Files
 
 - `@wynillo/echoes-mod-base` tcg-src/campaign.json — campaign graph: chapters, nodes, connections
-- `@wynillo/echoes-mod-base` tcg-src/shop.json — packs, packages, currency config
+- `@wynillo/echoes-mod-base` tcg-src/shop.json — packs, currency config
 - `src/campaign-types.ts` — CampaignData, Chapter, CampaignNode, UnlockCondition, NodeRewards
 - `src/campaign.ts` — node resolution, unlock checking
-- `src/shop-data.ts` — PackDef, PackageDef, PackSlotDef, CardPoolDef, CardFilter
+- `src/shop-data.ts` — PackDef, PackSlotDef, CardPoolDef, CardFilter
 - `src/react/utils/pack-logic.ts` — pack opening: rarity picking, card pool filtering
 
 Read `src/campaign-types.ts` for campaign types and `src/shop-data.ts` for shop types. Node types: `duel`, `story`, `reward`, `shop`, `branch`. Unlock types: `nodeComplete`, `allComplete`, `anyComplete`, `cardOwned`, `winsCount`.

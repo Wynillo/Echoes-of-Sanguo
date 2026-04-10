@@ -14,8 +14,8 @@
   position: absolute;
   inset: 0;
   background-size: cover;
-  background-position: center top;
-  opacity: 0.28;
+  background-position: center center;
+  opacity: 0.22;
   pointer-events: none;
   z-index: 0;
 }
@@ -172,15 +172,15 @@
 }
 
 .dot {
-  width: 18px;
-  height: 18px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   border: 1px solid #556;
   background: #334;
   cursor: pointer;
   padding: 0;
   transition: background 0.2s, border-color 0.2s;
-  margin: 13px;
+  margin: 4px;
 }
 
 .dot:active {
@@ -294,7 +294,7 @@
 }
 
 .packName {
-  font-size: clamp(0.5rem, 1.6vw, 0.8rem);
+  font-size: clamp(0.65rem, 2vw, 0.85rem);
   font-weight: bold;
   color: #c0d0e0;
   position: relative;
@@ -303,13 +303,13 @@
 }
 
 .packCardCount {
-  font-size: clamp(0.4rem, 1.2vw, 0.6rem);
+  font-size: clamp(0.55rem, 1.4vw, 0.65rem);
   color: #7080a0;
   position: relative;
 }
 
 .packDesc {
-  font-size: clamp(0.4rem, 1.2vw, 0.6rem);
+  font-size: clamp(0.55rem, 1.4vw, 0.65rem);
   color: #606880;
   position: relative;
 }
@@ -360,11 +360,11 @@
   color: var(--pack-color, #90b0e0);
   padding: 6px 8px;
   border-radius: 0;
-  font-size: clamp(0.5rem, 1.4vw, 0.72rem);
+  font-size: clamp(0.65rem, 1.8vw, 0.78rem);
   cursor: pointer;
   position: relative;
   width: 100%;
-  min-height: 32px;
+  min-height: 44px;
 }
 
 .buyBtn:hover:not(:disabled) {
