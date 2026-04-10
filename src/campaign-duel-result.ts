@@ -14,7 +14,7 @@ export interface CampaignDuelNav {
 export interface CampaignDuelOps {
   markNodeComplete: (nodeId: string) => void;
   nodeExists: (nodeId: string) => boolean;
-  addCoins: (n: number) => void;
+  addCurrency: (currencyId: string, amount: number) => void;
   ownsCard: (id: string) => boolean;
   addCardsToCollection: (ids: string[]) => void;
   recordDuelResult: (opponentId: number, won: boolean) => void;
@@ -71,7 +71,13 @@ export function computeCampaignDuelNav(
     if (adjustedRewards?.coins && result === 'victory') {
       adjustedRewards.coins = ops.applyBadgeMultiplier(adjustedRewards.coins);
     }
-    if (adjustedRewards?.coins) ops.addCoins(adjustedRewards.coins);
+    const rewardCurrencyId = pending.rewardConfig?.ranks?.S?.currencyId
+      ?? pending.rewards?.currencyId
+      ?? 'coins';
+    const rewardCoins = adjustedRewards?.coins ?? 0;
+    if (rewardCoins > 0) {
+      ops.addCurrency(rewardCurrencyId, rewardCoins);
+    }
 
     const allCards = [...(adjustedRewards?.cards ?? []), ...badgeDrops];
     newCardIds = allCards.filter(id => !ops.ownsCard(id));
