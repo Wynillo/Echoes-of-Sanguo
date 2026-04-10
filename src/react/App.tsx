@@ -34,7 +34,6 @@ import { VFXOverlay }           from './components/VFXOverlay.js';
 import { DamageNumberOverlay }  from './components/DamageNumberOverlay.js';
 import { ModalOverlay }         from './modals/ModalOverlay.js';
 import { OfflineIndicator }     from './components/OfflineIndicator.js';
-import { PixiLayer }            from './pixi/PixiLayer.js';
 
 function SaveErrorToast() {
   const { t } = useTranslation();
@@ -104,7 +103,6 @@ function Router() {
       <SaveErrorToast />
       <OfflineIndicator />
       <MigrationWarning />
-      <PixiLayer />
       <div id="screen-transition-overlay" style={{ position: 'fixed', inset: 0, background: '#000', opacity: 0, pointerEvents: 'none', zIndex: 9999, transition: 'opacity 200ms ease' }} />
     </>
   );

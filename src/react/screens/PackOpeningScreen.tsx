@@ -6,12 +6,11 @@ import { useModal }    from '../contexts/ModalContext.js';
 import { getRarityById } from '../../type-metadata.js';
 import { Card } from '../components/Card.js';
 import { Audio }        from '../../audio.js';
-import { CardType, } from '../../types.js';
+import { CardType } from '../../types.js';
 import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
 import RaceIcon from '../components/RaceIcon.js';
 import styles from './PackOpeningScreen.module.css';
-import { fxManager } from '../pixi/fxManager.js';
 
 type Phase = 'pack' | 'reveal' | 'summary';
 
@@ -23,6 +22,12 @@ const HOLD_BY_RARITY: Record<number, number> = {
   [6]: 0.8,
   [7]: 1.2,
   [8]: 1.6,
+};
+
+const SPARKLE_CONFIG: Record<number, { count: number; color: string; beams: number; burstSize: 'normal' | 'large'; small: boolean }> = {
+  [6]:  { count: 6,  color: '#7090ff', beams: 0, burstSize: 'normal', small: true },
+  [7]:  { count: 12, color: '#ffd700', beams: 4, burstSize: 'normal', small: false },
+  [8]:  { count: 18, color: '#e080ff', beams: 6, burstSize: 'large',  small: false },
 };
 
 const SCANLINE_COLORS: Record<number, string> = {
@@ -72,6 +77,50 @@ function getNewBadgeClass(rarity: number, s: Record<string, string>): string {
 
 /* ── Helpers ───────────────────────────────────────────────── */
 
+function spawnRevealFX(container: HTMLElement, rarity: number) {
+  const cfg = SPARKLE_CONFIG[rarity];
+  if (!cfg) return;
+
+  for (let i = 0; i < cfg.count; i++) {
+    const el = document.createElement('div');
+    el.className = cfg.small ? styles['sparkle-particle-small'] : styles['sparkle-particle'];
+    el.style.setProperty('--sparkle-angle', `${(i / cfg.count) * 360}deg`);
+    el.style.setProperty('--sparkle-color', cfg.color);
+    el.style.animationDelay = `${Math.random() * 0.15}s`;
+    container.appendChild(el);
+    el.addEventListener('animationend', () => el.remove(), { once: true });
+    setTimeout(() => { if (el.parentNode) el.remove(); }, 1200);
+  }
+
+  for (let i = 0; i < cfg.beams; i++) {
+    const beam = document.createElement('div');
+    beam.className = styles.lightBeam;
+    beam.style.setProperty('--beam-angle', `${(i / cfg.beams) * 180}deg`);
+    beam.style.setProperty('--sparkle-color', cfg.color);
+    beam.style.animationDelay = `${i * 0.08}s`;
+    container.appendChild(beam);
+    beam.addEventListener('animationend', () => beam.remove(), { once: true });
+    setTimeout(() => { if (beam.parentNode) beam.remove(); }, 1500);
+  }
+
+  const burst = document.createElement('div');
+  burst.className = cfg.burstSize === 'large' ? styles['sparkle-burst-large'] : styles['sparkle-burst'];
+  burst.style.setProperty('--sparkle-color', cfg.color);
+  container.appendChild(burst);
+  burst.addEventListener('animationend', () => burst.remove(), { once: true });
+  setTimeout(() => { if (burst.parentNode) burst.remove(); }, 1000);
+}
+
+function getBgClass(rarity: number): string {
+  switch (rarity) {
+    case 5:  return styles.bgUncommon;
+    case 6:  return styles.bgRare;
+    case 7:  return styles.bgSuperRare;
+    case 8:  return styles.bgUltraRare;
+    default: return '';
+  }
+}
+
 /** Screen shake utility — returns a timeline that always resets to origin */
 function shakeScreen(screenEl: HTMLElement, intensity: number, duration: number) {
   gsap.killTweensOf(screenEl, 'x,y');
@@ -116,6 +165,7 @@ export default function PackOpeningScreen() {
   const [tapCount, setTapCount] = useState(0);
   const [tearing, setTearing] = useState(false);
   const [revealIndex, setRevealIndex] = useState(-1);
+  const [currentRarity, setCurrentRarity] = useState<number>(4);
   const skipRef = useRef(false);
   const fastForwardRef = useRef(false);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
@@ -126,19 +176,19 @@ export default function PackOpeningScreen() {
   const flashRef = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
   const scanlineTintRef = useRef<HTMLDivElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
+  const lightRaysRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       skipRef.current = true;
       setPhase('summary');
     }
-    return () => { fxManager.clearAll(); };
   }, []);
 
   const handleSkip = useCallback(() => {
     if (phase === 'summary') return;
     if (phase === 'pack' && !tearing) return;
-    fxManager.clearAll();
     if (phase === 'pack') {
       skipRef.current = true;
       tlRef.current?.kill();
@@ -247,6 +297,7 @@ export default function PackOpeningScreen() {
         const rarity = card.rarity ?? 4;
 
         setRevealIndex(i);
+        setCurrentRarity(rarity);
 
         // Wait for React to commit the render and set refs
         let cardEl: HTMLElement | null = null;
@@ -259,9 +310,14 @@ export default function PackOpeningScreen() {
         if (cancelled || skipRef.current) break;
 
         const screenEl = screenRef.current;
+        const bgEl = bgRef.current;
+        const raysEl = lightRaysRef.current;
         if (!cardEl) continue;
 
         const holdTime = HOLD_BY_RARITY[rarity] ?? 0.5;
+        const hasSparkle = rarity in SPARKLE_CONFIG;
+        const hasBg = rarity >= 5;
+        const hasRays = rarity >= 7;
 
         const tl = gsap.timeline();
         currentTl = tl;
@@ -273,10 +329,18 @@ export default function PackOpeningScreen() {
 
         // Find the inner element for flip
         const innerEl = cardEl.querySelector(`.${styles.revealCardInner}`) as HTMLElement | null;
+        const frontEl = cardEl.querySelector(`.${styles.revealCardFront}`) as HTMLElement | null;
 
         // Reset card state: face-down, off-screen
         gsap.set(cardEl, { y: '-120vh', opacity: 0, scale: 0.85 });
         if (innerEl) gsap.set(innerEl, { rotateY: 0 });
+
+        if (hasBg && bgEl) {
+          tl.to(bgEl, { opacity: 1, duration: 0.3, ease: 'steps(4)' }, 0);
+        }
+        if (hasRays && raysEl) {
+          tl.to(raysEl, { opacity: 1, duration: 0.4, ease: 'steps(5)' }, 0);
+        }
 
         // Card entrance: slide from top (face-down)
         tl.to(cardEl, {
@@ -299,16 +363,26 @@ export default function PackOpeningScreen() {
           Audio.playSfx('sfx_pack_reveal');
         }, undefined, '-=0.2');
 
+        // Screen shake for SR/UR at flip moment
+        if (rarity >= 7 && screenEl) {
+          const shakeIntensity = rarity === 8 ? 8 : 5;
+          tl.call(() => {
+            shakeScreen(screenEl, shakeIntensity, 0.25);
+          }, undefined, '-=0.1');
+        }
+
+        // Sparkle + beam effects after flip
         tl.call(() => {
-          if (rarity >= 4 && cardEl) {
-            fxManager.packReveal(rarity, cardEl);
-            const tintEl = scanlineTintRef.current;
-            if (tintEl) {
-              tintEl.style.setProperty(
-                '--scanline-color',
-                SCANLINE_COLORS[rarity] ?? 'rgba(255,255,255,0.04)',
-              );
-            }
+          if (hasSparkle && cardEl) {
+            spawnRevealFX(cardEl, rarity);
+            if (frontEl) frontEl.classList.add(styles.sparkle);
+          }
+          const tintEl = scanlineTintRef.current;
+          if (tintEl && rarity >= 4) {
+            tintEl.style.setProperty(
+              '--scanline-color',
+              SCANLINE_COLORS[rarity] ?? 'rgba(255,255,255,0.04)',
+            );
           }
         });
 
@@ -323,16 +397,15 @@ export default function PackOpeningScreen() {
           }
         }
 
-        // Screen shake for SR/UR at flip moment
-        if (rarity >= 7 && screenEl) {
-          const shakeIntensity = rarity === 8 ? 8 : 5;
-          tl.call(() => {
-            shakeScreen(screenEl, shakeIntensity, 0.25);
-          }, undefined, '-=0.1');
-        }
-
         // Hold to admire
         tl.to({}, { duration: holdTime });
+
+        if (hasBg && bgEl) {
+          tl.to(bgEl, { opacity: 0, duration: 0.2, ease: 'steps(3)' }, `-=${0.15}`);
+        }
+        if (hasRays && raysEl) {
+          tl.to(raysEl, { opacity: 0, duration: 0.2, ease: 'steps(3)' }, '<');
+        }
 
         // Exit: card flies off-screen downward
         tl.to(cardEl, {
@@ -415,6 +488,14 @@ export default function PackOpeningScreen() {
 
     return (
       <div ref={screenRef} className={styles.screen} onClick={handleSkip}>
+        <div ref={bgRef} className={`${styles.bgEffect} ${getBgClass(currentRarity)}`} />
+
+        {currentRarity >= 7 && (
+          <div ref={lightRaysRef} className={styles.lightRaysContainer}>
+            <div className={currentRarity === 8 ? styles.lightRaysUR : styles.lightRaysSR} />
+          </div>
+        )}
+
         {/* Scanline tint — opacity driven by GSAP at rare reveal moment */}
         <div ref={scanlineTintRef} className={styles.scanlineTint} />
 
