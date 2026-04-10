@@ -12,6 +12,7 @@ export interface RankRewardEffect {
   coinMultiplier: number;
   cardDropCount: number;
   rarityRates?: Partial<Record<Rarity, number>>;
+  currencyId?: string;
 }
 
 export interface DuelRewardConfig {

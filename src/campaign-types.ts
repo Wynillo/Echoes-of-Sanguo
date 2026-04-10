@@ -35,8 +35,9 @@ export type UnlockCondition =
 
 export interface NodeRewards {
   coins?: number;
+  currencyId?: string;
   cards?: string[];
-  unlocks?: string[];  // node IDs that become available
+  unlocks?: string[];
 }
 
 export interface CampaignProgress {

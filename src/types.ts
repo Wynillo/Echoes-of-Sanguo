@@ -309,6 +309,7 @@ export interface OpponentConfig {
   flavor:      string;
   coinsWin:    number;
   coinsLoss:   number;
+  currencyId?: string;
   deckIds:     string[];
   behaviorId?: string;
   rewardConfig?: import('./reward-config.js').DuelRewardConfig;
