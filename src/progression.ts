@@ -20,6 +20,12 @@ export const Progression = (() => {
     count: number;
   }
 
+  export interface CraftedCardRecord {
+    id: string;
+    baseId: string;
+    effectSourceId: string;
+  }
+
   // ── Slot-aware key mapping ───────────────────────────────
 
   /** Logical key names for per-slot data */
@@ -35,6 +41,8 @@ export const Progression = (() => {
     seenCards:        'seen_cards',
     campaignProgress: 'campaign_progress',
     effectItems:      'effect_items',
+    craftedCards:     'crafted_cards',
+    nextCraftedId:    'next_crafted_id',
   } as const;
 
   /** Global keys (not per-slot) */
@@ -390,6 +398,42 @@ function spendCoins(amount: number): boolean {
     return entry ? entry.count : 0;
   }
 
+  function getCraftedCards(): CraftedCardRecord[] {
+    return _load(_key(SLOT_KEY_NAMES.craftedCards), [], v => Array.isArray(v));
+  }
+
+  function getNextCraftedId(): number {
+    return _load(_key(SLOT_KEY_NAMES.nextCraftedId), 1, v => typeof v === 'number');
+  }
+
+  function incrementCraftedId(): void {
+    const next = getNextCraftedId() + 1;
+    _save(_key(SLOT_KEY_NAMES.nextCraftedId), next);
+  }
+
+  function addCraftedCard(baseId: string, effectSourceId: string): string {
+    const CRAFTED_ID_OFFSET = 100_000_000;
+    const nextId = getNextCraftedId();
+    incrementCraftedId();
+    
+    const generatedId = String(CRAFTED_ID_OFFSET + nextId);
+    
+    const records = getCraftedCards();
+    records.push({
+      id: generatedId,
+      baseId,
+      effectSourceId,
+    });
+    _save(_key(SLOT_KEY_NAMES.craftedCards), records);
+    
+    return generatedId;
+  }
+
+  function findCraftedRecord(id: string): CraftedCardRecord | undefined {
+    const records = getCraftedCards();
+    return records.find(r => r.id === id);
+  }
+
   function getDeck(): string[] | null {
     return _load(_key(SLOT_KEY_NAMES.deck), null, v => Array.isArray(v) && v.every(id => typeof id === 'string'));
   }
@@ -591,6 +635,10 @@ function spendCoins(amount: number): boolean {
     addEffectItem,
     removeEffectItem,
     getEffectItemCount,
+    // Crafted Cards
+    getCraftedCards,
+    addCraftedCard,
+    findCraftedRecord,
     // Deck
     getDeck,
     saveDeck,
