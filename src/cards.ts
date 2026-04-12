@@ -61,7 +61,7 @@ export const OPPONENT_DECK_IDS: string[] = [];
 
 export function makeDeck(ids: string[]): CardData[] {
   return ids.flatMap(id => {
-    let card = CARD_DB[id];
+    let card: CardData | null | undefined = CARD_DB[id];
     
     if (!card && isCraftedId(id)) {
       card = resolveCraftedCard(id);
