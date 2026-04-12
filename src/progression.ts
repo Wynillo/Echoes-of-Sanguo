@@ -403,7 +403,7 @@ function spendCoins(amount: number): boolean {
   }
 
   function getNextCraftedId(): number {
-    return _load(_key(SLOT_KEY_NAMES.nextCraftedId), 1, v => typeof v === 'number');
+    return _load(_key(SLOT_KEY_NAMES.nextCraftedId), 0, v => typeof v === 'number');
   }
 
   function incrementCraftedId(): void {
