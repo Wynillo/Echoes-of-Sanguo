@@ -10,6 +10,7 @@ import { SHOP_DATA, type PackPrice } from '../../shop-data.js';
 import type { PackDef, PackSlotDef, CurrencyDef } from '../../shop-data.js';
 import { Audio }               from '../../audio.js';
 import type { CardData } from '../../types.js';
+import type { EffectSource } from '../../effect-items.js';
 import { CraftingScreen } from '../CraftingScreen.js';
 import styles from './ShopScreen.module.css';
 
@@ -86,8 +87,11 @@ export default function ShopScreen() {
       if (!spendCurrency(slot, currencyId, amount)) return;
       Audio.playSfx('sfx_coin');
       const preOpen = Progression.getCollection();
-      const cards = openPack(packId);
-      Progression.addCardsToCollection(cards.map((c: CardData) => c.id));
+      const results = openPack(packId);
+      const cards = results.filter((c): c is CardData => 'type' in c);
+      const items = results.filter((c): c is EffectSource => !('type' in c));
+      Progression.addCardsToCollection(cards.map(c => c.id));
+      items.forEach(item => Progression.addEffectItem(item.id));
       Progression.updateSlotMeta();
       refresh();
       navigateTo('pack-opening', { cards, preOpen });
