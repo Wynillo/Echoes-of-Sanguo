@@ -15,6 +15,9 @@ export const GAME_RULES = {
   drawPerTurn: 1,
   handRefillSize: 5,
   refillHandEnabled: true,
+  craftingEnabled: false,
+  craftingCurrency: undefined as string | undefined,
+  craftingCost: 0,
 };
 
 export type GameRules = typeof GAME_RULES;
