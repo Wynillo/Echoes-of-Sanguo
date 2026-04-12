@@ -1,0 +1,87 @@
+/* src/react/CraftingScreen.css */
+.crafting-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.crafting-disabled {
+  padding: 2rem;
+  text-align: center;
+  color: #888;
+}
+
+.crafting-panels {
+  display: flex;
+  gap: 1rem;
+}
+
+.crafting-panel {
+  flex: 1;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.crafting-panel h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.crafting-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.crafting-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.crafting-item:hover {
+  background: #333;
+}
+
+.crafting-item.selected {
+  background: #2a4a2a;
+}
+
+.crafting-preview {
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.preview-card {
+  padding: 0.5rem 0;
+}
+
+.crafting-cost {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.crafting-error {
+  color: #f44;
+  font-size: 0.9rem;
+}
+
+.crafting-button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #2a6a2a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.crafting-button:disabled {
+  background: #444;
+  cursor: not-allowed;
+}
