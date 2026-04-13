@@ -13,7 +13,18 @@ export interface SlotMeta {
   lastSaved: string | null;  // ISO date string
 }
 
+export interface CraftedCardRecord {
+  id: string;
+  baseId: string;
+  effectSourceId: string;
+}
+
 export const Progression = (() => {
+
+  interface EffectItemEntry {
+    id: string;
+    count: number;
+  }
 
   // ── Slot-aware key mapping ───────────────────────────────
 
@@ -29,6 +40,9 @@ export const Progression = (() => {
     version:          'save_version',
     seenCards:        'seen_cards',
     campaignProgress: 'campaign_progress',
+    effectItems:      'effect_items',
+    craftedCards:     'crafted_cards',
+    nextCraftedId:    'next_crafted_id',
   } as const;
 
   /** Global keys (not per-slot) */
@@ -338,6 +352,20 @@ function spendCoins(amount: number): boolean {
     _save(_key(SLOT_KEY_NAMES.collection), newCol);
   }
 
+  function removeCardsFromCollection(ids: string[]): void {
+    const col = getCollection();
+    for (const id of ids) {
+      const idx = col.findIndex(e => e.id === id);
+      if (idx !== -1) {
+        col[idx].count -= 1;
+        if (col[idx].count <= 0) {
+          col.splice(idx, 1);
+        }
+      }
+    }
+    _save(_key(SLOT_KEY_NAMES.collection), col);
+  }
+
   function ownsCard(cardId: string): boolean {
     const col = getCollection();
     const entry = col.find(e => e.id === cardId);
@@ -348,6 +376,76 @@ function spendCoins(amount: number): boolean {
     const col = getCollection();
     const entry = col.find(e => e.id === cardId);
     return entry ? entry.count : 0;
+  }
+
+  function getEffectItems(): EffectItemEntry[] {
+    return _load(_key(SLOT_KEY_NAMES.effectItems), [], v => Array.isArray(v));
+  }
+
+  function addEffectItem(id: string, count: number = 1): void {
+    const items = getEffectItems();
+    const existing = items.find(e => e.id === id);
+    if (existing) {
+      existing.count += count;
+    } else {
+      items.push({ id, count });
+    }
+    _save(_key(SLOT_KEY_NAMES.effectItems), items);
+  }
+
+  function removeEffectItem(id: string, count: number = 1): boolean {
+    const items = getEffectItems();
+    const idx = items.findIndex(e => e.id === id);
+    if (idx === -1) return false;
+    
+    items[idx].count -= count;
+    if (items[idx].count <= 0) {
+      items.splice(idx, 1);
+    }
+    _save(_key(SLOT_KEY_NAMES.effectItems), items);
+    return true;
+  }
+
+  function getEffectItemCount(id: string): number {
+    const items = getEffectItems();
+    const entry = items.find(e => e.id === id);
+    return entry ? entry.count : 0;
+  }
+
+  function getCraftedCards(): CraftedCardRecord[] {
+    return _load(_key(SLOT_KEY_NAMES.craftedCards), [], v => Array.isArray(v));
+  }
+
+  function getNextCraftedId(): number {
+    return _load(_key(SLOT_KEY_NAMES.nextCraftedId), 0, v => typeof v === 'number');
+  }
+
+  function incrementCraftedId(): void {
+    const next = getNextCraftedId() + 1;
+    _save(_key(SLOT_KEY_NAMES.nextCraftedId), next);
+  }
+
+  function addCraftedCard(baseId: string, effectSourceId: string): string {
+    const CRAFTED_ID_OFFSET = 100_000_000;
+    const nextId = getNextCraftedId();
+    incrementCraftedId();
+    
+    const generatedId = String(CRAFTED_ID_OFFSET + nextId);
+    
+    const records = getCraftedCards();
+    records.push({
+      id: generatedId,
+      baseId,
+      effectSourceId,
+    });
+    _save(_key(SLOT_KEY_NAMES.craftedCards), records);
+    
+    return generatedId;
+  }
+
+  function findCraftedRecord(id: string): CraftedCardRecord | undefined {
+    const records = getCraftedCards();
+    return records.find(r => r.id === id);
   }
 
   function getDeck(): string[] | null {
@@ -544,8 +642,20 @@ function spendCoins(amount: number): boolean {
     // Collection
     getCollection,
     addCardsToCollection,
+    removeCardsFromCollection,
     ownsCard,
     cardCount,
+    // Effect Items
+    getEffectItems,
+    addEffectItem,
+    removeEffectItem,
+    getEffectItemCount,
+    // Crafted Cards
+    getCraftedCards,
+    getNextCraftedId,
+    incrementCraftedId,
+    addCraftedCard,
+    findCraftedRecord,
     // Deck
     getDeck,
     saveDeck,

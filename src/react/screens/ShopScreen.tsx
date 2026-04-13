@@ -10,6 +10,8 @@ import { SHOP_DATA, type PackPrice } from '../../shop-data.js';
 import type { PackDef, PackSlotDef, CurrencyDef } from '../../shop-data.js';
 import { Audio }               from '../../audio.js';
 import type { CardData } from '../../types.js';
+import type { EffectSource } from '../../effect-items.js';
+import { CraftingScreen } from '../CraftingScreen.js';
 import styles from './ShopScreen.module.css';
 
 function totalCards(slots: PackSlotDef[]): number {
@@ -73,6 +75,7 @@ export default function ShopScreen() {
   const bgUrl = SHOP_DATA.backgrounds[progress.currentChapter] ?? SHOP_DATA.backgrounds['ch1'] ?? '';
   const { t } = useTranslation();
   const [infoTarget, setInfoTarget] = useState<{ pack: PackDef } | null>(null);
+  const [activeTab, setActiveTab] = useState<'packs' | 'crafting'>('packs');
 
   function buyPack(packId: string) {
     const pkg = SHOP_DATA.packs.find(p => p.id === packId);
@@ -84,8 +87,11 @@ export default function ShopScreen() {
       if (!spendCurrency(slot, currencyId, amount)) return;
       Audio.playSfx('sfx_coin');
       const preOpen = Progression.getCollection();
-      const cards = openPack(packId);
-      Progression.addCardsToCollection(cards.map((c: CardData) => c.id));
+      const results = openPack(packId);
+      const cards = results.filter((c): c is CardData => 'type' in c);
+      const items = results.filter((c): c is EffectSource => !('type' in c));
+      Progression.addCardsToCollection(cards.map(c => c.id));
+      items.forEach(item => Progression.addEffectItem(item.id));
       Progression.updateSlotMeta();
       refresh();
       navigateTo('pack-opening', { cards, preOpen });
@@ -104,7 +110,27 @@ export default function ShopScreen() {
         <h2 className={styles.shopTitle}>{t('shop.title')}</h2>
       </div>
 
-      <div className={styles.sectionsContainer}>
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tabBtn} ${activeTab === 'packs' ? styles.activeTab : ''}`}
+          onClick={() => setActiveTab('packs')}
+        >
+          {t('shop.tab_packs', { defaultValue: 'Packs' })}
+        </button>
+        <button
+          className={`${styles.tabBtn} ${activeTab === 'crafting' ? styles.activeTab : ''}`}
+          onClick={() => setActiveTab('crafting')}
+        >
+          {t('shop.tab_crafting', { defaultValue: 'Crafting' })}
+        </button>
+      </div>
+
+      {activeTab === 'crafting' ? (
+        <div className={styles.sectionsContainer}>
+          <CraftingScreen />
+        </div>
+      ) : (
+        <div className={styles.sectionsContainer}>
         {SHOP_DATA.currencies
           .filter(c => isCurrencyVisible(c, progress.currentChapter))
           .map(currency => {
@@ -139,7 +165,8 @@ export default function ShopScreen() {
               </div>
             );
           })}
-      </div>
+        </div>
+      )}
 
       {infoTarget && (
         <PackInfoModal

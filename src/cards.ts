@@ -4,6 +4,7 @@ import {
   getRaceByKey, getAttrByKey, getRarityById, getRaceById, getAttrById,
   TYPE_META,
 } from './type-metadata.js';
+import { isCraftedId, resolveCraftedCard } from './crafting.js';
 
 export const TYPE = CardType;
 
@@ -60,7 +61,12 @@ export const OPPONENT_DECK_IDS: string[] = [];
 
 export function makeDeck(ids: string[]): CardData[] {
   return ids.flatMap(id => {
-    const card = CARD_DB[id];
+    let card: CardData | null | undefined = CARD_DB[id];
+    
+    if (!card && isCraftedId(id)) {
+      card = resolveCraftedCard(id);
+    }
+    
     if (!card) {
       console.warn(`[makeDeck] Unknown card ID "${id}" – skipping.`);
       return [];

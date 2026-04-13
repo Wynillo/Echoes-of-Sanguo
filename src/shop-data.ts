@@ -40,6 +40,7 @@ export interface PackSlotDef {
   rarity?: number;                      // Rarity enum int (1=C, 2=U, 4=R, 6=SR, 8=UR)
   pool?: string;                        // e.g. 'guaranteed_rare_plus', 'guaranteed_sr_plus'
   distribution?: Record<string, number>; // rarity int -> probability
+  effectItems?: boolean;                // When true, drops effect items instead of cards
 }
 
 export interface PackDef {

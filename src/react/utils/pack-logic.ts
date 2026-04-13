@@ -1,8 +1,9 @@
 import { CARD_DB } from '../../cards.js';
+import { EFFECT_SOURCES, type EffectSource } from '../../effect-items.js';
 import { Progression } from '../../progression.js';
 import { SHOP_DATA } from '../../shop-data.js';
 import type { PackSlotDef, PackDef, CardFilter, CardPoolDef } from '../../shop-data.js';
-import type { CardData } from '../../types.js';
+import type { CardData, Rarity } from '../../types.js';
 
 /** Default drop-chance distribution used for any slot without an explicit rarity or distribution. */
 export const RARITY_DROP_RATES: Record<string, number> = {
@@ -137,28 +138,87 @@ export function isPackUnlocked(pkg: PackDef): boolean {
   return false;
 }
 
+function pickEffectItem(
+  rarity?: number,
+  distribution?: Record<string, number>,
+): EffectSource | null {
+  const sources = Object.values(EFFECT_SOURCES);
+  if (sources.length === 0) return null;
+  
+  if (rarity !== undefined) {
+    const filtered = sources.filter(s => s.rarity === rarity);
+    if (filtered.length === 0) return null;
+    return filtered[Math.floor(Math.random() * filtered.length)];
+  }
+  
+  if (distribution) {
+    const r = Math.random();
+    let cumulative = 0;
+    const entries = Object.entries(distribution)
+      .map(([k, v]) => [Number(k), v] as [number, number])
+      .sort((a, b) => a[1] - b[1]);
+    
+    for (const [rarityValue, prob] of entries) {
+      cumulative += prob;
+      if (r < cumulative) {
+        const filtered = sources.filter(s => s.rarity === rarityValue);
+        if (filtered.length > 0) {
+          return filtered[Math.floor(Math.random() * filtered.length)];
+        }
+      }
+    }
+  }
+  
+  return sources[Math.floor(Math.random() * sources.length)];
+}
+
 /** Open a curated card package by ID. Uses the package's cardPool filter. */
-export function openPack(packId: string): CardData[] {
+export function openPack(packId: string): (CardData | EffectSource)[] {
   const pkg = SHOP_DATA.packs.find(p => p.id === packId);
   if (!pkg) return [];
 
   const pool = buildCardPool(pkg.cardPool);
-  const rarities = _applyPity(_expandSlots(pkg));
+  const results: (CardData | EffectSource)[] = [];
+  const cardRarities: { idx: number; rarity: Rarity }[] = [];
 
-  return rarities.map(rarity => {
+  for (const slot of pkg.slots) {
+    for (let i = 0; i < slot.count; i++) {
+      const idx = results.length;
+      
+      if (slot.effectItems) {
+        const item = pickEffectItem(slot.rarity, slot.distribution);
+        if (item) {
+          results.push(item);
+          continue;
+        }
+      }
+      
+      const rarity = _pickRarityFromSlot(slot);
+      cardRarities.push({ idx, rarity });
+      results.push(null as unknown as CardData);
+    }
+  }
+
+  const raritiesToApply = _applyPity(cardRarities.map(c => c.rarity));
+  
+  for (let i = 0; i < cardRarities.length; i++) {
+    const { idx } = cardRarities[i];
+    let rarity = raritiesToApply[i];
+    
     let candidates = pool.filter(c => (c.rarity ?? 1) === rarity);
-    // Fallback chain if pool has no cards at this rarity
     const fallbacks: Partial<Record<Rarity, Rarity>> = {
       [8]: 6,
       [6]: 4,
-      [4]:      2,
-      [2]:  1,
+      [4]: 2,
+      [2]: 1,
     };
     while (!candidates.length && fallbacks[rarity]) {
       rarity = fallbacks[rarity]!;
       candidates = pool.filter(c => (c.rarity ?? 1) === rarity);
     }
     if (!candidates.length) candidates = pool.length ? pool : Object.values(CARD_DB) as CardData[];
-    return candidates[Math.floor(Math.random() * candidates.length)];
-  });
+    results[idx] = candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  return results;
 }
