@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { executeEffectBlock, extractPassiveFlags, EFFECT_REGISTRY, matchesFilter } from '../src/effect-registry.js';
 

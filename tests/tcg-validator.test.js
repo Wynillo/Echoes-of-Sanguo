@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment node
 // Validators (validateTcgArchive, validateFusionFormulasJson, validateOpponentDeck)
 // were removed from @wynillo/tcg-format — all suites skipped until re-implemented.
 import { describe, it, expect } from 'vitest';
