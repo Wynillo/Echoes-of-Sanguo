@@ -1,38 +1,48 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-vi.mock('../src/cards.js', () => ({
-  CARD_DB: {
-    'monster_001': { id: 'monster_001', name: 'Test Monster', type: 1, atk: 1000, def: 1000, description: 'A test monster' },
-    'effect_monster_001': { id: 'effect_monster_001', name: 'Effect Monster', type: 1, atk: 1500, def: 1200, description: 'Has effect', effects: [{ trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 300 }] }] },
-  },
-}));
-
-vi.mock('../src/progression.js', () => ({
-  Progression: {
-    getActiveSlot: () => 1,
-    cardCount: vi.fn(() => 1),
-    getEffectItemCount: vi.fn(() => 1),
-    addCardsToCollection: vi.fn(),
-    removeEffectItem: vi.fn(),
-    addCraftedCard: vi.fn(() => '100000000'),
-    findCraftedRecord: vi.fn(),
-  },
-}));
-
-vi.mock('../src/currencies.js', () => ({
-  spendCurrency: vi.fn(() => true),
-}));
-
+import { CARD_DB } from '../src/cards.js';
 import { GAME_RULES, applyRules } from '../src/rules.js';
 import { isCraftedId, buildCraftedCard, craftEffectMonster } from '../src/crafting.js';
 import { EFFECT_SOURCES, registerEffectSource } from '../src/effect-items.js';
 import { Progression } from '../src/progression.js';
+import { spendCurrency } from '../src/currencies.js';
+
+const TEST_CARDS = {
+  'monster_001': { id: 'monster_001', name: 'Test Monster', type: 1, atk: 1000, def: 1000, description: 'A test monster' },
+  'effect_monster_001': { id: 'effect_monster_001', name: 'Effect Monster', type: 1, atk: 1500, def: 1200, description: 'Has effect', effects: [{ trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: 300 }] }] },
+};
 
 describe('Crafting', () => {
+  let cardCountSpy;
+  let effectItemCountSpy;
+  let addCraftedCardSpy;
+  let addCardsToCollectionSpy;
+  let removeCardsFromCollectionSpy;
+  let removeEffectItemSpy;
+  let spendCurrencySpy;
+
   beforeEach(() => {
+    Object.keys(TEST_CARDS).forEach(k => { CARD_DB[k] = TEST_CARDS[k]; });
     applyRules({ craftingEnabled: false, craftingCurrency: undefined, craftingCost: 0 });
     Object.keys(EFFECT_SOURCES).forEach(k => delete EFFECT_SOURCES[k]);
-    vi.clearAllMocks();
+
+    localStorage.clear();
+    sessionStorage.clear();
+    Progression.selectSlot(1);
+    Progression.init();
+
+    cardCountSpy = vi.spyOn(Progression, 'cardCount');
+    effectItemCountSpy = vi.spyOn(Progression, 'getEffectItemCount');
+    addCraftedCardSpy = vi.spyOn(Progression, 'addCraftedCard').mockReturnValue('100000000');
+    addCardsToCollectionSpy = vi.spyOn(Progression, 'addCardsToCollection').mockImplementation(() => {});
+    removeCardsFromCollectionSpy = vi.spyOn(Progression, 'removeCardsFromCollection').mockImplementation(() => {});
+    removeEffectItemSpy = vi.spyOn(Progression, 'removeEffectItem').mockImplementation(() => true);
+    spendCurrencySpy = vi.spyOn({ spendCurrency }, 'spendCurrency');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    Object.keys(TEST_CARDS).forEach(k => { delete CARD_DB[k]; });
   });
 
   describe('isCraftedId', () => {
@@ -78,7 +88,7 @@ describe('Crafting', () => {
 
     it('should fail when player does not own base card', () => {
       applyRules({ craftingEnabled: true });
-      vi.mocked(Progression.cardCount).mockReturnValue(0);
+      cardCountSpy.mockReturnValue(0);
       registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
       
       const result = craftEffectMonster('monster_001', 'effect_monster_001');
@@ -97,11 +107,13 @@ describe('Crafting', () => {
     it('should succeed with valid inputs and free crafting', () => {
       applyRules({ craftingEnabled: true, craftingCost: 0 });
       registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
+      cardCountSpy.mockReturnValue(1);
+      effectItemCountSpy.mockReturnValue(1);
       
       const result = craftEffectMonster('monster_001', 'effect_monster_001');
       expect(result.success).toBe(true);
       expect(result.card).toBeDefined();
-      expect(Progression.addCraftedCard).toHaveBeenCalledWith('monster_001', 'effect_monster_001');
+      expect(addCraftedCardSpy).toHaveBeenCalledWith('monster_001', 'effect_monster_001');
     });
   });
 });

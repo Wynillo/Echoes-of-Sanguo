@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
 import { canPayCost, executeEffectBlock, EFFECT_REGISTRY } from '../src/effect-registry.js';
 

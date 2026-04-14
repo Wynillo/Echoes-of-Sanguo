@@ -1,8 +1,4 @@
-// Minimal localStorage mock for Node environment (used by progression.js)
 import { afterEach } from 'vitest';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
 const store = {};
 global.localStorage = {
@@ -12,11 +8,20 @@ global.localStorage = {
   clear:      ()     => { Object.keys(store).forEach(k => delete store[k]); },
 };
 
-// Populate card database from a stable test fixture so engine tests are
-// independent of the @wynillo/echoes-mod-base package version.
-// Only runs in the 'node' vitest environment — jsdom tests load their own data.
+const sessionStore = {};
+global.sessionStorage = {
+  getItem:    (k)    => sessionStore[k] ?? null,
+  setItem:    (k, v) => { sessionStore[k] = String(v); },
+  removeItem: (k)    => { delete sessionStore[k]; },
+  clear:      ()     => { Object.keys(sessionStore).forEach(k => delete sessionStore[k]); },
+};
+
 if (typeof window === 'undefined') {
   URL.createObjectURL ??= () => 'blob:mock';
+
+  const { readFileSync } = await import('fs');
+  const { fileURLToPath } = await import('url');
+  const { dirname, join } = await import('path');
   const __dirname = dirname(fileURLToPath(import.meta.url));
 
   const {
@@ -30,7 +35,6 @@ if (typeof window === 'undefined') {
     readFileSync(join(__dirname, 'fixtures/test-data.json'), 'utf-8')
   );
 
-  // Cards
   for (const raw of fixture.cards) {
     const card = { ...raw, id: String(raw.id) };
     if (card.effect && typeof card.effect === 'string') {
@@ -41,7 +45,6 @@ if (typeof window === 'undefined') {
     CARD_DB[card.id] = card;
   }
 
-  // Fusion recipes
   for (const r of fixture.fusionRecipes) {
     FUSION_RECIPES.push({
       materials: [String(r.materials[0]), String(r.materials[1])],
@@ -49,7 +52,6 @@ if (typeof window === 'undefined') {
     });
   }
 
-  // Fusion formulas (pre-sort by descending priority)
   const formulas = fixture.fusionFormulas.map(f => ({
     ...f,
     resultPool: f.resultPool.map(String),
@@ -57,7 +59,6 @@ if (typeof window === 'undefined') {
   formulas.sort((a, b) => b.priority - a.priority);
   FUSION_FORMULAS.push(...formulas);
 
-  // Opponents
   for (const o of fixture.opponents) {
     OPPONENT_CONFIGS.push({
       id: o.id, name: o.name, title: o.title, race: o.race,
@@ -66,7 +67,6 @@ if (typeof window === 'undefined') {
     });
   }
 
-  // Starter decks → also sets PLAYER_DECK_IDS and OPPONENT_DECK_IDS
   for (const [raceKey, ids] of Object.entries(fixture.starterDecks)) {
     STARTER_DECKS[Number(raceKey)] = ids.map(String);
   }
@@ -76,12 +76,10 @@ if (typeof window === 'undefined') {
     OPPONENT_DECK_IDS.splice(0, OPPONENT_DECK_IDS.length, ...firstDeck);
   }
 
-  // Shop data
   if (fixture.shopData) {
     applyShopData(fixture.shopData);
   }
 }
 
-// Clean TriggerBus between tests so handlers don't leak across test files
 const { TriggerBus } = await import('../src/trigger-bus.js');
 afterEach(() => { TriggerBus.clear(); });

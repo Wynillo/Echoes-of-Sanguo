@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment node
 import { describe, it, expect } from 'vitest';
 // Enum converters (engine-specific)
 import { cardTypeToInt, intToCardType } from '../src/enums.js';
