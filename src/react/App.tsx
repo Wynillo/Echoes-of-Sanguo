@@ -8,6 +8,7 @@ import { CampaignProvider } from './contexts/CampaignContext.js';
 import { ModalProvider } from './contexts/ModalContext.js';
 import { SelectionProvider } from './contexts/SelectionContext.js';
 import { GameProvider } from './contexts/GameContext.js';
+import { GamepadProvider } from './contexts/GamepadContext.js';
 import { ErrorBoundary } from './components/ErrorBoundary.js';
 import { useAudioInit } from './hooks/useAudio.js';
 
@@ -32,6 +33,7 @@ import { CardActivationOverlay } from './components/CardActivationOverlay.js';
 import { AnimSkipOverlay }      from './components/AnimSkipOverlay.js';
 import { VFXOverlay }           from './components/VFXOverlay.js';
 import { DamageNumberOverlay }  from './components/DamageNumberOverlay.js';
+import { ControllerToast }      from './components/ControllerToast.js';
 import { ModalOverlay }         from './modals/ModalOverlay.js';
 import { OfflineIndicator }     from './components/OfflineIndicator.js';
 
@@ -99,6 +101,7 @@ function Router() {
       <AnimSkipOverlay />
       <VFXOverlay />
       <DamageNumberOverlay />
+      <ControllerToast />
       <ModalOverlay />
       <SaveErrorToast />
       <OfflineIndicator />
@@ -118,7 +121,9 @@ export default function App() {
               <ModalProvider>
                 <SelectionProvider>
                   <GameProvider>
-                    <Router />
+                    <GamepadProvider>
+                      <Router />
+                    </GamepadProvider>
                   </GameProvider>
                 </SelectionProvider>
               </ModalProvider>

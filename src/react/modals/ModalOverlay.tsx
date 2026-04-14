@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import { useModal } from '../contexts/ModalContext.js';
+import { useGamepadContext } from '../contexts/GamepadContext.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
 import { CardDetailModal }  from './CardDetailModal.js';
 import { TrapPromptModal }  from './TrapPromptModal.js';
@@ -37,6 +38,7 @@ const MODAL_LABELS: Record<string, string> = {
 
 export function ModalOverlay() {
   const { modal, closeModal } = useModal();
+  const { connected, registerCallbacks } = useGamepadContext();
   const trapRef = useFocusTrap(!!modal);
 
   const isDismissible = modal ? !NON_DISMISSIBLE.has(modal.type) : false;
@@ -52,6 +54,14 @@ export function ModalOverlay() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [modal, handleKeyDown]);
+
+  useEffect(() => {
+    if (!connected || !modal || !isDismissible) return;
+    registerCallbacks({
+      onB: closeModal,
+    });
+    return () => registerCallbacks({});
+  }, [connected, registerCallbacks, modal, isDismissible, closeModal]);
 
   if (!modal) return null;
 

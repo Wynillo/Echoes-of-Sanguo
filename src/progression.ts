@@ -483,9 +483,9 @@ function spendCoins(amount: number): boolean {
     return !!(ops[id] && ops[id].unlocked);
   }
 
-  interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; }
+  interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; controllerEnabled: boolean; vibrationEnabled: boolean; }
 
-  const SETTINGS_DEFAULTS: Settings = { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 };
+  const SETTINGS_DEFAULTS: Settings = { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, controllerEnabled: true, vibrationEnabled: true };
 
   function getSettings(): Settings {
     return { ...SETTINGS_DEFAULTS, ..._load(GLOBAL_KEYS.settings, SETTINGS_DEFAULTS) };

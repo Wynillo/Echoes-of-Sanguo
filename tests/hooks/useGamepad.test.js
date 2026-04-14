@@ -1,7 +1,11 @@
 // @vitest-environment jsdom
+import { createElement } from 'react';
 import { test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useGamepad } from '../../src/react/hooks/useGamepad.js';
+import { GamepadProvider } from '../../src/react/contexts/GamepadContext.js';
 import { renderHook, act } from '@testing-library/react';
+
+const wrapper = ({ children }) => createElement(GamepadProvider, null, children);
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -13,7 +17,7 @@ afterEach(() => {
 });
 
 test('returns disconnected state when no controller', () => {
-  const { result } = renderHook(() => useGamepad());
+  const { result } = renderHook(() => useGamepad(), { wrapper });
   expect(result.current.connected).toBe(false);
   expect(result.current.gamepadId).toBeNull();
 });
@@ -27,7 +31,7 @@ test('detects connected controller', () => {
   };
   navigator.getGamepads = vi.fn().mockReturnValue([mockGamepad]);
   
-  const { result } = renderHook(() => useGamepad());
+  const { result } = renderHook(() => useGamepad(), { wrapper });
   
   act(() => {
     vi.advanceTimersByTime(100);
@@ -47,7 +51,7 @@ test('triggers onA callback when A button is pressed', () => {
   navigator.getGamepads = vi.fn().mockReturnValue([mockGamepad]);
   
   const onA = vi.fn();
-  const { result } = renderHook(() => useGamepad());
+  const { result } = renderHook(() => useGamepad(), { wrapper });
   
   act(() => {
     result.current.registerCallbacks({ onA });
@@ -68,7 +72,7 @@ test('does not trigger callback on button hold (only press)', () => {
   navigator.getGamepads = vi.fn().mockReturnValue([mockGamepad]);
   
   const onA = vi.fn();
-  const { result } = renderHook(() => useGamepad());
+  const { result } = renderHook(() => useGamepad(), { wrapper });
   
   act(() => {
     result.current.registerCallbacks({ onA });

@@ -2,6 +2,7 @@ import { useState, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModal } from '../contexts/ModalContext.js';
 import { useGame } from '../contexts/GameContext.js';
+import { useGamepadContext } from '../contexts/GamepadContext.js';
 import { Progression } from '../../progression.js';
 import { Audio } from '../../audio.js';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
@@ -9,12 +10,21 @@ import i18n from '../../i18n.js';
 import { reloadTcgLocale, getCurrentManifest, getLoadedMods } from '../../tcg-bridge.js';
 import { ENGINE_VERSION, TCG_FORMAT_VERSION, ENGINE_BUILD, TCG_FORMAT_BUILD, MOD_BASE_BUILD } from '../../version.js';
 
-type Tab = 'settings' | 'about';
+type Tab = 'settings' | 'controller' | 'about';
 
 export function OptionsModal() {
   const { closeModal, openModal } = useModal();
   const { t } = useTranslation();
   const { gameState, gameRef } = useGame();
+  const {
+    connected,
+    gamepadId,
+    buttons,
+    controllerEnabled,
+    setControllerEnabled,
+    vibrationEnabled,
+    setVibrationEnabled,
+  } = useGamepadContext();
   const saved = Progression.getSettings();
 
   const [tab, setTab] = useState<Tab>('settings');
@@ -38,7 +48,7 @@ export function OptionsModal() {
   function apply() {
     i18n.changeLanguage(lang);
     reloadTcgLocale(lang);
-    Progression.saveSettings({ lang, volMaster, volMusic, volSfx });
+    Progression.saveSettings({ lang, volMaster, volMusic, volSfx, controllerEnabled, vibrationEnabled });
     Audio.setVolumes(volMaster, volMusic, volSfx);
   }
 
@@ -52,6 +62,8 @@ export function OptionsModal() {
   const loadedMods = getLoadedMods();
   const currentMod = loadedMods[0];
 
+  const activeButtons = Object.entries(buttons).filter(([, v]) => v);
+
   return (
     <div className="modal" id="options-modal">
       <h2>{t('options.title')}</h2>
@@ -62,6 +74,12 @@ export function OptionsModal() {
           onClick={() => setTab('settings')}
         >
           {t('options.tab_settings')}
+        </button>
+        <button
+          className={`options-tab ${tab === 'controller' ? 'active' : ''}`}
+          onClick={() => setTab('controller')}
+        >
+          {t('controller.tab')}
         </button>
         <button
           className={`options-tab ${tab === 'about' ? 'active' : ''}`}
@@ -168,6 +186,69 @@ export function OptionsModal() {
               )}
             </div>
           )}
+        </>
+      )}
+
+      {tab === 'controller' && (
+        <>
+          <div className="options-row controller-status-row">
+            <label>{t('controller.status')}</label>
+            <span className={`controller-status-indicator ${connected ? 'connected' : 'disconnected'}`}>
+              <span className="controller-status-dot" />
+              {connected
+                ? (gamepadId ?? t('controller.status_detected'))
+                : t('controller.status_not_detected')}
+            </span>
+          </div>
+
+          <div className="options-row">
+            <label>{t('controller.enable')}</label>
+            <button className="btn-small" onClick={() => setControllerEnabled(!controllerEnabled)}>
+              {controllerEnabled ? t('common.on', 'On') : t('common.off', 'Off')}
+            </button>
+          </div>
+
+          <div className="options-row">
+            <label>{t('controller.vibration')}</label>
+            <button className="btn-small" onClick={() => setVibrationEnabled(!vibrationEnabled)}>
+              {vibrationEnabled ? t('common.on', 'On') : t('common.off', 'Off')}
+            </button>
+          </div>
+
+          <div className="controller-test-section">
+            <h4>{t('controller.test_title')}</h4>
+            {!connected ? (
+              <p className="controller-test-prompt">{t('controller.test_prompt')}</p>
+            ) : (
+              <div className="controller-test-buttons">
+                {([
+                  ['a', 'controller.button_a'],
+                  ['b', 'controller.button_b'],
+                  ['x', 'controller.button_x'],
+                  ['y', 'controller.button_y'],
+                  ['start', 'controller.button_start'],
+                  ['select', 'controller.button_select'],
+                  ['leftBumper', 'controller.button_lb'],
+                  ['rightBumper', 'controller.button_rb'],
+                  ['dpadUp', 'controller.button_du'],
+                  ['dpadDown', 'controller.button_dd'],
+                  ['dpadLeft', 'controller.button_dl'],
+                  ['dpadRight', 'controller.button_dr'],
+                ] as const).map(([btn, labelKey]) => (
+                  <span
+                    key={btn}
+                    className={`controller-test-btn ${buttons[btn] ? 'active' : ''}`}
+                  >
+                    {t(labelKey)}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="options-buttons">
+            <button className="btn-primary" onClick={closeModal}>{t('common.ok')}</button>
+          </div>
         </>
       )}
 

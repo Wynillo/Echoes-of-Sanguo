@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useScreen }   from '../contexts/ScreenContext.js';
 import { useGame }     from '../contexts/GameContext.js';
+import { useGamepadContext } from '../contexts/GamepadContext.js';
 import { CAMPAIGN_IMAGES, CAMPAIGN_I18N } from '../../campaign.js';
 import { Progression } from '../../progression.js';
 import type { DialogueScene, ForegroundSprite } from '@wynillo/tcg-format';
@@ -30,6 +31,7 @@ function getImageUrl(path: string): string {
 export default function DialogueScreen() {
   const { screenData, navigateTo } = useScreen();
   const { startGame } = useGame();
+  const { connected, registerCallbacks } = useGamepadContext();
 
   const scene = screenData?.scene as unknown as DialogueScene | undefined;
   const nextScreen  = (screenData?.nextScreen  as Screen)              ?? 'campaign';
@@ -66,6 +68,16 @@ export default function DialogueScreen() {
       }
     }
   }
+
+  useEffect(() => {
+    if (!connected) return;
+    registerCallbacks({
+      onA: advance,
+      onStart: advance,
+      onB: advance,
+    });
+    return () => registerCallbacks({});
+  }, [connected, registerCallbacks, lineIndex]);
 
   const bgUrl = getImageUrl(scene.background);
 

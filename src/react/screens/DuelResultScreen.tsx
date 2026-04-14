@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { useScreen } from '../contexts/ScreenContext.js';
 import { useModal } from '../contexts/ModalContext.js';
 import { useGame } from '../contexts/GameContext.js';
+import { useGamepadContext } from '../contexts/GamepadContext.js';
 import { Audio } from '../../audio.js';
 import { CARD_DB } from '../../cards.js';
 import { getRarityById, getCardTypeById } from '../../type-metadata.js';
@@ -24,6 +25,7 @@ export default function DuelResultScreen() {
   const { openModal } = useModal();
   const { startGame } = useGame();
   const { t } = useTranslation();
+  const { connected, registerCallbacks } = useGamepadContext();
 
   const result = (screenData?.result as 'victory' | 'defeat') ?? 'defeat';
   const victory = result === 'victory';
@@ -205,6 +207,15 @@ export default function DuelResultScreen() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   });
+
+  useEffect(() => {
+    if (!connected) return;
+    registerCallbacks({
+      onA: proceed,
+      onStart: proceed,
+    });
+    return () => registerCallbacks({});
+  }, [connected, registerCallbacks]);
 
   const hasRewards = victory && rewards && ((rewards.coins ?? 0) > 0 || (rewards.cards?.length ?? 0) > 0);
 

@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useGame }      from '../contexts/GameContext.js';
 import { useModal }     from '../contexts/ModalContext.js';
 import { useSelection } from '../contexts/SelectionContext.js';
+import { useGamepadContext } from '../contexts/GamepadContext.js';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
-import { useGamepad }   from '../hooks/useGamepad.js';
 import { useHapticFeedback } from '../hooks/useHapticFeedback.js';
 import { cleanupAttackAnimations } from '../hooks/useAttackAnimation.js';
 import RaceIcon from '../components/RaceIcon.js';
@@ -28,7 +28,7 @@ export default function GameScreen() {
   const [showDirect, setShowDirect] = useState(false);
   const [showControllerHelp, setShowControllerHelp] = useState(false);
   const [controllerFocus, setControllerFocus] = useState<{
-    type: 'monster' | 'spell' | 'field-spell' | 'hand' | 'grave' | 'phase-btn';
+    type: 'monster' | 'spell' | 'field-spell' | 'hand' | 'grave' | 'phase-btn' | 'direct-btn';
     owner: 'player' | 'opponent';
     zone: number;
   } | null>(null);
@@ -37,7 +37,7 @@ export default function GameScreen() {
   const hideDirectAndReset = useCallback(() => { resetSel(); setShowDirect(false); }, [resetSel]);
 
   const { showHelp, setShowHelp } = useKeyboardShortcuts({ gameState, gameRef, resetSel, onHideDirect: hideDirect });
-  const { connected: controllerConnected, registerCallbacks } = useGamepad();
+  const { connected: controllerConnected, registerCallbacks } = useGamepadContext();
   const { vibratePatterns } = useHapticFeedback({ enabled: true, duration: 50, strength: 'light' });
 
   useEffect(() => () => cleanupAttackAnimations(), []);
@@ -91,22 +91,97 @@ export default function GameScreen() {
       onSelect: () => {
         openModal({ type: 'main-options' });
       },
+      onLB: () => {
+        setControllerFocus(prev => {
+          if (prev && prev.type === 'hand' && prev.owner === 'player' && prev.zone > 0) {
+            return { ...prev, zone: prev.zone - 1 };
+          }
+          return prev;
+        });
+      },
+      onRB: () => {
+        setControllerFocus(prev => {
+          if (prev && prev.type === 'hand' && prev.owner === 'player' && prev.zone < 5) {
+            return { ...prev, zone: prev.zone + 1 };
+          }
+          return prev;
+        });
+      },
       onDpad: (direction) => {
         setControllerFocus(prev => {
           if (!prev) return { type: 'monster', owner: 'player', zone: 0 };
-          
+
+          const key = `${prev.type}-${prev.owner}`;
+
           if (prev.type === 'monster' && prev.owner === 'player') {
             if (direction === 'left' && prev.zone > 0) return { ...prev, zone: prev.zone - 1 };
             if (direction === 'right' && prev.zone < 2) return { ...prev, zone: prev.zone + 1 };
-            if (direction === 'up') return { type: 'spell', owner: 'player', zone: 0 };
-            if (direction === 'down') return { type: 'hand', owner: 'player', zone: 0 };
+            if (direction === 'up') return { type: 'monster', owner: 'opponent', zone: prev.zone };
+            if (direction === 'down') return { type: 'spell', owner: 'player', zone: 0 };
           }
-          
+
+          if (prev.type === 'monster' && prev.owner === 'opponent') {
+            if (direction === 'left' && prev.zone > 0) return { ...prev, zone: prev.zone - 1 };
+            if (direction === 'right' && prev.zone < 2) return { ...prev, zone: prev.zone + 1 };
+            if (direction === 'up') return { type: 'spell', owner: 'opponent', zone: 0 };
+            if (direction === 'down') return { type: 'monster', owner: 'player', zone: prev.zone };
+          }
+
           if (prev.type === 'spell' && prev.owner === 'player') {
+            if (direction === 'up' && prev.zone > 0) return { ...prev, zone: prev.zone - 1 };
             if (direction === 'up') return { type: 'monster', owner: 'player', zone: 0 };
+            if (direction === 'down' && prev.zone < 4) return { ...prev, zone: prev.zone + 1 };
             if (direction === 'down') return { type: 'grave', owner: 'player', zone: 0 };
+            if (direction === 'left') return { type: 'grave', owner: 'player', zone: 0 };
+            if (direction === 'right') return { type: 'field-spell', owner: 'player', zone: 0 };
           }
-          
+
+          if (prev.type === 'spell' && prev.owner === 'opponent') {
+            if (direction === 'up' && prev.zone < 4) return { ...prev, zone: prev.zone + 1 };
+            if (direction === 'down' && prev.zone > 0) return { ...prev, zone: prev.zone - 1 };
+            if (direction === 'up') return { type: 'field-spell', owner: 'opponent', zone: 0 };
+            if (direction === 'down') return { type: 'monster', owner: 'opponent', zone: 0 };
+            if (direction === 'left') return { type: 'grave', owner: 'opponent', zone: 0 };
+            if (direction === 'right') return { type: 'field-spell', owner: 'opponent', zone: 0 };
+          }
+
+          if (prev.type === 'hand' && prev.owner === 'player') {
+            if (direction === 'left' && prev.zone > 0) return { ...prev, zone: prev.zone - 1 };
+            if (direction === 'right' && prev.zone < 5) return { ...prev, zone: prev.zone + 1 };
+            if (direction === 'up') return { type: 'monster', owner: 'player', zone: Math.min(prev.zone, 2) };
+            if (direction === 'down') return { type: 'phase-btn', owner: 'player', zone: 0 };
+          }
+
+          if (prev.type === 'grave' && prev.owner === 'player') {
+            if (direction === 'right') return { type: 'spell', owner: 'player', zone: 0 };
+            if (direction === 'down') return { type: 'hand', owner: 'player', zone: 0 };
+            if (direction === 'up') return { type: 'spell', owner: 'player', zone: 4 };
+          }
+
+          if (prev.type === 'grave' && prev.owner === 'opponent') {
+            if (direction === 'right') return { type: 'spell', owner: 'opponent', zone: 0 };
+          }
+
+          if (prev.type === 'field-spell' && prev.owner === 'player') {
+            if (direction === 'left') return { type: 'spell', owner: 'player', zone: 0 };
+            if (direction === 'up') return { type: 'field-spell', owner: 'opponent', zone: 0 };
+          }
+
+          if (prev.type === 'field-spell' && prev.owner === 'opponent') {
+            if (direction === 'down') return { type: 'field-spell', owner: 'player', zone: 0 };
+            if (direction === 'left') return { type: 'spell', owner: 'opponent', zone: 0 };
+          }
+
+          if (prev.type === 'phase-btn' && prev.owner === 'player') {
+            if (direction === 'up') return { type: 'hand', owner: 'player', zone: 0 };
+            if (direction === 'left') return { type: 'direct-btn', owner: 'player', zone: 0 };
+          }
+
+          if (prev.type === 'direct-btn' && prev.owner === 'player') {
+            if (direction === 'right') return { type: 'phase-btn', owner: 'player', zone: 0 };
+            if (direction === 'up') return { type: 'monster', owner: 'player', zone: 1 };
+          }
+
           return prev;
         });
       },
