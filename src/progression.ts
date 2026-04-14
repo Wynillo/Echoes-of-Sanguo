@@ -35,7 +35,7 @@ export const Progression = (() => {
     starterRace:      'starter_race',
     collection:       'collection',
     deck:             'deck',
-    coins:            'jade_coins',
+    coins:            'currency_coins',
     opponents:        'opponents',
     version:          'save_version',
     seenCards:        'seen_cards',

@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment node
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Progression } from '../src/progression.ts';
 

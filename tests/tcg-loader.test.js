@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment node
 import { describe, it, expect, beforeEach } from 'vitest';
 import JSZip from 'jszip';
 import { loadTcgFile, TcgFormatError } from '@wynillo/tcg-format';
@@ -21,9 +21,7 @@ async function buildMinimalZip(overrides = {}) {
     zip.file('fusion_formulas.json', JSON.stringify(overrides.fusionFormulas));
   }
   if (overrides.opponents) {
-    for (const opp of overrides.opponents) {
-      zip.file(`opponents/opponent_deck_${opp.id}.json`, JSON.stringify(opp));
-    }
+    zip.file('opponents.json', JSON.stringify(overrides.opponents));
   }
   if (overrides.oppDescs) {
     zip.file('opponents_description.json', JSON.stringify(overrides.oppDescs));
@@ -68,7 +66,7 @@ describe('loadTcgFile (pure)', () => {
     expect(result.fusionFormulas[0].id).toBe('dragon_warrior');
   });
 
-  it('returns opponents from opponents/ folder in result', async () => {
+  it('returns opponents from root-level opponents.json in result', async () => {
     const opp = {
       id: 1, name: 'Test Opp', title: 'Tester', race: 3,
       flavor: 'A test opponent', coinsWin: 100, coinsLoss: 20,
@@ -166,7 +164,7 @@ describe('loadAndApplyTcg (bridge)', () => {
     expect(result.warnings.some(w => w.includes('fusion_formulas.json'))).toBe(true);
   });
 
-  it('loads opponents from opponents/ folder into OPPONENT_CONFIGS', async () => {
+  it('loads opponents from root-level opponents.json into OPPONENT_CONFIGS', async () => {
     const opp = {
       id: 1, name: 'Test Opp', title: 'Tester', race: 3,
       flavor: 'A test opponent', coinsWin: 100, coinsLoss: 20,
