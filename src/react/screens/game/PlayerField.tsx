@@ -48,7 +48,10 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
   function isPlayerSpellTrapInteractive(zone: number) {
     const fst = player.field.spellTraps[zone];
     if (!fst) return false;
-    return isMyTurn && phase === 'main' && fst.faceDown && fst.card.type === CardType.Spell;
+    if (!isMyTurn) return false;
+    if (phase === 'main' && fst.faceDown && fst.card.type === CardType.Spell) return true;
+    if (phase === 'battle' && fst.faceDown) return true;
+    return false;
   }
 
   function isPlayerMonsterViewable(zone: number) {
@@ -171,8 +174,11 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
 
   const onFieldSpellTrapClick = useCallback((zone: number, fst: FieldSpellTrap) => {
     const game = gameRef.current;
-    if (!game || !isMyTurn || phase !== 'main' || !fst.faceDown) return;
-    if (fst.card.type === CardType.Spell) {
+    if (!game || !isMyTurn || !fst.faceDown) return;
+    if (phase === 'main' && fst.card.type === CardType.Spell) {
+      openModal({ type: 'card-detail', card: fst.card, index: zone, state: gameState, source: 'field-spell' });
+    }
+    if (phase === 'battle') {
       openModal({ type: 'card-detail', card: fst.card, index: zone, state: gameState, source: 'field-spell' });
     }
   }, [gameRef, isMyTurn, phase, openModal, gameState]);

@@ -131,6 +131,7 @@ export class GameEngine {
       },
       log: [],
       firstTurnNoAttack: true,
+      oneMoveActionUsed: false,
     } as GameState;
     this.drawCard('player',   5);
     this.drawCard('opponent', 5);
@@ -414,6 +415,7 @@ export class GameEngine {
       await this._checkAnySummonTraps(owner, zone);
     }
     this.ui.render(this.state);
+    if (owner === this.state.activePlayer) this._triggerOneMoveAdvance();
     return true;
   }
 
@@ -500,6 +502,7 @@ export class GameEngine {
     this.addLog(`${ownerLabel(owner)}: Card placed face-down.`);
     this.ui.playSfx?.('sfx_card_play');
     this.ui.render(this.state);
+    if (owner === this.state.activePlayer) this._triggerOneMoveAdvance();
     return true;
   }
 
@@ -555,6 +558,7 @@ export class GameEngine {
     }
     st.graveyard.push(card);
     this.ui.render(this.state);
+    if (owner === this.state.activePlayer) this._triggerOneMoveAdvance();
     return true;
   }
 
@@ -586,6 +590,7 @@ export class GameEngine {
     st.graveyard.push(fst.card);
     st.field.spellTraps[zone] = null;
     this.ui.render(this.state);
+    if (owner === this.state.activePlayer) this._triggerOneMoveAdvance();
     return true;
   }
 
@@ -627,6 +632,7 @@ export class GameEngine {
     st.graveyard.push(fst.card);
     st.field.spellTraps[zone] = null;
     this.ui.render(this.state);
+    if (owner === this.state.activePlayer) this._triggerOneMoveAdvance();
     return result;
   }
 
@@ -672,6 +678,7 @@ export class GameEngine {
     }
 
     this.ui.render(this.state);
+    if (owner === this.state.activePlayer) this._triggerOneMoveAdvance();
     return true;
   }
 
@@ -851,6 +858,7 @@ export class GameEngine {
     this.ui.render(this.state);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    if (owner === this.state.activePlayer) this._triggerOneMoveAdvance();
     return true;
   }
 
@@ -925,6 +933,7 @@ export class GameEngine {
     this.ui.render(this.state);
     await this._triggerEffect(fc, owner, 'onSummon', zone);
     TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    if (owner === this.state.activePlayer) this._triggerOneMoveAdvance();
     return true;
   }
 
@@ -958,6 +967,7 @@ export class GameEngine {
     this.ui.render(this.state);
     await this._triggerEffect(fc, owner, 'onSummon', fieldZone);
     TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone: fieldZone });
+    if (owner === this.state.activePlayer) this._triggerOneMoveAdvance();
     return true;
   }
 
@@ -1361,21 +1371,56 @@ export class GameEngine {
     return null;
   }
 
+  _hasPlayableCard(owner: Owner): boolean {
+    const st = this.state[owner];
+    for (const card of st.hand) {
+      if (card.type === CardType.Monster || card.type === CardType.Fusion) {
+        if (!st.normalSummonUsed && st.field.monsters.some(z => z === null)) return true;
+      }
+      if (card.type === CardType.Spell) return true;
+      if (card.type === CardType.Trap) return true;
+      if (card.type === CardType.Equipment) return true;
+    }
+    for (const fst of st.field.spellTraps) {
+      if (fst && fst.faceDown && (fst.card.type === CardType.Spell || fst.card.type === CardType.Trap)) return true;
+    }
+    return false;
+  }
+
+  _triggerOneMoveAdvance(): void {
+    if (!GAME_RULES.oneMoveEnabled) return;
+    if (this.state.oneMoveActionUsed) return;
+    this.state.oneMoveActionUsed = true;
+    this.advancePhase();
+  }
+
   advancePhase(){
-    const phases = ['main','battle','end'];
+    const phases = ['main','battle'] as Phase[];
     const idx = phases.indexOf(this.state.phase);
     if(idx < phases.length - 1){
       let nextPhase = phases[idx+1] as Phase;
-      // First turn: skip battle phase entirely (FM-style)
       if(nextPhase === 'battle' && this.state.firstTurnNoAttack){
         this.state.firstTurnNoAttack = false;
-        nextPhase = 'end';
+        this.endTurn();
+        return;
+      }
+      if(nextPhase === 'battle' && GAME_RULES.oneMoveEnabled && !this.state.oneMoveActionUsed && !this._hasPlayableCard(this.state.activePlayer)){
+        this.state.oneMoveActionUsed = true;
       }
       this.state.phase = nextPhase;
-      const names: Partial<Record<Phase, string>> = { main:'Main Phase', battle:'Battle Phase', end:'End Phase' };
+      const names: Partial<Record<Phase, string>> = { main:'Main Phase', battle:'Battle Phase' };
       this.addLog(`--- ${names[this.state.phase] ?? this.state.phase} ---`);
       this.ui.render(this.state);
     } else {
+      this._resetMonsterFlags(this.state.activePlayer);
+      this._returnTempStolenMonsters(this.state.activePlayer);
+      this._returnSpiritMonsters(this.state.activePlayer);
+      this._tickTurnCounters(this.state.activePlayer);
+      this.state[this.state.activePlayer].normalSummonUsed = false;
+      const opp = this.state.activePlayer === 'player' ? 'opponent' : 'player';
+      this.state[opp].normalSummonUsed = false;
+      const hand = this.state[this.state.activePlayer].hand;
+      while(hand.length > GAME_RULES.handLimitEnd){ hand.shift(); }
       this.endTurn();
     }
   }
@@ -1454,8 +1499,6 @@ export class GameEngine {
   }
 
   endTurn(){
-    // Clear only the current player's per-turn flags.
-    // The opponent's flags are cleared by _aiTurn at the end of the AI's turn.
     this._resetMonsterFlags('player');
     this._returnTempStolenMonsters('player');
     this._returnSpiritMonsters('player');
@@ -1481,6 +1524,7 @@ export class GameEngine {
         this.state.activePlayer = 'player';
         this.state.phase = 'main';
         this.state.turn++;
+        this.state.oneMoveActionUsed = false;
         this.addLog(`[ERROR] Opponent AI crashed. Your turn (Round ${this.state.turn}).`);
         this.refillHand('player');
         this.ui.render(this.state);

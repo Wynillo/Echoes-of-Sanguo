@@ -163,10 +163,7 @@ export async function aiTurn(deps?: AIDependencies, config?: AIOrchestratorConfi
     if (await aiBattlePhase(deps)) return;
   }
 
-  EchoesOfSanguo.log('PHASE', 'End Phase – AI cleanup.');
-  state.phase = 'end';
-  deps.render(state);
-  await deps.delay(300);
+  EchoesOfSanguo.log('PHASE', 'End of AI turn – cleanup.');
 
   deps.resetMonsterFlags('opponent');
   deps.returnTempStolenMonsters('opponent');
@@ -177,6 +174,7 @@ export async function aiTurn(deps?: AIDependencies, config?: AIOrchestratorConfi
   state.activePlayer = 'player';
   state.phase = 'main';
   state.turn++;
+  state.oneMoveActionUsed = false;
   deps.addLog(`=== Round ${state.turn} - Your turn! ===`);
 
   EchoesOfSanguo.groupEnd();
