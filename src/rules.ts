@@ -18,6 +18,7 @@ export const GAME_RULES = {
   craftingEnabled: false,
   craftingCurrency: undefined as string | undefined,
   craftingCost: 0,
+  oneMoveEnabled: false,
 };
 
 export type GameRules = typeof GAME_RULES;

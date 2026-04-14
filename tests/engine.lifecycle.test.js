@@ -327,20 +327,26 @@ describe('advancePhase', () => {
     expect(engine.state.phase).toBe('battle');
   });
 
-  it('advances from battle to end', () => {
+  it('advances from battle to endTurn (opponent draw phase)', () => {
     const { engine } = makeEngine();
     engine.state.phase = 'battle';
+    vi.useFakeTimers();
     engine.advancePhase();
-    expect(engine.state.phase).toBe('end');
+    expect(engine.state.activePlayer).toBe('opponent');
+    expect(engine.state.phase).toBe('draw');
+    vi.useRealTimers();
   });
 
   it('skips battle phase on first turn (FM-style)', () => {
     const { engine } = makeEngine();
     engine.state.phase = 'main';
     engine.state.firstTurnNoAttack = true;
+    vi.useFakeTimers();
     engine.advancePhase();
-    expect(engine.state.phase).toBe('end');
+    expect(engine.state.activePlayer).toBe('opponent');
+    expect(engine.state.phase).toBe('draw');
     expect(engine.state.firstTurnNoAttack).toBe(false);
+    vi.useRealTimers();
   });
 });
 

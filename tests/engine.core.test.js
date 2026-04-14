@@ -384,19 +384,22 @@ describe('advancePhase', () => {
     expect(engine.state.phase).toBe('battle');
   });
 
-  it('battle → end', () => {
+  it('battle → endTurn (opponent draw phase)', () => {
     const { engine } = makeEngine();
     engine.state.phase = 'battle';
+    vi.useFakeTimers();
     engine.advancePhase();
-    expect(engine.state.phase).toBe('end');
+    expect(engine.state.activePlayer).toBe('opponent');
+    expect(engine.state.phase).toBe('draw');
+    vi.useRealTimers();
   });
 
-  it('end phase calls endTurn (turn increments)', () => {
+  it('advancePhase from battle increments turn', () => {
     const { engine } = makeEngine();
-    engine.state.phase = 'end';
+    engine.state.phase = 'battle';
     const turnBefore = engine.state.turn;
     vi.useFakeTimers();
-    engine.advancePhase();     // calls endTurn internally
+    engine.advancePhase();
     expect(engine.state.turn).toBe(turnBefore + 1);
     vi.useRealTimers();
   });

@@ -90,8 +90,17 @@ export function CardDetailModal({ modal }: Props) {
           closeModal();
         }));
     } else if (isSp && phase === 'main') {
+      actions.push(actionBtn(t('card_action.activate'), () => {
+        game.activateSpell('player', index);
+        closeModal();
+      }));
       actions.push(actionBtn(t('card_action.set_spell'), () => {
         setSel({ mode: 'place-spell', placeHandIndex: index, hint: t('card_action.hint_choose_spell_zone') });
+        closeModal();
+      }));
+    } else if (isSp && phase === 'battle' && source === 'field-spell') {
+      actions.push(actionBtn(t('card_action.activate'), () => {
+        game.activateSpellFromField('player', index);
         closeModal();
       }));
     }

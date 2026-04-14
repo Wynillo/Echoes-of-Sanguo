@@ -1,5 +1,5 @@
 export type Owner        = 'player' | 'opponent';
-export type Phase        = 'draw' | 'main' | 'battle' | 'end';
+export type Phase        = 'draw' | 'main' | 'battle';
 export type Position     = 'atk' | 'def';
 export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell' | 'onAnySummon' | 'onOpponentTrap' | 'onOppCardEffect' | 'onOpponentDraw';
 export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlipSummon' | 'onFlip' | 'onDealBattleDamage' | 'onSentToGrave';
@@ -344,6 +344,7 @@ export interface GameState {
   log:          string[];
   firstTurnNoAttack?: boolean;
   skipNextDraw?: Owner;
+  oneMoveActionUsed?: boolean;
 }
 
 export interface DuelStats {
