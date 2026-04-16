@@ -111,14 +111,16 @@ function applyOpponents(
     addedOpponentIds.push(o.id);
     return {
       id:         o.id,
-      name:       desc?.name ?? o.name,
-      title:      desc?.title ?? o.title,
+      name:       desc?.name ?? o.name ?? `Opponent #${o.id}`,
+      title:      desc?.title ?? o.title ?? '',
       race:       o.race,
-      flavor:     desc?.flavor ?? o.flavor,
+      flavor:     desc?.flavor ?? o.flavor ?? '',
       coinsWin:   o.coinsWin,
       coinsLoss:  o.coinsLoss,
       deckIds:    o.deckIds.map(rid),
-      behaviorId: o.behavior,
+      behaviorId: o.behaviorId,
+      currencyId: o.currencyId,
+      rewardConfig: o.rewardConfig as any,
     };
   });
   OPPONENT_CONFIGS.push(...configs);
@@ -233,11 +235,11 @@ export async function loadAndApplyTcg(
     mod.cardIds.push(id);
   }
 
-  // Apply game-specific side effects
-  if (result.typeMeta?.races)      applyTypeMeta({ races: result.typeMeta.races });
-  if (result.typeMeta?.attributes) applyTypeMeta({ attributes: result.typeMeta.attributes });
-  if (result.typeMeta?.cardTypes)  applyTypeMeta({ cardTypes: result.typeMeta.cardTypes });
-  if (result.typeMeta?.rarities)   applyTypeMeta({ rarities: result.typeMeta.rarities });
+  // Apply game-specific side effects with TCG format type conversion
+  if (result.typeMeta?.races)      applyTypeMeta({ races: result.typeMeta.races.map(r => ({ ...r, value: r.value ?? r.key })) });
+  if (result.typeMeta?.attributes) applyTypeMeta({ attributes: result.typeMeta.attributes.map(a => ({ ...a, value: a.value ?? a.key })) });
+  if (result.typeMeta?.cardTypes)  applyTypeMeta({ cardTypes: result.typeMeta.cardTypes.map(c => ({ ...c, value: c.value ?? c.key })) });
+  if (result.typeMeta?.rarities)   applyTypeMeta({ rarities: result.typeMeta.rarities.map(r => ({ ...r, value: r.value ?? r.key })) });
   if (result.rules)                applyRules(result.rules);
   if (result.shopData) {
     // Convert shop background ArrayBuffers to blob URLs before applying

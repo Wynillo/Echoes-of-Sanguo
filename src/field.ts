@@ -28,8 +28,8 @@ export class FieldCard {
   constructor(card: CardData, position: Position = 'atk', faceDown: boolean = false) {
     this.card       = { // deep-copy effect to prevent shared mutations across FieldCard instances
       ...card,
-      effect: card.effect ? { ...card.effect, actions: card.effect.actions.map(a => ({ ...a })) } : undefined,
-      effects: card.effects ? card.effects.map(b => ({ ...b, actions: b.actions.map(a => ({ ...a })) })) : undefined,
+      effect: card.effect ? { ...card.effect, actions: card.effect.actions.map((a: import('./types.js').EffectDescriptor) => ({ ...a })) } : undefined,
+      effects: card.effects ? card.effects.map(b => ({ ...b, actions: b.actions.map((a: import('./types.js').EffectDescriptor) => ({ ...a })) })) : undefined,
     };
     this.position   = position; // 'atk' | 'def'
     this.faceDown   = faceDown;

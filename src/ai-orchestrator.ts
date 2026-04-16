@@ -324,7 +324,7 @@ async function _activateSpells(deps: AIDependencies, ctx: TurnContext): Promise<
   function _spellSortKey(card: CardData): number {
     if (ctx.activeGoal?.id === 'stall_drain') {
       const actions = card.effect?.actions ?? [];
-      if (actions.some(a => a.type === 'gainLP')) return -1;
+      if (actions.some((a: import('./types.js').EffectDescriptor) => a.type === 'gainLP')) return -1;
     }
     return 0;
   }
@@ -340,13 +340,13 @@ async function _activateSpells(deps: AIDependencies, ctx: TurnContext): Promise<
       let activated = false;
 
         const actions = card.effect?.actions ?? [];
-        const dealsDamage = actions.some(a => a.type === 'dealDamage');
-        const heals = actions.some(a => a.type === 'gainLP');
-        const buffs = actions.some(a => {
+        const dealsDamage = actions.some((a: import('./types.js').EffectDescriptor) => a.type === 'dealDamage');
+        const heals = actions.some((a: import('./types.js').EffectDescriptor) => a.type === 'gainLP');
+        const buffs = actions.some((a: import('./types.js').EffectDescriptor) => {
           const t = a.type as string;
           return t === 'buffAtkAll' || t === 'buffAtkRace' || t === 'buffAtk' || t === 'buffField';
         });
-        const destroys = actions.some(a => {
+        const destroys = actions.some((a: import('./types.js').EffectDescriptor) => {
           const t = a.type as string;
           return t === 'destroyMonster' || t === 'destroyAll' || t === 'destroySpellTrap';
         });

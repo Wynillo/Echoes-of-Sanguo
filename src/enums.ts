@@ -1,8 +1,10 @@
 import { CardType, Race } from './types.js';
 import type { EffectTrigger, TrapTrigger} from './types.js';
 import {
-  TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_EQUIPMENT
-  ,
+  TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_EQUIPMENT,
+  TCG_TRAP_TRIGGERS,
+  TCG_TRAP_TRIGGER_NAME_TO_ID,
+  TCG_TRAP_TRIGGER_ID_TO_NAME,
 } from '@wynillo/tcg-format';
 
 const TYPE_TO_INT: Record<CardType, number> = {
@@ -53,21 +55,18 @@ export function isValidTrigger(s: string): s is (EffectTrigger | TrapTrigger) {
   return TRIGGER_STRINGS.has(s);
 }
 
-const TRAP_TRIGGER_TO_INT: Record<string, number> = {
-  onAttack: 1, onOwnMonsterAttacked: 2, onOpponentSummon: 3, manual: 4, onOpponentSpell: 5, onAnySummon: 6, onOpponentTrap: 7, onOppCardEffect: 8, onOpponentDraw: 9,
-};
-const INT_TO_TRAP_TRIGGER: Record<number, TrapTrigger> = {
-  1: 'onAttack', 2: 'onOwnMonsterAttacked', 3: 'onOpponentSummon', 4: 'manual', 5: 'onOpponentSpell', 6: 'onAnySummon', 7: 'onOpponentTrap', 8: 'onOppCardEffect', 9: 'onOpponentDraw',
-};
+// Use imported mappings directly from TCG format library
+const TRAP_TRIGGER_TO_INT = TCG_TRAP_TRIGGER_NAME_TO_ID;
+const INT_TO_TRAP_TRIGGER = TCG_TRAP_TRIGGER_ID_TO_NAME;
 
 export function trapTriggerToInt(t: TrapTrigger): number {
-  const n = TRAP_TRIGGER_TO_INT[t];
+  const n = TCG_TRAP_TRIGGER_NAME_TO_ID[t];
   if (n === undefined) throw new Error(`Unknown TrapTrigger: ${t}`);
   return n;
 }
 
 export function intToTrapTrigger(n: number): TrapTrigger {
-  const t = INT_TO_TRAP_TRIGGER[n];
+  const t = TCG_TRAP_TRIGGER_ID_TO_NAME[n];
   if (t === undefined) throw new Error(`Unknown trapTrigger int: ${n}`);
   return t;
 }

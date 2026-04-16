@@ -918,7 +918,7 @@ async function payCost(block: CardEffectBlock, ctx: EffectContext): Promise<void
     const monsters = ctx.engine.getState()[ctx.owner].field.monsters;
     for (let i = 0; i < monsters.length; i++) {
       const fc = monsters[i];
-      if (fc && fc.card.effect?.actions.some(a => a.type === block.actions[0]?.type)) {
+      if (fc && fc.card.effect?.actions.some((a: import('./types.js').EffectDescriptor) => a.type === block.actions[0]?.type)) {
         await ctx.engine.chainTribute(ctx.owner, fc.card);
         break;
       }

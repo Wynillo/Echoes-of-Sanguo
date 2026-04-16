@@ -1,8 +1,22 @@
+// Import effect types from TCG format library (single source of truth)
+import type {
+  TcgTrapTrigger,
+  TcgEffectTrigger,
+  TcgEffectDescriptorMap,
+  TcgEffectDescriptor,
+  TcgValueExpr,
+  TcgStatTarget,
+  TcgCardEffectFilter,
+  TcgEquipRequirement,
+  TcgEffectCost,
+  TcgCardEffectBlock,
+} from '@wynillo/tcg-format';
+
 export type Owner        = 'player' | 'opponent';
 export type Phase        = 'draw' | 'main' | 'battle';
 export type Position     = 'atk' | 'def';
-export type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual' | 'onOpponentSpell' | 'onAnySummon' | 'onOpponentTrap' | 'onOppCardEffect' | 'onOpponentDraw';
-export type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlipSummon' | 'onFlip' | 'onDealBattleDamage' | 'onSentToGrave';
+export type TrapTrigger  = TcgTrapTrigger;
+export type EffectTrigger= TcgEffectTrigger;
 
 // Monster covers both normal and effect cards; distinction via effect field.
 export enum CardType {
@@ -17,6 +31,28 @@ export type Attribute = number;
 export type Race = number;
 export type Rarity = number;
 
+// Type aliases for backward compatibility with existing code
+export type EffectDescriptorMap = TcgEffectDescriptorMap;
+export type EffectDescriptor = TcgEffectDescriptor;
+export type ValueExpr = TcgValueExpr;
+export type StatTarget = TcgStatTarget;
+export type CardFilter = TcgCardEffectFilter;
+export type EquipRequirement = TcgEquipRequirement;
+export type EffectCost = TcgEffectCost;
+export type CardEffectBlock = TcgCardEffectBlock;
+
+// Also re-export for other modules
+export type {
+  TcgEffectDescriptorMap,
+  TcgEffectDescriptor,
+  TcgValueExpr,
+  TcgStatTarget,
+  TcgCardEffectFilter,
+  TcgEquipRequirement,
+  TcgEffectCost,
+  TcgCardEffectBlock,
+};
+
 export function isEffectMonster(card: CardData): boolean {
   return card.type === CardType.Monster && !!card.effect;
 }
@@ -28,114 +64,6 @@ export function isMonsterType(type: CardType): boolean {
 export function isEquipmentType(type: CardType): boolean {
   return type === CardType.Equipment;
 }
-
-export type ValueExpr =
-  | number
-  | { from: 'attacker.effectiveATK'; multiply: number; round: 'floor' | 'ceil' }
-  | { from: 'summoned.atk';          multiply: number; round: 'floor' | 'ceil' };
-
-export type StatTarget = 'ownMonster' | 'oppMonster' | 'attacker' | 'defender' | 'summonedFC';
-
-export interface CardFilter {
-  race?:      Race;
-  attr?:      Attribute;
-  cardType?:  CardType;
-  cardId?:    string;
-  maxAtk?:    number;
-  minAtk?:    number;
-  maxDef?:    number;
-  maxLevel?:  number;
-  minLevel?:  number;
-  random?:    number;
-}
-
-/**
- * Open map of effect action types → payloads.
- * Modders can extend this via declaration merging to add custom effect types.
- */
-export interface EffectDescriptorMap {
-  dealDamage:                   { target: 'opponent' | 'self'; value: ValueExpr };
-  gainLP:                       { target: 'opponent' | 'self'; value: number | ValueExpr };
-  draw:                         { target: 'self' | 'opponent'; count: number };
-  buffField:                    { value: number; filter?: CardFilter };
-  tempBuffField:                { value: number; filter?: CardFilter };
-  debuffField:                  { atkD: number; defD: number };
-  tempDebuffField:              { atkD: number; defD?: number };
-  bounceStrongestOpp:           {};
-  bounceAttacker:               {};
-  bounceAllOppMonsters:         {};
-  searchDeckToHand:             { filter: CardFilter };
-  tempAtkBonus:                 { target: StatTarget; value: number };
-  permAtkBonus:                 { target: StatTarget; value: number; filter?: CardFilter };
-  tempDefBonus:                 { target: StatTarget; value: number };
-  permDefBonus:                 { target: StatTarget; value: number };
-  reviveFromGrave:              {};
-  cancelAttack:                 {};
-  cancelEffect:                 {};
-  destroyAttacker:              {};
-  destroySummonedIf:            { minAtk: number };
-  destroyAllOpp:                {};
-  destroyAll:                   {};
-  destroyWeakestOpp:            {};
-  destroyStrongestOpp:          {};
-  sendTopCardsToGrave:          { count: number };
-  sendTopCardsToGraveOpp:       { count: number };
-  salvageFromGrave:             { filter: CardFilter };
-  recycleFromGraveToDeck:       { filter: CardFilter };
-  shuffleGraveIntoDeck:         {};
-  shuffleDeck:                  {};
-  peekTopCard:                  {};
-  specialSummonFromHand:        { filter?: CardFilter };
-  discardFromHand:              { count: number };
-  discardOppHand:               { count: number };
-  passive_piercing:             {};
-  passive_untargetable:         {};
-  passive_directAttack:         {};
-  passive_vsAttrBonus:          { attr: Attribute; atk: number };
-  passive_phoenixRevival:       {};
-  passive_indestructible:       {};
-  passive_effectImmune:         {};
-  passive_cantBeAttacked:       {};
-  destroyOppSpellTrap:          {};
-  destroyAllOppSpellTraps:      {};
-  destroyAllSpellTraps:         {};
-  destroyOppFieldSpell:         {};
-  changePositionOpp:            {};
-  setFaceDown:                  {};
-  flipAllOppFaceDown:           {};
-  destroyByFilter:              { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' };
-  halveAtk:                     { target: StatTarget };
-  doubleAtk:                    { target: StatTarget };
-  swapAtkDef:                   { side: 'self' | 'opponent' | 'all' };
-  specialSummonFromDeck:        { filter: CardFilter; faceDown?: boolean; position?: Position };
-  reflectBattleDamage:          {};
-  stealMonster:                 {};
-  skipOppDraw:                  {};
-  discardEntireHand:            { target: 'self' | 'opponent' | 'both' };
-  destroyAndDamageBoth:         { side: 'opponent' | 'self' };
-  preventBattleDamage:          {};
-  passive_negateTraps:          {};
-  passive_negateSpells:         {};
-  passive_negateMonsterEffects: {};
-  stealMonsterTemp:             {};
-  reviveFromEitherGrave:        {};
-  drawThenDiscard:              { drawCount: number; discardCount: number };
-  bounceOppHandToDeck:          { count: number };
-  tributeSelf:                  {};
-  preventAttacks:               { turns: number };
-  createTokens:                 { tokenId: string; count: number; position: Position };
-  gameReset:                    {};
-  excavateAndSummon:            { count: number; maxLevel: number };
-  millOpp:                      { count: number; } ;
-  banishOppGy:                  {};
-  negateAttack:                 {};
-  reflectDamage:                { multiplier:number };
-  negate:                       {};
-}
-
-export type EffectDescriptor = {
-  [K in keyof EffectDescriptorMap]: { type: K } & EffectDescriptorMap[K]
-}[keyof EffectDescriptorMap];
 
 export interface EffectContext {
   engine:       GameEngine;
@@ -186,23 +114,14 @@ export interface EffectSignal {
   reflectDamage?:    boolean;
 }
 
-export interface EffectCost {
-  lp?:          number;
-  discard?:     number;
-  tributeSelf?: boolean;
-  lpHalf?:      boolean;
-}
+
 
 export interface TurnCounter {
   turnsRemaining: number;
   effect: string;
 }
 
-export interface CardEffectBlock {
-  trigger:    EffectTrigger | TrapTrigger;
-  actions:    EffectDescriptor[];
-  cost?:      EffectCost;
-}
+
 
 export interface CardData {
   id:           string;
@@ -225,10 +144,7 @@ export interface CardData {
   equipRequirement?: EquipRequirement;
 }
 
-export interface EquipRequirement {
-  race?: Race;
-  attr?: Attribute;
-}
+
 
 export function meetsEquipRequirement(equipment: CardData, target: CardData): boolean {
   const req = equipment.equipRequirement;
