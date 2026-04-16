@@ -398,11 +398,11 @@ describe('opponents edge cases', () => {
 describe('settings', () => {
   it('getSettings returns defaults when no settings saved', () => {
     const s = Progression.getSettings();
-    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 });
+    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, controllerEnabled: true, vibrationEnabled: true });
   });
 
   it('saveSettings persists and getSettings retrieves', () => {
-    const custom = { lang: 'de', volMaster: 80, volMusic: 30, volSfx: 100 };
+    const custom = { lang: 'de', volMaster: 80, volMusic: 30, volSfx: 100, controllerEnabled: false, vibrationEnabled: false };
     Progression.saveSettings(custom);
     expect(Progression.getSettings()).toEqual(custom);
   });
@@ -410,7 +410,7 @@ describe('settings', () => {
   it('getSettings returns defaults for corrupted data', () => {
     localStorage.setItem('tcg_settings', '{{{bad');
     const s = Progression.getSettings();
-    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50 });
+    expect(s).toEqual({ lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, controllerEnabled: true, vibrationEnabled: true });
   });
 });
 

@@ -63,7 +63,7 @@ const GamepadContext = createContext<GamepadCtx>({
   vibrate: () => {},
 });
 
-function readButtons(gamepad: Gamepad): GamepadButtons {
+export function readButtons(gamepad: Gamepad): GamepadButtons {
   return {
     a: gamepad.buttons[0]?.pressed ?? false,
     b: gamepad.buttons[1]?.pressed ?? false,
@@ -80,7 +80,7 @@ function readButtons(gamepad: Gamepad): GamepadButtons {
   };
 }
 
-function fireEdgeTriggered(
+export function fireEdgeTriggered(
   buttons: GamepadButtons,
   prev: GamepadButtons,
   cbs: GamepadCallbacks,

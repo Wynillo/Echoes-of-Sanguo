@@ -133,14 +133,12 @@ describe('loadAndApplyTcg (bridge)', () => {
     expect(card.trapTrigger).toBe('onOpponentSpell');
   });
 
-  it('warns on invalid effect string but loads card', async () => {
+  it('rejects cards with invalid effect strings', async () => {
     const effectCard = { ...VALID_CARD, id: 2, effect: 'invalid_effect_string' };
     const buf = await buildMinimalZip({
       cards: [VALID_CARD, effectCard],
     });
-    const result = await loadAndApplyTcg(buf);
-    expect(CARD_DB['2']).toBeDefined();
-    expect(result.warnings.some(w => w.includes('effect'))).toBe(true);
+    await expect(loadAndApplyTcg(buf)).rejects.toThrow(TcgFormatError);
   });
 
   it('loads fusion formulas into FUSION_FORMULAS', async () => {
