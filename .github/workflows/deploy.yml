@@ -53,7 +53,7 @@ jobs:
             xargs -I{} gh api -X DELETE repos/${{ github.repository }}/actions/artifacts/{} || true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
       - id: deployment
