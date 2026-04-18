@@ -32,9 +32,9 @@ Content-Security-Policy is implemented in three layers for defense-in-depth:
 default-src 'self'
 script-src 'self'
 style-src 'self' 'unsafe-inline'
-img-src 'self' data: blob:
+img-src 'self' data: blob: https:
 font-src 'self'
-connect-src 'self'
+connect-src 'self' https://raw.githubusercontent.com
 frame-ancestors 'none'
 base-uri 'self'
 form-action 'self'
@@ -43,7 +43,8 @@ form-action 'self'
 **Rationale:**
 - `'self'` for scripts, styles, and fonts ensures only same-origin resources load
 - `'unsafe-inline'` for styles required due to inline loading screen styles in index.html
-- `data:` and `blob:` for images needed for canvas operations and dynamic image generation
+- `data:`, `blob:`, and `https:` for images needed for canvas operations, dynamic image generation, and loading card artwork from HTTPS sources
+- `https://raw.githubusercontent.com` for `connect-src` allows loading external `.tcg` mod files from trusted GitHub repositories (see `ALLOWED_MOD_SOURCES` in `src/mod-api.ts`)
 - `frame-ancestors 'none'` prevents clickjacking (alternative to X-Frame-Options)
 - `base-uri 'self'` prevents base tag injection attacks
 - `form-action 'self'` prevents form data exfiltration
@@ -68,7 +69,7 @@ The Vite dev server (`npm run dev`) sets these headers in `vite.config.js`:
 
 | Header | Value |
 |--------|-------|
-| `Content-Security-Policy` | (see above) |
+| `Content-Security-Policy` | (see above, includes `https://raw.githubusercontent.com` for mod loading) |
 | `X-Content-Type-Options` | `nosniff` |
 | `X-Frame-Options` | `DENY` |
 | `Strict-Transport-Security` | `max-age=86400; includeSubDomains` |
@@ -86,6 +87,20 @@ For local preview builds (`npm run preview`), the same headers apply.
 - ❌ No X-Frame-Options
 
 For production use, deploy to a server where you can configure headers (e.g., nginx, Apache, Cloudflare Workers).
+
+### Capacitor/Android Configuration
+
+For Android builds, CSP is configured in `capacitor.config.ts` via the `server.csp` property. This policy is applied to the WebView at runtime:
+
+```ts
+capacitor.config.ts
+server: {
+  androidScheme: 'https',
+  csp: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https://raw.githubusercontent.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+}
+```
+
+**Note:** The Android CSP allows `'unsafe-inline'` for scripts due to Capacitor's runtime requirements, but maintains strict origin policies for all other directives.
 
 ---
 
