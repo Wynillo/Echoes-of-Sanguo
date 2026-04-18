@@ -319,3 +319,26 @@ npm run cap:open         # Open Android Studio
 # cd /path/to/Echoes-of-Sanguo-TCG && npm ci && npm run build && npm link
 # cd <this-repo> && npm link @wynillo/tcg-format
 ```
+
+---
+
+## Optional GitHub API Authentication
+
+The engine checks for TCG updates from GitHub on startup. To avoid rate limiting (60 requests/hour for unauthenticated requests), you can provide a GitHub token:
+
+**1. Create `.env.local` file in project root:**
+```bash
+cp .env.example .env.local
+```
+
+**2. Add your token:**
+```env
+VITE_GITHUB_TOKEN=your_github_token_here
+```
+
+**3. Get a token:**
+- Go to https://github.com/settings/tokens
+- Create a fine-grained token with no special permissions (public repo read is automatic)
+- Authenticated requests get 5,000 requests/hour rate limit
+
+**Note:** The `VITE_` prefix is required for Vite to expose the variable to client-side code. The token is optional - the app works in unauthenticated mode if not provided.

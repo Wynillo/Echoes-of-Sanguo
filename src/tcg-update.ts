@@ -47,8 +47,16 @@ async function getLatestCommitSha(): Promise<string | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
   try {
+    const headers: HeadersInit = { Accept: 'application/vnd.github.sha' };
+    
+    // VITE_ prefix required for client-side exposure in Vite
+    const token = import.meta.env.VITE_GITHUB_TOKEN;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const res = await fetch(COMMIT_URL, {
-      headers: { Accept: 'application/vnd.github.sha' },
+      headers,
       signal: controller.signal,
     });
     if (!res.ok) return null;

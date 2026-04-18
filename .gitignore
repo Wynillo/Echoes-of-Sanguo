@@ -3,6 +3,11 @@ package-lock.json
 dist/
 public/base.tcg
 
+# Environment variables (may contain secrets)
+.env
+.env.local
+.env.*.local
+
 # Android build outputs (keep project files, ignore generated outputs)
 android/.gradle/
 android/app/build/
