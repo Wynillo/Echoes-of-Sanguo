@@ -6,7 +6,7 @@ describe('storage-security', () => {
   describe('computeHash', () => {
     it('computes SHA-256 hash of string', async () => {
       const hash = await computeHash('test data');
-      expect(hash).toBe('916f0027a575074ce72a331777c3527d64427f64db61bd50bacb6606e726669f');
+      expect(hash).toBe('916f0027a575074ce72a331777c3478d6513f786a591bd892da1a577bf2335f9');
     });
 
     it('produces different hashes for different inputs', async () => {
