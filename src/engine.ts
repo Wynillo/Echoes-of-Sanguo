@@ -37,6 +37,9 @@ export interface SerializedPlayerState {
   handIds: string[];
   graveyardIds: string[];
   normalSummonUsed: boolean;
+  summonsThisTurn?: number;
+  attacksThisTurn?: number;
+  effectActivationsThisTurn?: number;
   monsters: Array<SerializedFieldCardData | null>;
   spellTraps: Array<SerializedFieldSpellTrapData | null>;
   fieldSpell?: SerializedFieldSpellTrapData | null;
@@ -78,6 +81,12 @@ export class GameEngine {
    * Prevents DoS attacks via infinite async loops or long-running effects.
    */
   static MAX_EFFECT_TIMEOUT_MS = 5000;
+  private _actionTimestamps: Map<string, number[]> = new Map();
+  private readonly ACTION_RATE_LIMIT = {
+    summon: { maxActions: 3, windowMs: 1000 },
+    attack: { maxActions: 2, windowMs: 1000 },
+    save: { maxActions: 1, windowMs: 5000 },
+  };
 
   constructor(uiCallbacks: UICallbacks){
     this.ui = uiCallbacks;
@@ -124,7 +133,10 @@ export class GameEngine {
         hand: [],
         field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null), fieldSpell: null },
         graveyard: [],
-        normalSummonUsed: false
+        normalSummonUsed: false,
+        summonsThisTurn: 0,
+        attacksThisTurn: 0,
+        effectActivationsThisTurn: 0
       },
       opponent: {
         lp: GAME_RULES.startingLP,
@@ -132,7 +144,10 @@ export class GameEngine {
         hand: [],
         field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null), fieldSpell: null },
         graveyard: [],
-        normalSummonUsed: false
+        normalSummonUsed: false,
+        summonsThisTurn: 0,
+        attacksThisTurn: 0,
+        effectActivationsThisTurn: 0
       },
       log: [],
       firstTurnNoAttack: true,
@@ -179,6 +194,9 @@ export class GameEngine {
       hand: s.handIds.map(id => ({ ...CARD_DB[id] })),
       graveyard: s.graveyardIds.map(id => ({ ...CARD_DB[id] })),
       normalSummonUsed: s.normalSummonUsed,
+      summonsThisTurn: s.summonsThisTurn ?? 0,
+      attacksThisTurn: s.attacksThisTurn ?? 0,
+      effectActivationsThisTurn: s.effectActivationsThisTurn ?? 0,
       field: {
         monsters: s.monsters.map(m => {
           if (!m) return null;
@@ -440,9 +458,20 @@ export class GameEngine {
       this.addLog('Invalid zone!'); return false;
     }
     const [card] = st.hand.splice(handIndex, 1);
+    if (st.summonsThisTurn >= GAME_RULES.maxSummonsPerTurn) {
+      this.addLog(`Maximum summon limit (${GAME_RULES.maxSummonsPerTurn} per turn) reached!`);
+      st.hand.push(card);
+      return false;
+    }
+    if (!this.checkRateLimit('summon')) {
+      this.addLog('Action too fast! Please slow down.');
+      st.hand.push(card);
+      return false;
+    }
     const fc = new FieldCard(card, position, faceDown);
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
+    st.summonsThisTurn++;
     if (owner === 'player') this._stats.monstersPlayed++; else this._stats.opponentMonstersPlayed++;
     const posStr = faceDown ? 'face-down DEF' : position.toUpperCase();
     this.addLog(`${ownerLabel(owner)}: ${card.name} (${posStr}).`);
@@ -1038,6 +1067,14 @@ export class GameEngine {
       TriggerBus.emit('onFlipSummon', { engine: this, owner: attackerOwner, card: attFC.card, fieldCard: attFC, zone: attackerZone });
     }
     if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
+    if (atkSt.attacksThisTurn >= GAME_RULES.maxAttacksPerTurn) {
+      this.addLog(`Maximum attack limit (${GAME_RULES.maxAttacksPerTurn} per turn) reached!`);
+      return;
+    }
+    if (!this.checkRateLimit('attack')) {
+      this.addLog('Action too fast! Please slow down.');
+      return;
+    }
 
     const defFC = defSt.field.monsters[defenderZone];
     if(defFC && defFC.cantBeAttacked){
@@ -1076,6 +1113,7 @@ export class GameEngine {
 
     if(!atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
     attFC.hasAttacked = true;
+    atkSt.attacksThisTurn++;
 
     if(!defFC){
       this.addLog(`${attFC.card.name} attacks directly!`);
@@ -1113,6 +1151,15 @@ export class GameEngine {
       TriggerBus.emit('onFlipSummon', { engine: this, owner: attackerOwner, card: attFC.card, fieldCard: attFC, zone: attackerZone });
     }
     if(attFC.position !== 'atk') return;
+    const atkSt = this.state[attackerOwner];
+    if (atkSt.attacksThisTurn >= GAME_RULES.maxAttacksPerTurn) {
+      this.addLog(`Maximum attack limit (${GAME_RULES.maxAttacksPerTurn} per turn) reached!`);
+      return;
+    }
+    if (!this.checkRateLimit('attack')) {
+      this.addLog('Action too fast! Please slow down.');
+      return;
+    }
 
     if(attackerOwner === 'opponent'){
       const trapResult = await this._promptPlayerTraps('onAttack', attFC);
@@ -1132,6 +1179,7 @@ export class GameEngine {
 
     if(!this.state[attackerOwner].field.monsters[attackerZone]){ this.ui.render(this.state); return; }
     attFC.hasAttacked = true;
+    this.state[attackerOwner].attacksThisTurn++;
     this.addLog(`${attFC.card.name} greift direkt an!`);
     if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
     this.dealDamage(defOwn, attFC.effectiveATK());
@@ -1462,6 +1510,10 @@ export class GameEngine {
       this.addLog(`--- ${names[this.state.phase] ?? this.state.phase} ---`);
       this.ui.render(this.state);
     } else {
+      if (this.state.activePlayer === 'opponent') {
+        this._resetActionCounters('player');
+        this._resetActionTimestamps();
+      }
       this._resetMonsterFlags(this.state.activePlayer);
       this._returnTempStolenMonsters(this.state.activePlayer);
       this._returnSpiritMonsters(this.state.activePlayer);
@@ -1548,6 +1600,34 @@ export class GameEngine {
     }
   }
 
+  private _resetActionCounters(owner: Owner){
+    const st = this.state[owner];
+    st.summonsThisTurn = 0;
+    st.attacksThisTurn = 0;
+    st.effectActivationsThisTurn = 0;
+  }
+
+  private checkRateLimit(actionType: string): boolean {
+    const now = Date.now();
+    const limit = this.ACTION_RATE_LIMIT[actionType as keyof typeof this.ACTION_RATE_LIMIT];
+    if (!limit) return true;
+
+    const timestamps = this._actionTimestamps.get(actionType) || [];
+    const recent = timestamps.filter(ts => now - ts < limit.windowMs);
+
+    if (recent.length >= limit.maxActions) {
+      return false;
+    }
+
+    recent.push(now);
+    this._actionTimestamps.set(actionType, recent);
+    return true;
+  }
+
+  private _resetActionTimestamps(){
+    this._actionTimestamps.clear();
+  }
+
   endTurn(){
     this._resetMonsterFlags('player');
     this._returnTempStolenMonsters('player');
@@ -1556,6 +1636,9 @@ export class GameEngine {
 
     this.state.player.normalSummonUsed   = false;
     this.state.opponent.normalSummonUsed = false;
+
+    this._resetActionCounters('player');
+    this._resetActionCounters('opponent');
 
     const hand = this.state.player.hand;
     while(hand.length > GAME_RULES.handLimitEnd){ hand.shift(); }

@@ -250,6 +250,9 @@ export interface PlayerState {
     negateSpells?: boolean;
     negateMonsterEffects?: boolean;
   };
+  summonsThisTurn: number;
+  attacksThisTurn: number;
+  effectActivationsThisTurn: number;
 }
 
 export interface GameState {

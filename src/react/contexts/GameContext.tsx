@@ -37,6 +37,9 @@ function serializePlayerState(ps: PlayerState): SerializedPlayerState {
     handIds: ps.hand.map(c => c.id),
     graveyardIds: ps.graveyard.map(c => c.id),
     normalSummonUsed: ps.normalSummonUsed,
+    summonsThisTurn: ps.summonsThisTurn ?? 0,
+    attacksThisTurn: ps.attacksThisTurn ?? 0,
+    effectActivationsThisTurn: ps.effectActivationsThisTurn ?? 0,
     monsters: ps.field.monsters.map(fc => {
       if (!fc) return null;
       return {

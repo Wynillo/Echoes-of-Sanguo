@@ -46,6 +46,10 @@ export const Progression = (() => {
     nextCraftedId:    'next_crafted_id',
   } as const;
 
+  // Checkpoint save throttling (prevents spam/DoS)
+  const CHECKPOINT_SAVE_COOLDOWN_MS = 5000;
+  let _lastCheckpointSave = 0;
+
   /** Global keys (not per-slot) */
   const GLOBAL_KEYS = {
     settings:   'tcg_settings',
@@ -562,7 +566,13 @@ function spendCoins(amount: number): boolean {
   }
 
   function saveDuelCheckpoint(data: unknown): void {
+    const now = Date.now();
+    if (now - _lastCheckpointSave < CHECKPOINT_SAVE_COOLDOWN_MS) {
+      console.warn('[Progression] Checkpoint save throttled');
+      return;
+    }
     _save(_checkpointKey(), data);
+    _lastCheckpointSave = now;
   }
 
   function loadDuelCheckpoint<T>(): T | null {

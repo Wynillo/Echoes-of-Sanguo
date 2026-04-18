@@ -19,6 +19,9 @@ export const GAME_RULES = {
   craftingCurrency: undefined as string | undefined,
   craftingCost: 0,
   oneMoveEnabled: false,
+  maxSummonsPerTurn: 3,
+  maxAttacksPerTurn: 5,
+  maxEffectActivationsPerTurn: 10,
 };
 
 export type GameRules = typeof GAME_RULES;
