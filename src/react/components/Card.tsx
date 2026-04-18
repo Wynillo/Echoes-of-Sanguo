@@ -132,6 +132,16 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
     extraClass,
   ].filter(Boolean).join(' ');
 
+  // Helper function to escape HTML in React children (prevents XSS)
+  const escapeHtmlText = (text: string): string => {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
   // Small layout: artwork + ATK/DEF + name
   if (small) {
     return (
@@ -152,7 +162,7 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
           : <div className={styles.cardStats}>
               <span className={styles.typeLabel}>{typeLabel}</span>
             </div>}
-        <div className={styles.cardNameSmall}>{card.name}</div>
+        <div className={styles.cardNameSmall}>{escapeHtmlText(card.name)}</div>
       </div>
     );
   }
@@ -160,7 +170,7 @@ export function Card({ card, fc = null, dimmed = false, rotated = false, big = f
   return (
     <div className={cls}>
       <div className={styles.cardHeader}>
-        <span className={styles.nameShort}>{card.name}</span>
+        <span className={styles.nameShort}>{escapeHtmlText(card.name)}</span>
         {attrOrb}
       </div>
       <div className={styles.cardLevel}>{levelStars}</div>
@@ -250,16 +260,30 @@ export function cardInnerHTML(card: CardData, _dimmed = false, _rotated = false,
        </div>`
     : `<div class="card-stats card-no-stats"></div>`;
 
+  // Escape card name and type/subtype line for safety
+  const safeName = card.name
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+  const safeTypeSubtype = typeSubtypeStr
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
   return `
     <div class="card-header">
-      <span class="card-name-short">${card.name}</span>${orbHTML}
+      <span class="card-name-short">${safeName}</span>${orbHTML}
     </div>
     <div class="card-level">${levelStars}</div>
     <div class="card-art"${artStyleStr ? ` style="${artStyleStr}"` : ''}>
       ${raceBadge}${rarityTextH}
     </div>
     <div class="card-body">
-      <div class="card-type-subtype">${typeSubtypeStr}</div>
+      <div class="card-type-subtype">${safeTypeSubtype}</div>
       <div class="card-desc-text">${card.description ? highlightCardTextHTML(card.description) : ''}</div>
     </div>
     ${statsHTML}

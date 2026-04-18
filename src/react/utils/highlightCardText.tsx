@@ -3,7 +3,7 @@
 // ============================================================
 import React from 'react';
 import { TYPE_META, getRaceByKey, getAttrByKey } from '../../type-metadata.js';
-import { escapeHtml } from './sanitize.js';
+import { escapeHtml } from './sanitize.ts';
 
 // ── Static keyword rules (checked before dynamic race/attr) ──
 
@@ -129,9 +129,8 @@ export function highlightCardTextHTML(desc: string): string {
 
   return tokens.map(tok => {
     if (!tok.rule) return escapeHtml(tok.text);
-    const text = escapeHtml(tok.text);
     const tag = (tok.rule.className === 'kw-effect' || tok.rule.className === 'kw-passive') ? 'strong' : 'span';
     const style = tok.rule.color ? ` style="color:${tok.rule.color}"` : '';
-    return `<${tag} class="${tok.rule.className}"${style}>${text}</${tag}>`;
+    return `<${tag} class="${tok.rule.className}"${style}>${escapeHtml(tok.text)}</${tag}>`;
   }).join('');
 }
