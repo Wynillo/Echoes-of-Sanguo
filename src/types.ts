@@ -91,6 +91,16 @@ export interface PureEffectCtx {
   removeEquipment(owner: Owner, zone: number): void;
   removeFieldSpell(owner: Owner): void;
   vfx?(type: 'buff' | 'heal' | 'damage', owner?: Owner, zone?: number): void;
+  // State accessor methods for encapsulation
+  getMonsters(owner: Owner): Array<FieldCard | null>;
+  getGraveyard(owner: Owner): CardData[];
+  getHand(owner: Owner): CardData[];
+  getDeck(owner: Owner): CardData[];
+  addMonsterToGraveyard(owner: Owner, card: CardData): void;
+  removeMonsterFromField(owner: Owner, zone: number): CardData | null;
+  addToHand(owner: Owner, card: CardData): void;
+  addToGraveyard(owner: Owner, card: CardData): void;
+  addToDeck(owner: Owner, card: CardData): void;
 }
 
 export interface ChainEffectCtx extends PureEffectCtx {

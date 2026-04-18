@@ -91,10 +91,10 @@ function shuffleArray<T>(arr: T[]): void {
   }
 }
 
-function _triggerBuffVFX(fc: FieldCard, ctx: PureEffectCtx): void {
+  function _triggerBuffVFX(fc: FieldCard, ctx: PureEffectCtx): void {
   if (!ctx.vfx) return;
   for (const side of ['player', 'opponent'] as Owner[]) {
-    const zone = ctx.state[side].field.monsters.indexOf(fc);
+    const zone = ctx.getMonsters(side).indexOf(fc);
     if (zone !== -1) {
       ctx.vfx('buff', side, zone);
       return;
@@ -148,22 +148,22 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   buffField(desc: { value: number; filter?: CardFilter }, ctx: PureEffectCtx) {
-    const monsters = filterFieldMonsters(ctx.state[ctx.owner].field.monsters, desc.filter);
+    const monsters = filterFieldMonsters(ctx.getMonsters(ctx.owner), desc.filter);
     for (const fm of monsters) {
       fm.permATKBonus = (fm.permATKBonus || 0) + desc.value;
       fm.permDEFBonus = (fm.permDEFBonus || 0) + desc.value;
-      const zone = ctx.state[ctx.owner].field.monsters.indexOf(fm);
+      const zone = ctx.getMonsters(ctx.owner).indexOf(fm);
       if (zone !== -1) ctx.vfx?.('buff', ctx.owner, zone);
     }
     return {};
   },
 
   tempBuffField(desc: { value: number; filter?: CardFilter }, ctx: PureEffectCtx) {
-    const monsters = filterFieldMonsters(ctx.state[ctx.owner].field.monsters, desc.filter);
+    const monsters = filterFieldMonsters(ctx.getMonsters(ctx.owner), desc.filter);
     for (const fm of monsters) {
       fm.tempATKBonus = (fm.tempATKBonus || 0) + desc.value;
       fm.tempDEFBonus = (fm.tempDEFBonus || 0) + desc.value;
-      const zone = ctx.state[ctx.owner].field.monsters.indexOf(fm);
+      const zone = ctx.getMonsters(ctx.owner).indexOf(fm);
       if (zone !== -1) ctx.vfx?.('buff', ctx.owner, zone);
     }
     return {};
@@ -171,7 +171,7 @@ const IMPL: Record<string, InternalImpl> = {
 
   debuffField(desc: { atkD: number; defD: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    ctx.state[opp].field.monsters.forEach(fm => {
+    ctx.getMonsters(opp).forEach(fm => {
       if (!fm) return;
       if (desc.atkD) fm.permATKBonus = (fm.permATKBonus || 0) - desc.atkD;
       if (desc.defD) fm.permDEFBonus = (fm.permDEFBonus || 0) - desc.defD;
@@ -182,7 +182,7 @@ const IMPL: Record<string, InternalImpl> = {
   tempDebuffField(desc: { atkD: number; defD?: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const defD = desc.defD ?? desc.atkD;
-    ctx.state[opp].field.monsters.forEach(fm => {
+    ctx.getMonsters(opp).forEach(fm => {
       if (!fm) return;
       if (desc.atkD) fm.tempATKBonus = (fm.tempATKBonus || 0) - desc.atkD;
       if (defD) fm.tempDEFBonus = (fm.tempDEFBonus || 0) - defD;
@@ -192,11 +192,11 @@ const IMPL: Record<string, InternalImpl> = {
 
   bounceStrongestOpp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const monsters = ctx.state[opp].field.monsters;
+    const monsters = ctx.getMonsters(opp);
     const strongest = findMonsterByATK(monsters, 'strongest', { excludeUntargetable: true });
     if (strongest !== null && monsters[strongest]) {
       const fc = monsters[strongest];
-      ctx.state[opp].hand.push(fc.card);
+      ctx.addToHand(opp, fc.card);
       monsters[strongest] = null;
       ctx.removeEquipment(opp, strongest);
       ctx.log(`${fc.card.name} was bounced back to hand!`);
@@ -207,8 +207,8 @@ const IMPL: Record<string, InternalImpl> = {
   bounceAttacker(_desc: unknown, ctx: PureEffectCtx) {
     if (!ctx.attacker) return {};
     const opp = oppOf(ctx.owner);
-    ctx.state[opp].hand.push(ctx.attacker.card);
-    const monsters = ctx.state[opp].field.monsters;
+    ctx.addToHand(opp, ctx.attacker.card);
+    const monsters = ctx.getMonsters(opp);
     const i = monsters.indexOf(ctx.attacker);
     if (i !== -1) { monsters[i] = null; ctx.removeEquipment(opp, i); }
     return {};
@@ -216,10 +216,10 @@ const IMPL: Record<string, InternalImpl> = {
 
   bounceAllOppMonsters(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const monsters = ctx.state[opp].field.monsters;
+    const monsters = ctx.getMonsters(opp);
     for (let i = 0; i < monsters.length; i++) {
       if (monsters[i]) {
-        ctx.state[opp].hand.push(monsters[i]!.card);
+        ctx.addToHand(opp, monsters[i]!.card);
         monsters[i] = null;
         ctx.removeEquipment(opp, i);
       }
@@ -228,7 +228,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   async searchDeckToHand(desc: { filter: CardFilter }, ctx: ChainEffectCtx) {
-    const deck = ctx.state[ctx.owner].deck;
+    const deck = ctx.getDeck(ctx.owner);
     const matches = deck.filter(c => matchesFilter(c, desc.filter));
     if (matches.length === 0) return {};
 
@@ -240,7 +240,7 @@ const IMPL: Record<string, InternalImpl> = {
     const idx = deck.indexOf(chosen);
     if (idx !== -1) {
       deck.splice(idx, 1);
-      ctx.state[ctx.owner].hand.push(chosen);
+      ctx.addToHand(ctx.owner, chosen);
       ctx.log(`${ctx.owner === 'player' ? 'You' : 'Opponent'}: ${chosen.name} added to hand by effect.`);
     }
     return {};
@@ -303,10 +303,10 @@ const IMPL: Record<string, InternalImpl> = {
 
   stealMonster(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const oppMonsters = ctx.state[opp].field.monsters;
+    const oppMonsters = ctx.getMonsters(opp);
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
     if (idx === null || !oppMonsters[idx]) return {};
-    const ownMonsters = ctx.state[ctx.owner].field.monsters;
+    const ownMonsters = ctx.getMonsters(ctx.owner);
     const freeZone = ownMonsters.findIndex(z => z === null);
     if (freeZone === -1) return {};
     const fc = oppMonsters[idx]!;
@@ -328,14 +328,14 @@ const IMPL: Record<string, InternalImpl> = {
 
   destroyAndDamageBoth(desc: { side: 'opponent' | 'self' }, ctx: PureEffectCtx) {
     const targetOwner = desc.side === 'opponent' ? oppOf(ctx.owner) : ctx.owner;
-    const monsters = ctx.state[targetOwner].field.monsters;
+    const monsters = ctx.getMonsters(targetOwner);
     const idx = findMonsterByATK(monsters, 'strongest', {});
     if (idx === null || !monsters[idx]) return {};
     const fc = monsters[idx]!;
     const atk = fc.effectiveATK();
     ctx.log(`${fc.card.name} is destroyed! Both players take ${atk} damage!`);
-    ctx.state[targetOwner].graveyard.push(fc.card);
-    ctx.state[targetOwner].field.monsters[idx] = null;
+    ctx.addMonsterToGraveyard(targetOwner, fc.card);
+    monsters[idx] = null;
     ctx.removeEquipment(targetOwner, idx);
     ctx.damage('player', atk);
     ctx.damage('opponent', atk);
@@ -371,10 +371,10 @@ const IMPL: Record<string, InternalImpl> = {
 
   stealMonsterTemp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const oppMonsters = ctx.state[opp].field.monsters;
+    const oppMonsters = ctx.getMonsters(opp);
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
     if (idx === null || !oppMonsters[idx]) return {};
-    const ownMonsters = ctx.state[ctx.owner].field.monsters;
+    const ownMonsters = ctx.getMonsters(ctx.owner);
     const freeZone = ownMonsters.findIndex(z => z === null);
     if (freeZone === -1) return {};
     const fc = oppMonsters[idx]!;
@@ -388,8 +388,8 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   async reviveFromEitherGrave(_desc: unknown, ctx: ChainEffectCtx) {
-    const ownGY = ctx.state[ctx.owner].graveyard;
-    const oppGY = ctx.state[oppOf(ctx.owner)].graveyard;
+    const ownGY = ctx.getGraveyard(ctx.owner);
+    const oppGY = ctx.getGraveyard(oppOf(ctx.owner));
     let bestCard: CardData | null = null;
     let bestAtk = -1;
     let fromOwner: Owner = ctx.owner;
@@ -406,12 +406,12 @@ const IMPL: Record<string, InternalImpl> = {
 
   drawThenDiscard(desc: { drawCount: number; discardCount: number }, ctx: PureEffectCtx) {
     ctx.draw(ctx.owner, desc.drawCount);
-    const hand = ctx.state[ctx.owner].hand;
+    const hand = ctx.getHand(ctx.owner);
     const toDiscard = Math.min(desc.discardCount, hand.length);
     for (let i = 0; i < toDiscard; i++) {
       const idx = Math.floor(Math.random() * hand.length);
       const [c] = hand.splice(idx, 1);
-      ctx.state[ctx.owner].graveyard.push(c);
+      ctx.addToGraveyard(ctx.owner, c);
     }
     ctx.log(`Drew ${desc.drawCount}, discarded ${toDiscard}.`);
     return {};
@@ -419,12 +419,12 @@ const IMPL: Record<string, InternalImpl> = {
 
   bounceOppHandToDeck(desc: { count: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const hand = ctx.state[opp].hand;
+    const hand = ctx.getHand(opp);
     const toReturn = Math.min(desc.count, hand.length);
     for (let i = 0; i < toReturn; i++) {
       const idx = Math.floor(Math.random() * hand.length);
       const [c] = hand.splice(idx, 1);
-      ctx.state[opp].deck.push(c);
+      ctx.addToDeck(opp, c);
     }
     if (toReturn > 0) ctx.log(`${toReturn} card(s) shuffled back into opponent's deck.`);
     return {};
@@ -461,25 +461,30 @@ const IMPL: Record<string, InternalImpl> = {
 
   gameReset(_desc: unknown, ctx: PureEffectCtx) {
     for (const side of ['player', 'opponent'] as Owner[]) {
-      const ps = ctx.state[side];
-      const allCards: CardData[] = [...ps.hand, ...ps.graveyard];
-      for (const fc of ps.field.monsters) {
+      const hand = ctx.getHand(side);
+      const grave = ctx.getGraveyard(side);
+      const monsters = ctx.getMonsters(side);
+      const spellTraps = ctx.state[side].field.spellTraps;
+      const fieldSpell = ctx.state[side].field.fieldSpell;
+      
+      const allCards: CardData[] = [...hand, ...grave];
+      for (const fc of monsters) {
         if (fc) allCards.push(fc.card);
       }
-      for (const fst of ps.field.spellTraps) {
+      for (const fst of spellTraps) {
         if (fst) allCards.push(fst.card);
       }
-      if (ps.field.fieldSpell) allCards.push(ps.field.fieldSpell.card);
-      ps.hand.length = 0;
-      ps.graveyard.length = 0;
-      ps.field.monsters.fill(null);
-      ps.field.spellTraps.fill(null);
-      ps.field.fieldSpell = null;
-      ps.deck.push(...allCards);
-      for (let i = ps.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [ps.deck[i], ps.deck[j]] = [ps.deck[j], ps.deck[i]];
-      }
+      if (fieldSpell) allCards.push(fieldSpell.card);
+      
+      hand.length = 0;
+      grave.length = 0;
+      monsters.fill(null);
+      spellTraps.fill(null);
+      ctx.removeFieldSpell(side);
+      
+      const deck = ctx.getDeck(side);
+      deck.push(...allCards);
+      shuffleArray(deck);
       ctx.draw(side, 5);
     }
     ctx.log('All cards shuffled back! Both players draw 5.');
@@ -532,10 +537,10 @@ const IMPL: Record<string, InternalImpl> = {
 
   destroyAllOpp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const monsters = ctx.state[opp].field.monsters;
+    const monsters = ctx.getMonsters(opp);
     for (let i = 0; i < monsters.length; i++) {
       if (monsters[i]) {
-        ctx.state[opp].graveyard.push(monsters[i]!.card);
+        ctx.addMonsterToGraveyard(opp, monsters[i]!.card);
         monsters[i] = null;
         ctx.removeEquipment(opp, i);
       }
@@ -546,10 +551,10 @@ const IMPL: Record<string, InternalImpl> = {
 
   destroyAll(_desc: unknown, ctx: PureEffectCtx) {
     for (const side of ['player', 'opponent'] as Owner[]) {
-      const monsters = ctx.state[side].field.monsters;
+      const monsters = ctx.getMonsters(side);
       for (let i = 0; i < monsters.length; i++) {
         if (monsters[i]) {
-          ctx.state[side].graveyard.push(monsters[i]!.card);
+          ctx.addMonsterToGraveyard(side, monsters[i]!.card);
           monsters[i] = null;
           ctx.removeEquipment(side, i);
         }
@@ -561,11 +566,11 @@ const IMPL: Record<string, InternalImpl> = {
 
   destroyWeakestOpp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const monsters = ctx.state[opp].field.monsters;
+    const monsters = ctx.getMonsters(opp);
     const weakestIdx = findMonsterByATK(monsters, 'weakest');
     if (weakestIdx !== null && monsters[weakestIdx]) {
       const fc = monsters[weakestIdx];
-      ctx.state[opp].graveyard.push(fc.card);
+      ctx.addMonsterToGraveyard(opp, fc.card);
       monsters[weakestIdx] = null;
       ctx.removeEquipment(opp, weakestIdx);
       ctx.log(`${fc.card.name} (weakest) destroyed!`);
@@ -575,11 +580,11 @@ const IMPL: Record<string, InternalImpl> = {
 
   destroyStrongestOpp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const monsters = ctx.state[opp].field.monsters;
+    const monsters = ctx.getMonsters(opp);
     const strongestIdx = findMonsterByATK(monsters, 'strongest');
     if (strongestIdx !== null && monsters[strongestIdx]) {
       const fc = monsters[strongestIdx];
-      ctx.state[opp].graveyard.push(fc.card);
+      ctx.addMonsterToGraveyard(opp, fc.card);
       monsters[strongestIdx] = null;
       ctx.removeEquipment(opp, strongestIdx);
       ctx.log(`${fc.card.name} (strongest) destroyed!`);
@@ -588,69 +593,70 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   sendTopCardsToGrave(desc: { count: number }, ctx: PureEffectCtx) {
-    const deck = ctx.state[ctx.owner].deck;
+    const deck = ctx.getDeck(ctx.owner);
     const count = Math.min(desc.count, deck.length);
     const cards = deck.splice(0, count);
-    ctx.state[ctx.owner].graveyard.push(...cards);
+    for (const card of cards) ctx.addToGraveyard(ctx.owner, card);
     ctx.log(`${count} card(s) sent from deck to graveyard.`);
     return {};
   },
 
   sendTopCardsToGraveOpp(desc: { count: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const deck = ctx.state[opp].deck;
+    const deck = ctx.getDeck(opp);
     const count = Math.min(desc.count, deck.length);
     const cards = deck.splice(0, count);
-    ctx.state[opp].graveyard.push(...cards);
+    for (const card of cards) ctx.addToGraveyard(opp, card);
     ctx.log(`${count} card(s) from opponent's deck sent to graveyard.`);
     return {};
   },
 
   salvageFromGrave(desc: { filter: CardFilter }, ctx: PureEffectCtx) {
-    const grave = ctx.state[ctx.owner].graveyard;
+    const grave = ctx.getGraveyard(ctx.owner);
     const idx = grave.findIndex(c => matchesFilter(c, desc.filter));
     if (idx !== -1) {
       const [c] = grave.splice(idx, 1);
-      ctx.state[ctx.owner].hand.push(c);
+      ctx.addToHand(ctx.owner, c);
       ctx.log(`${c.name} salvaged from graveyard to hand.`);
     }
     return {};
   },
 
   recycleFromGraveToDeck(desc: { filter: CardFilter }, ctx: PureEffectCtx) {
-    const grave = ctx.state[ctx.owner].graveyard;
+    const grave = ctx.getGraveyard(ctx.owner);
     const idx = grave.findIndex(c => matchesFilter(c, desc.filter));
     if (idx !== -1) {
       const [c] = grave.splice(idx, 1);
-      ctx.state[ctx.owner].deck.push(c);
+      ctx.addToDeck(ctx.owner, c);
       ctx.log(`${c.name} recycled from graveyard to deck.`);
     }
     return {};
   },
 
   shuffleGraveIntoDeck(_desc: unknown, ctx: PureEffectCtx) {
-    const ps = ctx.state[ctx.owner];
-    ps.deck.push(...ps.graveyard);
-    ps.graveyard.length = 0;
-    shuffleArray(ps.deck);
+    const grave = ctx.getGraveyard(ctx.owner);
+    const deck = ctx.getDeck(ctx.owner);
+    deck.push(...grave);
+    grave.length = 0;
+    shuffleArray(deck);
     ctx.log('Graveyard shuffled back into deck.');
     return {};
   },
 
   shuffleDeck(_desc: unknown, ctx: PureEffectCtx) {
-    shuffleArray(ctx.state[ctx.owner].deck);
+    shuffleArray(ctx.getDeck(ctx.owner));
     ctx.log('Deck shuffled.');
     return {};
   },
 
   peekTopCard(_desc: unknown, ctx: PureEffectCtx) {
-    const deck = ctx.state[ctx.owner].deck;
+    const deck = ctx.getDeck(ctx.owner);
     ctx.log(deck.length > 0 ? `Top card: ${deck[0].name}` : 'Deck is empty!');
     return {};
   },
 
   async specialSummonFromHand(desc: { filter?: CardFilter }, ctx: ChainEffectCtx) {
-    const hand = ctx.state[ctx.owner].hand;
+    const hand = ctx.getHand(ctx.owner);
     const idx = desc.filter
       ? hand.findIndex(c => matchesFilter(c, desc.filter!))
       : hand.findIndex(c => c.type === CardType.Monster || c.type === CardType.Fusion);
@@ -662,12 +668,12 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   discardFromHand(desc: { count: number }, ctx: PureEffectCtx) {
-    const hand = ctx.state[ctx.owner].hand;
+    const hand = ctx.getHand(ctx.owner);
     const count = Math.min(desc.count, hand.length);
     for (let i = 0; i < count && hand.length > 0; i++) {
       const idx = Math.floor(Math.random() * hand.length);
       const [c] = hand.splice(idx, 1);
-      ctx.state[ctx.owner].graveyard.push(c);
+      ctx.addToGraveyard(ctx.owner, c);
     }
     if (count > 0) ctx.log(`${count} card(s) discarded from hand.`);
     return {};
@@ -675,12 +681,12 @@ const IMPL: Record<string, InternalImpl> = {
 
   discardOppHand(desc: { count: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const hand = ctx.state[opp].hand;
+    const hand = ctx.getHand(opp);
     const count = Math.min(desc.count, hand.length);
     for (let i = 0; i < count && hand.length > 0; i++) {
       const idx = Math.floor(Math.random() * hand.length);
       const [c] = hand.splice(idx, 1);
-      ctx.state[opp].graveyard.push(c);
+      ctx.addToGraveyard(opp, c);
     }
     if (count > 0) ctx.log(`${count} card(s) discarded from opponent's hand.`);
     return {};
@@ -692,7 +698,7 @@ const IMPL: Record<string, InternalImpl> = {
     for (let i = 0; i < zones.length; i++) {
       if (zones[i]) {
         ctx.log(`${zones[i]!.card.name} was destroyed!`);
-        ctx.state[opp].graveyard.push(zones[i]!.card);
+        ctx.addToGraveyard(opp, zones[i]!.card);
         zones[i] = null;
         ctx.removeEquipment(opp, i);
         break;
@@ -707,7 +713,7 @@ const IMPL: Record<string, InternalImpl> = {
     for (let i = 0; i < zones.length; i++) {
       if (zones[i]) {
         ctx.log(`${zones[i]!.card.name} was destroyed!`);
-        ctx.state[opp].graveyard.push(zones[i]!.card);
+        ctx.addToGraveyard(opp, zones[i]!.card);
         zones[i] = null;
         ctx.removeEquipment(opp, i);
       }
@@ -721,7 +727,7 @@ const IMPL: Record<string, InternalImpl> = {
       for (let i = 0; i < zones.length; i++) {
         if (zones[i]) {
           ctx.log(`${zones[i]!.card.name} was destroyed!`);
-          ctx.state[side].graveyard.push(zones[i]!.card);
+          ctx.addToGraveyard(side, zones[i]!.card);
           zones[i] = null;
           ctx.removeEquipment(side, i);
         }
@@ -737,7 +743,7 @@ const IMPL: Record<string, InternalImpl> = {
 
   changePositionOpp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    const monsters = ctx.state[opp].field.monsters;
+    const monsters = ctx.getMonsters(opp);
     const idx = findMonsterByATK(monsters, 'strongest');
     if (idx !== null && monsters[idx]) {
       const fc = monsters[idx]!;
@@ -758,7 +764,7 @@ const IMPL: Record<string, InternalImpl> = {
 
   flipAllOppFaceDown(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
-    for (const fc of ctx.state[opp].field.monsters) {
+    for (const fc of ctx.getMonsters(opp)) {
       if (fc && !fc.faceDown) {
         fc.faceDown = true;
         fc.position = 'def';
@@ -771,7 +777,7 @@ const IMPL: Record<string, InternalImpl> = {
 
   destroyByFilter(desc: { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' }, ctx: PureEffectCtx) {
     const side = desc.side === 'self' ? ctx.owner : oppOf(ctx.owner);
-    const monsters = ctx.state[side].field.monsters;
+    const monsters = ctx.getMonsters(side);
     let idx: number | null = null;
 
     if (desc.mode === 'weakest') {
@@ -796,7 +802,7 @@ const IMPL: Record<string, InternalImpl> = {
 
     if (idx !== null && monsters[idx]) {
       const fc = monsters[idx]!;
-      ctx.state[side].graveyard.push(fc.card);
+      ctx.addMonsterToGraveyard(side, fc.card);
       monsters[idx] = null;
       ctx.removeEquipment(side, idx);
       ctx.log(`${fc.card.name} was destroyed!`);
@@ -848,7 +854,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   async specialSummonFromDeck(desc: { filter: CardFilter; faceDown?: boolean; position?: string }, ctx: ChainEffectCtx) {
-    const deck = ctx.state[ctx.owner].deck;
+    const deck = ctx.getDeck(ctx.owner);
     const idx = deck.findIndex(c => matchesFilter(c, desc.filter));
     if (idx !== -1) {
       const card = ctx.removeFromDeck(ctx.owner, idx);
@@ -895,6 +901,30 @@ export function makePureCtx(ctx: EffectContext): PureEffectCtx {
     removeEquipment:   (owner, zone)   => engine.removeEquipmentForMonster(owner, zone),
     removeFieldSpell:  (owner)         => engine.removeFieldSpell(owner),
     vfx:               engine.ui?.playVFX ? (type, owner, zone) => engine.ui.playVFX!(type, owner!, zone) : undefined,
+    // State accessor methods
+    getMonsters:     (owner) => state[owner].field.monsters,
+    getGraveyard:    (owner) => state[owner].graveyard,
+    getHand:         (owner) => state[owner].hand,
+    getDeck:         (owner) => state[owner].deck,
+    addMonsterToGraveyard: (owner, card) => {
+      state[owner].graveyard.push(card);
+    },
+    removeMonsterFromField: (owner, zone) => {
+      const monsters = state[owner].field.monsters;
+      if (zone < 0 || zone >= monsters.length || !monsters[zone]) return null;
+      const fc = monsters[zone]!;
+      monsters[zone] = null;
+      return fc.card;
+    },
+    addToHand: (owner, card) => {
+      state[owner].hand.push(card);
+    },
+    addToGraveyard: (owner, card) => {
+      state[owner].graveyard.push(card);
+    },
+    addToDeck: (owner, card) => {
+      state[owner].deck.push(card);
+    },
   };
 }
 
