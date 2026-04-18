@@ -14,6 +14,7 @@ import { applyShopData, SHOP_DATA, type ShopData } from './shop-data.js';
 import { applyCampaignData } from './campaign-store.js';
 import type { CampaignData } from './campaign-types.js';
 import { TYPE_META } from './type-metadata.js';
+import { MAX_TCG_SIZE_BYTES, formatBytes } from './tcg-config.js';
 
 // Re-export error classes for consumers
 export { TcgNetworkError, TcgFormatError };
@@ -291,6 +292,16 @@ export async function loadAndApplyTcg(
     buffer = await res.arrayBuffer();
   } else {
     buffer = source;
+  }
+
+  // SECURITY: Validate TCG archive size to prevent resource exhaustion attacks
+  // Oversized .tcg files could consume excessive memory or cause DoS
+  const bufferSize = buffer.byteLength;
+  if (bufferSize > MAX_TCG_SIZE_BYTES) {
+    throw new TcgFormatError(
+      `TCG archive exceeds maximum allowed size of ${formatBytes(MAX_TCG_SIZE_BYTES)} (actual: ${formatBytes(bufferSize)}). ` +
+      `This security measure prevents resource exhaustion attacks via oversized mod files.`
+    );
   }
 
   await Promise.all([

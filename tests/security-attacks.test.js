@@ -640,3 +640,39 @@ describe('verifyModIntegrity', () => {
     }
   });
 });
+
+// ============================================================================
+// TCG Size Validation Tests (Issue #460)
+// ============================================================================
+
+import { MAX_TCG_SIZE_BYTES } from '../src/tcg-config.js';
+
+describe('TCG size validation (issue #460)', () => {
+  it('should reject TCG archives exceeding 50MB limit', async () => {
+    const { loadAndApplyTcg } = await import('../src/tcg-bridge.js');
+    const { TcgFormatError } = await import('../src/tcg-bridge.js');
+    const oversizedBuffer = new ArrayBuffer(51 * 1024 * 1024); // 51MB
+    
+    await expect(loadAndApplyTcg(oversizedBuffer))
+      .rejects
+      .toThrow(TcgFormatError);
+  });
+
+  it('should include max size in error message', async () => {
+    const { loadAndApplyTcg } = await import('../src/tcg-bridge.js');
+    const oversizedBuffer = new ArrayBuffer(60 * 1024 * 1024); // 60MB
+    
+    await expect(loadAndApplyTcg(oversizedBuffer))
+      .rejects
+      .toThrow(/50\.0 MB/);
+  });
+
+  it('should include security context in error message', async () => {
+    const { loadAndApplyTcg } = await import('../src/tcg-bridge.js');
+    const oversizedBuffer = new ArrayBuffer(100 * 1024 * 1024); // 100MB
+    
+    await expect(loadAndApplyTcg(oversizedBuffer))
+      .rejects
+      .toThrow(/security measure/i);
+  });
+});

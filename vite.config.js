@@ -123,6 +123,9 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    // SECURITY: Limit inline asset size to prevent bundle bloat attacks
+    assetsInlineLimit: 4096, // 4KB - small assets only
+    // SECURITY: Warn on chunks exceeding 600KB to catch optimization issues early
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {

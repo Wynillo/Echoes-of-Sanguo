@@ -1,6 +1,7 @@
 import { loadAndApplyTcg, type BridgeLoadResult } from './tcg-bridge.js';
 import { ENGINE_VERSION } from './version.js';
 import { secureLogger } from './secure-logger.js';
+import { MAX_TCG_SIZE_BYTES, formatBytes } from './tcg-config.js';
 
 const DB_NAME = 'eos-tcg-cache';
 const STORE_NAME = 'tcg-files';
@@ -74,9 +75,48 @@ async function checkForUpdate(): Promise<void> {
     secureLogger.warn('TCG', 'Failed to download update:', res.status);
     return;
   }
+
+  // SECURITY: Check Content-Length header before downloading to prevent resource exhaustion
+  const contentLength = res.headers.get('content-length');
+  if (contentLength) {
+    const fileSize = parseInt(contentLength, 10);
+    if (fileSize > MAX_TCG_SIZE_BYTES) {
+      secureLogger.warn(
+        'TCG',
+        `Rejected oversized TCG update: ${formatBytes(fileSize)} exceeds limit of ${formatBytes(MAX_TCG_SIZE_BYTES)}`
+      );
+      return;
+    }
+  }
+
   const data = await res.arrayBuffer();
-  await setCachedTcg(sha, data);
-  secureLogger.log('TCG', 'Cached new base.tcg (commit', sha.slice(0, 7));
+
+  // SECURITY: Double-check actual size after download (Content-Length can be spoofed)
+  if (data.byteLength > MAX_TCG_SIZE_BYTES) {
+    secureLogger.warn(
+      'TCG',
+      `Rejected oversized TCG update: actual size ${formatBytes(data.byteLength)} exceeds limit of ${formatBytes(MAX_TCG_SIZE_BYTES)}`
+    );
+    return;
+  }
+
+  // SECURITY: Check IndexedDB storage quota before caching
+  try {
+    const estimatedUsage = await navigator.storage.estimate();
+    const projectedUsage = (estimatedUsage.usage || 0) + data.byteLength;
+    if (estimatedUsage.quota && projectedUsage > estimatedUsage.quota * 0.9) {
+      secureLogger.warn(
+        'TCG',
+        `Skipping cache: IndexedDB quota nearly exceeded (${formatBytes(estimatedUsage.usage || 0)} / ${formatBytes(estimatedUsage.quota)})`
+      );
+    } else {
+      await setCachedTcg(sha, data);
+      secureLogger.log('TCG', 'Cached new base.tcg (commit', sha.slice(0, 7));
+    }
+  } catch (quotaError) {
+    secureLogger.warn('TCG', 'IndexedDB quota check failed, skipping cache:', quotaError);
+    // Continue without caching - the data is already in memory and will be used
+  }
 }
 
 // Public API
