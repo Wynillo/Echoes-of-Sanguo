@@ -1,17 +1,17 @@
 # Mod API — Echoes of Sanguo
 
-**Stand:** 2026-04-16  
-**Gruppe:** G10  
-**Dependencies:** G1 (Engine-Core) ✅, G2 (Effekt-System) ✅  
-**Geschätzte Zeit:** 2h  
+**As of:** 2026-04-16  
+**Group:** G10  
+**Dependencies:** G1 (Engine-Core) ✅, G2 (Effect-System) ✅  
+**Estimated time:** 2h  
 
 ---
 
-## Übersicht
+## Overview
 
-Die Mod API ermöglicht **Runtime-Modding** via `window.EchoesOfSanguoMod`. Modder können Karten, Gegner, Effekte und ganze `.tcg`-Archive laden.
+The Mod API enables **Runtime-Modding** via `window.EchoesOfSanguoMod`. Modders can load Cards, Opponents, Effects, and entire `.tcg` Archives.
 
-**Zugriff:**
+**Access:**
 ```javascript
 const mod = window.EchoesOfSanguoMod;
 ```
@@ -22,31 +22,31 @@ const mod = window.EchoesOfSanguoMod;
 
 ### Live Stores
 
-| Property | Typ | Beschreibung |
+| Property | Type | Description |
 |----------|-----|--------------|
-| `CARD_DB` | `Record<string, CardData>` | Live-Kartendatenbank — direkt mutate |
-| `FUSION_RECIPES` | `FusionRecipe[]` | Fusion-Rezepte — `push()` zum hinzufügen |
-| `OPPONENT_CONFIGS` | `OpponentConfig[]` | Gegner-Konfigurationen — `push()` |
-| `STARTER_DECKS` | `Record<number, string[]>` | Starter-Decks — Keys = Race IDs |
-| `EFFECT_REGISTRY` | `Map<string, EffectImpl>` | Read-only — alle registrierten Effects |
+| `CARD_DB` | `Record<string, CardData>` | Live card database — directly mutate |
+| `FUSION_RECIPES` | `FusionRecipe[]` | Fusion recipes — `push()` to add |
+| `OPPONENT_CONFIGS` | `OpponentConfig[]` | Opponent configurations — `push()` |
+| `STARTER_DECKS` | `Record<number, string[]>` | Starter decks — Keys = Race IDs |
+| `EFFECT_REGISTRY` | `Map<string, EffectImpl>` | Read-only — all registered Effects |
 
 ### Methods
 
-| Method | Signatur | Beschreibung |
+| Method | Signature | Description |
 |--------|----------|--------------|
-| `registerEffect` | `(type, impl) => void` | Custom Effect-Handler registrieren |
-| `loadModTcg` | `(source, onProgress) => Promise` | `.tcg` Archiv laden |
-| `unloadModCards` | `(source) => boolean` | Mod-Karten entfernen (partial) |
-| `getLoadedMods` | `() => LoadedMod[]` | Alle geladenen Mods auflisten |
-| `getCurrentManifest` | `() => Manifest \| null` | Aktuelles Manifest |
-| `emitTrigger` | `(event, ctx) => void` | Custom Trigger feuern |
-| `addTriggerHook` | `(event, handler) => () => void` | Trigger subscriben |
+| `registerEffect` | `(type, impl) => void` | Register custom Effect handler |
+| `loadModTcg` | `(source, onProgress) => Promise` | Load `.tcg` Archive |
+| `unloadModCards` | `(source) => boolean` | Remove mod cards (partial) |
+| `getLoadedMods` | `() => LoadedMod[]` | List all loaded mods |
+| `getCurrentManifest` | `() => Manifest \| null` | Current manifest |
+| `emitTrigger` | `(event, ctx) => void` | Fire custom Trigger |
+| `addTriggerHook` | `(event, handler) => () => void` | Subscribe to Trigger |
 
 ---
 
-## Karten hinzufügen
+## Adding Cards
 
-### Direkt zu CARD_DB
+### Directly to CARD_DB
 
 ```javascript
 window.EchoesOfSanguoMod.CARD_DB['mod:dragon_01'] = {
@@ -67,13 +67,13 @@ window.EchoesOfSanguoMod.CARD_DB['mod:dragon_01'] = {
 };
 ```
 
-**Wichtig:** ID sollte Prefix haben (`mod:`) um Kollisionen zu vermeiden.
+**Important:** ID should have a prefix (`mod:`) to avoid collisions.
 
 ---
 
 ## Custom Effect Handler
 
-### Registrieren
+### Register
 
 ```javascript
 window.EchoesOfSanguoMod.registerEffect('myCustomEffect', (action, ctx) => {
@@ -82,12 +82,12 @@ window.EchoesOfSanguoMod.registerEffect('myCustomEffect', (action, ctx) => {
   // Custom logic
   ctx.draw(ctx.owner, action.count ?? 1);
   
-  // Optional: Signal zurückgeben
+  // Optional: Return signal
   return {};
 });
 ```
 
-### Verwendung in .tcg
+### Usage in .tcg
 
 ```
 onSummon: myCustomEffect 2
@@ -95,9 +95,9 @@ onSummon: myCustomEffect 2
 
 ---
 
-## TCG Mod laden
+## Loading TCG Mod
 
-### Von URL
+### From URL
 
 ```javascript
 try {
@@ -108,7 +108,7 @@ try {
 }
 ```
 
-### Von ArrayBuffer (File Upload)
+### From ArrayBuffer (File Upload)
 
 ```javascript
 const file = document.getElementById('mod-upload').files[0];
@@ -120,7 +120,7 @@ await window.EchoesOfSanguoMod.loadModTcg(buffer, (pct) => {
 
 ---
 
-## Trigger subscriben
+## Subscribing to Triggers
 
 ### Built-in Trigger
 
@@ -132,11 +132,11 @@ const unsubscribe = window.EchoesOfSanguoMod.addTriggerHook('onSummon', (ctx) =>
   }
 });
 
-// Später: unsubscribe()
+// Later: unsubscribe()
 unsubscribe();
 ```
 
-### Custom Trigger feuern
+### Firing Custom Trigger
 
 ```javascript
 // Owner Mod
@@ -154,7 +154,7 @@ window.EchoesOfSanguoMod.addTriggerHook('mod:myEvent', (ctx) => {
 
 ---
 
-## Fusion Recipes hinzufügen
+## Adding Fusion Recipes
 
 ```javascript
 window.EchoesOfSanguoMod.FUSION_RECIPES.push({
@@ -165,7 +165,7 @@ window.EchoesOfSanguoMod.FUSION_RECIPES.push({
 
 ---
 
-## Gegner hinzufügen
+## Adding Opponents
 
 ```javascript
 window.EchoesOfSanguoMod.OPPONENT_CONFIGS.push({
@@ -184,10 +184,10 @@ window.EchoesOfSanguoMod.OPPONENT_CONFIGS.push({
 
 ---
 
-## Starter Decks definieren
+## Defining Starter Decks
 
 ```javascript
-// Key = Race ID (muss in TYPE_META.races existieren)
+// Key = Race ID (must exist in TYPE_META.races)
 window.EchoesOfSanguoMod.STARTER_DECKS[99] = [
   'mod:starter_1',
   'mod:starter_2',
@@ -199,7 +199,7 @@ window.EchoesOfSanguoMod.STARTER_DECKS[99] = [
 
 ---
 
-## Mod unloaden
+## Unloading Mod
 
 ### Partial Unload
 
@@ -214,18 +214,18 @@ if (success) {
 
 ### Limitations
 
-**Wird NICHT reverted:**
+**is NOT reverted:**
 - Fusion recipes
 - Shop data
 - Campaign data
 - Type metadata
 - Rules
 
-**Workaround:** Page reload für vollständigen Reset.
+**Workaround:** Page reload for complete reset.
 
 ---
 
-## Geladene Mods auflisten
+## Listing Loaded Mods
 
 ```javascript
 const mods = window.EchoesOfSanguoMod.getLoadedMods();
@@ -241,7 +241,7 @@ for (const mod of mods) {
 
 ```typescript
 interface LoadedMod {
-  source: string;       // URL oder 'arraybuffer'
+  source: string;       // URL or 'arraybuffer'
   cardIds: string[];
   opponentIds: number[];
   timestamp: number;
@@ -250,7 +250,7 @@ interface LoadedMod {
 
 ---
 
-## Manifest auslesen
+## Reading Manifest
 
 ```javascript
 const manifest = window.EchoesOfSanguoMod.getCurrentManifest();
@@ -277,10 +277,10 @@ interface TcgManifest {
 
 ---
 
-## Komplettes Mod-Beispiel
+## Complete Mod Example
 
 ```javascript
-// 1. Custom Effect registrieren
+// 1. Register custom Effect
 window.EchoesOfSanguoMod.registerEffect('stormDamage', (action, ctx) => {
   const damage = ctx.state[ctx.owner].field.monsters
     .filter(Boolean)
@@ -292,7 +292,7 @@ window.EchoesOfSanguoMod.registerEffect('stormDamage', (action, ctx) => {
   return {};
 });
 
-// 2. Karte hinzufügen
+// 2. Add card
 window.EchoesOfSanguoMod.CARD_DB['mod:storm_mage'] = {
   id: 'mod:storm_mage',
   name: 'Storm Mage',
@@ -309,7 +309,7 @@ window.EchoesOfSanguoMod.CARD_DB['mod:storm_mage'] = {
   }
 };
 
-// 3. Starter Deck definieren
+// 3. Define starter deck
 window.EchoesOfSanguoMod.STARTER_DECKS[99] = ['mod:storm_mage'];
 
 // 4. Subscribe to Summon trigger
@@ -324,7 +324,7 @@ window.EchoesOfSanguoMod.addTriggerHook('onSummon', (ctx) => {
 
 ## Dependencies
 
-| Abhängigkeit | Beschreibung |
+| Dependency | Description |
 |--------------|--------------|
 | `src/cards.ts` | CARD_DB, FUSION_RECIPES |
 | `src/effect-registry.ts` | EFFECT_REGISTRY, registerEffect |
@@ -335,35 +335,35 @@ window.EchoesOfSanguoMod.addTriggerHook('onSummon', (ctx) => {
 
 ## Notes / Gotchas
 
-### 1. Hot Reload nicht unterstützt
+### 1. Hot Reload not supported
 
-Mods können geladen werden, aber **nicht** hot-reloaded. Für vollständigen Reset: Page reload.
+Mods can be loaded, but **not** hot-reloaded. For complete reset: Page reload.
 
-### 2. ID-Kollisionen
+### 2. ID Collisions
 
-Mods sollten **namhafte IDs** verwenden:
+Mods should use **namespaced IDs**:
 ```javascript
-// Gut
+// Good
 'mod:dragon_01'
 'mymod:custom_spell'
 
-// Schlecht (Kollision mit Base-Set)
+// Bad (collision with Base-Set)
 '1', 'kurama'
 ```
 
-### 3. Effect Handler müssen synchron sein (für A-Trigger)
+### 3. Effect Handlers must be synchronous (for A-Triggers)
 
 ```javascript
-// B-Trigger (async erlaubt)
+// B-Triggers (async allowed)
 registerEffect('asyncEffect', async (action, ctx) => {
   await someAsyncOperation();
   ctx.draw(ctx.owner, 1);
 });
 ```
 
-### 4. TriggerBus Handler-Reihenfolge
+### 4. TriggerBus Handler Order
 
-Handler werden in **Registrierungsreihenfolge** aufgerufen:
+Handlers are called in **registration order**:
 ```javascript
 addTriggerHook('onSummon', handler1);  // First
 addTriggerHook('onSummon', handler2);  // Second
@@ -371,18 +371,18 @@ addTriggerHook('onSummon', handler2);  // Second
 
 ### 5. Partial Unload Limitation
 
-`unloadModCards()` entfernt **nur** Karten und Gegner. Für vollständiges Unload:
-- Mods sollten eigene Cleanup-Logik mitbringen
-- Oder: Page reload
+`unloadModCards()` removes **only** cards and opponents. For complete unload:
+- Mods should bring their own cleanup logic
+- Or: Page reload
 
 ---
 
-## Verweise
+## References
 
 - **Engine-Core** → `docs/engine-core.md` (G1)
-- **Effekt-System** → `docs/effect-system.md` (G2)
+- **Effect-System** → `docs/effect-system.md` (G2)
 - **TCG-Format** → `docs/tcg-format.md` (G11)
 
 ---
 
-**Status:** ✅ Vollständig
+**Status:** ✅ Complete
