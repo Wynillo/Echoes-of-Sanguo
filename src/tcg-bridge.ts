@@ -34,6 +34,32 @@ export function getCurrentManifest(): TcgManifest | null {
   return currentManifest;
 }
 
+/**
+ * Detects potentially malicious HTML/script content in card descriptions.
+ * Returns true if suspicious patterns are found.
+ */
+function containsMaliciousContent(description: string): boolean {
+  const suspiciousPatterns = [
+    /<\s*script/i,           // Script tags
+    /<\s*img[^>]*onerror/i,  // Image with onerror handler
+    /<\s*svg[^>]*onload/i,   // SVG with onload handler
+    /javascript\s*:/i,       // JavaScript protocol
+    /on\w+\s*=/i,            // Event handlers (onclick, onerror, onload, etc.)
+    /<\s*iframe/i,           // iframe tags
+    /<\s*object/i,           // Object tags
+    /<\s*embed/i,            // Embed tags
+    /expression\s*\(/i,      // CSS expression (IE)
+    /url\s*\(\s*['"]?\s*javascript/i,  // CSS url with javascript
+  ];
+  
+  for (const pattern of suspiciousPatterns) {
+    if (pattern.test(description)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
   let parsedEffect: Partial<Pick<CardData, 'effect' | 'effects'>> = {};
   if (p.effect) {
@@ -45,6 +71,11 @@ function parsedToCardData(p: TcgParsedCard, warnings: string[]): CardData {
     } catch (e) {
       warnings.push(`Card #${p.id} (${p.name}): failed to deserialize effect — effect disabled. ${e instanceof Error ? e.message : e}`);
     }
+  }
+
+  // Validate card description for potential XSS attacks
+  if (p.description && containsMaliciousContent(p.description)) {
+    warnings.push(`Card #${p.id} (${p.name}): description contains potentially malicious HTML/script content — will be sanitized on rendering`);
   }
 
   const card: CardData = {
