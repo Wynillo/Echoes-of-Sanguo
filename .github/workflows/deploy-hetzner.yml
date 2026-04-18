@@ -22,18 +22,28 @@ jobs:
           scp -i /tmp/deploy_key -o StrictHostKeyChecking=no .github/nginx-sanguo.conf deploy@${{ secrets.HETZNER_HOST }}:/tmp/sanguo-nginx.conf
           rm /tmp/deploy_key
 
-      - name: Configure nginx with security headers
+      - name: Configure nginx with HTTPS and security headers
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.HETZNER_HOST }}
           username: deploy
           key: ${{ secrets.HETZNER_SSH_KEY }}
           script: |
-            # Deploy nginx configuration
+            # Install certbot if not already installed
+            if ! command -v certbot &> /dev/null; then
+              sudo apt-get update
+              sudo apt-get install -y certbot python3-certbot-nginx
+            fi
+            
+            # Deploy nginx configuration first (with both HTTP and HTTPS server blocks)
             sudo cp /tmp/sanguo-nginx.conf /etc/nginx/sites-available/sanguo
             sudo ln -sf /etc/nginx/sites-available/sanguo /etc/nginx/sites-enabled/sanguo
             sudo nginx -t && sudo systemctl reload nginx
             sudo rm /tmp/sanguo-nginx.conf
+            
+            # Obtain/renew SSL certificate using certbot (non-interactive)
+            # Certbot will auto-renew on subsequent runs if cert already exists
+            sudo certbot --nginx -d sanguo.example.com --non-interactive --agree-tos --redirect || true
             
             # Prepare deployment directory
             mkdir -p /var/www/sanguo
