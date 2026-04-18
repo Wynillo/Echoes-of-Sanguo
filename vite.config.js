@@ -85,7 +85,10 @@ export default defineConfig({
     copyBaseTcg(),
     VitePWA({
       registerType: 'autoUpdate',
-      manifest: false,
+      manifest: {
+        start_url: '/',
+        scope: '/',
+      },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,ico,woff,woff2}'],
         globIgnores: ['**/*.{mp3,png,tcg}'],
