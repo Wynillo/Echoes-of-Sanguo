@@ -58,6 +58,20 @@ export default defineConfig({
     __TCG_FORMAT_BUILD__: JSON.stringify(tcgFormatBuild),
     __MOD_BASE_BUILD__: JSON.stringify(modBaseBuild),
   },
+  server: {
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Strict-Transport-Security': 'max-age=86400; includeSubDomains',
+    },
+  },
+  preview: {
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Strict-Transport-Security': 'max-age=86400; includeSubDomains',
+    },
+  },
   plugins: [
     react(),
     copyBaseTcg(),
