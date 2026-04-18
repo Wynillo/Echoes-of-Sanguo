@@ -15,6 +15,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Copy nginx config to server
+        run: |
+          echo "${{ secrets.HETZNER_SSH_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+          scp -i /tmp/deploy_key -o StrictHostKeyChecking=no .github/nginx-sanguo.conf deploy@${{ secrets.HETZNER_HOST }}:/tmp/sanguo-nginx.conf
+          rm /tmp/deploy_key
+
+      - name: Configure nginx with security headers
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: deploy
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          script: |
+            # Deploy nginx configuration
+            sudo cp /tmp/sanguo-nginx.conf /etc/nginx/sites-available/sanguo
+            sudo ln -sf /etc/nginx/sites-available/sanguo /etc/nginx/sites-enabled/sanguo
+            sudo nginx -t && sudo systemctl reload nginx
+            sudo rm /tmp/sanguo-nginx.conf
+            
+            # Prepare deployment directory
+            mkdir -p /var/www/sanguo
+            rm -rf /var/www/sanguo/*
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -26,21 +50,12 @@ jobs:
           npm install
           npm run build
 
-      - name: Deploy
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.HETZNER_HOST }}
-          username: deploy
-          key: ${{ secrets.HETZNER_SSH_KEY }}
-          script: |
-            mkdir -p /var/www/sanguo
-            rm -rf /var/www/sanguo/*
-
-      - name: Copy files
+      - name: Copy built files to server
         run: |
           echo "${{ secrets.HETZNER_SSH_KEY }}" > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
           scp -i /tmp/deploy_key -o StrictHostKeyChecking=no -r dist/* deploy@${{ secrets.HETZNER_HOST }}:/var/www/sanguo/
           rm /tmp/deploy_key
+          
       - name: Notify
         run: echo "Deployed ${{ github.ref_name }} to nightbeak.dev"
