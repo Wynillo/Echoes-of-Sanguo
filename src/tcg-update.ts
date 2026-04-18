@@ -9,7 +9,7 @@ const CACHE_KEY = 'base-tcg';
 // IndexedDB Quota Management
 const INDEXEDDB_QUOTA_THRESHOLD = 0.8; // 80% of quota
 
-const REPO = 'Wynillo/Echoes-of-sanguo-MOD-base';
+const REPO = import.meta.env.VITE_TCG_REPO || 'Wynillo/Echoes-of-sanguo-MOD-base';
 const COMMIT_URL = `https://api.github.com/repos/${REPO}/commits/main`;
 const RAW_BASE = `https://raw.githubusercontent.com/${REPO}`;
 
