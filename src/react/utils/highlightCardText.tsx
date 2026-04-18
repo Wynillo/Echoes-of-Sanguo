@@ -123,6 +123,19 @@ export function highlightCardText(desc: string): React.ReactNode {
 
 // ── HTML string output (for cardInnerHTML) ──
 
+/**
+ * Generates HTML string with keyword highlighting for card descriptions.
+ * All text content is escaped via escapeHtml() to prevent XSS attacks.
+ * 
+ * @deprecated For new code, use React's highlightCardText() instead.
+ * React components automatically escape JSX content, providing better security.
+ * 
+ * Security: This function escapes all HTML special characters in card descriptions
+ * before generating HTML markup. Never remove or bypass the escaping.
+ * 
+ * @param desc - Card description text (potentially untrusted from TCG mods)
+ * @returns HTML string with escaped text and keyword highlighting spans
+ */
 export function highlightCardTextHTML(desc: string): string {
   const tokens = tokenize(desc);
   if (tokens.length === 1 && !tokens[0].rule) return escapeHtml(desc);

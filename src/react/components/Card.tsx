@@ -194,7 +194,13 @@ export const ATTR_CSS: Record<number, string> = new Proxy({} as Record<number, s
   get(_t, prop) { return getAttrById(Number(prop))?.key ?? 'spell'; },
 });
 
-/** Pure helper used by modules that need the inner HTML string for legacy canvas/clone operations */
+/**
+ * @deprecated Use <Card> React component instead.
+ * WARNING: This function returns HTML string that requires careful handling.
+ * The output is escaped for XSS prevention, but prefer React components
+ * which automatically escape all content.
+ * Only use this function for legacy purposes where DOM insertion is controlled.
+ */
 export function cardInnerHTML(card: CardData, _dimmed = false, _rotated = false, fc: FieldCard | null = null): string {
   const isMonsterLevelH = card.type === CardType.Monster || card.type === CardType.Fusion;
   const isEquipmentH = card.type === CardType.Equipment;
