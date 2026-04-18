@@ -14,24 +14,24 @@ model: sonnet
 
 # src/engine/ State Management
 
-Dieses Verzeichnis enthält die Engine-Schicht des Spiels. Die Engine ist reines TypeScript ohne React-Abhängigkeiten und verwaltet den kompletten Spielzustand.
+This directory contains the engine layer of the game. The engine is pure TypeScript without React dependencies and manages the complete game state.
 
-## Architektur
+## Architecture
 
-Die Engine kommuniziert ausschließlich über das `UICallbacks`-Interface mit der UI-Schicht. Die UI registriert Callbacks; die Engine ruft diese auf, um Updates zu signalisieren.
+The engine communicates exclusively through the `UICallbacks` interface with the UI layer. The UI registers callbacks; the engine invokes them to signal updates.
 
-## State-Struktur
+## State Structure
 
-### GameState (zentrales State-Objekt)
+### GameState (central state object)
 
 ```typescript
 interface GameState {
   phase: Phase;              // 'draw' | 'main' | 'battle'
-  turn: number;              // aktuelle Runde
+  turn: number;              // current round
   activePlayer: Owner;       // 'player' | 'opponent'
   player: PlayerState;
   opponent: PlayerState;
-  log: string[];             // Kampflog (neueste Einträge zuerst)
+  log: string[];             // battle log (newest entries first)
   firstTurnNoAttack?: boolean;
   skipNextDraw?: Owner;
   oneMoveActionUsed?: boolean;
@@ -42,18 +42,18 @@ interface GameState {
 
 ```typescript
 interface PlayerState {
-  lp: number;                // Lebenspunkte
-  deck: CardData[];          // verdecktes Deck
-  hand: CardData[];          // Handkarten
+  lp: number;                // life points
+  deck: CardData[];          // hidden deck
+  hand: CardData[];          // hand cards
   field: {
-    monsters: Array<FieldCard | null>;      // 5 Zonen
-    spellTraps: Array<FieldSpellTrap | null>; // 5 Zonen
-    fieldSpell: FieldSpellTrap | null;      // Feldzauber
+    monsters: Array<FieldCard | null>;      // 5 zones
+    spellTraps: Array<FieldSpellTrap | null>; // 5 zones
+    fieldSpell: FieldSpellTrap | null;      // field spell
   };
-  graveyard: CardData[];     // Friedhof
-  normalSummonUsed: boolean; // Normale Beschwörung in diesem Zug verwendet
-  battleProtection?: boolean; // Schutz vor Kampfschaden
-  turnCounters?: TurnCounter[]; // Rundenbasierte Effekte
+  graveyard: CardData[];     // graveyard
+  normalSummonUsed: boolean; // normal summon used this turn
+  battleProtection?: boolean; // protection from battle damage
+  turnCounters?: TurnCounter[]; // turn-based effects
   fieldFlags?: {
     negateTraps?: boolean;
     negateSpells?: boolean;
@@ -62,24 +62,24 @@ interface PlayerState {
 }
 ```
 
-### FieldCard (laufendes Monster)
+### FieldCard (active monster)
 
 ```typescript
 class FieldCard {
-  card: CardData;           // Referenz auf Kartendaten
+  card: CardData;           // reference to card data
   position: Position;       // 'atk' | 'def'
-  faceDown: boolean;        // verdeckt auf dem Feld
-  hasAttacked: boolean;     // hat in diesem Zug angegriffen
-  hasFlipSummoned: boolean; // Flip-Beschwörung in diesem Zug
+  faceDown: boolean;        // face-down on field
+  hasAttacked: boolean;     // has attacked this turn
+  hasFlipSummoned: boolean; // flip summon this turn
   summonedThisTurn: boolean;
-  tempATKBonus: number;     // temporäre ATK-Modifikatoren
+  tempATKBonus: number;     // temporary ATK modifiers
   tempDEFBonus: number;
-  permATKBonus: number;     // permanente ATK-Modifikatoren (Ausrüstung)
+  permATKBonus: number;     // permanent ATK modifiers (equipment)
   permDEFBonus: number;
   fieldSpellATKBonus: number;
   fieldSpellDEFBonus: number;
   equippedCards: Array<{ zone: number; card: CardData }>;
-  // Passive Flags (aus Effekten extrahiert)
+  // Passive Flags (extracted from effects)
   piercing: boolean;
   cannotBeTargeted: boolean;
   canDirectAttack: boolean;
@@ -90,43 +90,43 @@ class FieldCard {
 }
 ```
 
-### FieldSpellTrap (laufende Zauber/Fallen)
+### FieldSpellTrap (active spells/traps)
 
 ```typescript
 class FieldSpellTrap {
   card: CardData;
   faceDown: boolean;
-  used: boolean;            // für Fallen: wurde bereits aktiviert
-  equippedMonsterZone?: number;  // für Ausrüstungen
+  used: boolean;            // for traps: already activated
+  equippedMonsterZone?: number;  // for equipment
   equippedOwner?: Owner;
 }
 ```
 
-## State-Änderungen
+## State Changes
 
-### 1. Direkte State-Mutation (synchron)
+### 1. Direct State Mutation (synchronous)
 
-Die Engine mutiert den State direkt. Nach Änderungen wird `ui.render(state)` aufgerufen.
+The engine mutates state directly. After changes, `ui.render(state)` is called.
 
 ```typescript
 this.state.player.lp -= damage;
 this.ui.render(this.state);
 ```
 
-### 2. Asynchrone Aktionen mit Effekt-Ausführung
+### 2. Asynchronous Actions with Effect Execution
 
-Beschwörungen, Zauber und Angriffe können Effekte auslösen:
+Summons, spells, and attacks can trigger effects:
 
 ```typescript
 async summonMonster(owner, handIndex, zone, position, faceDown) {
-  // ... Kartenzug vom Hand aufs Feld
+  // ... move card from hand to field
   await this._triggerEffect(fc, owner, 'onSummon', zone);
   TriggerBus.emit('onSummon', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
   this.ui.render(this.state);
 }
 ```
 
-### 3. Zugwechsel
+### 3. Turn Switch
 
 ```typescript
 state.activePlayer = 'opponent';
@@ -134,7 +134,7 @@ state.phase = 'draw';
 state.turn++;
 ```
 
-## Zugablauf (Phasen)
+## Turn Flow (Phases)
 
 ```
 1. Draw Phase    -> refillHand()
@@ -143,9 +143,9 @@ state.turn++;
 4. End Phase     -> resetMonsterFlags(), tickTurnCounters()
 ```
 
-## State-Serialisierung (Checkpoints)
+## State Serialization (Checkpoints)
 
-Das Spiel unterstützt Speichern/Laden über `SerializedCheckpoint`:
+The game supports save/load via `SerializedCheckpoint`:
 
 ```typescript
 interface SerializedCheckpoint {
@@ -154,14 +154,14 @@ interface SerializedCheckpoint {
   activePlayer: Owner;
   player: SerializedPlayerState;
   opponent: SerializedPlayerState;
-  // ... (nur IDs, keine komplexen Objekte)
+  // ... (only IDs, no complex objects)
 }
 ```
 
-## WICHTIGE REGELN
+## IMPORTANT RULES
 
-- Engine darf NIEMALS direkt React-Code importieren
-- State-Mutationen nur über GameEngine-Methoden
-- Nach jeder Mutation `ui.render(state)` aufrufen
-- Effekte werden über `executeEffectBlock()` ausgeführt
-- TriggerBus für globale Event-Kommunikation
+- Engine must NEVER import React code directly
+- State mutations only through GameEngine methods
+- After every mutation, call `ui.render(state)`
+- Effects are executed via `executeEffectBlock()`
+- TriggerBus for global event communication

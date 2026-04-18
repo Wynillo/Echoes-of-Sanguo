@@ -1,5 +1,5 @@
 import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, resolveFusionChain } from './cards.js';
-import { executeEffectBlock, matchesFilter } from './effect-registry.js';
+import { executeEffectBlock, matchesFilter, EffectExecutionError, MAX_EFFECT_STEPS } from './effect-registry.js';
 import { CardType } from './types.js';
 import { meetsEquipRequirement } from './types.js';
 import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
@@ -73,6 +73,11 @@ export class GameEngine {
   _duelEnded = false;
   _chainDepth = 0;
   static MAX_CHAIN_DEPTH = 6;
+  /**
+   * Maximum timeout for effect execution in milliseconds.
+   * Prevents DoS attacks via infinite async loops or long-running effects.
+   */
+  static MAX_EFFECT_TIMEOUT_MS = 5000;
 
   constructor(uiCallbacks: UICallbacks){
     this.ui = uiCallbacks;
@@ -258,10 +263,55 @@ export class GameEngine {
     this.ui.log(msg);
   }
 
-  private async _safeExecuteEffect(block: CardEffectBlock, ctx: EffectContext, cardId: string, label: string): Promise<EffectSignal | null> {
+  private async _safeExecuteEffect(
+    block: CardEffectBlock,
+    ctx: EffectContext,
+    cardId: string,
+    label: string,
+    options?: { stepCounter?: { value: number }; timeoutMs?: number },
+  ): Promise<EffectSignal | null> {
+    const timeoutMs = options?.timeoutMs ?? GameEngine.MAX_EFFECT_TIMEOUT_MS;
+    const stepCounter = options?.stepCounter ?? { value: 0 };
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort('timeout');
+    }, timeoutMs);
+
     try {
-      return await executeEffectBlock(block, ctx);
+      const executionPromise = executeEffectBlock(block, ctx, {
+        stepCounter,
+        abortSignal: controller.signal,
+      });
+      
+      const result = await Promise.race([
+        executionPromise,
+        new Promise<EffectSignal>((_resolve, reject) => {
+          controller.signal.addEventListener('abort', () => {
+            reject(new EffectExecutionError(
+              `Effect execution timeout after ${timeoutMs}ms`,
+              'timeout',
+              stepCounter.value,
+            ));
+          });
+        }),
+      ]);
+      
+      clearTimeout(timeoutId);
+      return result;
     } catch (e) {
+      clearTimeout(timeoutId);
+      
+      if (e instanceof EffectExecutionError) {
+        EchoesOfSanguo.log(
+          'SECURITY',
+          `Effect execution blocked: ${e.reason.toUpperCase()} - ${e.message} [${cardId}] (steps: ${e.stepsExecuted})`,
+          '#f44',
+        );
+        this.addLog(`Effect interrupted: ${e.reason === 'timeout' ? 'timeout' : 'step limit exceeded'}`);
+        return null;
+      }
+      
       EchoesOfSanguo.log('EFFECT', `Error in ${label} [${cardId}]: ${e instanceof Error ? e.message : String(e)}`, '#f44');
       return null;
     }

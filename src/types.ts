@@ -73,6 +73,7 @@ export interface EffectContext {
   attacker?:    FieldCard;   // attacking FieldCard (onAttack traps)
   defender?:    FieldCard;
   summonedFC?:  FieldCard;   // FieldCard just summoned (onOpponentSummon traps)
+  abortSignal?: AbortSignal; // for timeout/step-limit cancellation
 }
 
 export interface PureEffectCtx {

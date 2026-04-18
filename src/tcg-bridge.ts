@@ -18,6 +18,81 @@ import { TYPE_META } from './type-metadata.js';
 // Re-export error classes for consumers
 export { TcgNetworkError, TcgFormatError };
 
+/**
+ * Verifies the integrity of a mod archive using SHA-256 hash.
+ * SECURITY: Critical security check for Subresource Integrity (SRI).
+ * 
+ * @param buffer - The ArrayBuffer containing the .tcg archive
+ * @param expectedHash - The expected SHA-256 hash (base64, hex, or with sha256- prefix)
+ * @returns Promise resolving to true if hash matches, false otherwise
+ * 
+ * Supports hash formats:
+ * - Base64: 'dGhpcyBpcyBhIHRlc3Q='
+ * - Hex: '68656c6c6f20776f726c64'
+ * - SRI: 'sha256-dGhpcyBpcyBhIHRlc3Q=' (W3C SRI format)
+ * 
+ * Use this function before applying any mod from an external source.
+ * See issue #461 for security context.
+ */
+export async function verifyModIntegrity(buffer: ArrayBuffer, expectedHash: string): Promise<boolean> {
+  try {
+    // Normalize hash format (remove sha256- prefix if present)
+    let normalizedHash = expectedHash;
+    if (normalizedHash.toLowerCase().startsWith('sha256-')) {
+      normalizedHash = normalizedHash.substring(7);
+    }
+
+    // Compute SHA-256 hash of the buffer using Web Crypto API
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = new Uint8Array(hashBuffer);
+    
+    // Convert to base64 for comparison
+    const actualHashBase64 = uint8ArrayToBase64(hashArray);
+    
+    // Convert to hex for comparison
+    const actualHashHex = uint8ArrayToHex(hashArray);
+    
+    // Normalize expected hash (handle both base64 and hex)
+    const normalizedExpected = normalizedHash.toLowerCase();
+    const isHex = /^[0-9a-f]+$/i.test(normalizedExpected);
+    
+    // Compare hashes
+    const matches = isHex 
+      ? actualHashHex === normalizedExpected
+      : actualHashBase64 === normalizedExpected;
+    
+    return matches;
+  } catch (error) {
+    console.error('[verifyModIntegrity] Hash verification failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Converts Uint8Array to base64 string.
+ * @param bytes - The byte array to convert
+ * @returns Base64 encoded string
+ */
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  // Use native btoa for browser environment
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+/**
+ * Converts Uint8Array to hex string.
+ * @param bytes - The byte array to convert
+ * @returns Hex encoded string (lowercase)
+ */
+function uint8ArrayToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 const rid = (numId: number): string => String(numId);
 
 interface LoadedMod {

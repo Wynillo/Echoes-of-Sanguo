@@ -5,6 +5,29 @@ import {
   type ValueExpr, type StatTarget, type Owner, type FieldCard,
   type PureEffectCtx, type ChainEffectCtx,
 } from './types.js';
+import { EchoesOfSanguo } from './debug-logger.js';
+
+/**
+ * Maximum number of effect steps allowed per effect block execution.
+ * Prevents DoS attacks via infinite recursive effect chains.
+ * Configurable via options parameter to executeEffectBlock().
+ */
+export const MAX_EFFECT_STEPS = 100;
+
+/**
+ * Custom error for effect execution failures.
+ * Provides clear indication of why execution was terminated.
+ */
+export class EffectExecutionError extends Error {
+  constructor(
+    message: string,
+    public readonly reason: 'timeout' | 'step_limit' | 'error',
+    public readonly stepsExecuted?: number,
+  ) {
+    super(message);
+    this.name = 'EffectExecutionError';
+  }
+}
 
 export function matchesFilter(card: CardData, filter: CardFilter): boolean {
   if (filter.race     !== undefined && card.race      !== filter.race)       return false;
@@ -926,7 +949,34 @@ async function payCost(block: CardEffectBlock, ctx: EffectContext): Promise<void
   }
 }
 
-export async function executeEffectBlock(block: CardEffectBlock, ctx: EffectContext): Promise<EffectSignal> {
+export interface EffectExecutionOptions {
+  /** Shared step counter object (for recursive calls across effect chains) */
+  stepCounter?: { value: number };
+  /** Maximum allowed steps (defaults to MAX_EFFECT_STEPS) */
+  maxSteps?: number;
+  /** AbortSignal for timeout cancellation */
+  abortSignal?: AbortSignal;
+}
+
+/**
+ * Executes a card effect block with step limit and timeout protection.
+ * Each action in the block counts as one step to prevent DoS attacks.
+ */
+export async function executeEffectBlock(
+  block: CardEffectBlock,
+  ctx: EffectContext,
+  options?: EffectExecutionOptions,
+): Promise<EffectSignal> {
+  const stepCounter = options?.stepCounter ?? { value: 0 };
+  const maxSteps = options?.maxSteps ?? MAX_EFFECT_STEPS;
+
+  // Check abort signal
+  if (options?.abortSignal?.aborted) {
+    const errorMsg = `Effect execution aborted: ${options.abortSignal.reason || 'timeout'}`;
+    EchoesOfSanguo.log('SECURITY', errorMsg, '#f44');
+    throw new EffectExecutionError(errorMsg, 'timeout', stepCounter.value);
+  }
+
   if (!canPayCost(block, ctx)) {
     ctx.engine.addLog('Cannot pay effect cost!');
     return {};
@@ -935,7 +985,25 @@ export async function executeEffectBlock(block: CardEffectBlock, ctx: EffectCont
 
   const pctx = makeChainCtx(ctx);
   const signal: EffectSignal = {};
+  
   for (const action of block.actions) {
+    // Increment step counter for each action
+    stepCounter.value++;
+    
+    // Check step limit before each action
+    if (stepCounter.value > maxSteps) {
+      const errorMsg = `Effect execution exceeded maximum steps (${stepCounter.value} > ${maxSteps})`;
+      EchoesOfSanguo.log('SECURITY', errorMsg, '#f44');
+      throw new EffectExecutionError(errorMsg, 'step_limit', stepCounter.value);
+    }
+
+    // Check abort signal before each action
+    if (options?.abortSignal?.aborted) {
+      const errorMsg = `Effect execution aborted: ${options.abortSignal.reason || 'timeout'}`;
+      EchoesOfSanguo.log('SECURITY', errorMsg, '#f44');
+      throw new EffectExecutionError(errorMsg, 'timeout', stepCounter.value);
+    }
+
     const impl = EFFECT_REGISTRY.get(action.type) as InternalImpl | undefined;
     if (impl) {
       Object.assign(signal, await impl(action, pctx));

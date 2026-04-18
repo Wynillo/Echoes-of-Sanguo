@@ -1,37 +1,37 @@
 # TCG-Format — Echoes of Sanguo
 
-**Stand:** 2026-04-16  
-**Gruppe:** G11  
-**Dependencies:** G4 (Karten & Feld) ✅  
-**Geschätzte Zeit:** 2–3h  
+**As of:** 2026-04-16  
+**Group:** G11  
+**Dependencies:** G4 (Cards & Field) ✅  
+**Estimated time:** 2–3h  
 
 ---
 
-## Übersicht
+## Overview
 
-Das `.tcg`-Format ist ein **ZIP-Archiv** mit JSON-Dateien und Kartenbildern. Es enthält alle Kartendaten, Gegner, Kampagnen, Shops und Lokalisierungen.
+The `.tcg` format is a **ZIP archive** with JSON files and card images. It contains all card data, opponents, campaigns, shops, and localizations.
 
-**Library:** `@wynillo/tcg-format` (externes Package)  
-**Bridge:** `src/tcg-bridge.ts` (verbindet TCG mit Game-Stores)
+**Library:** `@wynillo/tcg-format` (external package)  
+**Bridge:** `src/tcg-bridge.ts` (connects TCG with game stores)
 
 ---
 
-## Archiv-Struktur
+## Archive Structure
 
 ```
 base.tcg (ZIP)
-├── manifest.json              # Metadaten (Name, Version, Autor)
-├── cards.json                 # Alle Karten (TcgCard[])
-├── opponents.json             # Gegner-Konfigurationen
-├── starterDecks.json          # Starter-Decks pro Race
-├── fusion_recipes.json        # Explizite Fusion-Rezepte
+├── manifest.json              # Metadata (Name, Version, Author)
+├── cards.json                 # All cards (TcgCard[])
+├── opponents.json             # Opponent configurations
+├── starterDecks.json          # Starter decks per Race
+├── fusion_recipes.json        # Explicit fusion recipes
 ├── tcg-src/
-│   ├── opponents/             # Opponent-Deck-Dateien
+│   ├── opponents/             # Opponent deck files
 │   └── ...
 ├── locales/
-│   ├── en.json                # Englische Übersetzungen
-│   └── de.json                # Deutsche Übersetzungen
-└── images/                    # Kartenbilder (optional)
+│   ├── en.json                # English translations
+│   └── de.json                # German translations
+└── images/                    # Card images (optional)
 ```
 
 ---
@@ -50,16 +50,16 @@ base.tcg (ZIP)
 }
 ```
 
-**Felder:**
-- `id` — Eindeutige Mod-ID (für `unloadModCards()`)
-- `formatVersion` — TCG-Format-Version (kompatibel mit `@wynillo/tcg-format`)
-- `cardCount` — Anzahl der Karten im Set
+**Fields:**
+- `id` — Unique mod ID (for `unloadModCards()`)
+- `formatVersion` — TCG format version (compatible with `@wynillo/tcg-format`)
+- `cardCount` — Number of cards in the set
 
 ---
 
 ## cards.json
 
-### TcgCard Struktur
+### TcgCard Structure
 
 ```typescript
 interface TcgCard {
@@ -86,9 +86,9 @@ interface TcgCard {
 ```
 
 **Effect String Format:**
-Siehe `docs/effect-system.md` für Syntax.
+See `docs/effect-system.md` for syntax.
 
-**Beispiel:**
+**Example:**
 ```json
 {
   "id": "kurama",
@@ -125,7 +125,7 @@ interface TcgOpponentDeck {
 }
 ```
 
-**Lokalisierung:** Name, Title, Flavor werden aus `locales/{lang}.json` geladen.
+**Localization:** Name, Title, Flavor are loaded from `locales/{lang}.json`.
 
 ---
 
@@ -156,7 +156,7 @@ interface TcgOpponentDeck {
 ]
 ```
 
-**Hinweis:** Formeln (race+race, etc.) werden separat in `FUSION_FORMULAS[]` definiert.
+**Note:** Formulas (race+race, etc.) are defined separately in `FUSION_FORMULAS[]`.
 
 ---
 
@@ -195,32 +195,32 @@ interface TcgOpponentDeck {
 
 ---
 
-## Load-Pipeline
+## Load Pipeline
 
 ### tcg-bridge.ts Flow
 
 ```typescript
 // 1. loadAndApplyTcg(url: string | ArrayBuffer)
 ↓
-// 2. ZIP extrahieren (jszip)
+// 2. Extract ZIP (jszip)
 ↓
-// 3. locales/{lang}.json extrahieren
+// 3. Extract locales/{lang}.json
 ↓
-// 4. loadTcgFile() von @wynillo/tcg-format aufrufen
+// 4. Call loadTcgFile() from @wynillo/tcg-format
 ↓
-// 5. TcgCard[] → CardData[] konvertieren
+// 5. Convert TcgCard[] → CardData[]
 //    - Enum conversion (int → Race, Attribute)
 //    - Effect string parsing
-//    - Warnings für unknown values
+//    - Warnings for unknown values
 ↓
 // 6. applyOpponents(), applyStarterDecks(), etc.
 ↓
-// 7. CARD_DB, FUSION_RECIPES füllen
+// 7. Fill CARD_DB, FUSION_RECIPES
 ↓
-// 8. Mod-Tracking (für unload)
+// 8. Mod tracking (for unload)
 ```
 
-### Code-Beispiel
+### Code Example
 
 ```typescript
 async function loadAndApplyTcg(
@@ -298,7 +298,7 @@ if (!isValidEffectString(effectString)) {
 
 ---
 
-## Mod-System
+## Mod System
 
 ### Loaded Mod Tracking
 
@@ -339,13 +339,13 @@ function unloadModCards(source: string): boolean {
 }
 ```
 
-**Hinweis:** Fusion recipes, shop data, campaign data werden NICHT reverted.
+**Note:** Fusion recipes, shop data, campaign data are NOT reverted.
 
 ---
 
 ## Type Metadata
 
-Wird aus `.tcg` geladen via `applyTypeMeta()`:
+Loaded from `.tcg` via `applyTypeMeta()`:
 
 ```typescript
 interface TypeMetaData {
@@ -363,13 +363,13 @@ function applyTypeMeta(data: TypeMetaData): void {
 }
 ```
 
-**Default-Werte** können in `type-metadata.ts:initDefaults()` gesetzt werden.
+**Default values** can be set in `type-metadata.ts:initDefaults()`.
 
 ---
 
 ## Validation & Errors
 
-###Card Conversion Warnings
+### Card Conversion Warnings
 
 ```typescript
 // In tcg-bridge.ts
@@ -382,7 +382,7 @@ if (CARD_DB[card.id]) {
 }
 ```
 
-###Effect Validation
+### Effect Validation
 
 ```typescript
 if (card.effect && !isValidEffectString(card.effect)) {
@@ -394,8 +394,8 @@ if (card.effect && !isValidEffectString(card.effect)) {
 
 ## Dependencies
 
-| Abhängigkeit | Beschreibung |
-|--------------|--------------|
+| Dependency | Description |
+|------------|-------------|
 | `@wynillo/tcg-format` | TCG loading, validation, packing |
 | `jszip` | ZIP extraction |
 | `src/cards.ts` | CARD_DB store |
@@ -407,17 +407,17 @@ if (card.effect && !isValidEffectString(card.effect)) {
 
 ## Notes / Gotchas
 
-### 1. Card IDs sind Strings
+### 1. Card IDs are Strings
 
-Auch wenn die Base-Set IDs Zahlen sind (`"1"`, `"2"`), sind alle IDs **Strings**. Mods sollten namhafte IDs verwenden (`"mod:dragon_01"`).
+Even though base set IDs are numbers (`"1"`, `"2"`), all IDs are **strings**. Mods should use descriptive IDs (`"mod:dragon_01"`).
 
-### 2. Effect Strings sind optional
+### 2. Effect Strings are Optional
 
-Karten ohne Effekt haben `effect: undefined` oder `effect: ""`.
+Cards without effects have `effect: undefined` or `effect: ""`.
 
 ### 3. Locale Fallback
 
-Wenn Locale nicht gefunden:
+When locale not found:
 ```typescript
 const locale = result.locales.get(lang) 
             ?? result.locales.values().next().value;  // Fallback to first
@@ -425,20 +425,20 @@ const locale = result.locales.get(lang)
 
 ### 4. Mod Loading Order
 
-Mods werden in Ladereihenfolge verarbeitet. Bei ID-Kollisionen **überschreibt** später geladener Mod frühere.
+Mods are processed in loading order. On ID collisions, **later loaded mod overwrites** earlier ones.
 
 ### 5. TCG-Format Version
 
-`formatVersion` in manifest.json bestimmt Kompatibilität mit `@wynillo/tcg-format`.
+`formatVersion` in manifest.json determines compatibility with `@wynillo/tcg-format`.
 
 ---
 
-## Verweise
+## References
 
-- **Karten & Feld** → `docs/cards-field.md` (G4)
-- **Effekt-System** → `docs/effect-system.md` (G2)
+- **Cards & Field** → `docs/cards-field.md` (G4)
+- **Effect System** → `docs/effect-system.md` (G2)
 - **Mod API** → `docs/mod-api.md` (G10)
 
 ---
 
-**Status:** ✅ Vollständig
+**Status:** ✅ Complete
