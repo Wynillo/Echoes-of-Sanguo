@@ -9,6 +9,7 @@ import { getRaceById } from '../../type-metadata.js';
 import RaceIcon from '../components/RaceIcon.js';
 import type { OpponentConfig } from '../../types.js';
 import styles from './OpponentScreen.module.css';
+import { escapeHtml } from '../utils/sanitize.js';
 
 export default function OpponentScreen() {
   const { navigateTo } = useScreen();
@@ -63,7 +64,7 @@ export default function OpponentScreen() {
                   <div className={styles.symbol}><RaceIcon icon={raceMeta?.icon} /></div>
                 </div>
               </div>
-              <div className={styles.name}>{cfg.name}</div>
+              <div className={styles.name}>{escapeHtml(cfg.name)}</div>
               <div className={styles.record}>{(oppData as any).wins ?? 0}W / {(oppData as any).losses ?? 0}L</div>
             </div>
           );
@@ -74,8 +75,8 @@ export default function OpponentScreen() {
       </div>
 
       <div className={styles.info}>
-        <span id="opp-info-name">{hovered ? `${hovered.name} – ${(hovered as any).title}` : '—'}</span>
-        <span id="opp-info-record">{hovered ? (hovered as any).flavor : ''}</span>
+        <span id="opp-info-name">{hovered ? `${escapeHtml(hovered.name)} – ${escapeHtml((hovered as any).title)}` : '—'}</span>
+        <span id="opp-info-record">{hovered ? escapeHtml((hovered as any).flavor) : ''}</span>
       </div>
     </div>
   );
