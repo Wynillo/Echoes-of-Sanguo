@@ -1,5 +1,8 @@
 import type { SlotId } from './progression.js';
 
+// Currency bounds to prevent overflow attacks
+const MAX_CURRENCY_AMOUNT = 999_999;
+
 /**
  * Safely parse JSON string with prototype pollution protection.
  * Duplicated from progression.ts to avoid circular dependency.
@@ -34,8 +37,15 @@ export function getCurrency(slot: SlotId, currencyId: string): number {
 export function addCurrency(slot: SlotId, currencyId: string, amount: number): number {
   const current = getCurrency(slot, currencyId);
   const next = Math.max(0, current + Math.max(0, amount));
-  localStorage.setItem(_currencyKey(slot, currencyId), JSON.stringify(next));
-  return next;
+  
+  // Enforce upper bound to prevent overflow
+  const bounded = Math.min(next, MAX_CURRENCY_AMOUNT);
+  if (bounded < next) {
+    console.warn(`[Currencies] Currency amount capped at ${MAX_CURRENCY_AMOUNT}`);
+  }
+  
+  localStorage.setItem(_currencyKey(slot, currencyId), JSON.stringify(bounded));
+  return bounded;
 }
 
 export function spendCurrency(slot: SlotId, currencyId: string, amount: number): boolean {

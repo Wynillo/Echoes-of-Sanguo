@@ -14,6 +14,63 @@ export interface SlotMeta {
   lastSaved: string | null;  // ISO date string
 }
 
+// ── Storage Quota Management ───────────────────────────────
+
+/** Soft limit for localStorage usage (4MB, leaving room for browser quota of 5-10MB) */
+export const MAX_STORAGE_BYTES = 4 * 1024 * 1024;
+
+/** Maximum unique cards in collection */
+export const MAX_COLLECTION_SIZE = 1000;
+
+/** Maximum copies of a single card */
+export const MAX_COPIES_PER_CARD = 99;
+
+/** Maximum effect item count per item type */
+export const MAX_EFFECT_ITEM_COUNT = 999;
+
+/**
+ * Estimate current localStorage usage in bytes.
+ * Counts key + value lengths (UTF-16, multiply by 2 for byte estimate).
+ */
+export function estimateStorageSize(): number {
+  let size = 0;
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key) {
+      const value = localStorage.getItem(key) || '';
+      size += (key.length + value.length) * 2; // UTF-16 encoding
+    }
+  }
+  return size;
+}
+
+/**
+ * Check if adding estimatedSize bytes would exceed quota.
+ * Returns true if safe to proceed, false if quota would be exceeded.
+ */
+export function checkQuotaBeforeSave(estimatedSize: number): boolean {
+  const current = estimateStorageSize();
+  if (current + estimatedSize > MAX_STORAGE_BYTES) {
+    secureLogger.warn('PROGRESSION', `Quota exceeded: ${current} + ${estimatedSize} > ${MAX_STORAGE_BYTES}`);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Handle quota exceeded error with cleanup and recovery.
+ * Attempts to free space by clearing old backups and non-critical data.
+ */
+function handleQuotaExceeded(): void {
+  secureLogger.warn('PROGRESSION', 'QuotaExceededError - attempting cleanup');
+  
+  // Clear session backups (non-critical)
+  sessionStorage.removeItem('tcg_save_backup');
+  
+  // Dispatch event for UI to notify user
+  window.dispatchEvent(new CustomEvent('eos:storage-quota-exceeded'));
+}
+
 export interface CraftedCardRecord {
   id: string;
   baseId: string;
@@ -122,9 +179,20 @@ export const Progression = (() => {
 
   function _save(key: string, value: unknown): boolean {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      const serialized = JSON.stringify(value);
+      const estimatedSize = (key.length + serialized.length) * 2; // UTF-16 bytes
+      
+      if (!checkQuotaBeforeSave(estimatedSize)) {
+        handleQuotaExceeded();
+        return false;
+      }
+      
+      localStorage.setItem(key, serialized);
       return true;
     } catch (e) {
+      if ((e as Error).name === 'QuotaExceededError') {
+        handleQuotaExceeded();
+      }
       secureLogger.error('PROGRESSION', `Save failed for "${key}":`, e);
       window.dispatchEvent(new CustomEvent('eos:save-error', { detail: { key } }));
       return false;
@@ -367,15 +435,37 @@ function spendCoins(amount: number): boolean {
 
   function addCardsToCollection(cards: (string | { id: string })[]): void {
     const col = getCollection();
+    
+    // Enforce collection size limit
+    if (col.length >= MAX_COLLECTION_SIZE) {
+      secureLogger.warn('PROGRESSION', `Collection size limit reached (${MAX_COLLECTION_SIZE})`);
+      window.dispatchEvent(new CustomEvent('eos:collection-limit-reached'));
+      return;
+    }
+    
     const map: Record<string, number> = {};
     col.forEach(entry => { map[entry.id] = entry.count; });
 
     cards.forEach(card => {
       const id = typeof card === 'string' ? card : card.id;
-      map[id] = (map[id] || 0) + 1;
+      const currentCount = map[id] || 0;
+      
+      // Enforce per-card copy limit
+      if (currentCount >= MAX_COPIES_PER_CARD) {
+        secureLogger.warn('PROGRESSION', `Card ${id} already has maximum copies (${MAX_COPIES_PER_CARD})`);
+        return;
+      }
+      map[id] = Math.min(currentCount + 1, MAX_COPIES_PER_CARD);
     });
 
     const newCol = Object.entries(map).map(([id, count]) => ({ id, count }));
+    
+    // Double-check collection size before saving
+    if (newCol.length > MAX_COLLECTION_SIZE) {
+      secureLogger.warn('PROGRESSION', `Collection would exceed limit, truncating to ${MAX_COLLECTION_SIZE}`);
+      newCol.splice(MAX_COLLECTION_SIZE);
+    }
+    
     _save(_key(SLOT_KEY_NAMES.collection), newCol);
   }
 
@@ -412,10 +502,22 @@ function spendCoins(amount: number): boolean {
   function addEffectItem(id: string, count: number = 1): void {
     const items = getEffectItems();
     const existing = items.find(e => e.id === id);
+    
     if (existing) {
-      existing.count += count;
+      // Enforce per-item count limit
+      const newCount = Math.min(existing.count + count, MAX_EFFECT_ITEM_COUNT);
+      if (newCount === existing.count) {
+        secureLogger.warn('PROGRESSION', `Effect item ${id} already at maximum count`);
+        return;
+      }
+      existing.count = newCount;
     } else {
-      items.push({ id, count });
+      // Limit total effect items
+      if (items.length >= 100) {
+        secureLogger.warn('PROGRESSION', 'Effect items limit reached');
+        return;
+      }
+      items.push({ id, count: Math.min(count, MAX_EFFECT_ITEM_COUNT) });
     }
     _save(_key(SLOT_KEY_NAMES.effectItems), items);
   }
@@ -649,6 +751,13 @@ function spendCoins(amount: number): boolean {
   // ── Public API ───────────────────────────────────────────
 
   return {
+    // Quota Management (exported for external use)
+    estimateStorageSize,
+    checkQuotaBeforeSave,
+    MAX_STORAGE_BYTES,
+    MAX_COLLECTION_SIZE,
+    MAX_COPIES_PER_CARD,
+    MAX_EFFECT_ITEM_COUNT,
     // Slot management
     selectSlot,
     getActiveSlot,
