@@ -70,6 +70,7 @@ export default defineConfig({
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'Strict-Transport-Security': 'max-age=86400; includeSubDomains',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
     },
   },
   preview: {
@@ -78,6 +79,7 @@ export default defineConfig({
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'Strict-Transport-Security': 'max-age=86400; includeSubDomains',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
     },
   },
   plugins: [
