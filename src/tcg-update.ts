@@ -48,6 +48,9 @@ async function getLatestCommitSha(): Promise<string | null> {
   const timeout = setTimeout(() => controller.abort(), 5000);
   try {
     const res = await fetch(COMMIT_URL, {
+      mode: 'cors',
+      credentials: 'omit',
+      referrerPolicy: 'strict-origin-when-cross-origin',
       headers: { Accept: 'application/vnd.github.sha' },
       signal: controller.signal,
     });
@@ -69,7 +72,11 @@ async function checkForUpdate(): Promise<void> {
   if (cached?.sha === sha) return;
 
   secureLogger.log('TCG', 'New version detected, downloading…');
-  const res = await fetch(`${RAW_BASE}/${sha}/dist/base.tcg`);
+  const res = await fetch(`${RAW_BASE}/${sha}/dist/base.tcg`, {
+    mode: 'cors',
+    credentials: 'omit',
+    referrerPolicy: 'strict-origin-when-cross-origin',
+  });
   if (!res.ok) {
     secureLogger.warn('TCG', 'Failed to download update:', res.status);
     return;
