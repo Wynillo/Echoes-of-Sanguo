@@ -20,3 +20,45 @@ list.zip
 
 # OpenCode tool config (local only, not for repo)
 .opencode/
+
+# ==========================================
+# Environment and Secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+!.env.template
+.env.local
+.env.development
+.env.test
+.env.production
+*.local
+
+# ==========================================
+# Cryptographic Keys and Certificates
+# ==========================================
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+*.der
+*.csr
+
+# ==========================================
+# Credential Files
+# ==========================================
+*credentials*
+*secrets*
+!*credentials.test.*
+!*secrets.test.*
+service-account*.json
+*-service-account.json
+
+# ==========================================
+# SSH Keys
+# ==========================================
+*.pub
+!.gitignore
+.ssh/
