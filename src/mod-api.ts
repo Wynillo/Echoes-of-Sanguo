@@ -3,11 +3,19 @@
 // Exposes moddable data on window.EchoesOfSanguoMod so that
 // external mod scripts can add cards, opponents, and effects
 // without touching internal ES module imports.
+//
+// SECURITY: Direct mutable references to internal state have
+// been replaced with controlled access methods to prevent
+// accidental or malicious corruption of game state.
 // ============================================================
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './cards.js';
 import { EFFECT_REGISTRY, registerEffect } from './effect-registry.js';
+import type { FusionRecipe, OpponentConfig, CardData } from './types.js';
 import { loadAndApplyTcg, unloadModCards, getLoadedMods, getCurrentManifest } from './tcg-bridge.js';
 import { TriggerBus } from './trigger-bus.js';
+
+// Export types for modders
+export type { FusionRecipe, OpponentConfig, CardData };
 
 declare global {
   interface Window {
@@ -16,14 +24,22 @@ declare global {
 }
 
 const modApi = {
-  /** Live reference — add entries here to register new cards. */
-  CARD_DB,
-  /** Live reference — push FusionRecipe objects to add fusions. */
-  FUSION_RECIPES,
-  /** Live reference — push OpponentConfig objects to add opponents. */
-  OPPONENT_CONFIGS,
-  /** Live reference — add keys here to define new starter decks. */
-  STARTER_DECKS,
+  /** Returns a read-only copy of the card database to prevent direct mutation. */
+  getCardDb(): Readonly<Record<string, CardData>> {
+    return { ...CARD_DB } as Readonly<Record<string, CardData>>;
+  },
+  /** Register a fusion recipe safely through controlled API. */
+  registerFusion(recipe: FusionRecipe): void {
+    FUSION_RECIPES.push(recipe);
+  },
+  /** Register an opponent config safely through controlled API. */
+  registerOpponent(config: OpponentConfig): void {
+    OPPONENT_CONFIGS.push(config);
+  },
+  /** Register a starter deck safely through controlled API. */
+  registerStarterDeck(deckId: number, cards: string[]): void {
+    STARTER_DECKS[deckId] = cards;
+  },
   /** Read-only view of all registered effect implementations. */
   EFFECT_REGISTRY,
   /** Register a custom effect handler (type string → EffectImpl). */

@@ -354,7 +354,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }), []); // stable — uses refs internally
 
   useEffect(() => {
-    function handleBeforeUnload() {
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
       const engine = gameRef.current;
       if (!engine || !gameStateRef.current) return;
       const state = engine.state as GameState;
@@ -376,10 +376,33 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         pendingDuel: pendingDuelRef.current,
         lastOpponent: lastOppRef.current,
       };
-      // Synchronous save — must use localStorage directly in beforeunload
-      try {
-        localStorage.setItem('tcg_duel_checkpoint', JSON.stringify(full));
-      } catch (_) { /* quota exceeded — ignore */ }
+
+      // Try async-safe sendBeacon first (preferred for beforeunload)
+      const payload = JSON.stringify(full);
+      const blob = new Blob([payload], { type: 'application/json' });
+      
+      if (navigator.sendBeacon) {
+        const success = navigator.sendBeacon('data:application/json;base64,', blob);
+        if (!success) {
+          console.warn('[GameContext] sendBeacon failed, falling back to localStorage');
+          try {
+            localStorage.setItem('tcg_duel_checkpoint', payload);
+          } catch (err) {
+            console.error('[GameContext] Checkpoint save failed:', err);
+          }
+        }
+      } else {
+        // Fallback for browsers without sendBeacon
+        try {
+          localStorage.setItem('tcg_duel_checkpoint', payload);
+        } catch (err) {
+          console.error('[GameContext] Checkpoint save failed:', err);
+        }
+      }
+      
+      // Prevent default unload behavior to ensure save completes
+      event.preventDefault();
+      event.returnValue = '';
     }
 
     window.addEventListener('beforeunload', handleBeforeUnload);

@@ -78,19 +78,45 @@ export const Progression = (() => {
     return _slotKey(s, DUEL_CHECKPOINT_SUFFIX);
   }
 
-  function _load<T>(key: string, fallback: T, validator?: (v: unknown) => boolean): T {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw === null) return fallback;
-      const parsed = JSON.parse(raw);
-      if (validator && !validator(parsed)) {
-        console.warn(`[Progression] Invalid format for "${key}" – using fallback.`);
-        return fallback;
-      }
-      return parsed;
-    } catch (e) {
+  /**
+   * Safely parse JSON string with prototype pollution protection.
+   * Validates input before parsing and rejects dangerous patterns.
+   *
+   * SECURITY NOTE: CSRF protection is not applicable here.
+   * localStorage data is scoped by origin (Same-Origin Policy) and
+   * is never automatically transmitted with HTTP requests.
+   * The actual threat model for localStorage is XSS, not CSRF.
+   * Since this is a client-side only application with no backend
+   * authentication, CSRF attacks cannot target this storage layer.
+   */
+  function safeJsonParse<T>(raw: string | null, fallback: T): T {
+    if (raw === null || raw === '') return fallback;
+    
+    // Block prototype pollution attempts
+    if (/\b(__proto__|constructor|prototype)\b/.test(raw)) {
+      console.warn('[Progression] Blocked prototype pollution attempt.');
       return fallback;
     }
+    
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  function _load<T>(key: string, fallback: T, validator?: (v: unknown) => boolean): T {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+    
+    const parsed = safeJsonParse(raw, fallback as T | null);
+    if (parsed === null) return fallback;
+    
+    if (validator && !validator(parsed)) {
+      console.warn(`[Progression] Invalid format for "${key}" – using fallback.`);
+      return fallback;
+    }
+    return parsed;
   }
 
   function _save(key: string, value: unknown): boolean {
