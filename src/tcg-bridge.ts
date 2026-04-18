@@ -1,6 +1,7 @@
 import { loadTcgFile, TcgNetworkError, TcgFormatError } from '@wynillo/tcg-format';
 import JSZip from 'jszip';
 import i18next from 'i18next';
+import path from 'path';
 import type { TcgLoadResult, TcgParsedCard, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from '@wynillo/tcg-format';
 import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
 import { CardType } from './types.js';
@@ -290,27 +291,30 @@ const localeCache = new Map<string, TcgLocale>();
 
 /**
  * Validates that a file path within a ZIP archive is safe and doesn't contain directory traversal.
- * Rejects paths with ".." components or absolute paths to prevent Zip Slip vulnerability.
+ * Uses path.resolve canonicalization to prevent Zip Slip vulnerability.
+ * See: https://snyk.io/research/zip-slip-vulnerability
  */
 function validateZipPath(filePath: string): void {
-  // Normalize path separators
+  // Normalize path separators to forward slashes
   const normalized = filePath.replace(/\\/g, '/');
   
-  // Reject absolute paths
-  if (normalized.startsWith('/') || normalized.startsWith('\\')) {
+  // Reject absolute paths (Unix or Windows style)
+  if (normalized.startsWith('/') || normalized.startsWith('\\') || /^[a-zA-Z]:/.test(normalized)) {
     throw new Error(`Invalid path in ZIP archive: "${filePath}" - absolute paths not allowed`);
   }
   
-  // Reject paths with directory traversal
-  const parts = normalized.split('/');
-  for (const part of parts) {
-    if (part === '..') {
-      throw new Error(`Invalid path in ZIP archive: "${filePath}" - directory traversal not allowed`);
-    }
+  // Normalize the path and check for directory traversal
+  const resolvedPath = path.normalize(normalized);
+  
+  // After normalization, the path should not escape the current directory
+  // path.normalize will convert "foo/../bar" to "bar", but ".." or "foo/../../bar" 
+  // will still start with ".." indicating traversal attempt
+  if (resolvedPath.startsWith('..') || resolvedPath.startsWith('/') || resolvedPath.startsWith('\\')) {
+    throw new Error(`Invalid path in ZIP archive: "${filePath}" - directory traversal not allowed`);
   }
   
-  // Reject paths starting with ".."
-  if (normalized.startsWith('..')) {
+  // Double-check: resolved path should not contain ".." segments
+  if (resolvedPath.includes('..')) {
     throw new Error(`Invalid path in ZIP archive: "${filePath}" - directory traversal not allowed`);
   }
 }
