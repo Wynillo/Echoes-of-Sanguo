@@ -1,5 +1,6 @@
 import { loadAndApplyTcg, type BridgeLoadResult } from './tcg-bridge.js';
 import { ENGINE_VERSION } from './version.js';
+import { secureLogger } from './secure-logger.js';
 
 const DB_NAME = 'eos-tcg-cache';
 const STORE_NAME = 'tcg-files';
@@ -67,15 +68,15 @@ async function checkForUpdate(): Promise<void> {
   const cached = await getCachedTcg();
   if (cached?.sha === sha) return;
 
-  console.log('[tcg-update] New version detected, downloading…');
+  secureLogger.log('TCG', 'New version detected, downloading…');
   const res = await fetch(`${RAW_BASE}/${sha}/dist/base.tcg`);
   if (!res.ok) {
-    console.warn('[tcg-update] Failed to download update:', res.status);
+    secureLogger.warn('TCG', 'Failed to download update:', res.status);
     return;
   }
   const data = await res.arrayBuffer();
   await setCachedTcg(sha, data);
-  console.log('[tcg-update] Cached new base.tcg (commit', sha.slice(0, 7) + ')');
+  secureLogger.log('TCG', 'Cached new base.tcg (commit', sha.slice(0, 7));
 }
 
 // Public API
@@ -89,21 +90,21 @@ export async function loadCachedOrBundled(
   try {
     const cached = await getCachedTcg();
     if (cached && cached.engineVersion === ENGINE_VERSION) {
-      console.log('[tcg-update] Loading cached base.tcg (commit', cached.sha.slice(0, 7) + ')');
+      secureLogger.log('TCG', 'Loading cached base.tcg (commit', cached.sha.slice(0, 7));
       result = await loadAndApplyTcg(cached.data, options);
     } else {
       if (cached) {
-        console.log('[tcg-update] Engine version changed, ignoring stale cache');
+        secureLogger.log('TCG', 'Engine version changed, ignoring stale cache');
       }
       result = await loadAndApplyTcg(bundledUrl, options);
     }
   } catch (e) {
-    console.warn('[tcg-update] Cached version failed, falling back to bundled:', e);
+    secureLogger.warn('TCG', 'Cached version failed, falling back to bundled:', e);
     result = await loadAndApplyTcg(bundledUrl, options);
   }
 
   cleanupSwTcgCache();
-  checkForUpdate().catch((e) => console.warn('[tcg-update] Background update check failed:', e));
+  checkForUpdate().catch((e) => secureLogger.warn('TCG', 'Background update check failed:', e));
 
   return result;
 }

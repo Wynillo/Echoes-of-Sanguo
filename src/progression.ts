@@ -1,6 +1,7 @@
 import type { CollectionEntry, OpponentRecord } from './types.js';
 import type { CampaignProgress } from './campaign-types.js';
 import { getCurrency, addCurrency as _addCurrency, spendCurrency as _spendCurrency } from './currencies.js';
+import { secureLogger } from './secure-logger.js';
 
 export type SlotId = 1 | 2 | 3;
 
@@ -94,7 +95,7 @@ export const Progression = (() => {
     
     // Block prototype pollution attempts
     if (/\b(__proto__|constructor|prototype)\b/.test(raw)) {
-      console.warn('[Progression] Blocked prototype pollution attempt.');
+      secureLogger.warn('SECURITY', 'Blocked prototype pollution attempt');
       return fallback;
     }
     
@@ -113,7 +114,7 @@ export const Progression = (() => {
     if (parsed === null) return fallback;
     
     if (validator && !validator(parsed)) {
-      console.warn(`[Progression] Invalid format for "${key}" – using fallback.`);
+      secureLogger.warn('PROGRESSION', `Invalid format for "${key}" – using fallback`);
       return fallback;
     }
     return parsed;
@@ -124,7 +125,7 @@ export const Progression = (() => {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
     } catch (e) {
-      console.error(`[Progression] Save failed for "${key}":`, e);
+      secureLogger.error('PROGRESSION', `Save failed for "${key}":`, e);
       window.dispatchEvent(new CustomEvent('eos:save-error', { detail: { key } }));
       return false;
     }
@@ -224,7 +225,7 @@ export const Progression = (() => {
     const oldInitialized = localStorage.getItem('tcg_initialized');
     if (!oldInitialized) return;
 
-    console.info('[Progression] Migrating flat-key save data to slot 1...');
+    secureLogger.info('PROGRESSION', 'Migrating flat-key save data to slot 1');
     const slot: SlotId = 1;
 
     const migrations: [string, string][] = [
@@ -265,7 +266,7 @@ export const Progression = (() => {
       },
     });
 
-    console.info('[Progression] Migration to slot 1 complete.');
+    secureLogger.info('PROGRESSION', 'Migration to slot 1 complete');
   }
 
   // ── Initialization ───────────────────────────────────────
@@ -301,8 +302,8 @@ export const Progression = (() => {
       if (savedVersion < 2) {
         const col = _load(collectionKey, [], v => Array.isArray(v)) as Array<{ id: string }>;
         const hasOldIds = col.some(e => /^[A-Z]/.test(e.id));
-        if (hasOldIds) {
-          console.info('[Progression] Migrating slot data to v2: clearing collection and deck.');
+      if (hasOldIds) {
+        secureLogger.info('PROGRESSION', 'Migrating slot data to v2: clearing collection and deck');
           try {
             localStorage.setItem(`tcg_s${activeSlot}_collection_v1_backup`, JSON.stringify(col));
             const oldDeck = localStorage.getItem(_key(SLOT_KEY_NAMES.deck));
@@ -544,7 +545,7 @@ function spendCoins(amount: number): boolean {
 
   function markNodeComplete(nodeId: string): CampaignProgress {
     if (!nodeId || typeof nodeId !== 'string') {
-      console.warn('[Progression] markNodeComplete called with invalid nodeId:', nodeId);
+      secureLogger.warn('PROGRESSION', 'markNodeComplete called with invalid nodeId:', nodeId);
       return getCampaignProgress();
     }
     const progress = getCampaignProgress();
@@ -589,10 +590,10 @@ function spendCoins(amount: number): boolean {
       _save(_key(SLOT_KEY_NAMES.collection), col);
       const deckRaw = localStorage.getItem(`tcg_s${activeSlot}_deck_v1_backup`);
       if (deckRaw) localStorage.setItem(_key(SLOT_KEY_NAMES.deck), deckRaw);
-      console.info('[Progression] Restored v1 backup successfully.');
+      secureLogger.info('PROGRESSION', 'Restored v1 backup successfully');
       return true;
     } catch {
-      console.warn('[Progression] Failed to restore v1 backup.');
+      secureLogger.warn('PROGRESSION', 'Failed to restore v1 backup');
       return false;
     }
   }
@@ -605,7 +606,7 @@ function spendCoins(amount: number): boolean {
       localStorage.removeItem(_key(name));
     });
     localStorage.removeItem(_checkpointKey());
-    console.warn(`[Progression] Slot ${activeSlot} data reset.`);
+    secureLogger.warn('PROGRESSION', `Slot ${activeSlot} data reset`);
   }
 
   // ── Soft-Reset / Backup ──────────────────────────────────
