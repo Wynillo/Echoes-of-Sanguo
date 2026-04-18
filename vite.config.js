@@ -67,6 +67,7 @@ export default defineConfig({
   server: {
     headers: {
       'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self)',
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'Strict-Transport-Security': 'max-age=86400; includeSubDomains',
@@ -75,6 +76,7 @@ export default defineConfig({
   preview: {
     headers: {
       'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self)',
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'Strict-Transport-Security': 'max-age=86400; includeSubDomains',
