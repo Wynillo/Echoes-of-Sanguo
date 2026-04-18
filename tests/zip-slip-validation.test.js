@@ -135,25 +135,27 @@ describe('extractLocalesFromZip with Zip Slip protection', () => {
     expect(extracted).toBe(true);
   });
 
-  it('rejects locale file with traversal attack', async () => {
-    const zip = new JSZip();
-    // Simulate malicious path - JSZip allows this in the file structure
-    zip.file('../../../tmp/evil.json', JSON.stringify({ evil: 'data' }));
-    const buffer = await zip.generateAsync({ type: 'arraybuffer' });
+  it('rejects locale file with traversal attack', () => {
+    // Test path validation logic directly (simulating malicious ZIP paths)
+    // In a real attack, the ZIP would contain the malicious path already
+    const maliciousPaths = [
+      '../../../tmp/evil.json',
+      '../evil.json',
+      'locales/../../../etc/passwd',
+      '..\\..\\windows\\system32\\evil.json',
+    ];
     
-    const jszip = await JSZip.loadAsync(buffer);
-    let traversalDetected = false;
-    
-    jszip.forEach((relativePath, entry) => {
-      if (!entry.dir) {
-        const normalized = relativePath.replace(/\\/g, '/');
-        if (normalized.startsWith('/') || normalized.startsWith('\\') || /^[a-zA-Z]:/.test(normalized) || normalized.startsWith('..') || normalized.includes('..')) {
-          traversalDetected = true;
-        }
-      }
+    maliciousPaths.forEach(testPath => {
+      const normalized = testPath.replace(/\\/g, '/');
+      const traversalDetected = (
+        normalized.startsWith('/') || 
+        normalized.startsWith('\\') || 
+        /^[a-zA-Z]:/.test(normalized) || 
+        normalized.startsWith('..') || 
+        normalized.includes('..')
+      );
+      expect(traversalDetected).toBe(true);
     });
-    
-    expect(traversalDetected).toBe(true);
   });
 
   it('extracts files from tcg-src/ subdirectory', async () => {
@@ -201,23 +203,19 @@ describe('extractExtraDataFromZip with Zip Slip protection', () => {
     expect(allPathsValid).toBe(true);
   });
 
-  it('detects malicious path in nested structure', async () => {
-    const zip = new JSZip();
-    zip.file('normal.json', JSON.stringify({}));
-    // This simulates what a malicious ZIP might contain
-    zip.file('safe/../../../root/evil.json', JSON.stringify({ evil: true }));
-    const buffer = await zip.generateAsync({ type: 'arraybuffer' });
+  it('detects malicious path in nested structure', () => {
+    // Test path validation for nested traversal (simulating malicious ZIP paths)
+    // JSZip sanitizes paths, so we test the validation logic directly
+    const maliciousPaths = [
+      'safe/../../../root/evil.json',
+      'foo/bar/../../..\\..\\etc\\passwd',
+      'normal/../../../tmp/attack.json',
+    ];
     
-    const jszip = await JSZip.loadAsync(buffer);
-    let maliciousPathFound = false;
-    
-    jszip.forEach((relativePath, entry) => {
-      const normalized = relativePath.replace(/\\/g, '/');
-      if (normalized.includes('..')) {
-        maliciousPathFound = true;
-      }
+    maliciousPaths.forEach(testPath => {
+      const normalized = testPath.replace(/\\/g, '/');
+      const maliciousPathFound = normalized.includes('..');
+      expect(maliciousPathFound).toBe(true);
     });
-    
-    expect(maliciousPathFound).toBe(true);
   });
 });
