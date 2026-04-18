@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 import { copyFileSync, existsSync, readFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 import { resolve } from 'node:path'
@@ -83,40 +82,8 @@ export default defineConfig({
   plugins: [
     react(),
     copyBaseTcg(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      manifest: {
-        start_url: '/',
-        scope: '/',
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,ico,woff,woff2}'],
-        globIgnores: ['**/*.{mp3,png,tcg}'],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-        runtimeCaching: [
-          {
-            urlPattern: /\/audio\/.*\.mp3$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'eos-audio',
-              expiration: { maxEntries: 25 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            urlPattern: /\.(png|jpg|jpeg|webp)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'eos-images',
-              expiration: { maxEntries: 20, maxAgeSeconds: 30 * 24 * 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
-      },
-    }),
+    // VitePWA temporarily disabled due to rolldown incompatibility - CSP headers already configured above
   ],
-  root: '.',
   base: './',
   optimizeDeps: {
     include: ['@wynillo/tcg-format'],
