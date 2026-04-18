@@ -12,6 +12,12 @@ function copyBaseTcg() {
 
   function copy() {
     if (copied) return;
+    // Skip if destination already exists (e.g., during tests)
+    if (existsSync(dest)) {
+      console.log('[copy-base-tcg] public/base.tcg already exists, skipping copy');
+      copied = true;
+      return;
+    }
     if (!existsSync(src)) {
       throw new Error(`base.tcg not found: ${src}\nEnsure @wynillo/echoes-mod-base is installed.`);
     }

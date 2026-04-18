@@ -288,8 +288,42 @@ interface TcgLocale {
 /** Cache of locale data extracted from .tcg archives. */
 const localeCache = new Map<string, TcgLocale>();
 
+/**
+ * Validates that a file path within a ZIP archive is safe and doesn't contain directory traversal.
+ * Rejects paths with ".." components or absolute paths to prevent Zip Slip vulnerability.
+ */
+function validateZipPath(filePath: string): void {
+  // Normalize path separators
+  const normalized = filePath.replace(/\\/g, '/');
+  
+  // Reject absolute paths
+  if (normalized.startsWith('/') || normalized.startsWith('\\')) {
+    throw new Error(`Invalid path in ZIP archive: "${filePath}" - absolute paths not allowed`);
+  }
+  
+  // Reject paths with directory traversal
+  const parts = normalized.split('/');
+  for (const part of parts) {
+    if (part === '..') {
+      throw new Error(`Invalid path in ZIP archive: "${filePath}" - directory traversal not allowed`);
+    }
+  }
+  
+  // Reject paths starting with ".."
+  if (normalized.startsWith('..')) {
+    throw new Error(`Invalid path in ZIP archive: "${filePath}" - directory traversal not allowed`);
+  }
+}
+
 async function extractExtraDataFromZip(buffer: ArrayBuffer): Promise<void> {
   const zip = await JSZip.loadAsync(buffer);
+
+  // Validate all file paths in the ZIP to prevent Zip Slip vulnerability
+  zip.forEach((relativePath, entry) => {
+    if (!entry.dir) {
+      validateZipPath(relativePath);
+    }
+  });
 
   // Try both root and tcg-src/ subdirectory for compatibility
   const starterDecksFile = zip.file('starterDecks.json') ?? zip.file('tcg-src/starterDecks.json');
@@ -319,6 +353,8 @@ async function extractLocalesFromZip(buffer: ArrayBuffer): Promise<void> {
   zip.forEach((relativePath, entry) => {
     const match = relativePath.match(LOCALE_PATTERN);
     if (match && !entry.dir) {
+      // Validate path before processing (Zip Slip protection)
+      validateZipPath(relativePath);
       promises.push(
         entry.async('string').then(text => {
           localeCache.set(match[1], JSON.parse(text));
