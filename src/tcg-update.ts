@@ -6,7 +6,10 @@ const DB_NAME = 'eos-tcg-cache';
 const STORE_NAME = 'tcg-files';
 const CACHE_KEY = 'base-tcg';
 
-const REPO = 'Wynillo/Echoes-of-sanguo-MOD-base';
+// IndexedDB Quota Management
+const INDEXEDDB_QUOTA_THRESHOLD = 0.8; // 80% of quota
+
+const REPO = import.meta.env.VITE_TCG_REPO || 'Wynillo/Echoes-of-sanguo-MOD-base';
 const COMMIT_URL = `https://api.github.com/repos/${REPO}/commits/main`;
 const RAW_BASE = `https://raw.githubusercontent.com/${REPO}`;
 
@@ -32,6 +35,30 @@ async function getCachedTcg(): Promise<{ sha: string; data: ArrayBuffer; engineV
 }
 
 async function setCachedTcg(sha: string, data: ArrayBuffer): Promise<void> {
+  // Check IndexedDB quota before writing
+  try {
+    if ('storage' in navigator && navigator.storage.estimate) {
+      const estimate = await navigator.storage.estimate();
+      const usage = estimate.usage || 0;
+      const quota = estimate.quota || 50 * 1024 * 1024; // Fallback: 50MB
+      
+      if (usage + data.byteLength > quota * INDEXEDDB_QUOTA_THRESHOLD) {
+        secureLogger.warn('TCG', 'Approaching IndexedDB quota, clearing old cache');
+        await cleanupSwTcgCache();
+        
+        // Re-check after cleanup
+        const newEstimate = await navigator.storage.estimate();
+        const newUsage = newEstimate.usage || 0;
+        if (newUsage + data.byteLength > (newEstimate.quota || 50 * 1024 * 1024) * INDEXEDDB_QUOTA_THRESHOLD) {
+          secureLogger.warn('TCG', 'IndexedDB quota still exceeded after cleanup, skipping cache');
+          return;
+        }
+      }
+    }
+  } catch (e) {
+    secureLogger.warn('TCG', 'Quota check failed, proceeding with cache:', e);
+  }
+  
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
