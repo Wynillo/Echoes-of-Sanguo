@@ -27,6 +27,30 @@ const MANIFEST: Record<string, string> = {
   sfx_pack_reveal:   'audio/sfx/pack-reveal.mp3',
 };
 
+const ALLOWED_AUDIO_TYPES = new Set([
+  'audio/mpeg',
+  'audio/ogg',
+  'audio/wav',
+  'audio/webm',
+  'audio/mp4',
+]);
+
+const MAX_AUDIO_SIZE_BYTES = 10 * 1024 * 1024;
+const AUDIO_FETCH_TIMEOUT_MS = 30000;
+
+function validateAudioPath(path: string): boolean {
+  if (!path.startsWith('/audio/')) {
+    return false;
+  }
+  if (path.includes('..') || path.includes('//')) {
+    return false;
+  }
+  if (!/\.(mp3|ogg|wav|webm|m4a)$/i.test(path)) {
+    return false;
+  }
+  return true;
+}
+
 let _ctx: AudioContext | null = null;
 let _masterGain: GainNode | null = null;
 let _musicGain: GainNode | null = null;
@@ -70,17 +94,54 @@ async function _loadBuffer(id: string): Promise<AudioBuffer | null> {
   const path = MANIFEST[id];
   if (!path) return null;
 
+  if (!validateAudioPath(path)) {
+    console.error(`[Audio] Invalid path format for "${id}": ${path}`);
+    return null;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), AUDIO_FETCH_TIMEOUT_MS);
+
   try {
     const ctx = _ensureContext();
-    const resp = await fetch(path);
-    if (!resp.ok) return null;
+    const resp = await fetch(path, { signal: controller.signal });
+
+    if (!resp.ok) {
+      console.error(`[Audio] HTTP ${resp.status} for "${id}": ${path}`);
+      return null;
+    }
+
+    const contentType = resp.headers.get('Content-Type');
+    if (!contentType || !ALLOWED_AUDIO_TYPES.has(contentType.split(';')[0].trim())) {
+      console.error(`[Audio] Invalid content type for "${id}": ${contentType}`);
+      return null;
+    }
+
+    const contentLength = resp.headers.get('Content-Length');
+    if (contentLength && parseInt(contentLength, 10) > MAX_AUDIO_SIZE_BYTES) {
+      console.error(`[Audio] File too large for "${id}": ${contentLength} bytes`);
+      return null;
+    }
+
     const arrayBuf = await resp.arrayBuffer();
+
+    if (arrayBuf.byteLength > MAX_AUDIO_SIZE_BYTES) {
+      console.error(`[Audio] File too large for "${id}": ${arrayBuf.byteLength} bytes`);
+      return null;
+    }
+
     const audioBuf = await ctx.decodeAudioData(arrayBuf);
     _bufferCache.set(id, audioBuf);
     return audioBuf;
   } catch (e) {
-    console.warn(`[Audio] Failed to load "${id}":`, e);
+    if (e instanceof Error && e.name === 'AbortError') {
+      console.error(`[Audio] Timeout loading "${id}": ${path}`);
+    } else {
+      console.error(`[Audio] Failed to load "${id}":`, e);
+    }
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
