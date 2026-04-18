@@ -395,6 +395,9 @@ interface TcgLocale {
 /** Cache of locale data extracted from .tcg archives. */
 const localeCache = new Map<string, TcgLocale>();
 
+// Locale cache eviction policy
+const MAX_LOCALE_CACHE_SIZE = 10; // Maximum languages to cache
+
 /**
  * Validates that a file path within a ZIP archive is safe and doesn't contain directory traversal.
  * Uses path.resolve canonicalization to prevent Zip Slip vulnerability.
@@ -460,6 +463,8 @@ const LOCALE_PATTERN = /^locales\/([a-z]{2}(?:-[A-Z]{2})?)\.json$/;
 async function extractLocalesFromZip(buffer: ArrayBuffer): Promise<void> {
   const zip = await JSZip.loadAsync(buffer);
   const promises: Promise<void>[] = [];
+  const newLocales: Array<{ lang: string; locale: TcgLocale }> = [];
+  
   zip.forEach((relativePath, entry) => {
     const match = relativePath.match(LOCALE_PATTERN);
     if (match && !entry.dir) {
@@ -467,12 +472,28 @@ async function extractLocalesFromZip(buffer: ArrayBuffer): Promise<void> {
       validateZipPath(relativePath);
       promises.push(
         entry.async('string').then(text => {
-          localeCache.set(match[1], JSON.parse(text));
+          newLocales.push({ lang: match[1], locale: JSON.parse(text) });
         })
       );
     }
   });
+  
   await Promise.all(promises);
+  
+  for (const { lang, locale } of newLocales) {
+    if (localeCache.has(lang)) {
+      localeCache.delete(lang);
+    }
+    localeCache.set(lang, locale);
+    
+    while (localeCache.size > MAX_LOCALE_CACHE_SIZE) {
+      const firstKey = localeCache.keys().next().value;
+      if (firstKey) {
+        localeCache.delete(firstKey);
+        console.log(`[tcg-bridge] Evicted locale "${firstKey}" from cache (limit: ${MAX_LOCALE_CACHE_SIZE})`);
+      }
+    }
+  }
 }
 
 function applyLocaleToStores(locale: TcgLocale, lang: string): void {
