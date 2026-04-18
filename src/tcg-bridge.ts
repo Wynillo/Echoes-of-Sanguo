@@ -279,6 +279,19 @@ export interface BridgeLoadResult {
   warnings: string[];
 }
 
+const TCG_FETCH_TIMEOUT_MS = 30000; // 30 seconds for TCG file downloads
+
+async function fetchWithTimeout(url: string, timeoutMs: number = TCG_FETCH_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export async function loadAndApplyTcg(
   source: string | ArrayBuffer,
   options?: { lang?: string; onProgress?: (percent: number) => void },
@@ -286,7 +299,7 @@ export async function loadAndApplyTcg(
   // Resolve source to ArrayBuffer so we can extract locale files from the ZIP
   let buffer: ArrayBuffer;
   if (typeof source === 'string') {
-    const res = await fetch(source);
+    const res = await fetchWithTimeout(source);
     if (!res.ok) throw new TcgNetworkError(source, res.status);
     buffer = await res.arrayBuffer();
   } else {
