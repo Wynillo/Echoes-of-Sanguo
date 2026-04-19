@@ -8,26 +8,69 @@ export const AI_SCORE = {
   STRONG_PROBE:           200,
   PROBE_ATK_THRESHOLD:    1800,
   FACEDOWN_RISK:          300,
+  FACEDOWN_DEF_ESTIMATE:  1200,
   EQUIP_UNLOCK_KILL:      2000,
   REVIVE_BEATS_STRONGEST: 1000,
   BUFF_UNLOCK_KILL:       800,
   BUFF_KILL_THRESHOLD:    1000,
   LOW_LP_SURVIVAL:        300,
-  FACEDOWN_DEF_ESTIMATE:  1200,
-  // ── Threat / Future Value weights ──
-  /** Weight for LP ratio contribution to threat score */
   THREAT_LP_WEIGHT:       0.4,
-  /** Weight for monster power differential in threat score */
   THREAT_BOARD_WEIGHT:    1.2,
-  /** Per-card hand advantage weight in threat score */
   THREAT_HAND_WEIGHT:     150,
-  /** Default discount factor for future board value */
   FUTURE_GAMMA_DEFAULT:   0.7,
 } as const;
 
 export const AI_LP_THRESHOLD = {
   LOW:       3000,
   DEFENSIVE: 5000,
+} as const;
+
+export const AI_BEHAVIOR_WEIGHTS = {
+  AGGRESSIVE_ALIGNMENT: 800,
+  DEFENSIVE_ALIGNMENT:  700,
+  SMART_ALIGNMENT:      600,
+  CHEATING_ALIGNMENT:   1200,
+} as const;
+
+export const AI_FUSION_CONFIG = {
+  MIN_ATK_DEFAULT:     0,
+  MIN_ATK_DEFENSIVE:   2000,
+} as const;
+
+export const AI_LOOKAHEAD_CONFIG = {
+  DEPTH_DEFAULT:     1,
+  GAMMA_AGGRESSIVE:  0.7,
+  GAMMA_DEFENSIVE:   0.6,
+  GAMMA_SMART:       0.75,
+  GAMMA_CHEATING:    0.9,
+} as const;
+
+export const AI_DEFENSIVE_CONFIG = {
+  SWITCH_TURN: 8,
+} as const;
+
+export const AI_SUMMON_SCORE = {
+  BEATS_OPPONENT:     300,
+  SURVIVES_EXCHANGE:  200,
+  DEFENSIVE_ANSWER:   100,
+  EFFECT_PRIORITY:    400,
+} as const;
+
+export const AI_ATTACK_SCORE = {
+  EFFECT_PRIORITY:     500,
+  AGGRESSIVE_TRADE:    100,
+  CONSERVATIVE_TRADE:  200,
+  AGGRESSIVE_RISK:     500,
+} as const;
+
+export const AI_EQUIP_SCORE = {
+  READY_TO_ATTACK:  500,
+  DEFENSIVE_STANCE: 300,
+} as const;
+
+export const AI_REVIVE_SCORE = {
+  EFFECT_PRIORITY:  500,
+  FUSION_PRIORITY:  300,
 } as const;
 
 export function aiCombatValue(fc: FieldCard): number {
@@ -44,7 +87,7 @@ export function aiEffectiveDEF(fc: FieldCard): number {
 
 const DEFAULT: AIBehavior = {
   fusionFirst:            true,
-  fusionMinATK:           0,
+  fusionMinATK:           AI_FUSION_CONFIG.MIN_ATK_DEFAULT,
   summonPriority:         'highestATK',
   positionStrategy:       'smart',
   battleStrategy:         'smart',
@@ -54,55 +97,55 @@ const DEFAULT: AIBehavior = {
 
 const AGGRESSIVE: AIBehavior = {
   fusionFirst:            true,
-  fusionMinATK:           0,
+  fusionMinATK:           AI_FUSION_CONFIG.MIN_ATK_DEFAULT,
   summonPriority:         'highestATK',
   positionStrategy:       'aggressive',
   battleStrategy:         'aggressive',
   spellRules:             {},
   defaultSpellActivation: 'always',
-  goal:                   { id: 'swarm_aggro', alignmentBonus: 800 },
-  lookaheadDepth:         1,
-  gamma:                  0.7,
+  goal:                   { id: 'swarm_aggro', alignmentBonus: AI_BEHAVIOR_WEIGHTS.AGGRESSIVE_ALIGNMENT },
+  lookaheadDepth:         AI_LOOKAHEAD_CONFIG.DEPTH_DEFAULT,
+  gamma:                  AI_LOOKAHEAD_CONFIG.GAMMA_AGGRESSIVE,
 };
 
 const DEFENSIVE: AIBehavior = {
   fusionFirst:            true,
-  fusionMinATK:           2000,
+  fusionMinATK:           AI_FUSION_CONFIG.MIN_ATK_DEFENSIVE,
   summonPriority:         'highestDEF',
   positionStrategy:       'defensive',
   battleStrategy:         'conservative',
   spellRules:             {},
   defaultSpellActivation: 'smart',
-  goal:                   { id: 'stall_drain', alignmentBonus: 700, switchTurn: 8 },
-  lookaheadDepth:         1,
-  gamma:                  0.6,
+  goal:                   { id: 'stall_drain', alignmentBonus: AI_BEHAVIOR_WEIGHTS.DEFENSIVE_ALIGNMENT, switchTurn: AI_DEFENSIVE_CONFIG.SWITCH_TURN },
+  lookaheadDepth:         AI_LOOKAHEAD_CONFIG.DEPTH_DEFAULT,
+  gamma:                  AI_LOOKAHEAD_CONFIG.GAMMA_DEFENSIVE,
 };
 
 const SMART: AIBehavior = {
   fusionFirst:            true,
-  fusionMinATK:           0,
+  fusionMinATK:           AI_FUSION_CONFIG.MIN_ATK_DEFAULT,
   summonPriority:         'effectFirst',
   positionStrategy:       'smart',
   battleStrategy:         'smart',
   spellRules:             {},
   defaultSpellActivation: 'always',
-  goal:                   { id: 'control', alignmentBonus: 600 },
-  lookaheadDepth:         1,
-  gamma:                  0.75,
+  goal:                   { id: 'control', alignmentBonus: AI_BEHAVIOR_WEIGHTS.SMART_ALIGNMENT },
+  lookaheadDepth:         AI_LOOKAHEAD_CONFIG.DEPTH_DEFAULT,
+  gamma:                  AI_LOOKAHEAD_CONFIG.GAMMA_SMART,
   holdFusionPiece:        true,
 };
 
 const CHEATING: AIBehavior = {
   fusionFirst:            true,
-  fusionMinATK:           0,
+  fusionMinATK:           AI_FUSION_CONFIG.MIN_ATK_DEFAULT,
   summonPriority:         'highestATK',
   positionStrategy:       'aggressive',
   battleStrategy:         'aggressive',
   spellRules:             {},
   defaultSpellActivation: 'always',
-  goal:                   { id: 'fusion_otk', alignmentBonus: 1200 },
-  lookaheadDepth:         1,
-  gamma:                  0.9,
+  goal:                   { id: 'fusion_otk', alignmentBonus: AI_BEHAVIOR_WEIGHTS.CHEATING_ALIGNMENT },
+  lookaheadDepth:         AI_LOOKAHEAD_CONFIG.DEPTH_DEFAULT,
+  gamma:                  AI_LOOKAHEAD_CONFIG.GAMMA_CHEATING,
   peekDeckCards:          5,
   knowsPlayerHand:        true,
   peekPlayerDeck:         1,
@@ -245,15 +288,15 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
 
     for (const pfc of playerMonsters) {
       const pVal = aiCombatValue(pfc);
-      if (atk > pVal) score += 300;
+      if (atk > pVal) score += AI_SUMMON_SCORE.BEATS_OPPONENT;
     }
 
-    if (atk >= playerMaxATK) score += 200;
-    else if (def >= playerMaxThreat) score += 100;
+    if (atk >= playerMaxATK) score += AI_SUMMON_SCORE.SURVIVES_EXCHANGE;
+    else if (def >= playerMaxThreat) score += AI_SUMMON_SCORE.DEFENSIVE_ANSWER;
 
     if (playerMonsters.length === 0) score += atk;
 
-    if (card.effect) score += 400;
+    if (card.effect) score += AI_SUMMON_SCORE.EFFECT_PRIORITY;
 
     if (ctx.aiLP < AI_LP_THRESHOLD.LOW && def > playerMaxThreat) score += AI_SCORE.LOW_LP_SURVIVAL;
 
@@ -422,18 +465,16 @@ export function planAttacks(
       if (aAtk > dVal) {
         score += AI_SCORE.DESTROY_TARGET;
         if (d.fc.position === 'atk') score += (aAtk - dVal);
-        // Prioritize destroying effect monsters (they're dangerous)
-        if (d.fc.card.effect) score += 500;
+        if (d.fc.card.effect) score += AI_ATTACK_SCORE.EFFECT_PRIORITY;
         score += aiEffectiveATK(d.fc) * 0.5;
-        // Prefer efficient attacks (don't waste a 3000ATK monster on a 100DEF target)
         score -= (aAtk - dVal) * 0.1;
         if (d.fc.indestructible) score = -Infinity;
       } else if (aAtk === dVal && d.fc.position === 'atk') {
-        if (strategy === 'aggressive') score += 100;
-        else score -= 200;
+        if (strategy === 'aggressive') score += AI_ATTACK_SCORE.AGGRESSIVE_TRADE;
+        else score -= AI_ATTACK_SCORE.CONSERVATIVE_TRADE;
       } else {
         if (strategy === 'aggressive') {
-          score -= 500;
+          score -= AI_ATTACK_SCORE.AGGRESSIVE_RISK;
         } else {
           score = -Infinity;
         }
@@ -521,9 +562,9 @@ export function pickEquipTarget(
 
     score += curATK * 0.3;
 
-    if (!fc.hasAttacked && fc.position === 'atk') score += 500;
+    if (!fc.hasAttacked && fc.position === 'atk') score += AI_EQUIP_SCORE.READY_TO_ATTACK;
 
-    if (fc.position === 'def' && defBonus > 0) score += 300;
+    if (fc.position === 'def' && defBonus > 0) score += AI_EQUIP_SCORE.DEFENSIVE_STANCE;
 
     if (score > bestScore) {
       bestScore = score;
@@ -551,7 +592,7 @@ export function pickDebuffTarget(
 
     score += curATK;
 
-    if (fc.card.effect) score += 500;
+    if (fc.card.effect) score += AI_REVIVE_SCORE.EFFECT_PRIORITY;
 
     if (score > bestScore) {
       bestScore = score;
@@ -581,10 +622,9 @@ export function pickBestGraveyardMonster(
 
     if (atk > oppMaxATK && oppMaxATK > 0) score += AI_SCORE.REVIVE_BEATS_STRONGEST;
 
-    if (card.effect) score += 500;
+    if (card.effect) score += AI_REVIVE_SCORE.EFFECT_PRIORITY;
 
-    // Fusion monsters tend to be stronger and were expensive to create
-    if (card.type === CardType.Fusion) score += 300;
+    if (card.type === CardType.Fusion) score += AI_REVIVE_SCORE.FUSION_PRIORITY;
 
     if (score > bestScore) {
       bestScore = score;
@@ -609,7 +649,7 @@ export function pickSpellBuffTarget(
     if (!fc || fc.faceDown) continue;
     let score = fc.effectiveATK();
 
-    if (!fc.hasAttacked && fc.position === 'atk') score += 500;
+    if (!fc.hasAttacked && fc.position === 'atk') score += AI_EQUIP_SCORE.READY_TO_ATTACK;
 
     const diff = oppMaxATK - fc.effectiveATK();
     if (diff > 0 && diff < AI_SCORE.BUFF_KILL_THRESHOLD) score += AI_SCORE.BUFF_UNLOCK_KILL;
