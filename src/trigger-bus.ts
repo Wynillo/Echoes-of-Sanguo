@@ -1,8 +1,8 @@
-import type { EffectContext, CardData, Owner } from './types.js';
+import type { InternalEffectContext, CardData, Owner } from './types.js';
 import type { FieldCard } from './field.js';
 
-/** Context passed to TriggerBus handlers — extends EffectContext with the triggering card. */
-export interface TriggerContext extends EffectContext {
+/** Context passed to TriggerBus handlers — extends InternalEffectContext with the triggering card. */
+export interface TriggerContext extends InternalEffectContext {
   /** The card that caused this trigger (e.g. the summoned monster). */
   card?: CardData;
   /** The FieldCard instance on the board, if applicable. */
