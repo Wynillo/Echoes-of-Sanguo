@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CARD_DB } from '../src/cards.js';
 import { GAME_RULES, applyRules } from '../src/rules.js';
 import { isCraftedId, buildCraftedCard, craftEffectMonster } from '../src/crafting.js';
-import { EFFECT_SOURCES, registerEffectSource } from '../src/effect-items.js';
+import { EFFECT_SOURCES } from '../src/effect-items.js';
 import { Progression } from '../src/progression.js';
 import { spendCurrency } from '../src/currencies.js';
 
@@ -25,6 +25,10 @@ describe('Crafting', () => {
     Object.keys(TEST_CARDS).forEach(k => { CARD_DB[k] = TEST_CARDS[k]; });
     applyRules({ craftingEnabled: false, craftingCurrency: undefined, craftingCost: 0 });
     Object.keys(EFFECT_SOURCES).forEach(k => delete EFFECT_SOURCES[k]);
+
+    const registerTestEffectSource = (source) => {
+      EFFECT_SOURCES[source.id] = source;
+    };
 
     localStorage.clear();
     sessionStorage.clear();
@@ -61,7 +65,7 @@ describe('Crafting', () => {
 
   describe('buildCraftedCard', () => {
     it('should combine base card stats with effect source effects', () => {
-      registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
+      registerTestEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
       
       const record = { id: '100000000', baseId: 'monster_001', effectSourceId: 'effect_monster_001' };
       const card = buildCraftedCard(record);
@@ -89,7 +93,7 @@ describe('Crafting', () => {
     it('should fail when player does not own base card', () => {
       applyRules({ craftingEnabled: true });
       cardCountSpy.mockReturnValue(0);
-      registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
+      registerTestEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
       
       const result = craftEffectMonster('monster_001', 'effect_monster_001');
       expect(result.success).toBe(false);
@@ -106,7 +110,7 @@ describe('Crafting', () => {
 
     it('should succeed with valid inputs and free crafting', () => {
       applyRules({ craftingEnabled: true, craftingCost: 0 });
-      registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
+      registerTestEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
       cardCountSpy.mockReturnValue(1);
       effectItemCountSpy.mockReturnValue(1);
       
