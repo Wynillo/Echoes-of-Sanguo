@@ -21,8 +21,11 @@ export interface BattleBadges {
   cardDropCount: number;
 }
 
-/** Pick the first matching range value. Ranges are [max, modifier] checked with <=. */
-function rangeScore(value: number, ranges: [number, number][]): number {
+/**
+ * Pick the first matching range value from threshold-modifier pairs.
+ * Range tuple structure: [maxThreshold, scoreModifier] - checked with <=
+ */
+function rangeScore(value: number, ranges: Array<[maxThreshold: number, scoreModifier: number]>): number {
   for (const [max, mod] of ranges) {
     if (value <= max) return mod;
   }
@@ -135,7 +138,7 @@ function rollRarity(customRates?: Partial<Record<Rarity, number>>): Rarity {
   const r = Math.random();
   let cumulative = 0;
   const entries = Object.entries(rates)
-    .map(([k, v]) => [Number(k), v] as [number, number])
+    .map(([k, v]) => [Number(k), v] as [rarityKey: number, probability: number])
     .sort((a, b) => a[1] - b[1]);
   for (const [rarity, prob] of entries) {
     cumulative += prob;

@@ -20,7 +20,7 @@ function _pickRarityFromSlot(slot: PackSlotDef): Rarity {
     const r = Math.random();
     let cumulative = 0;
     const entries = Object.entries(dist)
-      .map(([k, v]) => [Number(k), v] as [number, number])
+      .map(([k, v]) => [Number(k), v] as [rarityKey: number, probability: number])
       .sort((a, b) => a[1] - b[1]);
     for (const [rarity, prob] of entries) {
       cumulative += prob;
@@ -155,7 +155,7 @@ function pickEffectItem(
     const r = Math.random();
     let cumulative = 0;
     const entries = Object.entries(distribution)
-      .map(([k, v]) => [Number(k), v] as [number, number])
+      .map(([k, v]) => [Number(k), v] as [rarityKey: number, probability: number])
       .sort((a, b) => a[1] - b[1]);
     
     for (const [rarityValue, prob] of entries) {
