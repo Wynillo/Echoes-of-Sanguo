@@ -1,5 +1,6 @@
 import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, resolveFusionChain } from './cards.js';
 import { executeEffectBlock, matchesFilter, EffectExecutionError, MAX_EFFECT_STEPS } from './effect-registry.js';
+import { shuffleInPlace } from './utils/array.js';
 import { CardType } from './types.js';
 import { meetsEquipRequirement } from './types.js';
 import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
@@ -113,6 +114,10 @@ export class GameEngine {
     this._aiBehavior = resolveAIBehavior(opponentConfig?.behaviorId);
 
     const playerGoesFirst = Math.random() < 0.5;
+    const playerDeck = makeDeck(playerDeckIds || PLAYER_DECK_IDS);
+    const opponentDeck = makeDeck(oppDeckIds);
+    shuffleInPlace(playerDeck);
+    shuffleInPlace(opponentDeck);
 
     this.state = {
       phase: 'main',
@@ -120,7 +125,7 @@ export class GameEngine {
       activePlayer: playerGoesFirst ? 'player' : 'opponent',
       player: {
         lp: GAME_RULES.startingLP,
-        deck: this._shuffle(makeDeck(playerDeckIds || PLAYER_DECK_IDS)),
+        deck: playerDeck,
         hand: [],
         field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null), fieldSpell: null },
         graveyard: [],
@@ -128,7 +133,7 @@ export class GameEngine {
       },
       opponent: {
         lp: GAME_RULES.startingLP,
-        deck: this._shuffle(makeDeck(oppDeckIds)),
+        deck: opponentDeck,
         hand: [],
         field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null), fieldSpell: null },
         graveyard: [],
@@ -247,14 +252,6 @@ export class GameEngine {
   }
 
   getState(): GameState { return this.state; }
-
-  _shuffle<T>(arr: T[]): T[] {
-    for(let i=arr.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [arr[i],arr[j]]=[arr[j],arr[i]];
-    }
-    return arr;
-  }
 
   addLog(msg: string){
     this.state.log.unshift(msg);
