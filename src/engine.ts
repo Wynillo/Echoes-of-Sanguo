@@ -4,6 +4,7 @@ import { CardType } from './types.js';
 import { meetsEquipRequirement } from './types.js';
 import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
 import { TriggerBus } from './trigger-bus.js';
+import { TrapResolver } from './trap-resolver.js';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types.js';
 
@@ -66,6 +67,7 @@ export { FieldCard, FieldSpellTrap } from './field.js';
 export class GameEngine {
   state!: GameState; // initialized in initGame() before any gameplay method is called
   ui: UICallbacks;
+  private trapResolver: TrapResolver;
   _trapResolve: ((result: boolean) => void) | null;
   _currentOpponentId: number | null;
   _aiBehavior!: Required<AIBehavior>;
@@ -83,6 +85,18 @@ export class GameEngine {
     this.ui = uiCallbacks;
     this._trapResolve = null;
     this._currentOpponentId = null;
+    
+    this.trapResolver = new TrapResolver({
+      getState: () => this.state,
+      getTrapZones: (owner) => this.state[owner].field.spellTraps,
+      getMonsterAt: (owner, zone) => this.state[owner].field.monsters[zone],
+      promptPlayer: (opts) => this.ui.prompt!(opts),
+      activateTrap: (owner, zone, args) => this.activateTrapFromField(owner, zone, ...args),
+      showActivation: (card, text) => this.ui.showActivation?.(card, text),
+      playSfx: (sfxId) => this.ui.playSfx?.(sfxId),
+      addLog: (msg) => this.addLog(msg),
+      get owner() { return this.state.activePlayer; }
+    });
   }
 
   _initStats(): void {
@@ -1369,56 +1383,11 @@ export class GameEngine {
   }
 
   async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]){
-    if (this.state.opponent.fieldFlags?.negateTraps) return null;
-    const traps = this.state.player.field.spellTraps;
-    for(let i=0;i<traps.length;i++){
-      const fst = traps[i];
-      if(fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used && fst.card.trapTrigger === triggerType){
-        const promptFn = this.ui.prompt;
-        if (!promptFn) continue;
-
-        // Build battle context so the UI can show who attacks what
-        const battleContext: import('./types.js').BattleContext = { triggerType };
-        if (args[0]) {
-          battleContext.attackerName   = args[0].card.name;
-          battleContext.attackerAtk    = args[0].effectiveATK();
-          battleContext.attackerCardId = args[0].card.id;
-        }
-        if (args[1]) {
-          battleContext.defenderName   = args[1].card.name;
-          battleContext.defenderDef    = args[1].effectiveDEF();
-          battleContext.defenderAtk    = args[1].effectiveATK();
-          battleContext.defenderPos    = args[1].position;
-          battleContext.defenderCardId = args[1].card.id;
-        }
-
-        const activate = await promptFn({
-          title: 'Activate trap?',
-          cardId: fst.card.id,
-          message: `${fst.card.name}: ${fst.card.description}`,
-          yes: 'Yes, activate!',
-          no:  'No, skip',
-          battleContext,
-        });
-        if(activate){
-          return await this.activateTrapFromField('player', i, ...args);
-        }
-      }
-    }
-    return null;
+    return this.trapResolver.checkTrapActivation(triggerType, args, true);
   }
 
   async _autoActivateOpponentTraps(triggerType: string, ...args: FieldCard[]): Promise<EffectSignal | null> {
-    if (this.state.player.fieldFlags?.negateTraps) return null;
-    const traps = this.state.opponent.field.spellTraps;
-    for (let i = 0; i < traps.length; i++) {
-      const fst = traps[i];
-      if (fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used
-          && fst.card.trapTrigger === triggerType) {
-        return await this.activateTrapFromField('opponent', i, ...args);
-      }
-    }
-    return null;
+    return this.trapResolver.checkTrapActivation(triggerType, args, false);
   }
 
   _hasPlayableCard(owner: Owner): boolean {
