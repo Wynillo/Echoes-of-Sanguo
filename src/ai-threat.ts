@@ -12,8 +12,8 @@ export function snapshotBoard(ai: PlayerState, plr: PlayerState): BoardSnapshot 
     if (fc) plrMonsterPower += fc.effectiveATK();
   }
   return {
-    aiLP:            ai.lp,
-    plrLP:           plr.lp,
+    opponentLp:      ai.lp,
+    playerLp:        plr.lp,
     aiMonsterPower,
     plrMonsterPower,
     aiHandSize:      ai.hand.length,
@@ -26,8 +26,8 @@ export function snapshotBoard(ai: PlayerState, plr: PlayerState): BoardSnapshot 
  * Positive = AI is ahead. Negative = AI is losing.
  */
 export function computeBoardThreat(snap: BoardSnapshot): number {
-  const plrLPSafe = snap.plrLP > 0 ? snap.plrLP : 1;
-  const lpRatio = (snap.aiLP / plrLPSafe - 1) * AI_SCORE.THREAT_LP_WEIGHT * 8000;
+  const plrLpSafe = snap.playerLp > 0 ? snap.playerLp : 1;
+  const lpRatio = (snap.opponentLp / plrLpSafe - 1) * AI_SCORE.THREAT_LP_WEIGHT * 8000;
   const boardDiff = (snap.aiMonsterPower - snap.plrMonsterPower) * AI_SCORE.THREAT_BOARD_WEIGHT;
   const handAdv = (snap.aiHandSize - snap.plrHandSize) * AI_SCORE.THREAT_HAND_WEIGHT;
   return lpRatio + boardDiff + handAdv;
