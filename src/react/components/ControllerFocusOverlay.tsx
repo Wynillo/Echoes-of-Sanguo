@@ -6,12 +6,12 @@ interface FocusZone {
   zone: number;
 }
 
-interface Props {
+interface ControllerFocusOverlayProps {
   connected: boolean;
   focusedZone: FocusZone | null;
 }
 
-export function ControllerFocusOverlay({ connected, focusedZone }: Props) {
+export function ControllerFocusOverlay({ connected, focusedZone }: ControllerFocusOverlayProps) {
   const { t } = useTranslation();
 
   if (!connected || !focusedZone) return null;
