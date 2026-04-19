@@ -4,6 +4,7 @@ import {
   type EffectDescriptor, type EffectContext, type EffectSignal, type CardEffectBlock,
   type ValueExpr, type StatTarget, type Owner, type FieldCard,
   type PureEffectCtx, type ChainEffectCtx,
+  getCardAtk, getCardDef, getCardLevel,
 } from './types.js';
 import { EchoesOfSanguo } from './debug-logger.js';
 

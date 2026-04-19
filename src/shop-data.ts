@@ -1,10 +1,13 @@
+import type { Rarity } from './types.js';
+import { CURRENCY_IDS } from './economy-config.js';
+
 /** Filter criteria for a card pool. All specified fields use AND logic within the same filter object. */
 export interface CardFilter {
   races?: number[];       // Race enum values — only applies to cards that have a race field
   attributes?: number[];  // Attribute enum values
   types?: number[];       // CardType enum values (1=Monster, 2=Fusion, 3=Spell, 4=Trap)
-  maxRarity?: number;     // Rarity enum upper bound (inclusive)
-  minRarity?: number;     // Rarity enum lower bound (inclusive)
+  maxRarity?: Rarity;     // Rarity enum upper bound (inclusive)
+  minRarity?: Rarity;     // Rarity enum lower bound (inclusive)
   maxAtk?: number;        // ATK upper bound — only applies to cards with an atk field
   maxLevel?: number;      // Level upper bound — only applies to cards with a level field
   spellTypes?: string[];  // SpellType string values ('normal', 'targeted', 'fromGrave')
@@ -37,7 +40,7 @@ export interface PackPrice {
 
 export interface PackSlotDef {
   count: number;
-  rarity?: number;                      // Rarity enum int (1=C, 2=U, 4=R, 6=SR, 8=UR)
+  rarity?: Rarity;                      // Rarity enum value (Rarity.COMMON=1, UNCOMMON=2, RARE=4, SUPER_RARE=6, ULTRA_RARE=8)
   pool?: string;                        // e.g. 'guaranteed_rare_plus', 'guaranteed_sr_plus'
   distribution?: Record<string, number>; // rarity int -> probability
   effectItems?: boolean;                // When true, drops effect items instead of cards
@@ -66,7 +69,7 @@ export interface ShopData {
 export const SHOP_DATA: ShopData = {
   backgrounds: {},
   packs: [],
-  currencies: [{ id: 'coins', nameKey: 'common.coins', icon: '\u25c8' }],
+  currencies: [{ id: CURRENCY_IDS.COINS, nameKey: 'common.coins', icon: '\u25c8' }],
 };
 
 export function applyShopData(data: Partial<ShopData>): void {

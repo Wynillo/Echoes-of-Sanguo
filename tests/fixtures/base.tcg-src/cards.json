@@ -1,4 +1,5 @@
 [
+  // NOTE: rarity values correspond to Rarity enum: 1=COMMON, 2=UNCOMMON, 4=RARE, 6=SUPER_RARE, 8=ULTRA_RARE
   { "id": 1, "type": 1, "level": 4, "atk": 1500, "def": 1200, "rarity": 1, "attribute": 1, "race": 1, "name": "Ancient Dragon", "description": "A powerful dragon from ancient times." },
   { "id": 2, "type": 1, "level": 3, "atk": 1200, "def": 1000, "rarity": 2, "attribute": 2, "race": 3, "name": "Dark Knight", "description": "A knight wielding dark powers." },
   { "id": 3, "type": 3, "level": 0, "rarity": 1, "effect": "drawCard:2", "spellType": 1, "name": "Power Draw", "description": "Draw 2 cards from your deck." },
