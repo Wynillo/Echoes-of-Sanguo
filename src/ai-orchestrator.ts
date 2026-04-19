@@ -24,6 +24,7 @@ import {
   aiEffectiveATK,
   aiEffectiveDEF,
 } from './ai-behaviors.js';
+import { classifySpell } from './ai/utils/spell-classifier.js';
 
 interface TurnContext {
   snap:       BoardSnapshot;
@@ -339,37 +340,27 @@ async function _activateSpells(deps: AIDependencies, ctx: TurnContext): Promise<
       if(card.type !== CardType.Spell) continue;
       let activated = false;
 
-        const actions = card.effect?.actions ?? [];
-        const dealsDamage = actions.some((a: import('./types.js').EffectDescriptor) => a.type === 'dealDamage');
-        const heals = actions.some((a: import('./types.js').EffectDescriptor) => a.type === 'gainLP');
-        const buffs = actions.some((a: import('./types.js').EffectDescriptor) => {
-          const t = a.type as string;
-          return t === 'buffAtkAll' || t === 'buffAtkRace' || t === 'buffAtk' || t === 'buffField';
-        });
-        const destroys = actions.some((a: import('./types.js').EffectDescriptor) => {
-          const t = a.type as string;
-          return t === 'destroyMonster' || t === 'destroyAll' || t === 'destroySpellTrap';
-        });
+      const classification = classifySpell(card);
 
-        let should = false;
-        if (dealsDamage) {
-          should = true;
-        } else if (heals) {
-          should = ai.lp < AI_LP_THRESHOLD.DEFENSIVE || ai.lp < plr.lp;
-        } else if (buffs) {
-          should = ai.field.monsters.some(fc => fc !== null);
-        } else if (destroys) {
-          should = plr.field.monsters.some(fc => fc !== null);
-          if (!should && bh.knowsPlayerHand) {
-            const plrHasMonsters = plr.hand.some(c => c.type === CardType.Monster || c.type === CardType.Fusion);
-            if (plrHasMonsters) {
-              EchoesOfSanguo.log('AI', `CHEAT-INSIGHT: Player hand has monsters — pre-emptively activating ${card.name}`);
-              should = true;
-            }
+      let should = false;
+      if (classification.dealsDamage) {
+        should = true;
+      } else if (classification.heals) {
+        should = ai.lp < AI_LP_THRESHOLD.DEFENSIVE || ai.lp < plr.lp;
+      } else if (classification.buffs) {
+        should = ai.field.monsters.some(fc => fc !== null);
+      } else if (classification.destroys) {
+        should = plr.field.monsters.some(fc => fc !== null);
+        if (!should && bh.knowsPlayerHand) {
+          const plrHasMonsters = plr.hand.some(c => c.type === CardType.Monster || c.type === CardType.Fusion);
+          if (plrHasMonsters) {
+            EchoesOfSanguo.log('AI', `CHEAT-INSIGHT: Player hand has monsters — pre-emptively activating ${card.name}`);
+            should = true;
           }
-        } else {
-          should = true;
         }
+      } else {
+        should = true;
+      }
 
         if(should){
           EchoesOfSanguo.log('SPELL', `Activating ${card.name} (normal)`);
