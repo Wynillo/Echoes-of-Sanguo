@@ -379,6 +379,13 @@ export interface OpponentRecord {
   losses:   number;
 }
 
+
+export interface MonsterTurnState {
+  hasAttacked:      boolean;
+  hasFlipSummoned:  boolean;
+  summonedThisTurn: boolean;
+}
+
 // Forward declarations — implemented in field.ts / engine.ts.
 // Used in type signatures above before the class files are loaded.
 export declare class FieldCard {
@@ -386,9 +393,7 @@ export declare class FieldCard {
   card:             CardData;
   position:         Position;
   faceDown:         boolean;
-  hasAttacked:      boolean;
-  hasFlipSummoned:  boolean;
-  summonedThisTurn: boolean;
+  turnState:        MonsterTurnState;
   tempATKBonus:     number;
   tempDEFBonus:     number;
   permATKBonus:     number;
@@ -406,6 +411,7 @@ export declare class FieldCard {
   equippedCards:    Array<{ zone: number; card: CardData }>;
   originalOwner?:   Owner;
   _getPassiveBlocks(): CardEffectBlock[];
+  resetTurnState(): void;
   effectiveATK():   number;
   effectiveDEF():   number;
   combatValue():    number;

@@ -314,7 +314,7 @@ const IMPL: Record<string, InternalImpl> = {
     ctx.removeEquipment(opp, idx);
     fc.originalOwner = opp;
     ownMonsters[freeZone] = fc;
-    fc.hasAttacked = false;
+    fc.turnState.hasAttacked = false;
     ctx.log(`${fc.card.name} control changed!`);
     return {};
   },
@@ -381,7 +381,7 @@ const IMPL: Record<string, InternalImpl> = {
     oppMonsters[idx] = null;
     ctx.removeEquipment(opp, idx);
     fc.originalOwner = opp;
-    fc.hasAttacked = false;
+    fc.turnState.hasAttacked = false;
     ownMonsters[freeZone] = fc;
     ctx.log(`${fc.card.name} is temporarily under your control!`);
     return {};
@@ -751,7 +751,7 @@ const IMPL: Record<string, InternalImpl> = {
     if (!ctx.targetFC) return {};
     ctx.targetFC.faceDown = true;
     ctx.targetFC.position = 'def';
-    ctx.targetFC.hasFlipSummoned = false;
+    ctx.targetFC.turnState.hasFlipSummoned = false;
     ctx.log(`${ctx.targetFC.card.name} was set face-down!`);
     return {};
   },
@@ -762,7 +762,7 @@ const IMPL: Record<string, InternalImpl> = {
       if (fc && !fc.faceDown) {
         fc.faceDown = true;
         fc.position = 'def';
-        fc.hasFlipSummoned = false;
+        fc.turnState.hasFlipSummoned = false;
       }
     }
     ctx.log('All opponent monsters set face-down!');

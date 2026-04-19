@@ -474,7 +474,7 @@ async function aiBattlePhase(deps: AIDependencies): Promise<boolean> {
     const snap = snapshotBoard(ai, plr);
     const isWinning = computeBoardThreat(snap) > 0;
     const totalATK = ai.field.monsters
-      .filter((fc): fc is FieldCard => fc !== null && fc.position === 'atk' && !fc.hasAttacked)
+      .filter((fc): fc is FieldCard => fc !== null && fc.position === 'atk' && !fc.turnState.hasAttacked)
       .reduce((sum, fc) => sum + fc.effectiveATK(), 0);
     const canKill = totalATK > plr.lp || plr.field.monsters.every(fc => fc === null);
     if (isWinning && !canKill) {
@@ -497,7 +497,7 @@ async function aiBattlePhase(deps: AIDependencies): Promise<boolean> {
   for (const plan of attackPlan) {
     const atk = ai.field.monsters[plan.attackerZone];
     if (!atk) continue;
-    if (atk.hasAttacked) continue;
+    if (atk.turnState.hasAttacked) continue;
     if (atk.position !== 'atk') continue;
 
     await deps.delay(500);

@@ -278,7 +278,7 @@ export function findLethal(
   const attackers: { zone: number; atk: number; canDirect: boolean }[] = [];
   for (let z = 0; z < aiMonsters.length; z++) {
     const fc = aiMonsters[z];
-    if (!fc || fc.position !== 'atk' || fc.hasAttacked || fc.summonedThisTurn) continue;
+    if (!fc || fc.position !== 'atk' || fc.turnState.hasAttacked || fc.turnState.summonedThisTurn) continue;
     attackers.push({ zone: z, atk: fc.effectiveATK(), canDirect: fc.canDirectAttack });
   }
 
@@ -383,7 +383,7 @@ export function planAttacks(
   const attackers: { zone: number; fc: FieldCard }[] = [];
   for (let z = 0; z < aiMonsters.length; z++) {
     const fc = aiMonsters[z];
-    if (!fc || fc.position !== 'atk' || fc.hasAttacked || fc.summonedThisTurn) continue;
+    if (!fc || fc.position !== 'atk' || fc.turnState.hasAttacked || fc.turnState.summonedThisTurn) continue;
     attackers.push({ zone: z, fc });
   }
 
@@ -521,7 +521,7 @@ export function pickEquipTarget(
 
     score += curATK * 0.3;
 
-    if (!fc.hasAttacked && fc.position === 'atk') score += 500;
+    if (!fc.turnState.hasAttacked && fc.position === 'atk') score += 500;
 
     if (fc.position === 'def' && defBonus > 0) score += 300;
 
@@ -609,7 +609,7 @@ export function pickSpellBuffTarget(
     if (!fc || fc.faceDown) continue;
     let score = fc.effectiveATK();
 
-    if (!fc.hasAttacked && fc.position === 'atk') score += 500;
+    if (!fc.turnState.hasAttacked && fc.position === 'atk') score += 500;
 
     const diff = oppMaxATK - fc.effectiveATK();
     if (diff > 0 && diff < AI_SCORE.BUFF_KILL_THRESHOLD) score += AI_SCORE.BUFF_UNLOCK_KILL;
