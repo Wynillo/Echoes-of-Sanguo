@@ -339,18 +339,18 @@ describe('shouldActivateNormalSpell', () => {
       expect(shouldActivateNormalSpell('test-always', behavior, 8000, 8000)).toBe(true);
     });
 
-    it('activates (oppLP>N) when player LP exceeds threshold', () => {
+    it('activates (opponentLP>N) when player LP exceeds threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'test-opp': { when: 'oppLP>N', threshold: 800 } },
+        spellRules: { 'test-opp': { when: 'opponentLP>N', threshold: 800 } },
       };
       expect(shouldActivateNormalSpell('test-opp', behavior, 1000, 8000)).toBe(true);
     });
 
-    it('does not activate (oppLP>N) when player LP is at or below threshold', () => {
+    it('does not activate (opponentLP>N) when player LP is at or below threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'test-opp': { when: 'oppLP>N', threshold: 800 } },
+        spellRules: { 'test-opp': { when: 'opponentLP>N', threshold: 800 } },
       };
       expect(shouldActivateNormalSpell('test-opp', behavior, 800, 8000)).toBe(false);
       expect(shouldActivateNormalSpell('test-opp', behavior, 500, 8000)).toBe(false);
@@ -449,21 +449,21 @@ describe('evaluateSpellRule (via shouldActivateNormalSpell)', () => {
     });
   });
 
-  describe('condition: oppLP>N', () => {
+  describe('condition: opponentLP>N', () => {
     it('returns true when playerLP > threshold', () => {
-      const b = behaviorWithRule({ when: 'oppLP>N', threshold: 4000 });
+      const b = behaviorWithRule({ when: 'opponentLP>N', threshold: 4000 });
       expect(shouldActivateNormalSpell('TEST', b, 4001, 8000)).toBe(true);
       expect(shouldActivateNormalSpell('TEST', b, 8000, 8000)).toBe(true);
     });
 
     it('returns false when playerLP <= threshold', () => {
-      const b = behaviorWithRule({ when: 'oppLP>N', threshold: 4000 });
+      const b = behaviorWithRule({ when: 'opponentLP>N', threshold: 4000 });
       expect(shouldActivateNormalSpell('TEST', b, 4000, 8000)).toBe(false);
       expect(shouldActivateNormalSpell('TEST', b, 3000, 8000)).toBe(false);
     });
 
     it('uses 0 as default threshold when threshold is undefined', () => {
-      const b = behaviorWithRule({ when: 'oppLP>N' });
+      const b = behaviorWithRule({ when: 'opponentLP>N' });
       // playerLP > 0
       expect(shouldActivateNormalSpell('TEST', b, 1, 8000)).toBe(true);
       expect(shouldActivateNormalSpell('TEST', b, 0, 8000)).toBe(false);

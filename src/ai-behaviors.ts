@@ -158,7 +158,7 @@ function evaluateSpellRule(rule: AISpellRule, playerLP: number, aiLP: number): b
   const t = rule.threshold ?? 0;
   switch (rule.when) {
     case 'always':   return true;
-    case 'oppLP>N':  return playerLP > t;
+    case 'opponentLP>N':  return playerLP > t;
     case 'selfLP<N': return aiLP < t;
   }
 }
