@@ -4,6 +4,7 @@ import { CardType } from './types.js';
 import { meetsEquipRequirement } from './types.js';
 import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
 import { TriggerBus } from './trigger-bus.js';
+import { Option } from './option.js';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types.js';
 
@@ -83,6 +84,14 @@ export class GameEngine {
     this.ui = uiCallbacks;
     this._trapResolve = null;
     this._currentOpponentId = null;
+  }
+
+  /**
+   * Get a monster at the given zone, returning Option type to avoid null checks.
+   * Returns Some<FieldCard> if a monster is present, None if the zone is empty.
+   */
+  getMonsterAt(owner: Owner, zone: number): Option<FieldCard> {
+    return Option.fromNullable(this.state[owner].field.monsters[zone]);
   }
 
   _initStats(): void {
@@ -474,8 +483,14 @@ export class GameEngine {
   }
 
   async flipSummon(owner: Owner, zone: number){
-    const fc = this.state[owner].field.monsters[zone];
-    if(!fc || !fc.faceDown){ this.addLog('No face-down monster!'); return false; }
+    const fcResult = this.getMonsterAt(owner, zone);
+    if (fcResult.isNone()) {
+      this.addLog('No monster in that zone!');
+      return false;
+    }
+    const fc = fcResult.value;
+    
+    if(!fc.faceDown){ this.addLog('No face-down monster!'); return false; }
     if(fc.summonedThisTurn){ this.addLog('Cannot flip on the same turn!'); return false; }
     fc.faceDown = false;
     this.addLog(`${fc.card.name} is flipped face-up (Flip Summon)!`);
@@ -1023,12 +1038,14 @@ export class GameEngine {
 
   async attack(attackerOwner: Owner, attackerZone: number, defenderZone: number){
     if(this.hasPreventAttacks(attackerOwner)){ this.addLog('Attacks are prevented!'); return; }
-    const atkSt  = this.state[attackerOwner];
-    const defOwn = attackerOwner === 'player' ? 'opponent' : 'player';
-    const defSt  = this.state[defOwn];
-
-    const attFC = atkSt.field.monsters[attackerZone];
-    if(!attFC){ this.addLog('No attacking monster!'); return; }
+    
+    const attFCResult = this.getMonsterAt(attackerOwner, attackerZone);
+    if (attFCResult.isNone()) {
+      this.addLog('No attacking monster!');
+      return;
+    }
+    const attFC = attFCResult.value;
+    
     if(attFC.hasAttacked){ this.addLog(`${attFC.card.name} has already attacked!`); return; }
     if(attFC.faceDown){
       attFC.faceDown = false;
@@ -1039,7 +1056,7 @@ export class GameEngine {
     }
     if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
 
-    const defFC = defSt.field.monsters[defenderZone];
+    const defFC = this.state[attackerOwner === 'player' ? 'opponent' : 'player'].field.monsters[defenderZone];
     if(defFC && defFC.cantBeAttacked){
       this.addLog(`${defFC.card.name} cannot be attacked!`); return;
     }
@@ -1230,9 +1247,11 @@ export class GameEngine {
   }
 
   async _destroyMonster(owner: Owner, zone: number, reason: string, byOwner: Owner){
-    const st  = this.state[owner];
-    const fc  = st.field.monsters[zone];
-    if(!fc) return;
+    const st = this.state[owner];
+    const fcResult = this.getMonsterAt(owner, zone);
+    if (fcResult.isNone()) return;
+    const fc = fcResult.value;
+    
     if(fc.indestructible && reason === 'battle'){
       this.addLog(`${fc.card.name} is indestructible!`);
       return;
