@@ -166,60 +166,60 @@ export class GameEngine {
     }
   }
 
-  restoreGame(checkpoint: SerializedCheckpoint): void {
-    EchoesOfSanguo.startSession();
-    this._initStats();
-    this._duelEnded = false;
-    this._currentOpponentId = checkpoint.opponentId;
-    this._aiBehavior = resolveAIBehavior(checkpoint.opponentBehaviorId);
+  private _restoreFieldCard(serialized: SerializedFieldCardData): FieldCard {
+    const fc = new FieldCard(CARD_DB[serialized.cardId], serialized.position, serialized.faceDown);
+    fc.hasAttacked = serialized.hasAttacked;
+    fc.hasFlipSummoned = serialized.hasFlipSummoned;
+    fc.summonedThisTurn = serialized.summonedThisTurn;
+    fc.tempATKBonus = serialized.tempATKBonus;
+    fc.tempDEFBonus = serialized.tempDEFBonus;
+    fc.permATKBonus = serialized.permATKBonus;
+    fc.permDEFBonus = serialized.permDEFBonus;
+    fc.fieldSpellATKBonus = serialized.fieldSpellATKBonus ?? 0;
+    fc.fieldSpellDEFBonus = serialized.fieldSpellDEFBonus ?? 0;
+    fc.phoenixRevivalUsed = serialized.phoenixRevivalUsed;
+    return fc;
+  }
 
-    const restorePlayerState = (s: SerializedPlayerState) => ({
+  private _restoreFieldSpellTrap(serialized: SerializedFieldSpellTrapData | null): FieldSpellTrap | null {
+    if (!serialized) return null;
+    const fst = new FieldSpellTrap(CARD_DB[serialized.cardId], serialized.faceDown);
+    fst.used = serialized.used;
+    if (serialized.equippedMonsterZone !== undefined) {
+      fst.equippedMonsterZone = serialized.equippedMonsterZone;
+    }
+    if (serialized.equippedOwner !== undefined) {
+      fst.equippedOwner = serialized.equippedOwner;
+    }
+    return fst;
+  }
+
+  private _restorePlayerField(s: SerializedPlayerState) {
+    return {
+      monsters: s.monsters.map((m: SerializedFieldCardData | null) => m ? this._restoreFieldCard(m) : null),
+      spellTraps: s.spellTraps.map((st: SerializedFieldSpellTrapData | null) => st ? this._restoreFieldSpellTrap(st) : null),
+      fieldSpell: this._restoreFieldSpellTrap(s.fieldSpell ?? null),
+    };
+  }
+
+  private _restorePlayerState(s: SerializedPlayerState) {
+    return {
       lp: s.lp,
       deck: s.deckIds.map(id => ({ ...CARD_DB[id] })),
       hand: s.handIds.map(id => ({ ...CARD_DB[id] })),
       graveyard: s.graveyardIds.map(id => ({ ...CARD_DB[id] })),
       normalSummonUsed: s.normalSummonUsed,
-      field: {
-        monsters: s.monsters.map(m => {
-          if (!m) return null;
-          const fc = new FieldCard(CARD_DB[m.cardId], m.position, m.faceDown);
-          fc.hasAttacked       = m.hasAttacked;
-          fc.hasFlipSummoned        = m.hasFlipSummoned;
-          fc.summonedThisTurn  = m.summonedThisTurn;
-          fc.tempATKBonus      = m.tempATKBonus;
-          fc.tempDEFBonus      = m.tempDEFBonus;
-          fc.permATKBonus      = m.permATKBonus;
-          fc.permDEFBonus      = m.permDEFBonus;
-          fc.fieldSpellATKBonus = m.fieldSpellATKBonus ?? 0;
-          fc.fieldSpellDEFBonus = m.fieldSpellDEFBonus ?? 0;
-          fc.phoenixRevivalUsed = m.phoenixRevivalUsed;
-          return fc;
-        }),
-        spellTraps: s.spellTraps.map(st => {
-          if (!st) return null;
-          const fst = new FieldSpellTrap(CARD_DB[st.cardId], st.faceDown);
-          fst.used = st.used;
-          if (st.equippedMonsterZone !== undefined) fst.equippedMonsterZone = st.equippedMonsterZone;
-          if (st.equippedOwner !== undefined) fst.equippedOwner = st.equippedOwner;
-          return fst;
-        }),
-        fieldSpell: s.fieldSpell ? new FieldSpellTrap(CARD_DB[s.fieldSpell.cardId], s.fieldSpell.faceDown) : null,
-      },
-    });
+      field: this._restorePlayerField(s),
+    };
+  }
 
-    this.state = {
-      phase: checkpoint.phase,
-      turn: checkpoint.turn,
-      activePlayer: checkpoint.activePlayer,
-      firstTurnNoAttack: checkpoint.firstTurnNoAttack,
-      player: restorePlayerState(checkpoint.player),
-      opponent: restorePlayerState(checkpoint.opponent),
-      log: checkpoint.log,
-    } as GameState;
-
+  private _relinkEquipment(): void {
     for (const side of ['player', 'opponent'] as Owner[]) {
       for (const fst of this.state[side].field.spellTraps) {
-        if (!fst || fst.card.type !== CardType.Equipment || fst.equippedOwner === undefined || fst.equippedMonsterZone === undefined) continue;
+        if (!fst || fst.card.type !== CardType.Equipment || 
+            fst.equippedOwner === undefined || fst.equippedMonsterZone === undefined) {
+          continue;
+        }
         const targetFC = this.state[fst.equippedOwner].field.monsters[fst.equippedMonsterZone];
         if (targetFC) {
           const stZone = this.state[side].field.spellTraps.indexOf(fst);
@@ -227,6 +227,26 @@ export class GameEngine {
         }
       }
     }
+  }
+
+  restoreGame(checkpoint: SerializedCheckpoint): void {
+    EchoesOfSanguo.startSession();
+    this._initStats();
+    this._duelEnded = false;
+    this._currentOpponentId = checkpoint.opponentId;
+    this._aiBehavior = resolveAIBehavior(checkpoint.opponentBehaviorId);
+
+    this.state = {
+      phase: checkpoint.phase,
+      turn: checkpoint.turn,
+      activePlayer: checkpoint.activePlayer,
+      firstTurnNoAttack: checkpoint.firstTurnNoAttack,
+      player: this._restorePlayerState(checkpoint.player),
+      opponent: this._restorePlayerState(checkpoint.opponent),
+      log: checkpoint.log,
+    } as GameState;
+
+    this._relinkEquipment();
 
     this.addLog('--- Duel resumed ---');
     this.ui.render(this.state);
