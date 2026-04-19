@@ -1,4 +1,5 @@
 import type { Rarity } from './types.js';
+import { CURRENCY_IDS } from './economy-config.js';
 
 /** Filter criteria for a card pool. All specified fields use AND logic within the same filter object. */
 export interface CardFilter {
@@ -68,7 +69,7 @@ export interface ShopData {
 export const SHOP_DATA: ShopData = {
   backgrounds: {},
   packs: [],
-  currencies: [{ id: 'coins', nameKey: 'common.coins', icon: '\u25c8' }],
+  currencies: [{ id: CURRENCY_IDS.COINS, nameKey: 'common.coins', icon: '\u25c8' }],
 };
 
 export function applyShopData(data: Partial<ShopData>): void {

@@ -8,6 +8,7 @@ import { getRarityById } from '../../type-metadata.js';
 import { openPack, isPackUnlocked, buildCardPool } from '../utils/pack-logic.js';
 import { SHOP_DATA, type PackPrice } from '../../shop-data.js';
 import type { PackDef, PackSlotDef, CurrencyDef } from '../../shop-data.js';
+import { ECONOMY, CURRENCY_UNLOCK_CHAPTERS } from '../../economy-config.js';
 import { Audio }               from '../../audio.js';
 import { Rarity } from '../../types.js';
 import type { CardData } from '../../types.js';
@@ -53,7 +54,7 @@ function countByRarity(cards: CardData[]): { rarity: number; count: number }[] {
 }
 
 function normalisePackPrice(price: number | PackPrice): PackPrice {
-  if (typeof price === 'number') return { currencyId: 'coins', amount: price };
+  if (typeof price === 'number') return { currencyId: ECONOMY.CURRENCY_COINS, amount: price };
   return price;
 }
 
@@ -73,7 +74,7 @@ export default function ShopScreen() {
   const { navigateTo } = useScreen();
   const { currencies, refresh } = useProgression();
   const { progress } = useCampaign();
-  const bgUrl = SHOP_DATA.backgrounds[progress.currentChapter] ?? SHOP_DATA.backgrounds['ch1'] ?? '';
+  const bgUrl = SHOP_DATA.backgrounds[progress.currentChapter] ?? SHOP_DATA.backgrounds[ECONOMY.DEFAULT_CHAPTER] ?? '';
   const { t } = useTranslation();
   const [infoTarget, setInfoTarget] = useState<{ pack: PackDef } | null>(null);
   const [activeTab, setActiveTab] = useState<'packs' | 'crafting'>('packs');
