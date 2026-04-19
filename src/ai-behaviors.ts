@@ -1,5 +1,5 @@
 import type { AIBehavior, AISpellRule, CardData, PlayerState } from './types.js';
-import { CardType, meetsEquipRequirement } from './types.js';
+import { CardType, meetsEquipRequirement, getCardAtk, getCardDef, getCardLevel } from './types.js';
 import type { FieldCard } from './field.js';
 
 export const AI_SCORE = {

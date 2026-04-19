@@ -3,7 +3,7 @@ import { EFFECT_SOURCES, type EffectSource } from '../../effect-items.js';
 import { Progression } from '../../progression.js';
 import { SHOP_DATA } from '../../shop-data.js';
 import type { PackSlotDef, PackDef, CardFilter, CardPoolDef } from '../../shop-data.js';
-import { Rarity } from '../../types.js';
+import { Rarity, getCardRarity } from '../../types.js';
 import type { CardData } from '../../types.js';
 
 /** Default drop-chance distribution used for any slot without an explicit rarity or distribution. */
