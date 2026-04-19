@@ -38,10 +38,10 @@ export function makeDeck(ids: string[]): CardData[] {
 }
 
 export function checkFusion(id1: string, id2: string): FusionRecipe | null {
-  // Step 1: Explicit recipe lookup (highest priority)
+  // materials: [materialA, materialB] - order-independent (either combination matches)
   const explicit = FUSION_RECIPES.find(r =>
-    (r.materials[0]===id1 && r.materials[1]===id2) ||
-    (r.materials[0]===id2 && r.materials[1]===id1)
+    (r.materials[0] === id1 && r.materials[1] === id2) ||
+    (r.materials[0] === id2 && r.materials[1] === id1)
   );
   if (explicit) return explicit;
 
