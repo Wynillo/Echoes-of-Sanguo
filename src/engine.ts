@@ -1444,33 +1444,74 @@ export class GameEngine {
     this.advancePhase();
   }
 
-  advancePhase(){
-    const phases = ['main','battle'] as Phase[];
+  _canAdvanceToPhase(nextPhase: Phase): boolean {
+    if (nextPhase === 'battle' && this.state.firstTurnNoAttack) {
+      this.state.firstTurnNoAttack = false;
+      return false;
+    }
+    
+    if (nextPhase === 'battle' && GAME_RULES.oneMoveEnabled && 
+        !this.state.oneMoveActionUsed && 
+        !this._hasPlayableCard(this.state.activePlayer)) {
+      this.state.oneMoveActionUsed = true;
+    }
+    
+    return true;
+  }
+
+  _announcePhase(phase: Phase): void {
+    const names: Partial<Record<Phase, string>> = { 
+      main: 'Main Phase', 
+      battle: 'Battle Phase' 
+    };
+    this.addLog(`--- ${names[phase] ?? phase} ---`);
+    this.ui.render(this.state);
+  }
+
+  _advanceToNextPhase(): boolean {
+    const phases = ['main', 'battle'] as Phase[];
     const idx = phases.indexOf(this.state.phase);
-    if(idx < phases.length - 1){
-      let nextPhase = phases[idx+1] as Phase;
-      if(nextPhase === 'battle' && this.state.firstTurnNoAttack){
-        this.state.firstTurnNoAttack = false;
-        this.endTurn();
-        return;
-      }
-      if(nextPhase === 'battle' && GAME_RULES.oneMoveEnabled && !this.state.oneMoveActionUsed && !this._hasPlayableCard(this.state.activePlayer)){
-        this.state.oneMoveActionUsed = true;
-      }
-      this.state.phase = nextPhase;
-      const names: Partial<Record<Phase, string>> = { main:'Main Phase', battle:'Battle Phase' };
-      this.addLog(`--- ${names[this.state.phase] ?? this.state.phase} ---`);
-      this.ui.render(this.state);
-    } else {
-      this._resetMonsterFlags(this.state.activePlayer);
-      this._returnTempStolenMonsters(this.state.activePlayer);
-      this._returnSpiritMonsters(this.state.activePlayer);
-      this._tickTurnCounters(this.state.activePlayer);
-      this.state[this.state.activePlayer].normalSummonUsed = false;
-      const opp = this.state.activePlayer === 'player' ? 'opponent' : 'player';
-      this.state[opp].normalSummonUsed = false;
-      const hand = this.state[this.state.activePlayer].hand;
-      while(hand.length > GAME_RULES.handLimitEnd){ hand.shift(); }
+    
+    if (idx >= phases.length - 1) {
+      return false;
+    }
+    
+    const nextPhase = phases[idx + 1] as Phase;
+    
+    if (!this._canAdvanceToPhase(nextPhase)) {
+      return false;
+    }
+    
+    this.state.phase = nextPhase;
+    this._announcePhase(nextPhase);
+    return true;
+  }
+
+  _resetSummonFlags(): void {
+    this.state[this.state.activePlayer].normalSummonUsed = false;
+    const opp = this.state.activePlayer === 'player' ? 'opponent' : 'player';
+    this.state[opp].normalSummonUsed = false;
+  }
+
+  _enforceHandLimit(owner: Owner): void {
+    const hand = this.state[owner].hand;
+    while (hand.length > GAME_RULES.handLimitEnd) {
+      hand.shift();
+    }
+  }
+
+  _cleanupEndOfTurn(activePlayer: Owner): void {
+    this._resetMonsterFlags(activePlayer);
+    this._returnTempStolenMonsters(activePlayer);
+    this._returnSpiritMonsters(activePlayer);
+    this._tickTurnCounters(activePlayer);
+    this._resetSummonFlags();
+    this._enforceHandLimit(activePlayer);
+  }
+
+  advancePhase() {
+    if (!this._advanceToNextPhase()) {
+      this._cleanupEndOfTurn(this.state.activePlayer);
       this.endTurn();
     }
   }
