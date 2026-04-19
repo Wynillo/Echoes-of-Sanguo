@@ -5,6 +5,38 @@ import { secureLogger } from './secure-logger.js';
 
 export type SlotId = 1 | 2 | 3;
 
+/**
+ * Current save file version for migration support.
+ * Increment when breaking changes are made to save structure.
+ * v2: Collection ID format change (old uppercase IDs → new format)
+ */
+export const SAVE_VERSION = 2;
+
+/**
+ * Number of save slots available to players.
+ * 3 slots - standard for single-player games (primary, secondary, backup).
+ */
+export const MAX_SAVE_SLOTS = 3;
+
+/**
+ * Total opponents in campaign mode.
+ * Fixed at 10 to match campaign chapter structure.
+ */
+export const CAMPAIGN_OPPONENT_COUNT = 10;
+
+/**
+ * localStorage key constants for debugging and development tools.
+ * All keys use 'tcg_' prefix to avoid conflicts with other applications.
+ */
+export const STORAGE_KEYS = Object.freeze({
+  /** User settings (language, volume, controller preferences) */
+  SETTINGS: 'tcg_settings',
+  /** Save slot metadata */
+  SLOT_META: 'tcg_slot_meta',
+  /** Currently active save slot */
+  ACTIVE_SLOT: 'tcg_active_slot',
+} as const);
+
 export interface SlotMeta {
   slot: SlotId;
   empty: boolean;
@@ -103,18 +135,15 @@ export const Progression = (() => {
     nextCraftedId:    'next_crafted_id',
   } as const;
 
-  /** Global keys (not per-slot) */
   const GLOBAL_KEYS = {
-    settings:   'tcg_settings',
-    slotMeta:   'tcg_slot_meta',
-    activeSlot: 'tcg_active_slot',
-  } as const;
+    settings: STORAGE_KEYS.SETTINGS,
+    slotMeta: STORAGE_KEYS.SLOT_META,
+    activeSlot: STORAGE_KEYS.ACTIVE_SLOT,
+  };
 
   const DUEL_CHECKPOINT_SUFFIX = 'duel_checkpoint';
 
-  const SAVE_VERSION   = 2;
-  const OPPONENT_COUNT = 10;
-  const SLOT_IDS: SlotId[] = [1, 2, 3];
+  const SLOT_IDS: SlotId[] = [1, 2, 3].slice(0, MAX_SAVE_SLOTS) as SlotId[];
 
   let activeSlot: SlotId | null = null;
 
@@ -201,7 +230,7 @@ export const Progression = (() => {
 
   function _defaultOpponents(): Record<number, OpponentRecord> {
     const ops: Record<number, OpponentRecord> = {};
-    for (let i = 1; i <= OPPONENT_COUNT; i++) {
+    for (let i = 1; i <= CAMPAIGN_OPPONENT_COUNT; i++) {
       ops[i] = { unlocked: i === 1, wins: 0, losses: 0 };
     }
     return ops;
@@ -597,7 +626,7 @@ function spendCoins(amount: number): boolean {
 
     if (won) {
       ops[id].wins++;
-      if (id < OPPONENT_COUNT && ops[id + 1] && !ops[id + 1].unlocked) {
+      if (id < CAMPAIGN_OPPONENT_COUNT && ops[id + 1] && !ops[id + 1].unlocked) {
         ops[id + 1].unlocked = true;
       }
     } else {
@@ -751,6 +780,10 @@ function spendCoins(amount: number): boolean {
   // ── Public API ───────────────────────────────────────────
 
   return {
+    SAVE_VERSION,
+    MAX_SAVE_SLOTS,
+    CAMPAIGN_OPPONENT_COUNT,
+    STORAGE_KEYS,
     // Quota Management (exported for external use)
     estimateStorageSize,
     checkQuotaBeforeSave,
