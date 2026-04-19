@@ -1040,7 +1040,7 @@ export class GameEngine {
     if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
 
     const defFC = defSt.field.monsters[defenderZone];
-    if(defFC && defFC.cantBeAttacked){
+    if(defFC && defFC.cannotBeAttacked){
       this.addLog(`${defFC.card.name} cannot be attacked!`); return;
     }
 
@@ -1253,7 +1253,7 @@ export class GameEngine {
     await this._triggerSentToGrave(fc.card, owner);
     this._recalcFieldFlags();
 
-    if (fc.phoenixRevival && !fc.phoenixRevivalUsed) {
+    if (fc.hasPhoenixRevival && !fc.phoenixRevivalUsed) {
       this.addLog(`${fc.card.name} rises from the graveyard!`);
       const revived = await this.specialSummonFromGrave(owner, fc.card);
       if (revived) {

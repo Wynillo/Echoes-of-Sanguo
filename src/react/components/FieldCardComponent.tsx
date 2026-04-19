@@ -83,8 +83,8 @@ export function FieldCardComponent({
 
   const passiveIcons: string[] = [];
   if (fc.indestructible) passiveIcons.push('\uD83D\uDEE1\uFE0F');
-  if (fc.cantBeAttacked) passiveIcons.push('\uD83D\uDEAB');
-  if (fc.effectImmune)   passiveIcons.push('\u2726');
+  if (fc.cannotBeAttacked) passiveIcons.push('\uD83D\uDEAB');
+  if (fc.isEffectImmune)   passiveIcons.push('\u2726');
   if (fc.piercing)       passiveIcons.push('\u26A1');
 
   const effATK = fc.effectiveATK();
