@@ -146,11 +146,11 @@ type ValueExpr = number | {
 interface EffectContext {
   engine:       GameEngine;
   owner:        Owner;          // 'player' | 'opponent'
-  targetFC?:    FieldCard;      // Target FieldCard (targeted spells/traps)
+  target?:      FieldCard;      // Target FieldCard (targeted spells/traps)
   targetCard?:  CardData;       // Target CardData (fromGrave spells)
   attacker?:    FieldCard;      // Attacker (onAttack traps)
   defender?:    FieldCard;      // Defender
-  summonedFC?:  FieldCard;      // Just summoned monster
+  summoned?:    FieldCard;      // Just summoned monster
 }
 ```
 
@@ -394,7 +394,7 @@ function canPayCost(block: CardEffectBlock, ctx: PureEffectCtx): boolean {
   if (cost.lp && ctx.state[ctx.owner].lp < cost.lp) return false;
   if (cost.lpHalf && ctx.state[ctx.owner].lp <= 1) return false;
   if (cost.discard && ctx.state[ctx.owner].hand.length < cost.discard) return false;
-  if (cost.tributeSelf && !ctx.targetFC) return false;
+  if (cost.tributeSelf && !ctx.target) return false;
   
   return true;
 }
@@ -606,15 +606,15 @@ for (const block of blocks) {
 Effect handlers have access to:
 - `ctx.attacker` — attacking FieldCard
 - `ctx.defender` — defending FieldCard
-- `ctx.summonedFC` — just summoned FieldCard
-- `ctx.targetFC` — targeted FieldCard (for targeted Spells/Traps)
+- `ctx.summoned` — just summoned FieldCard
+- `ctx.target` — targeted FieldCard (for targeted Spells/Traps)
 - `ctx.targetCard` — targeted CardData (for fromGrave Spells)
 
 **Example **(Targeted Spell)
 ```typescript
 registerEffect('destroyMonster', (action, ctx) => {
-  if (!ctx.targetFC) return {};
-  return { destroySummoned: true }; // Engine destroys ctx.targetFC
+  if (!ctx.target) return {};
+  return { destroySummoned: true }; // Engine destroys ctx.target
 });
 ```
 
