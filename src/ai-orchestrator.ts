@@ -678,6 +678,8 @@ function _findSmartFusionChain(
       const fusionCard = CARD_DB[currentId];
       if (fusionCard?.effect) score += 500;
       score += classifyGoalAlignment('fusion', goal);
+      // Longer fusion chains are less efficient - penalty per extra card beyond 2
+      // fusion_otk goal is more tolerant (50 vs 100) since OTK may require complex combos
       const chainPenalty = goal?.id === 'fusion_otk' ? 50 : 100;
       score -= (chain.length - 2) * chainPenalty;
 
@@ -735,7 +737,8 @@ function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementA
     const fc = monsters[z];
     if (!fc) continue;
     const atk = fc.effectiveATK();
-    // Only replace if the new monster is significantly stronger (at least 500 ATK more)
+    // Only replace if the new monster is significantly stronger (500 ATK threshold)
+    // 500 ATK represents ~15-25% improvement for typical 2000-3000 ATK monsters
     if (atk < weakestATK && replacementATK >= atk + 500) {
       weakestATK = atk;
       weakestZone = z;
