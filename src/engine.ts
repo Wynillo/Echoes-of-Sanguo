@@ -119,7 +119,7 @@ export class GameEngine {
       turn: 1,
       activePlayer: playerGoesFirst ? 'player' : 'opponent',
       player: {
-        lp: GAME_RULES.startingLP,
+        lp: GAME_RULES.STARTING_LP,
         deck: this._shuffle(makeDeck(playerDeckIds || PLAYER_DECK_IDS)),
         hand: [],
         field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null), fieldSpell: null },
@@ -127,7 +127,7 @@ export class GameEngine {
         normalSummonUsed: false
       },
       opponent: {
-        lp: GAME_RULES.startingLP,
+        lp: GAME_RULES.STARTING_LP,
         deck: this._shuffle(makeDeck(oppDeckIds)),
         hand: [],
         field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null), fieldSpell: null },
