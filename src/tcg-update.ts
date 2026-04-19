@@ -1,24 +1,21 @@
 import { loadAndApplyTcg, type BridgeLoadResult } from './tcg-bridge.js';
 import { ENGINE_VERSION } from './version.js';
 import { secureLogger } from './secure-logger.js';
+import { API_CONFIG, DB_CONFIG } from './config.js';
 
-const DB_NAME = 'eos-tcg-cache';
-const STORE_NAME = 'tcg-files';
-const CACHE_KEY = 'base-tcg';
+const { GITHUB_API_BASE, GITHUB_RAW_BASE, REPO_OWNER, REPO_NAME, CHECK_UPDATE_TIMEOUT_MS } = API_CONFIG;
+const { TCG_CACHE_NAME, TCG_STORE_NAME, TCG_CACHE_KEY, INDEXEDDB_QUOTA_THRESHOLD } = DB_CONFIG;
 
-// IndexedDB Quota Management
-const INDEXEDDB_QUOTA_THRESHOLD = 0.8; // 80% of quota
-
-const REPO = import.meta.env.VITE_TCG_REPO || 'Wynillo/Echoes-of-sanguo-MOD-base';
-const COMMIT_URL = `https://api.github.com/repos/${REPO}/commits/main`;
-const RAW_BASE = `https://raw.githubusercontent.com/${REPO}`;
+const REPO = `${REPO_OWNER}/${REPO_NAME}`;
+const COMMIT_URL = `${GITHUB_API_BASE}/repos/${REPO}/commits/main`;
+const RAW_BASE = `${GITHUB_RAW_BASE}/${REPO}`;
 
 // IndexedDB helpers
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME);
+    const req = indexedDB.open(TCG_CACHE_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(TCG_STORE_NAME);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
@@ -27,8 +24,8 @@ function openDb(): Promise<IDBDatabase> {
 async function getCachedTcg(): Promise<{ sha: string; data: ArrayBuffer; engineVersion?: string } | null> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const req = tx.objectStore(STORE_NAME).get(CACHE_KEY);
+    const tx = db.transaction(TCG_STORE_NAME, 'readonly');
+    const req = tx.objectStore(TCG_STORE_NAME).get(TCG_CACHE_KEY);
     req.onsuccess = () => resolve(req.result ?? null);
     req.onerror = () => reject(req.error);
   });
@@ -61,8 +58,8 @@ async function setCachedTcg(sha: string, data: ArrayBuffer): Promise<void> {
   
   const db = await openDb();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).put({ sha, data, engineVersion: ENGINE_VERSION }, CACHE_KEY);
+    const tx = db.transaction(TCG_STORE_NAME, 'readwrite');
+    tx.objectStore(TCG_STORE_NAME).put({ sha, data, engineVersion: ENGINE_VERSION }, TCG_CACHE_KEY);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
@@ -72,7 +69,7 @@ async function setCachedTcg(sha: string, data: ArrayBuffer): Promise<void> {
 
 async function getLatestCommitSha(): Promise<string | null> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
+  const timeout = setTimeout(() => controller.abort(), CHECK_UPDATE_TIMEOUT_MS);
   try {
     const res = await fetch(COMMIT_URL, {
       mode: 'cors',
