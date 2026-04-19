@@ -176,7 +176,7 @@ export type AIPositionStrategy = 'smart' | 'aggressive' | 'defensive';
 export type AIBattleStrategy   = 'smart' | 'aggressive' | 'conservative';
 
 export interface AISpellRule {
-  when: 'always' | 'oppLP>N' | 'selfLP<N';
+  when: 'always' | 'opponentLP>N' | 'selfLP<N';
   threshold?: number;
 }
 
@@ -318,7 +318,7 @@ export interface UICallbacks {
   playSfx?:             (sfxId: string) => void;
   showDamageNumber?:    (amount: number, owner: Owner) => void;
   onDraw?:              (owner: Owner, count: number) => void;
-  onDuelEnd?:           (result: 'victory' | 'defeat', oppId: number | null, stats: DuelStats) => void;
+  onDuelEnd?:           (result: 'victory' | 'defeat', opponentId: number | null, stats: DuelStats) => void;
   showCoinToss?:        (playerGoesFirst: boolean) => Promise<void>;
   selectFromDeck?:      (cards: CardData[]) => Promise<CardData>;
 }
