@@ -2,15 +2,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame }      from '../../contexts/GameContext.js';
 import { useSelection } from '../../contexts/SelectionContext.js';
-
-interface DirectAttackProps {
-  showDirect: boolean;
-  onDirectAttack: () => void;
-}
-
-interface NextPhaseProps {
-  onHideDirectAndReset: () => void;
-}
+import { Phase, type Phase as PhaseType } from '../../../types.js';
 
 /** Floating divider in the center column showing current phase + turn. */
 export function PhaseDivider() {
@@ -25,7 +17,7 @@ export function PhaseDivider() {
     end:     t('game.phase_end'),
   }), [t]);
 
-  const phase = gameState?.phase ?? 'main';
+  const phase = gameState?.phase ?? Phase.MAIN;
 
   return (
     <div id="phase-display" aria-live="polite">
@@ -58,15 +50,15 @@ export function NextPhaseButton({ onHideDirectAndReset }: NextPhaseProps) {
   const { gameState, gameRef } = useGame();
   const { t } = useTranslation();
 
-  const phase    = gameState?.phase ?? 'main';
+  const phase    = gameState?.phase ?? Phase.MAIN;
   const isMyTurn = gameState?.activePlayer === 'player';
 
   function getNextPhaseLabel() {
     if (!isMyTurn)          return t('game.btn_wait');
-    if (phase === 'main') {
+    if (phase === Phase.MAIN) {
       return gameState?.firstTurnNoAttack ? t('game.btn_end') : t('game.btn_battle');
     }
-    if (phase === 'battle') return t('game.btn_end');
+    if (phase === Phase.BATTLE) return t('game.btn_end');
     return t('game.btn_next_turn');
   }
 
@@ -77,7 +69,7 @@ export function NextPhaseButton({ onHideDirectAndReset }: NextPhaseProps) {
     if (!game || !isMyTurn || cooldownRef.current) return;
     cooldownRef.current = true;
     setTimeout(() => { cooldownRef.current = false; }, 300);
-    if (phase === 'end') {
+    if (phase === Phase.BATTLE) {
       game.endTurn();
     } else {
       game.advancePhase();

@@ -4,6 +4,7 @@ import {
   type EffectDescriptor, type EffectContext, type EffectSignal, type CardEffectBlock,
   type ValueExpr, type StatTarget, type Owner, type FieldCard,
   type PureEffectCtx, type ChainEffectCtx,
+  getOpponent,
 } from './types.js';
 import { EchoesOfSanguo } from './debug-logger.js';
 
@@ -53,10 +54,6 @@ function filterFieldMonsters(monsters: Array<FieldCard | null>, filter?: CardFil
 }
 
 
-function oppOf(owner: Owner): Owner {
-  return owner === 'player' ? 'opponent' : 'player';
-}
-
 function resolveValue(expr: ValueExpr, ctx: PureEffectCtx): number {
   if (typeof expr === 'number') return expr;
   if (expr.from === 'attacker.effectiveATK' && ctx.attacker) {
@@ -72,7 +69,7 @@ function resolveValue(expr: ValueExpr, ctx: PureEffectCtx): number {
 
 function resolveTarget(target: 'opponent' | 'self', owner: Owner): Owner {
   if (target === 'self') return owner;
-  return oppOf(owner);
+  return getOpponent(owner);
 }
 
 function resolveStatTarget(target: StatTarget, ctx: PureEffectCtx): FieldCard | null {
@@ -170,7 +167,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   debuffField(desc: { atkD: number; defD: number }, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     ctx.state[opp].field.monsters.forEach(fm => {
       if (!fm) return;
       if (desc.atkD) fm.permATKBonus = (fm.permATKBonus || 0) - desc.atkD;
@@ -180,7 +177,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   tempDebuffField(desc: { atkD: number; defD?: number }, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const defD = desc.defD ?? desc.atkD;
     ctx.state[opp].field.monsters.forEach(fm => {
       if (!fm) return;
@@ -191,7 +188,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   bounceStrongestOpp(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const strongest = findMonsterByATK(monsters, 'strongest', { excludeUntargetable: true });
     if (strongest !== null && monsters[strongest]) {
@@ -206,7 +203,7 @@ const IMPL: Record<string, InternalImpl> = {
 
   bounceAttacker(_desc: unknown, ctx: PureEffectCtx) {
     if (!ctx.attacker) return {};
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     ctx.state[opp].hand.push(ctx.attacker.card);
     const monsters = ctx.state[opp].field.monsters;
     const i = monsters.indexOf(ctx.attacker);
@@ -215,7 +212,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   bounceAllOppMonsters(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     for (let i = 0; i < monsters.length; i++) {
       if (monsters[i]) {
@@ -302,7 +299,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   stealMonster(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const oppMonsters = ctx.state[opp].field.monsters;
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
     if (idx === null || !oppMonsters[idx]) return {};
@@ -320,14 +317,14 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   skipOppDraw(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     ctx.state.skipNextDraw = opp;
     ctx.log(`${opp === 'player' ? 'You' : 'Opponent'} will skip the next Draw Phase!`);
     return {};
   },
 
   destroyAndDamageBoth(desc: { side: 'opponent' | 'self' }, ctx: PureEffectCtx) {
-    const targetOwner = desc.side === 'opponent' ? oppOf(ctx.owner) : ctx.owner;
+    const targetOwner = desc.side === 'opponent' ? getOpponent(ctx.owner) : ctx.owner;
     const monsters = ctx.state[targetOwner].field.monsters;
     const idx = findMonsterByATK(monsters, 'strongest', {});
     if (idx === null || !monsters[idx]) return {};
@@ -370,7 +367,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   stealMonsterTemp(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const oppMonsters = ctx.state[opp].field.monsters;
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
     if (idx === null || !oppMonsters[idx]) return {};
@@ -389,11 +386,11 @@ const IMPL: Record<string, InternalImpl> = {
 
   async reviveFromEitherGrave(_desc: unknown, ctx: ChainEffectCtx) {
     const ownGY = ctx.state[ctx.owner].graveyard;
-    const oppGY = ctx.state[oppOf(ctx.owner)].graveyard;
+    const oppGY = ctx.state[getOpponent(ctx.owner)].graveyard;
     let bestCard: CardData | null = null;
     let bestAtk = -1;
     let fromOwner: Owner = ctx.owner;
-    for (const [side, gy] of [[ctx.owner, ownGY], [oppOf(ctx.owner), oppGY]] as [Owner, CardData[]][]) {
+    for (const [side, gy] of [[ctx.owner, ownGY], [getOpponent(ctx.owner), oppGY]] as [Owner, CardData[]][]) {
       for (const card of gy) {
         if ((card.type === CardType.Monster || card.type === CardType.Fusion) && (card.atk ?? 0) > bestAtk) {
           bestAtk = card.atk ?? 0; bestCard = card; fromOwner = side;
@@ -418,7 +415,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   bounceOppHandToDeck(desc: { count: number }, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const hand = ctx.state[opp].hand;
     const toReturn = Math.min(desc.count, hand.length);
     for (let i = 0; i < toReturn; i++) {
@@ -435,7 +432,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   preventAttacks(desc: { turns: number }, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     if (!ctx.state[opp].turnCounters) ctx.state[opp].turnCounters = [];
     ctx.state[opp].turnCounters!.push({ turnsRemaining: desc.turns, effect: 'preventAttacks' });
     ctx.log(`Opponent cannot attack for ${desc.turns} turns!`);
@@ -514,7 +511,7 @@ const IMPL: Record<string, InternalImpl> = {
       ctx.log(`${owner === 'player' ? 'You' : 'Opponent'} discarded entire hand.`);
     };
     if (desc.target === 'self' || desc.target === 'both') discard(ctx.owner);
-    if (desc.target === 'opponent' || desc.target === 'both') discard(oppOf(ctx.owner));
+    if (desc.target === 'opponent' || desc.target === 'both') discard(getOpponent(ctx.owner));
     return {};
   },
 
@@ -531,7 +528,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   destroyAllOpp(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     for (let i = 0; i < monsters.length; i++) {
       if (monsters[i]) {
@@ -560,7 +557,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   destroyWeakestOpp(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const weakestIdx = findMonsterByATK(monsters, 'weakest');
     if (weakestIdx !== null && monsters[weakestIdx]) {
@@ -574,7 +571,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   destroyStrongestOpp(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const strongestIdx = findMonsterByATK(monsters, 'strongest');
     if (strongestIdx !== null && monsters[strongestIdx]) {
@@ -597,7 +594,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   sendTopCardsToGraveOpp(desc: { count: number }, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const deck = ctx.state[opp].deck;
     const count = Math.min(desc.count, deck.length);
     const cards = deck.splice(0, count);
@@ -674,7 +671,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   discardOppHand(desc: { count: number }, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const hand = ctx.state[opp].hand;
     const count = Math.min(desc.count, hand.length);
     for (let i = 0; i < count && hand.length > 0; i++) {
@@ -687,7 +684,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   destroyOppSpellTrap(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const zones = ctx.state[opp].field.spellTraps;
     for (let i = 0; i < zones.length; i++) {
       if (zones[i]) {
@@ -702,7 +699,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   destroyAllOppSpellTraps(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const zones = ctx.state[opp].field.spellTraps;
     for (let i = 0; i < zones.length; i++) {
       if (zones[i]) {
@@ -731,12 +728,12 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   destroyOppFieldSpell(_desc: unknown, ctx: PureEffectCtx) {
-    ctx.removeFieldSpell(oppOf(ctx.owner));
+    ctx.removeFieldSpell(getOpponent(ctx.owner));
     return {};
   },
 
   changePositionOpp(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const idx = findMonsterByATK(monsters, 'strongest');
     if (idx !== null && monsters[idx]) {
@@ -757,7 +754,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   flipAllOppFaceDown(_desc: unknown, ctx: PureEffectCtx) {
-    const opp = oppOf(ctx.owner);
+    const opp = getOpponent(ctx.owner);
     for (const fc of ctx.state[opp].field.monsters) {
       if (fc && !fc.faceDown) {
         fc.faceDown = true;
@@ -770,7 +767,7 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   destroyByFilter(desc: { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' }, ctx: PureEffectCtx) {
-    const side = desc.side === 'self' ? ctx.owner : oppOf(ctx.owner);
+    const side = desc.side === 'self' ? ctx.owner : getOpponent(ctx.owner);
     const monsters = ctx.state[side].field.monsters;
     let idx: number | null = null;
 
@@ -829,7 +826,7 @@ const IMPL: Record<string, InternalImpl> = {
   swapAtkDef(desc: { side: 'self' | 'opponent' | 'all' }, ctx: PureEffectCtx) {
     const sides: Owner[] = desc.side === 'all'
       ? ['player', 'opponent']
-      : [desc.side === 'self' ? ctx.owner : oppOf(ctx.owner)];
+      : [desc.side === 'self' ? ctx.owner : getOpponent(ctx.owner)];
     for (const side of sides) {
       for (const fc of ctx.state[side].field.monsters) {
         if (!fc) continue;
