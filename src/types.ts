@@ -53,16 +53,8 @@ export type {
   TcgCardEffectBlock,
 };
 
-export function isEffectMonster(card: CardData): boolean {
-  return card.type === CardType.Monster && !!card.effect;
-}
-
 export function isMonsterType(type: CardType): boolean {
   return type === CardType.Monster || type === CardType.Fusion;
-}
-
-export function isEquipmentType(type: CardType): boolean {
-  return type === CardType.Equipment;
 }
 
 export interface EffectContext {
