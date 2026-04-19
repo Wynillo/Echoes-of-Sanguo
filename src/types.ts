@@ -18,7 +18,53 @@ export type Position     = 'atk' | 'def';
 export type TrapTrigger  = TcgTrapTrigger;
 export type EffectTrigger= TcgEffectTrigger;
 
-// Monster covers both normal and effect cards; distinction via effect field.
+
+export const Owner = {
+  PLAYER: 'player' as Owner,
+  OPPONENT: 'opponent' as Owner,
+  fromString: (s: string): Owner | null => 
+    s === 'player' || s === 'opponent' ? s as Owner : null,
+  isValid: (s: string): s is 'player' | 'opponent' => 
+    s === 'player' || s === 'opponent',
+} as const;
+
+export const Phase = {
+  DRAW: 'draw' as Phase,
+  MAIN: 'main' as Phase,
+  BATTLE: 'battle' as Phase,
+  fromString: (s: string): Phase | null => 
+    s === 'draw' || s === 'main' || s === 'battle' ? s as Phase : null,
+  isValid: (s: string): s is 'draw' | 'main' | 'battle' => 
+    s === 'draw' || s === 'main' || s === 'battle',
+} as const;
+
+export const Position = {
+  ATK: 'atk' as Position,
+  DEF: 'def' as Position,
+  fromString: (s: string): Position | null => 
+    s === 'atk' || s === 'def' ? s as Position : null,
+  isValid: (s: string): s is 'atk' | 'def' => 
+    s === 'atk' || s === 'def',
+  isAtk: (p: Position): boolean => p === Position.ATK,
+  isDef: (p: Position): boolean => p === Position.DEF,
+} as const;
+
+export function getOpponent(owner: Owner): Owner {
+  return owner === Owner.PLAYER ? Owner.OPPONENT : Owner.PLAYER;
+}
+
+export function isMainPhase(phase: Phase): boolean {
+  return phase === Phase.MAIN;
+}
+
+export function isBattlePhase(phase: Phase): boolean {
+  return phase === Phase.BATTLE;
+}
+
+export function isDrawPhase(phase: Phase): boolean {
+  return phase === Phase.DRAW;
+}
+
 export enum CardType {
   Monster   = 1,
   Fusion    = 2,
@@ -26,7 +72,6 @@ export enum CardType {
   Trap      = 4,
   Equipment = 5,
 }
-
 export type Attribute = number;
 export type Race = number;
 export type Rarity = number;
@@ -334,6 +379,13 @@ export interface OpponentRecord {
   losses:   number;
 }
 
+
+export interface MonsterTurnState {
+  hasAttacked:      boolean;
+  hasFlipSummoned:  boolean;
+  summonedThisTurn: boolean;
+}
+
 // Forward declarations — implemented in field.ts / engine.ts.
 // Used in type signatures above before the class files are loaded.
 export declare class FieldCard {
@@ -341,9 +393,7 @@ export declare class FieldCard {
   card:             CardData;
   position:         Position;
   faceDown:         boolean;
-  hasAttacked:      boolean;
-  hasFlipSummoned:  boolean;
-  summonedThisTurn: boolean;
+  turnState:        MonsterTurnState;
   tempATKBonus:     number;
   tempDEFBonus:     number;
   permATKBonus:     number;
@@ -361,6 +411,7 @@ export declare class FieldCard {
   equippedCards:    Array<{ zone: number; card: CardData }>;
   originalOwner?:   Owner;
   _getPassiveBlocks(): CardEffectBlock[];
+  resetTurnState(): void;
   effectiveATK():   number;
   effectiveDEF():   number;
   combatValue():    number;

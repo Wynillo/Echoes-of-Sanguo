@@ -1,13 +1,17 @@
 import { extractPassiveFlags } from './effect-registry.js';
 import type { CardData, Owner, Position } from './types.js';
 
+export interface MonsterTurnState {
+  hasAttacked: boolean;
+  hasFlipSummoned: boolean;
+  summonedThisTurn: boolean;
+}
+
 export class FieldCard {
   card: CardData;
   position: Position;
   faceDown: boolean;
-  hasAttacked: boolean;
-  hasFlipSummoned: boolean;
-  summonedThisTurn: boolean;
+  turnState: MonsterTurnState;
   tempATKBonus: number;
   tempDEFBonus: number;
   permATKBonus: number;
@@ -33,9 +37,11 @@ export class FieldCard {
     };
     this.position   = position; // 'atk' | 'def'
     this.faceDown   = faceDown;
-    this.hasAttacked= false;
-    this.hasFlipSummoned = false;
-    this.summonedThisTurn = false; // FM-style: no summoning sickness
+    this.turnState  = {
+      hasAttacked: false,
+      hasFlipSummoned: false,
+      summonedThisTurn: false,
+    };
     this.tempATKBonus = 0;
     this.tempDEFBonus = 0;
     this.permATKBonus = 0;
@@ -66,6 +72,13 @@ export class FieldCard {
     }
   }
 
+  resetTurnState(): void {
+    this.turnState = {
+      hasAttacked: false,
+      hasFlipSummoned: false,
+      summonedThisTurn: false,
+    };
+  }
   _getPassiveBlocks(): import('./types.js').CardEffectBlock[] {
     const blocks: import('./types.js').CardEffectBlock[] = [];
     if (this.card.effects) {

@@ -8,6 +8,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import { useHapticFeedback } from '../hooks/useHapticFeedback.js';
 import { cleanupAttackAnimations } from '../hooks/useAttackAnimation.js';
 import RaceIcon from '../components/RaceIcon.js';
+import { Phase } from '../../types.js';
 import { ControllerFocusOverlay } from '../components/ControllerFocusOverlay.js';
 
 import { OpponentField }   from './game/OpponentField.js';
@@ -79,7 +80,7 @@ export default function GameScreen() {
         setShowControllerHelp(false);
       },
       onStart: () => {
-        if (gameState.phase === 'end') {
+        if (gameState.phase === Phase.BATTLE) {
           game.endTurn();
           vibratePatterns.onTurnEnd();
         } else {
@@ -223,7 +224,7 @@ export default function GameScreen() {
     const game = gameRef.current;
     if (!game || !isMyTurn) return;
     hideDirectAndReset();
-    if (phase === 'end') game.endTurn();
+    if (phase === Phase.BATTLE) game.endTurn();
     else game.advancePhase();
   }
 

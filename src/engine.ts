@@ -183,9 +183,9 @@ export class GameEngine {
         monsters: s.monsters.map(m => {
           if (!m) return null;
           const fc = new FieldCard(CARD_DB[m.cardId], m.position, m.faceDown);
-          fc.hasAttacked       = m.hasAttacked;
-          fc.hasFlipSummoned        = m.hasFlipSummoned;
-          fc.summonedThisTurn  = m.summonedThisTurn;
+          fc.turnState.hasAttacked       = m.hasAttacked;
+          fc.turnState.hasFlipSummoned        = m.hasFlipSummoned;
+          fc.turnState.summonedThisTurn  = m.summonedThisTurn;
           fc.tempATKBonus      = m.tempATKBonus;
           fc.tempDEFBonus      = m.tempDEFBonus;
           fc.permATKBonus      = m.permATKBonus;
@@ -476,7 +476,7 @@ export class GameEngine {
   async flipSummon(owner: Owner, zone: number){
     const fc = this.state[owner].field.monsters[zone];
     if(!fc || !fc.faceDown){ this.addLog('No face-down monster!'); return false; }
-    if(fc.summonedThisTurn){ this.addLog('Cannot flip on the same turn!'); return false; }
+    if(fc.turnState.summonedThisTurn){ this.addLog('Cannot flip on the same turn!'); return false; }
     fc.faceDown = false;
     this.addLog(`${fc.card.name} is flipped face-up (Flip Summon)!`);
     await this._triggerFlipSummonEffect(fc, owner, zone);
@@ -507,7 +507,7 @@ export class GameEngine {
     }
     if(st.field.monsters[zone]){ this.addLog('Zone occupied!'); return false; }
     const fc = new FieldCard(card, position, faceDown);
-    fc.summonedThisTurn = false; // special summons can usually attack (or keep true for balance)
+    fc.turnState.summonedThisTurn = false; // special summons can usually attack (or keep true for balance)
     st.field.monsters[zone] = fc;
     if (owner === 'player') this._stats.monstersPlayed++; else this._stats.opponentMonstersPlayed++;
     this.addLog(`${ownerLabel(owner)}: ${card.name} Special Summon!`);
@@ -529,7 +529,7 @@ export class GameEngine {
     if(zone === -1){ this.addLog('No free zone!'); return false; }
     const [c] = sourceSt.graveyard.splice(graveIdx, 1);
     const fc = new FieldCard(c, 'atk');
-    fc.summonedThisTurn = false;
+    fc.turnState.summonedThisTurn = false;
     st.field.monsters[zone] = fc;
     if (owner === 'player') this._stats.monstersPlayed++; else this._stats.opponentMonstersPlayed++;
     this.addLog(`${ownerLabel(owner)}: ${c.name} summoned from graveyard!`);
@@ -901,7 +901,7 @@ export class GameEngine {
 
     const fusionCard = Object.assign({}, fusionCardData);
     const fc = new FieldCard(fusionCard, 'atk');
-    fc.summonedThisTurn = false; // fusion monsters can attack immediately
+    fc.turnState.summonedThisTurn = false; // fusion monsters can attack immediately
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
 
@@ -975,7 +975,7 @@ export class GameEngine {
 
     const resultCard = Object.assign({}, finalCard);
     const fc = new FieldCard(resultCard, 'atk');
-    fc.summonedThisTurn = false; // fusion result can attack immediately
+    fc.turnState.summonedThisTurn = false; // fusion result can attack immediately
     st.field.monsters[zone] = fc;
     st.normalSummonUsed = true;
     this._recalcFieldSpellBonuses(fc);
@@ -1009,7 +1009,7 @@ export class GameEngine {
     this._removeEquipmentForMonster(owner, fieldZone);
 
     const fc = new FieldCard(Object.assign({}, fusionCardData), 'atk');
-    fc.summonedThisTurn = false;
+    fc.turnState.summonedThisTurn = false;
     st.field.monsters[fieldZone] = fc;
     st.normalSummonUsed = true;
 
@@ -1029,7 +1029,7 @@ export class GameEngine {
 
     const attFC = atkSt.field.monsters[attackerZone];
     if(!attFC){ this.addLog('No attacking monster!'); return; }
-    if(attFC.hasAttacked){ this.addLog(`${attFC.card.name} has already attacked!`); return; }
+    if(attFC.turnState.hasAttacked){ this.addLog(`${attFC.card.name} has already attacked!`); return; }
     if(attFC.faceDown){
       attFC.faceDown = false;
       attFC.position = 'atk';
@@ -1046,36 +1046,36 @@ export class GameEngine {
 
     if(attackerOwner === 'opponent'){
       const trapResult = await this._promptPlayerTraps('onAttack', attFC);
-      if(trapResult?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(trapResult?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(trapResult && trapResult.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(trapResult?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+      if(trapResult?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+      if(trapResult && trapResult.cancelAttack){ attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
       if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
       if(defFC){
         const trapResult2 = await this._promptPlayerTraps('onOwnMonsterAttacked', attFC, defFC);
-        if(trapResult2?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-        if(trapResult2?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-        if(trapResult2 && trapResult2.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+        if(trapResult2?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+        if(trapResult2?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+        if(trapResult2 && trapResult2.cancelAttack){ attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
         if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
       }
     }
 
     if(attackerOwner === 'player'){
       const oppTrap = await this._autoActivateOpponentTraps('onAttack', attFC);
-      if(oppTrap?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(oppTrap?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(oppTrap?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(oppTrap?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+      if(oppTrap?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+      if(oppTrap?.cancelAttack){ attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
       if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
       if(defFC){
         const oppTrap2 = await this._autoActivateOpponentTraps('onOwnMonsterAttacked', attFC, defFC);
-        if(oppTrap2?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-        if(oppTrap2?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-        if(oppTrap2?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+        if(oppTrap2?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+        if(oppTrap2?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+        if(oppTrap2?.cancelAttack){ attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
         if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
       }
     }
 
     if(!atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
-    attFC.hasAttacked = true;
+    attFC.turnState.hasAttacked = true;
 
     if(!defFC){
       this.addLog(`${attFC.card.name} attacks directly!`);
@@ -1104,7 +1104,7 @@ export class GameEngine {
     if(!attFC.canDirectAttack && defMons.some(m => m !== null)){
       this.addLog('Opponent has monsters on the field!'); return;
     }
-    if(attFC.hasAttacked) return;
+    if(attFC.turnState.hasAttacked) return;
     if(attFC.faceDown){
       attFC.faceDown = false;
       attFC.position = 'atk';
@@ -1116,22 +1116,22 @@ export class GameEngine {
 
     if(attackerOwner === 'opponent'){
       const trapResult = await this._promptPlayerTraps('onAttack', attFC);
-      if(trapResult?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(trapResult?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(trapResult && trapResult.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(trapResult?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+      if(trapResult?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+      if(trapResult && trapResult.cancelAttack){ attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
       if(this._duelEnded || !this.state[attackerOwner].field.monsters[attackerZone]){ this.ui.render(this.state); return; }
     }
 
     if(attackerOwner === 'player'){
       const oppTrap = await this._autoActivateOpponentTraps('onAttack', attFC);
-      if(oppTrap?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(oppTrap?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(oppTrap?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
+      if(oppTrap?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+      if(oppTrap?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
+      if(oppTrap?.cancelAttack){ attFC.turnState.hasAttacked = true; this.ui.render(this.state); return; }
       if(this._duelEnded || !this.state[attackerOwner].field.monsters[attackerZone]){ this.ui.render(this.state); return; }
     }
 
     if(!this.state[attackerOwner].field.monsters[attackerZone]){ this.ui.render(this.state); return; }
-    attFC.hasAttacked = true;
+    attFC.turnState.hasAttacked = true;
     this.addLog(`${attFC.card.name} greift direkt an!`);
     if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
     this.dealDamage(defOwn, attFC.effectiveATK());
@@ -1141,10 +1141,9 @@ export class GameEngine {
     this.ui.render(this.state);
   }
 
-  async _resolveBattle(atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number, attFC: FieldCard, defFC: FieldCard){
-    const atkVal = attFC.effectiveATK();
 
-    if(defFC.faceDown){
+  private async _handleFlipReveal(defFC: FieldCard, defOwner: Owner, defZone: number): Promise<boolean> {
+    if (defFC.faceDown) {
       defFC.faceDown = false;
       this.addLog(`${defFC.card.name} is revealed!`);
       await this._triggerFlipSummonEffect(defFC, defOwner, defZone);
@@ -1160,23 +1159,90 @@ export class GameEngine {
             this.state[defOwner].field.monsters[defZone] = null;
             this._removeEquipmentForMonster(defOwner, defZone);
             this.ui.render(this.state);
-            return;
+            return false;
           }
         }
       }
       await this._checkAnySummonTraps(defOwner, defZone);
       this.ui.render(this.state);
     }
+    return true;
+  }
 
+  private _calculateCombatValues(attFC: FieldCard, defFC: FieldCard, atkVal: number): { effATK: number, defVal: number, modeStr: string } {
     const defVal = defFC.combatValue();
-    const modeStr= defFC.position === 'atk' ? 'ATK' : 'DEF';
+    const modeStr = defFC.position === 'atk' ? 'ATK' : 'DEF';
 
     // passive: vsAttrBonus (e.g. Heiliger Krieger +500 ATK vs DARK)
     let atkBonus = 0;
-    if(attFC.vsAttrBonus && defFC.card.attribute === attFC.vsAttrBonus.attr)
+    if (attFC.vsAttrBonus && defFC.card.attribute === attFC.vsAttrBonus.attr)
       atkBonus = attFC.vsAttrBonus.atk;
 
     const effATK = atkVal + atkBonus;
+    return { effATK, defVal, modeStr };
+  }
+
+  private async _resolveAttackVsAttack(
+    attFC: FieldCard, defFC: FieldCard,
+    atkOwner: Owner, defOwner: Owner,
+    atkZone: number, defZone: number,
+    effATK: number, defVal: number
+  ): Promise<void> {
+    if (effATK > defVal) {
+      const dmg = effATK - defVal;
+      this.addLog(`${defFC.card.name} destroyed! Opponent: -${dmg} LP`);
+      await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
+      this.dealDamage(defOwner, dmg);
+      if (this._duelEnded) return;
+      await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
+      TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
+      await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
+    } else if (effATK === defVal) {
+      this.addLog('Tie! Both monsters destroyed!');
+      await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
+      await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
+    } else {
+      const dmg = defVal - effATK;
+      this.addLog(`${attFC.card.name} destroyed! Player: -${dmg} LP`);
+      await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
+      this.dealDamage(atkOwner, dmg);
+      if (this._duelEnded) return;
+      await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
+      TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
+      await this._triggerEffect(defFC, defOwner, 'onDestroyByBattle', null);
+      TriggerBus.emit('onDestroyByBattle', { engine: this, owner: defOwner, card: defFC.card, fieldCard: defFC });
+    }
+  }
+
+  private async _resolveAttackVsDefense(
+    attFC: FieldCard, defFC: FieldCard,
+    atkOwner: Owner, defOwner: Owner,
+    defZone: number,
+    effATK: number, defVal: number
+  ): Promise<void> {
+    if (effATK > defVal) {
+      this.addLog(`${defFC.card.name} (DEF) destroyed!`);
+      await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
+      if (attFC.piercing) {
+        const pierceDmg = effATK - defVal;
+        this.addLog(`Piercing attack! -${pierceDmg} LP`);
+        this.dealDamage(defOwner, pierceDmg);
+        if (this._duelEnded) return;
+        await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
+      }
+    } else if (effATK === defVal) {
+      this.addLog('Monster held its ground!');
+    } else {
+      this.addLog('Attack blocked! No damage.');
+    }
+  }
+  async _resolveBattle(atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number, attFC: FieldCard, defFC: FieldCard){
+    const atkVal = attFC.effectiveATK();
+
+    const shouldContinue = await this._handleFlipReveal(defFC, defOwner, defZone);
+    if (!shouldContinue) return;
+
+    const { effATK, defVal, modeStr } = this._calculateCombatValues(attFC, defFC, atkVal);
 
     this.addLog(`${attFC.card.name} (ATK ${effATK}) vs ${defFC.card.name} (${modeStr} ${defVal})`);
 
@@ -1186,48 +1252,14 @@ export class GameEngine {
     }
 
     if(defFC.position === 'atk'){
-      if(effATK > defVal){
-        const dmg = effATK - defVal;
-        this.addLog(`${defFC.card.name} destroyed! Opponent: -${dmg} LP`);
-        await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
-        this.dealDamage(defOwner, dmg);
-        if(this._duelEnded) return;
-        await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
-        TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
-        await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
-      } else if(effATK === defVal){
-        this.addLog('Tie! Both monsters destroyed!');
-        await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
-        await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
-      } else {
-        const dmg = defVal - effATK;
-        this.addLog(`${attFC.card.name} destroyed! Player: -${dmg} LP`);
-        await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
-        this.dealDamage(atkOwner, dmg);
-        if(this._duelEnded) return;
-        await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
-        TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
-        await this._triggerEffect(defFC, defOwner, 'onDestroyByBattle', null);
-        TriggerBus.emit('onDestroyByBattle', { engine: this, owner: defOwner, card: defFC.card, fieldCard: defFC });
-      }
+      await this._resolveAttackVsAttack(attFC, defFC, atkOwner, defOwner, atkZone, defZone, effATK, defVal);
+      if(this._duelEnded) return;
     } else {
-      if(effATK > defVal){
-        this.addLog(`${defFC.card.name} (DEF) destroyed!`);
-        await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
-        if(attFC.piercing){
-          const pierceDmg = effATK - defVal;
-          this.addLog(`Piercing attack! -${pierceDmg} LP`);
-          this.dealDamage(defOwner, pierceDmg);
-          if(this._duelEnded) return;
-          await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
-        }
-      } else if(effATK === defVal){
-        this.addLog('Monster held its ground!');
-      } else {
-        this.addLog('Attack blocked! No damage.');
-      }
+      await this._resolveAttackVsDefense(attFC, defFC, atkOwner, defOwner, defZone, effATK, defVal);
+      if(this._duelEnded) return;
     }
   }
+
 
   async _destroyMonster(owner: Owner, zone: number, reason: string, byOwner: Owner){
     const st  = this.state[owner];
@@ -1355,8 +1387,8 @@ export class GameEngine {
   }
 
   async _triggerFlipSummonEffect(fc: FieldCard, owner: Owner, zone: number){
-    if(fc.hasFlipSummoned) return;
-    fc.hasFlipSummoned = true;
+    if(fc.turnState.hasFlipSummoned) return;
+    fc.turnState.hasFlipSummoned = true;
     const card = fc.card;
     const blocks = [...this._getEffectBlocks(card, 'onFlipSummon'), ...this._getEffectBlocks(card, 'onFlip')];
     if (blocks.length === 0) return;
@@ -1477,7 +1509,7 @@ export class GameEngine {
 
   _resetMonsterFlags(owner: Owner){
     this.state[owner].field.monsters.forEach(fc => {
-      if(fc){ fc.tempATKBonus = 0; fc.tempDEFBonus = 0; fc.hasAttacked = false; fc.summonedThisTurn = false; }
+      if(fc){ fc.tempATKBonus = 0; fc.tempDEFBonus = 0; fc.turnState.hasAttacked = false; fc.turnState.summonedThisTurn = false; }
     });
     this.state[owner].battleProtection = false;
   }
@@ -1523,7 +1555,7 @@ export class GameEngine {
         const freeZone = oppSt.field.monsters.findIndex(z => z === null);
         if(freeZone !== -1){
           fc.originalOwner = undefined;
-          fc.hasAttacked = true;
+          fc.turnState.hasAttacked = true;
           oppSt.field.monsters[freeZone] = fc;
         } else {
           oppSt.graveyard.push(fc.card);
@@ -1584,7 +1616,7 @@ export class GameEngine {
 
   changePosition(owner: Owner, zone: number){
     const fc = this.state[owner].field.monsters[zone];
-    if(!fc || fc.summonedThisTurn){ this.addLog('Cannot change position!'); return; }
+    if(!fc || fc.turnState.summonedThisTurn){ this.addLog('Cannot change position!'); return; }
     fc.position = fc.position === 'atk' ? 'def' : 'atk';
     // position change is free and unlimited — does not consume an action
     this.addLog(`${fc.card.name} switches to ${fc.position === 'atk' ? 'attack' : 'defense'} position.`);

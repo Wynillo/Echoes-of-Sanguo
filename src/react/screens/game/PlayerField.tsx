@@ -42,7 +42,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     const fc = player.field.monsters[zone];
     if (!fc) return false;
     if (!isMyTurn || phase !== 'battle') return false;
-    return !fc.hasAttacked && (fc.position === 'atk' || fc.faceDown);
+    return !fc.turnState.hasAttacked && (fc.position === 'atk' || fc.faceDown);
   }
 
   function isPlayerSpellTrapInteractive(zone: number) {
@@ -148,7 +148,7 @@ export function PlayerField({ showDirect, setShowDirect }: Props) {
     const game = gameRef.current;
     if (!game || !isMyTurn || phase !== 'battle') return;
     const fc = player.field.monsters[zone];
-    if (!fc || fc.hasAttacked || fc.position !== 'atk') return;
+    if (!fc || fc.turnState.hasAttacked || fc.position !== 'atk') return;
     resetSel();
     const oppHasMonsters = opp.field.monsters.some(m => m !== null);
     setSel({ mode: 'attack', attackerZone: zone, hint: t('game.hint_selected', { name: fc.card.name }) });

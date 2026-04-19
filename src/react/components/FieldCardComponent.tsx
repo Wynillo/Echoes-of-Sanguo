@@ -37,7 +37,7 @@ export function FieldCardComponent({
   } else {
     cls = `card field-card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'} pos-${fc.position}`;
   }
-  if (fc.hasAttacked && isPlayer) cls += ' exhausted';
+  if (fc.turnState.hasAttacked && isPlayer) cls += ' exhausted';
   if (selected)    cls += ' selected';
   if (interactive) cls += ' interactive';
   if (canAttack)   cls += ' can-attack';
