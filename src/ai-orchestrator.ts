@@ -727,6 +727,9 @@ function _findSmartFusionChain(
   return { indices: bestChain, resultName: bestName, resultATK: bestATK, fieldZone: bestFieldZone };
 }
 
+// Minimum ATK advantage required to replace an existing monster on the field
+const MIN_ATK_ADVANTAGE = 500;
+
 function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementATK: number): number {
   let weakestZone = -1;
   let weakestATK = Infinity;
@@ -735,8 +738,7 @@ function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementA
     const fc = monsters[z];
     if (!fc) continue;
     const atk = fc.effectiveATK();
-    // Only replace if the new monster is significantly stronger (at least 500 ATK more)
-    if (atk < weakestATK && replacementATK >= atk + 500) {
+    if (atk < weakestATK && replacementATK >= atk + MIN_ATK_ADVANTAGE) {
       weakestATK = atk;
       weakestZone = z;
     }
