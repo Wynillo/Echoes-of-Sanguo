@@ -171,7 +171,7 @@ export interface FusionFormula {
   resultPool: string[];  // Card IDs (string, post-loader conversion)
 }
 
-export type AISummonPriority   = 'highestATK' | 'highestDEF' | 'effectFirst' | 'lowestLevel';
+export type AISummonPriority   = 'highestAtk' | 'highestDef' | 'effectFirst' | 'lowestLevel';
 export type AIPositionStrategy = 'smart' | 'aggressive' | 'defensive';
 export type AIBattleStrategy   = 'smart' | 'aggressive' | 'conservative';
 
