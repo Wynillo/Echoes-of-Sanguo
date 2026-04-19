@@ -685,6 +685,9 @@ function _findSmartFusionChain(
   };
 }
 
+// Minimum ATK advantage required to replace an existing monster on the field
+const MIN_ATK_ADVANTAGE = 500;
+
 function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementATK: number): number {
   let weakestZone = -1;
   let weakestATK = Infinity;
@@ -695,7 +698,7 @@ function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementA
     const atk = fc.effectiveATK();
     // Only replace if the new monster is significantly stronger (500 ATK threshold)
     // 500 ATK represents ~15-25% improvement for typical 2000-3000 ATK monsters
-    if (atk < weakestATK && replacementATK >= atk + 500) {
+    if (atk < weakestATK && replacementATK >= atk + MIN_ATK_ADVANTAGE) {
       weakestATK = atk;
       weakestZone = z;
     }

@@ -4,14 +4,28 @@
 // rules.json inside a .tcg archive.
 // ============================================================
 
+/**
+ * Field dimension constants defining the game board layout.
+ * Standard Yu-Gi-Oh TCG uses 5 monster zones and 5 spell/trap zones.
+ * Speed Duel format uses 3 monster zones.
+ */
+export const FIELD_RULES = {
+  MONSTER_ZONES_PER_PLAYER: 5,
+  SPELL_TRAP_ZONES_PER_PLAYER: 5,
+  HAND_CARDS_INITIAL: 5,
+  DECK_MIN_MAIN: 40,
+  DECK_MAX_MAIN: 60,
+  DECK_MAX_EXTRA: 15,
+} as const;
+
 export const GAME_RULES = {
   /** Standard TCG format starting LP (8000 = traditional, 4000 = speed duel) */
   STARTING_LP: 8000,
   maxLP: 99999,
   handLimitDraw: 10,
   handLimitEnd: 8,
-  fieldZones: 5,
-  maxDeckSize: 40,
+  fieldZones: FIELD_RULES.MONSTER_ZONES_PER_PLAYER as number,
+  maxDeckSize: FIELD_RULES.DECK_MIN_MAIN as number,
   maxCardCopies: 3,
   drawPerTurn: 1,
   handRefillSize: 5,

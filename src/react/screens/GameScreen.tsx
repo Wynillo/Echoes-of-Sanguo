@@ -9,6 +9,7 @@ import { useHapticFeedback } from '../hooks/useHapticFeedback.js';
 import { cleanupAttackAnimations } from '../hooks/useAttackAnimation.js';
 import RaceIcon from '../components/RaceIcon.js';
 import { ControllerFocusOverlay } from '../components/ControllerFocusOverlay.js';
+import { FIELD_RULES } from '../../rules.js';
 
 import { OpponentField }   from './game/OpponentField.js';
 import { PlayerField }     from './game/PlayerField.js';
@@ -101,7 +102,7 @@ export default function GameScreen() {
       },
       onRB: () => {
         setControllerFocus(prev => {
-          if (prev && prev.type === 'hand' && prev.owner === 'player' && prev.zone < 5) {
+          if (prev && prev.type === 'hand' && prev.owner === 'player' && prev.zone < FIELD_RULES.HAND_CARDS_INITIAL) {
             return { ...prev, zone: prev.zone + 1 };
           }
           return prev;
@@ -113,31 +114,35 @@ export default function GameScreen() {
 
           const key = `${prev.type}-${prev.owner}`;
 
+          const maxMonsterZoneIndex = FIELD_RULES.MONSTER_ZONES_PER_PLAYER - 1;
+          
           if (prev.type === 'monster' && prev.owner === 'player') {
             if (direction === 'left' && prev.zone > 0) return { ...prev, zone: prev.zone - 1 };
-            if (direction === 'right' && prev.zone < 2) return { ...prev, zone: prev.zone + 1 };
+            if (direction === 'right' && prev.zone < maxMonsterZoneIndex) return { ...prev, zone: prev.zone + 1 };
             if (direction === 'up') return { type: 'monster', owner: 'opponent', zone: prev.zone };
             if (direction === 'down') return { type: 'spell', owner: 'player', zone: 0 };
           }
 
           if (prev.type === 'monster' && prev.owner === 'opponent') {
             if (direction === 'left' && prev.zone > 0) return { ...prev, zone: prev.zone - 1 };
-            if (direction === 'right' && prev.zone < 2) return { ...prev, zone: prev.zone + 1 };
+            if (direction === 'right' && prev.zone < maxMonsterZoneIndex) return { ...prev, zone: prev.zone + 1 };
             if (direction === 'up') return { type: 'spell', owner: 'opponent', zone: 0 };
             if (direction === 'down') return { type: 'monster', owner: 'player', zone: prev.zone };
           }
 
+          const maxSpellTrapZoneIndex = FIELD_RULES.SPELL_TRAP_ZONES_PER_PLAYER - 1;
+          
           if (prev.type === 'spell' && prev.owner === 'player') {
             if (direction === 'up' && prev.zone > 0) return { ...prev, zone: prev.zone - 1 };
             if (direction === 'up') return { type: 'monster', owner: 'player', zone: 0 };
-            if (direction === 'down' && prev.zone < 4) return { ...prev, zone: prev.zone + 1 };
+            if (direction === 'down' && prev.zone < maxSpellTrapZoneIndex) return { ...prev, zone: prev.zone + 1 };
             if (direction === 'down') return { type: 'grave', owner: 'player', zone: 0 };
             if (direction === 'left') return { type: 'grave', owner: 'player', zone: 0 };
             if (direction === 'right') return { type: 'field-spell', owner: 'player', zone: 0 };
           }
 
           if (prev.type === 'spell' && prev.owner === 'opponent') {
-            if (direction === 'up' && prev.zone < 4) return { ...prev, zone: prev.zone + 1 };
+            if (direction === 'up' && prev.zone < maxSpellTrapZoneIndex) return { ...prev, zone: prev.zone + 1 };
             if (direction === 'down' && prev.zone > 0) return { ...prev, zone: prev.zone - 1 };
             if (direction === 'up') return { type: 'field-spell', owner: 'opponent', zone: 0 };
             if (direction === 'down') return { type: 'monster', owner: 'opponent', zone: 0 };
@@ -145,10 +150,12 @@ export default function GameScreen() {
             if (direction === 'right') return { type: 'field-spell', owner: 'opponent', zone: 0 };
           }
 
+          const maxMonsterZoneIndexForHand = Math.min(2, FIELD_RULES.MONSTER_ZONES_PER_PLAYER - 1);
+          
           if (prev.type === 'hand' && prev.owner === 'player') {
             if (direction === 'left' && prev.zone > 0) return { ...prev, zone: prev.zone - 1 };
-            if (direction === 'right' && prev.zone < 5) return { ...prev, zone: prev.zone + 1 };
-            if (direction === 'up') return { type: 'monster', owner: 'player', zone: Math.min(prev.zone, 2) };
+            if (direction === 'right' && prev.zone < FIELD_RULES.HAND_CARDS_INITIAL) return { ...prev, zone: prev.zone + 1 };
+            if (direction === 'up') return { type: 'monster', owner: 'player', zone: Math.min(prev.zone, maxMonsterZoneIndexForHand) };
             if (direction === 'down') return { type: 'phase-btn', owner: 'player', zone: 0 };
           }
 
