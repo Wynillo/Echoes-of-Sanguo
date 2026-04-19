@@ -1,6 +1,7 @@
 import type { CollectionEntry, OpponentRecord } from './types.js';
 import type { CampaignProgress } from './campaign-types.js';
 import { getCurrency, addCurrency as _addCurrency, spendCurrency as _spendCurrency } from './currencies.js';
+import { ECONOMY, DEFAULT_CHAPTER } from './economy-config.js';
 import { secureLogger } from './secure-logger.js';
 
 export type SlotId = 1 | 2 | 3;
@@ -243,8 +244,8 @@ export const Progression = (() => {
         slot,
         empty,
         starterRace: empty ? null : (meta?.starterRace ?? localStorage.getItem(_slotKey(slot, SLOT_KEY_NAMES.starterRace)) ?? null),
-        coins: empty ? 0 : (meta?.coins ?? getCurrency(slot as SlotId, 'coins')),
-        currentChapter: empty ? 'ch1' : (meta?.currentChapter ?? 'ch1'),
+        coins: empty ? 0 : (meta?.coins ?? getCurrency(slot as SlotId, ECONOMY.CURRENCY_COINS)),
+        currentChapter: empty ? DEFAULT_CHAPTER : (meta?.currentChapter ?? DEFAULT_CHAPTER),
         lastSaved: empty ? null : (meta?.lastSaved ?? null),
       };
     });
@@ -323,7 +324,7 @@ export const Progression = (() => {
     const starterRace = localStorage.getItem(_slotKey(slot, SLOT_KEY_NAMES.starterRace)) ?? null;
     const coins = _load(_slotKey(slot, SLOT_KEY_NAMES.coins), 0);
     const progress = _load(_slotKey(slot, SLOT_KEY_NAMES.campaignProgress),
-      { completedNodes: [], currentChapter: 'ch1' },
+      { completedNodes: [], currentChapter: DEFAULT_CHAPTER },
       v => v !== null && typeof v === 'object' && Array.isArray((v as Record<string, unknown>).completedNodes));
     _save(GLOBAL_KEYS.slotMeta, {
       [slot]: {
@@ -414,17 +415,17 @@ export const Progression = (() => {
 
 function getCoins(): number {
   if (activeSlot === null) return 0;
-  return getCurrency(activeSlot, 'coins');
+  return getCurrency(activeSlot, ECONOMY.CURRENCY_COINS);
 }
 
 function addCoins(amount: number): number {
   if (activeSlot === null) return 0;
-  return _addCurrency(activeSlot, 'coins', amount);
+  return _addCurrency(activeSlot, ECONOMY.CURRENCY_COINS, amount);
 }
 
 function spendCoins(amount: number): boolean {
   if (activeSlot === null) return false;
-  return _spendCurrency(activeSlot, 'coins', amount);
+  return _spendCurrency(activeSlot, ECONOMY.CURRENCY_COINS, amount);
 }
 
   // ── Collection ───────────────────────────────────────────
@@ -637,7 +638,7 @@ function spendCoins(amount: number): boolean {
   }
 
   function getCampaignProgress(): CampaignProgress {
-    return _load(_key(SLOT_KEY_NAMES.campaignProgress), { completedNodes: [], currentChapter: 'ch1' },
+    return _load(_key(SLOT_KEY_NAMES.campaignProgress), { completedNodes: [], currentChapter: DEFAULT_CHAPTER },
       v => v !== null && typeof v === 'object' && Array.isArray((v as Record<string, unknown>).completedNodes));
   }
 

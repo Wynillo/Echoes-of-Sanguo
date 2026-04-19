@@ -63,10 +63,12 @@ export interface ShopData {
   backgrounds: Record<string, string>;
 }
 
+import { CURRENCY_IDS } from './economy-config.js';
+
 export const SHOP_DATA: ShopData = {
   backgrounds: {},
   packs: [],
-  currencies: [{ id: 'coins', nameKey: 'common.coins', icon: '\u25c8' }],
+  currencies: [{ id: CURRENCY_IDS.COINS, nameKey: 'common.coins', icon: '\u25c8' }],
 };
 
 export function applyShopData(data: Partial<ShopData>): void {

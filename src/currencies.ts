@@ -1,7 +1,5 @@
 import type { SlotId } from './progression.js';
-
-// Currency bounds to prevent overflow attacks
-const MAX_CURRENCY_AMOUNT = 999_999;
+import { MAX_CURRENCY_AMOUNT } from './economy-config.js';
 
 /**
  * Safely parse JSON string with prototype pollution protection.
