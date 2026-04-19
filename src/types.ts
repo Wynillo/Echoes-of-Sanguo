@@ -1,3 +1,33 @@
+/**
+ * Type Definition Conventions
+ * ===========================
+ *
+ * This file uses both `type` aliases and `interface` declarations following
+ * these conventions:
+ *
+ * **Use `type` for:**
+ * - Union types (e.g., `Owner`, `Phase`, `Position`)
+ * - Type aliases for primitives that come from external sources
+ *   (e.g., `Attribute`, `Race`, `Rarity` from TCG format)
+ * - Mapped types and type transformations (e.g., `EffectDescriptor`)
+ * - Re-exports of types from external libraries
+ *
+ * **Use `interface` for:**
+ * - Object shapes representing data structures (e.g., `CardData`, `GameState`)
+ * - When declaration merging or `extends` is needed
+ * - Context and configuration objects (e.g., `EffectContext`, `OpponentConfig`)
+ *
+ * **Special case: Attribute, Race, Rarity**
+ * These are defined as `type` aliases to `number` (not enums) because:
+ * 1. They originate from the TCG format library as numeric IDs
+ * 2. Type metadata (display names, colors, icons) is provided separately
+ *    via `type-metadata.ts` using the `TYPE_META` registry
+ * 3. This maintains compatibility with the external TCG format
+ *
+ * See: TypeScript Handbook - Interfaces vs Type Aliases
+ * https://www.typescriptlang.org/docs/handbook/2/everyday-types.html
+ */
+
 // Import effect types from TCG format library (single source of truth)
 import type {
   TcgTrapTrigger,
@@ -27,6 +57,11 @@ export enum CardType {
   Equipment = 5,
 }
 
+/**
+ * Primitive type aliases for TCG numeric IDs.
+ * These are not enums because they come from the external TCG format
+ * as plain numbers. Type metadata is provided via type-metadata.ts.
+ */
 export type Attribute = number;
 export type Race = number;
 export type Rarity = number;
