@@ -1019,31 +1019,31 @@ export function extractPassiveFlags(block: CardEffectBlock): {
   cannotBeTargeted: boolean;
   canDirectAttack: boolean;
   vsAttrBonus: { attr: Attribute; atk: number } | null;
-  phoenixRevival: boolean;
+  hasPhoenixRevival: boolean;
   indestructible: boolean;
-  effectImmune: boolean;
-  cantBeAttacked: boolean;
+  isEffectImmune: boolean;
+  cannotBeAttacked: boolean;
 } {
   const flags = {
     piercing: false,
     cannotBeTargeted: false,
     canDirectAttack: false,
     vsAttrBonus: null as { attr: Attribute; atk: number } | null,
-    phoenixRevival: false,
+    hasPhoenixRevival: false,
     indestructible: false,
-    effectImmune: false,
-    cantBeAttacked: false,
+    isEffectImmune: false,
+    cannotBeAttacked: false,
   };
   for (const action of block.actions) {
     switch (action.type) {
-      case 'passive_piercing':       flags.piercing = true; break;
-      case 'passive_untargetable':   flags.cannotBeTargeted = true; break;
-      case 'passive_directAttack':   flags.canDirectAttack = true; break;
-      case 'passive_vsAttrBonus':    flags.vsAttrBonus = { attr: action.attr, atk: action.atk }; break;
-      case 'passive_phoenixRevival': flags.phoenixRevival = true; break;
-      case 'passive_indestructible': flags.indestructible = true; break;
-      case 'passive_effectImmune':   flags.effectImmune = true; break;
-      case 'passive_cantBeAttacked': flags.cantBeAttacked = true; break;
+      case 'passive_piercing':         flags.piercing = true; break;
+      case 'passive_untargetable':     flags.cannotBeTargeted = true; break;
+      case 'passive_directAttack':     flags.canDirectAttack = true; break;
+      case 'passive_vsAttrBonus':      flags.vsAttrBonus = { attr: action.attr, atk: action.atk }; break;
+      case 'passive_phoenixRevival':   flags.hasPhoenixRevival = true; break;
+      case 'passive_indestructible':   flags.indestructible = true; break;
+      case 'passive_effectImmune':     flags.isEffectImmune = true; break;
+      case 'passive_cantBeAttacked':   flags.cannotBeAttacked = true; break;
     }
   }
   return flags;

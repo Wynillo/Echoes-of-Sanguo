@@ -284,7 +284,7 @@ export function findLethal(
 
   if (attackers.length === 0) return null;
 
-  const defenders: { zone: number; val: number; inAtk: boolean; cantBeAttacked: boolean }[] = [];
+  const defenders: { zone: number; val: number; inAtk: boolean; cannotBeAttacked: boolean }[] = [];
   for (let z = 0; z < plrMonsters.length; z++) {
     const fc = plrMonsters[z];
     if (!fc) continue;
@@ -292,11 +292,11 @@ export function findLethal(
       zone: z,
       val: aiCombatValue(fc),
       inAtk: fc.position === 'atk',
-      cantBeAttacked: fc.cantBeAttacked,
+      cannotBeAttacked: fc.cannotBeAttacked,
     });
   }
 
-  const attackableDefenders = defenders.filter(d => !d.cantBeAttacked);
+  const attackableDefenders = defenders.filter(d => !d.cannotBeAttacked);
 
   const directAttackers = attackers.filter(a => a.canDirect);
   if (attackableDefenders.length === 0) {
@@ -390,7 +390,7 @@ export function planAttacks(
   const defenders: { zone: number; fc: FieldCard }[] = [];
   for (let z = 0; z < plrMonsters.length; z++) {
     const fc = plrMonsters[z];
-    if (!fc || fc.cantBeAttacked) continue;
+    if (!fc || fc.cannotBeAttacked) continue;
     defenders.push({ zone: z, fc });
   }
 

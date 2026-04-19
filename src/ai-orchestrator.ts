@@ -556,7 +556,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     let bestTarget = -1, bestScore = -Infinity;
     for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
       const def = plrMonsters[dz];
-      if (!def || def.cantBeAttacked) continue;
+      if (!def || def.cannotBeAttacked) continue;
       const defVal = aiCombatValue(def);
       if (atk.effectiveATK() > defVal) {
         // Prefer destroying effect monsters and high-ATK threats
@@ -570,7 +570,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     let weakest = -1, weakVal = Infinity;
     for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
       const def = plrMonsters[dz];
-      if (!def || def.cantBeAttacked) continue;
+      if (!def || def.cannotBeAttacked) continue;
       const defVal = aiCombatValue(def);
       if (defVal < weakVal) { weakVal = defVal; weakest = dz; }
     }
@@ -580,7 +580,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
   let bestTarget = -1, bestScore = -Infinity;
   for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
     const def = plrMonsters[dz];
-    if (!def || def.cantBeAttacked) continue;
+    if (!def || def.cannotBeAttacked) continue;
     const defVal = aiCombatValue(def);
     if (atk.effectiveATK() > defVal) {
       let score = defVal;
@@ -601,7 +601,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
   let safeTarget = -1, safeScore = -Infinity;
   for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
     const def = plrMonsters[dz];
-    if (!def || def.cantBeAttacked || def.position !== 'def') continue;
+    if (!def || def.cannotBeAttacked || def.position !== 'def') continue;
     const defVal = aiEffectiveDEF(def);
     if (atk.effectiveATK() >= defVal) {
       let score = 1000 - defVal; // prefer weaker DEF (easier kill)

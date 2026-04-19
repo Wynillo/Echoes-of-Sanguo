@@ -18,10 +18,10 @@ export class FieldCard {
   piercing: boolean;
   cannotBeTargeted: boolean;
   canDirectAttack: boolean;
-  phoenixRevival: boolean;
+  hasPhoenixRevival: boolean;
   indestructible: boolean;
-  effectImmune: boolean;
-  cantBeAttacked: boolean;
+  isEffectImmune: boolean;
+  cannotBeAttacked: boolean;
   equippedCards: Array<{ zone: number; card: CardData }>;
   originalOwner?: Owner;
 
@@ -48,21 +48,21 @@ export class FieldCard {
     this.piercing = false;
     this.cannotBeTargeted = false;
     this.canDirectAttack  = false;
-    this.phoenixRevival  = false;
+    this.hasPhoenixRevival  = false;
     this.indestructible  = false;
-    this.effectImmune    = false;
-    this.cantBeAttacked  = false;
+    this.isEffectImmune    = false;
+    this.cannotBeAttacked  = false;
 
     const passiveBlocks = this._getPassiveBlocks();
     for (const block of passiveBlocks) {
       const flags = extractPassiveFlags(block);
-      if (flags.piercing)        this.piercing = true;
-      if (flags.cannotBeTargeted) this.cannotBeTargeted = true;
-      if (flags.canDirectAttack) this.canDirectAttack = true;
-      if (flags.phoenixRevival)  this.phoenixRevival = true;
-      if (flags.indestructible)  this.indestructible = true;
-      if (flags.effectImmune)    this.effectImmune = true;
-      if (flags.cantBeAttacked)  this.cantBeAttacked = true;
+      if (flags.piercing)           this.piercing = true;
+      if (flags.cannotBeTargeted)   this.cannotBeTargeted = true;
+      if (flags.canDirectAttack)    this.canDirectAttack = true;
+      if (flags.hasPhoenixRevival)  this.hasPhoenixRevival = true;
+      if (flags.indestructible)     this.indestructible = true;
+      if (flags.isEffectImmune)     this.isEffectImmune = true;
+      if (flags.cannotBeAttacked)   this.cannotBeAttacked = true;
     }
   }
 
