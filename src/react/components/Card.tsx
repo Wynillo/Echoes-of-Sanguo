@@ -42,7 +42,7 @@ function attrCssKey(attr: number | undefined): string {
   return getAttrById(attr)?.key ?? 'spell';
 }
 
-interface Props {
+interface CardProps {
   card: CardData;
   fc?: FieldCard | null;
   dimmed?: boolean;
@@ -52,7 +52,7 @@ interface Props {
   extraClass?: string;
 }
 
-export function Card({ card, fc = null, dimmed = false, rotated = false, big = false, small = false, extraClass = '' }: Props) {
+export function Card({ card, fc = null, dimmed = false, rotated = false, big = false, small = false, extraClass = '' }: CardProps) {
   const isMonLevelC = card.type === CardType.Monster || card.type === CardType.Fusion;
   const isEquipment = card.type === CardType.Equipment;
   const levelStars = isMonLevelC && card.level ? '\u2605'.repeat(Math.min(card.level, 12)) : '';

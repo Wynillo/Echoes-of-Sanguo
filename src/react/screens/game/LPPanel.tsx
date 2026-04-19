@@ -1,7 +1,7 @@
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber.js';
 import RaceIcon from '../../components/RaceIcon.js';
 
-interface Props {
+interface LPPanelProps {
   playerLp:    number;
   oppLp:       number;
   playerDeck:  number;
@@ -11,7 +11,7 @@ interface Props {
 const START_LP = 8000;
 function lpPct(lp: number) { return `${Math.max(0, Math.min(100, lp / START_LP * 100))}%`; }
 
-export function LPPanel({ playerLp, oppLp, playerDeck, oppDeck }: Props) {
+export function LPPanel({ playerLp, oppLp, playerDeck, oppDeck }: LPPanelProps) {
   const playerLpDisplay = useAnimatedNumber(playerLp);
   const oppLpDisplay    = useAnimatedNumber(oppLp);
 

@@ -4,7 +4,7 @@ import { Card, cardTypeCss } from './Card.js';
 import { CardType } from '../../types.js';
 import type { FieldSpellTrap } from '../../types.js';
 
-interface Props {
+interface FieldSpellTrapComponentProps {
   fst: FieldSpellTrap;
   owner: 'player' | 'opponent';
   zone: number;
@@ -15,7 +15,7 @@ interface Props {
 
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
 
-export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick, onDetail }: Props) {
+export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick, onDetail }: FieldSpellTrapComponentProps) {
   const { t } = useTranslation();
   const { card } = fst;
   const isPlayer = owner === 'player';
