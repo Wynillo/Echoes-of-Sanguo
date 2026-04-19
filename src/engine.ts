@@ -97,11 +97,11 @@ export class GameEngine {
     };
   }
 
-  async initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null){
-    EchoesOfSanguo.startSession();
-    this._initStats();
-    this._duelEnded = false;
-    let oppDeckIds = (opponentConfig && opponentConfig.deckIds) ? opponentConfig.deckIds : OPPONENT_DECK_IDS;
+  private _resolveOpponentConfig(
+    config: OpponentConfig | null
+  ): { deckIds: string[]; behaviorId: string; id: number | null } {
+    let oppDeckIds = (config && config.deckIds) ? config.deckIds : OPPONENT_DECK_IDS;
+    
     if (oppDeckIds.length > 0 && oppDeckIds.length < GAME_RULES.maxDeckSize) {
       const padded = [...oppDeckIds];
       while (padded.length < GAME_RULES.maxDeckSize) {
@@ -109,12 +109,20 @@ export class GameEngine {
       }
       oppDeckIds = padded;
     }
-    this._currentOpponentId = (opponentConfig && opponentConfig.id) ? opponentConfig.id : null;
-    this._aiBehavior = resolveAIBehavior(opponentConfig?.behaviorId);
+    
+    return {
+      deckIds: oppDeckIds,
+      behaviorId: config?.behaviorId ?? 'default',
+      id: (config && config.id) ? config.id : null,
+    };
+  }
 
-    const playerGoesFirst = Math.random() < 0.5;
-
-    this.state = {
+  private _initializeGameState(
+    playerDeckIds: string[],
+    opponentDeckIds: string[],
+    playerGoesFirst: boolean
+  ): GameState {
+    return {
       phase: 'main',
       turn: 1,
       activePlayer: playerGoesFirst ? 'player' : 'opponent',
@@ -128,7 +136,7 @@ export class GameEngine {
       },
       opponent: {
         lp: GAME_RULES.startingLP,
-        deck: this._shuffle(makeDeck(oppDeckIds)),
+        deck: this._shuffle(makeDeck(opponentDeckIds)),
         hand: [],
         field: { monsters: Array(GAME_RULES.fieldZones).fill(null), spellTraps: Array(GAME_RULES.fieldZones).fill(null), fieldSpell: null },
         graveyard: [],
@@ -138,9 +146,42 @@ export class GameEngine {
       firstTurnNoAttack: true,
       oneMoveActionUsed: false,
     } as GameState;
-    this.drawCard('player',   5);
+  }
+
+  private _performInitialDraws(): void {
+    this.drawCard('player', 5);
     this.drawCard('opponent', 5);
     this.addLog('=== Duel begins! ===');
+  }
+
+  private _handleAICrash(err: unknown): void {
+    EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
+    this.state.activePlayer = 'player';
+    this.state.phase = 'main';
+    this.state.turn++;
+    this.addLog(`[ERROR] Opponent AI crashed. Your turn (Round ${this.state.turn}).`);
+    this.refillHand('player');
+    this.ui.render(this.state);
+  }
+
+  private _scheduleOpponentTurn(delayMs: number = 600): void {
+    setTimeout(() => {
+      aiTurn(createEngineDependencies(this)).catch(err => this._handleAICrash(err));
+    }, delayMs);
+  }
+
+  async initGame(playerDeckIds: string[], opponentConfig: OpponentConfig | null){
+    EchoesOfSanguo.startSession();
+    this._initStats();
+    this._duelEnded = false;
+
+    const resolved = this._resolveOpponentConfig(opponentConfig);
+    this._currentOpponentId = resolved.id;
+    this._aiBehavior = resolveAIBehavior(resolved.behaviorId);
+
+    const playerGoesFirst = Math.random() < 0.5;
+    this.state = this._initializeGameState(playerDeckIds, resolved.deckIds, playerGoesFirst);
+    this._performInitialDraws();
 
     if(this.ui.showCoinToss) await this.ui.showCoinToss(playerGoesFirst);
 
@@ -152,17 +193,7 @@ export class GameEngine {
       this.addLog('Opponent goes first!');
       this.state.phase = 'draw';
       this.ui.render(this.state);
-      setTimeout(() => {
-        aiTurn(createEngineDependencies(this)).catch(err => {
-          EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
-          this.state.activePlayer = 'player';
-          this.state.phase = 'main';
-          this.state.turn++;
-          this.addLog(`[ERROR] Opponent AI crashed. Your turn (Round ${this.state.turn}).`);
-          this.refillHand('player');
-          this.ui.render(this.state);
-        });
-      }, 600);
+      this._scheduleOpponentTurn();
     }
   }
 
@@ -232,17 +263,7 @@ export class GameEngine {
     this.ui.render(this.state);
 
     if (this.state.activePlayer === 'opponent') {
-      setTimeout(() => {
-        aiTurn(createEngineDependencies(this)).catch(err => {
-          EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
-          this.state.activePlayer = 'player';
-          this.state.phase = 'main';
-          this.state.turn++;
-          this.addLog(`[ERROR] Opponent AI crashed. Your turn (Round ${this.state.turn}).`);
-          this.refillHand('player');
-          this.ui.render(this.state);
-        });
-      }, 600);
+      this._scheduleOpponentTurn();
     }
   }
 
