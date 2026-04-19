@@ -61,7 +61,7 @@ describe('Crafting', () => {
 
   describe('buildCraftedCard', () => {
     it('should combine base card stats with effect source effects', () => {
-      registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
+      registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 }); // Rarity.RARE
       
       const record = { id: '100000000', baseId: 'monster_001', effectSourceId: 'effect_monster_001' };
       const card = buildCraftedCard(record);
@@ -89,7 +89,7 @@ describe('Crafting', () => {
     it('should fail when player does not own base card', () => {
       applyRules({ craftingEnabled: true });
       cardCountSpy.mockReturnValue(0);
-      registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
+      registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 }); // Rarity.RARE
       
       const result = craftEffectMonster('monster_001', 'effect_monster_001');
       expect(result.success).toBe(false);
@@ -106,7 +106,9 @@ describe('Crafting', () => {
 
     it('should succeed with valid inputs and free crafting', () => {
       applyRules({ craftingEnabled: true, craftingCost: 0 });
-      registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
+      cardCountSpy.mockReturnValue(1);
+      effectItemCountSpy.mockReturnValue(1);
+      registerEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 }); // Rarity.RARE
       cardCountSpy.mockReturnValue(1);
       effectItemCountSpy.mockReturnValue(1);
       
