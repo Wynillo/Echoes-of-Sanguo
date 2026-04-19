@@ -9,6 +9,7 @@ import { useHapticFeedback } from '../hooks/useHapticFeedback.js';
 import { cleanupAttackAnimations } from '../hooks/useAttackAnimation.js';
 import RaceIcon from '../components/RaceIcon.js';
 import { ControllerFocusOverlay } from '../components/ControllerFocusOverlay.js';
+import { Phase } from '../../types.js';
 
 import { OpponentField }   from './game/OpponentField.js';
 import { PlayerField }     from './game/PlayerField.js';

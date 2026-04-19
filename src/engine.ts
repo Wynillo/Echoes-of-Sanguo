@@ -1,6 +1,6 @@
 import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, resolveFusionChain } from './cards.js';
 import { executeEffectBlock, matchesFilter, EffectExecutionError, MAX_EFFECT_STEPS } from './effect-registry.js';
-import { CardType } from './types.js';
+import { CardType, getOpponent } from './types.js';
 import { meetsEquipRequirement } from './types.js';
 import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
 import { TriggerBus } from './trigger-bus.js';
@@ -598,7 +598,7 @@ export class GameEngine {
       await this._autoActivateOpponentTraps('onOpponentSpell');
     }
     if(card.effect) {
-      const spellOpp = owner === 'player' ? 'opponent' : 'player';
+      const spellOpp = getOpponent(owner);
       if (this.state[spellOpp].fieldFlags?.negateSpells) {
         this.addLog(`${card.name}'s effect was negated!`);
       } else {
@@ -657,7 +657,7 @@ export class GameEngine {
 
     if (this._chainDepth < GameEngine.MAX_CHAIN_DEPTH) {
       this._chainDepth++;
-      const counterOwner = owner === 'player' ? 'opponent' : 'player';
+      const counterOwner = getOpponent(owner);
       let counterResult: EffectSignal | null = null;
       if (counterOwner === 'player') {
         counterResult = await this._promptPlayerTraps('onOpponentTrap', ...args);
@@ -1024,7 +1024,7 @@ export class GameEngine {
   async attack(attackerOwner: Owner, attackerZone: number, defenderZone: number){
     if(this.hasPreventAttacks(attackerOwner)){ this.addLog('Attacks are prevented!'); return; }
     const atkSt  = this.state[attackerOwner];
-    const defOwn = attackerOwner === 'player' ? 'opponent' : 'player';
+    const defOwn = getOpponent(attackerOwner);
     const defSt  = this.state[defOwn];
 
     const attFC = atkSt.field.monsters[attackerZone];
@@ -1097,7 +1097,7 @@ export class GameEngine {
 
   async attackDirect(attackerOwner: Owner, attackerZone: number){
     if(this.hasPreventAttacks(attackerOwner)){ this.addLog('Attacks are prevented!'); return; }
-    const defOwn  = attackerOwner === 'player' ? 'opponent' : 'player';
+    const defOwn = getOpponent(attackerOwner);
     const defMons = this.state[defOwn].field.monsters;
     const attFC   = this.state[attackerOwner].field.monsters[attackerZone];
     if(!attFC) return;
@@ -1306,7 +1306,7 @@ export class GameEngine {
 
   async _triggerEffect(fc: FieldCard, owner: Owner, trigger: string, zone: number | null){
     const card = fc.card;
-    const oppSide = owner === 'player' ? 'opponent' : 'player';
+    const oppSide = getOpponent(owner);
     if (trigger !== 'passive' && this.state[oppSide].fieldFlags?.negateMonsterEffects) {
       return;
     }
@@ -1467,7 +1467,7 @@ export class GameEngine {
       this._returnSpiritMonsters(this.state.activePlayer);
       this._tickTurnCounters(this.state.activePlayer);
       this.state[this.state.activePlayer].normalSummonUsed = false;
-      const opp = this.state.activePlayer === 'player' ? 'opponent' : 'player';
+      const opp = getOpponent(this.state.activePlayer);
       this.state[opp].normalSummonUsed = false;
       const hand = this.state[this.state.activePlayer].hand;
       while(hand.length > GAME_RULES.handLimitEnd){ hand.shift(); }
@@ -1515,7 +1515,7 @@ export class GameEngine {
 
   _returnTempStolenMonsters(owner: Owner){
     const st = this.state[owner];
-    const opp = owner === 'player' ? 'opponent' : 'player' as Owner;
+    const opp = getOpponent(owner);
     for(let i = 0; i < st.field.monsters.length; i++){
       const fc = st.field.monsters[i];
       if(fc && fc.originalOwner && fc.originalOwner !== owner){

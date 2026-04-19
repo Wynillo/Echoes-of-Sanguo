@@ -27,10 +27,14 @@ const output = `// eos-engine.d.ts — Auto-generated type definitions for Echoe
 // Generated: ${new Date().toISOString().slice(0, 10)}
 
 declare global {
-  // ── Primitive Unions ──────────────────────────────────────────
-  type Owner        = 'player' | 'opponent';
-  type Phase        = 'draw' | 'main' | 'battle' | 'end';
-  type Position     = 'atk' | 'def';
+  // ── Branded Type Infrastructure ────────────────────────────────
+  declare const __brand: unique symbol;
+  type Brand<T, B> = T & { [__brand]: B };
+  
+  // ── Domain Types (branded for type safety) ────────────────────
+  type Owner        = Brand<'player' | 'opponent', 'Owner'>;
+  type Phase        = Brand<'draw' | 'main' | 'battle', 'Phase'>;
+  type Position     = Brand<'atk' | 'def', 'Position'>;
   type TrapTrigger  = 'onAttack' | 'onOwnMonsterAttacked' | 'onOpponentSummon' | 'manual';
   type EffectTrigger= 'onSummon' | 'onDestroyByBattle' | 'onDestroyByOpponent' | 'passive' | 'onFlipSummon';
   type SpellType    = 'normal' | 'targeted' | 'fromGrave' | 'field';

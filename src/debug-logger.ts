@@ -7,8 +7,9 @@
 // Each category has its own color; errors always show regardless of flag.
 //
 import type { Owner } from './types.js';
+import { Owner as OwnerFactory } from './types.js';
 
-export const ownerLabel = (owner: Owner): string => owner === 'player' ? 'Player' : 'Opponent';
+export const ownerLabel = (owner: Owner): string => owner === OwnerFactory.PLAYER ? 'Player' : 'Opponent';
 
 export const EchoesOfSanguo = {
   debug: false,
