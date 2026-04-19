@@ -1141,10 +1141,9 @@ export class GameEngine {
     this.ui.render(this.state);
   }
 
-  async _resolveBattle(atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number, attFC: FieldCard, defFC: FieldCard){
-    const atkVal = attFC.effectiveATK();
 
-    if(defFC.faceDown){
+  private async _handleFlipReveal(defFC: FieldCard, defOwner: Owner, defZone: number): Promise<boolean> {
+    if (defFC.faceDown) {
       defFC.faceDown = false;
       this.addLog(`${defFC.card.name} is revealed!`);
       await this._triggerFlipSummonEffect(defFC, defOwner, defZone);
@@ -1160,23 +1159,21 @@ export class GameEngine {
             this.state[defOwner].field.monsters[defZone] = null;
             this._removeEquipmentForMonster(defOwner, defZone);
             this.ui.render(this.state);
-            return;
+            return false;
           }
         }
       }
       await this._checkAnySummonTraps(defOwner, defZone);
       this.ui.render(this.state);
     }
+    return true;
+  }
 
-    const defVal = defFC.combatValue();
-    const modeStr= defFC.position === 'atk' ? 'ATK' : 'DEF';
+  async _resolveBattle(atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number, attFC: FieldCard, defFC: FieldCard){
+    const shouldContinue = await this._handleFlipReveal(defFC, defOwner, defZone);
+    if (!shouldContinue) return;
 
-    // passive: vsAttrBonus (e.g. Heiliger Krieger +500 ATK vs DARK)
-    let atkBonus = 0;
-    if(attFC.vsAttrBonus && defFC.card.attribute === attFC.vsAttrBonus.attr)
-      atkBonus = attFC.vsAttrBonus.atk;
-
-    const effATK = atkVal + atkBonus;
+    const { effATK, defVal, modeStr } = this._calculateCombatValues(attFC, defFC, atkVal);
 
     this.addLog(`${attFC.card.name} (ATK ${effATK}) vs ${defFC.card.name} (${modeStr} ${defVal})`);
 
@@ -1186,47 +1183,70 @@ export class GameEngine {
     }
 
     if(defFC.position === 'atk'){
-      if(effATK > defVal){
-        const dmg = effATK - defVal;
-        this.addLog(`${defFC.card.name} destroyed! Opponent: -${dmg} LP`);
-        await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
-        this.dealDamage(defOwner, dmg);
-        if(this._duelEnded) return;
-        await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
-        TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
-        await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
-      } else if(effATK === defVal){
-        this.addLog('Tie! Both monsters destroyed!');
-        await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
-        await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
-      } else {
-        const dmg = defVal - effATK;
-        this.addLog(`${attFC.card.name} destroyed! Player: -${dmg} LP`);
-        await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
-        this.dealDamage(atkOwner, dmg);
-        if(this._duelEnded) return;
-        await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
-        TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
-        await this._triggerEffect(defFC, defOwner, 'onDestroyByBattle', null);
-        TriggerBus.emit('onDestroyByBattle', { engine: this, owner: defOwner, card: defFC.card, fieldCard: defFC });
-      }
+      await this._resolveAttackVsAttack(attFC, defFC, atkOwner, defOwner, atkZone, defZone, effATK, defVal);
+      if(this._duelEnded) return;
     } else {
-      if(effATK > defVal){
-        this.addLog(`${defFC.card.name} (DEF) destroyed!`);
-        await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
-        if(attFC.piercing){
-          const pierceDmg = effATK - defVal;
-          this.addLog(`Piercing attack! -${pierceDmg} LP`);
-          this.dealDamage(defOwner, pierceDmg);
-          if(this._duelEnded) return;
-          await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
-        }
-      } else if(effATK === defVal){
-        this.addLog('Monster held its ground!');
-      } else {
-        this.addLog('Attack blocked! No damage.');
-      }
+      await this._resolveAttackVsDefense(attFC, defFC, atkOwner, defOwner, defZone, effATK, defVal);
+      if(this._duelEnded) return;
     }
+  }
+
+  private async _resolveAttackVsAttack(attFC: FieldCard, defFC: FieldCard, atkOwner: Owner, defOwner: Owner, atkZone: number, defZone: number, effATK: number, defVal: number): Promise<void> {
+    if(effATK > defVal){
+      const dmg = effATK - defVal;
+      this.addLog(`${defFC.card.name} destroyed! Opponent: -${dmg} LP`);
+      await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
+      this.dealDamage(defOwner, dmg);
+      if(this._duelEnded) return;
+      await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
+      TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
+      await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
+    } else if(effATK === defVal){
+      this.addLog('Tie! Both monsters destroyed!');
+      await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
+      await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
+    } else {
+      const dmg = defVal - effATK;
+      this.addLog(`${attFC.card.name} destroyed! Player: -${dmg} LP`);
+      await this._destroyMonster(atkOwner, atkZone, 'battle', defOwner);
+      this.dealDamage(atkOwner, dmg);
+      if(this._duelEnded) return;
+      await this._triggerEffect(attFC, atkOwner, 'onDestroyByBattle', null);
+      TriggerBus.emit('onDestroyByBattle', { engine: this, owner: atkOwner, card: attFC.card, fieldCard: attFC });
+      await this._triggerEffect(defFC, defOwner, 'onDestroyByBattle', null);
+      TriggerBus.emit('onDestroyByBattle', { engine: this, owner: defOwner, card: defFC.card, fieldCard: defFC });
+    }
+  }
+
+  private async _resolveAttackVsDefense(attFC: FieldCard, defFC: FieldCard, atkOwner: Owner, defOwner: Owner, defZone: number, effATK: number, defVal: number): Promise<void>{
+    if(effATK > defVal){
+      this.addLog(`${defFC.card.name} (DEF) destroyed!`);
+      await this._destroyMonster(defOwner, defZone, 'battle', atkOwner);
+      if(attFC.piercing){
+        const pierceDmg = effATK - defVal;
+        this.addLog(`Piercing attack! -${pierceDmg} LP`);
+        this.dealDamage(defOwner, pierceDmg);
+        if(this._duelEnded) return;
+        await this._triggerEffect(attFC, atkOwner, 'onDealBattleDamage', null);
+      }
+    } else if(effATK === defVal){
+      this.addLog('Monster held its ground!');
+    } else {
+      this.addLog('Attack blocked! No damage.');
+    }
+  }
+
+  private _calculateCombatValues(attFC: FieldCard, defFC: FieldCard, atkVal: number): { effATK: number, defVal: number, modeStr: string }{
+    const defVal = defFC.combatValue();
+    const modeStr= defFC.position === 'atk' ? 'ATK' : 'DEF';
+
+    let atkBonus = 0;
+    if(attFC.vsAttrBonus && defFC.card.attribute === attFC.vsAttrBonus.attr)
+      atkBonus = attFC.vsAttrBonus.atk;
+
+    const effATK = atkVal + atkBonus;
+
+    return { effATK, defVal, modeStr };
   }
 
   async _destroyMonster(owner: Owner, zone: number, reason: string, byOwner: Owner){
