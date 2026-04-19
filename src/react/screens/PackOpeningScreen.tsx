@@ -7,6 +7,7 @@ import { getRarityById } from '../../type-metadata.js';
 import { Card } from '../components/Card.js';
 import { Audio }        from '../../audio.js';
 import { CardType } from '../../types.js';
+import { ANIMATION_TIMING } from '../../constants.js';
 import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
 import RaceIcon from '../components/RaceIcon.js';
@@ -89,7 +90,7 @@ function spawnRevealFX(container: HTMLElement, rarity: number) {
     el.style.animationDelay = `${Math.random() * 0.15}s`;
     container.appendChild(el);
     el.addEventListener('animationend', () => el.remove(), { once: true });
-    setTimeout(() => { if (el.parentNode) el.remove(); }, 1200);
+    setTimeout(() => { if (el.parentNode) el.remove(); }, ANIMATION_TIMING.PACK_SPARKLE_REMOVE_MS);
   }
 
   for (let i = 0; i < cfg.beams; i++) {
@@ -100,7 +101,7 @@ function spawnRevealFX(container: HTMLElement, rarity: number) {
     beam.style.animationDelay = `${i * 0.08}s`;
     container.appendChild(beam);
     beam.addEventListener('animationend', () => beam.remove(), { once: true });
-    setTimeout(() => { if (beam.parentNode) beam.remove(); }, 1500);
+    setTimeout(() => { if (beam.parentNode) beam.remove(); }, ANIMATION_TIMING.PACK_BEAM_REMOVE_MS);
   }
 
   const burst = document.createElement('div');
@@ -108,7 +109,7 @@ function spawnRevealFX(container: HTMLElement, rarity: number) {
   burst.style.setProperty('--sparkle-color', cfg.color);
   container.appendChild(burst);
   burst.addEventListener('animationend', () => burst.remove(), { once: true });
-  setTimeout(() => { if (burst.parentNode) burst.remove(); }, 1000);
+  setTimeout(() => { if (burst.parentNode) burst.remove(); }, ANIMATION_TIMING.PACK_BURST_REMOVE_MS);
 }
 
 function getBgClass(rarity: number): string {

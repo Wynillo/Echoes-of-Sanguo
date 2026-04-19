@@ -5,6 +5,7 @@ import { useProgression } from '../contexts/ProgressionContext.js';
 import { useModal }       from '../contexts/ModalContext.js';
 import { useGamepadContext } from '../contexts/GamepadContext.js';
 import { Progression }    from '../../progression.js';
+import { ANIMATION_TIMING } from '../../constants.js';
 import RaceIcon from '../components/RaceIcon.js';
 import styles from './SavePointScreen.module.css';
 
@@ -25,7 +26,7 @@ export default function SavePointScreen() {
     Progression.clearBackup();
     setIsSaving(true);
     setSavedMsg(true);
-    setTimeout(() => { setSavedMsg(false); setIsSaving(false); }, 2000);
+    setTimeout(() => { setSavedMsg(false); setIsSaving(false); }, ANIMATION_TIMING.SAVE_CONFIRMATION_MS);
   }
 
   function handleToMainMenu() {

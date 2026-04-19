@@ -1,5 +1,6 @@
 import { gsap } from 'gsap';
 import { onSkip, pushAnim, popAnim } from '../components/animSkipSignal.js';
+import { ANIMATION_TIMING } from '../../constants.js';
 
 // ── Shared helpers ──
 
@@ -31,7 +32,7 @@ function spawnBurst(x: number, y: number) {
   burst.style.top = y + 'px';
   document.body.appendChild(burst);
   burst.addEventListener('animationend', () => burst.remove(), { once: true });
-  setTimeout(() => { if (burst.parentNode) burst.remove(); }, 1200);
+  setTimeout(() => { if (burst.parentNode) burst.remove(); }, ANIMATION_TIMING.FUSION_BURST_MS);
 }
 
 function spawnSparksAt(x: number, y: number) {
@@ -43,7 +44,7 @@ function spawnSparksAt(x: number, y: number) {
     spark.style.setProperty('--fusion-angle', `${(i / 10) * 360}deg`);
     document.body.appendChild(spark);
     spark.addEventListener('animationend', () => spark.remove(), { once: true });
-    setTimeout(() => { if (spark.parentNode) spark.remove(); }, 1000);
+    setTimeout(() => { if (spark.parentNode) spark.remove(); }, ANIMATION_TIMING.FUSION_SPARK_MS);
   }
 }
 
