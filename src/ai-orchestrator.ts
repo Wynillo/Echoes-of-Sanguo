@@ -245,14 +245,14 @@ async function aiMainPhase(deps: AIDependencies): Promise<void> {
 
   EchoesOfSanguo.log('AI', 'Considering summon:', ai.hand.filter(c => c.type === CardType.Monster).map(c => `${c.name}(${c.atk})`));
   if(!ai.normalSummonUsed){
-    let bestIdx = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
-      ? pickSmartSummonCandidate(ai.hand, {
-          aiField: ai.field.monsters,
-          playerField: plr.field.monsters,
-          playerLP: plr.lp,
-          aiLP: ai.lp,
-        })
-      : pickSummonCandidate(ai.hand, bh.summonPriority);
+  let bestIdx = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
+    ? pickSmartSummonCandidate(ai.hand, {
+      aiField: ai.field.monsters,
+      playerField: plr.field.monsters,
+      playerLp: plr.lp,
+      aiLp: ai.lp,
+    })
+    : pickSummonCandidate(ai.hand, bh.summonPriority);
 
     if (bh.holdFusionPiece && bestIdx !== -1 && ai.field.monsters.some(Boolean)) {
       const candidate = ai.hand[bestIdx];
