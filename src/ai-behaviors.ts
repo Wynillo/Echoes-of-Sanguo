@@ -1,4 +1,4 @@
-import type { AIBehavior, AISpellRule, CardData, PlayerState } from './types.js';
+import type { AIBehavior, AISpellRule, CardData, PlayerState, Owner } from './types.js';
 import { CardType, meetsEquipRequirement } from './types.js';
 import type { FieldCard } from './field.js';
 
@@ -499,66 +499,49 @@ export function pickEquipTarget(
   defBonus: number,
   equipCard?: CardData,
 ): number {
-  const oppMaxVal = oppMonsters
-    .filter((fc): fc is FieldCard => fc !== null)
-    .reduce((max, fc) => Math.max(max, fc.combatValue()), 0);
+  const oppMaxVal = getMaxMonsterValue(oppMonsters, 'combatValue');
 
-  let bestZone = -1;
-  let bestScore = -Infinity;
+  const result = findBestFieldTarget(ownMonsters, 'effectiveATK', ({ card }) => {
+    if (equipCard && !meetsEquipRequirement(equipCard, card.card)) {
+      return -Infinity;
+    }
 
-  for (let z = 0; z < ownMonsters.length; z++) {
-    const fc = ownMonsters[z];
-    if (!fc || fc.faceDown) continue;
-    if (equipCard && !meetsEquipRequirement(equipCard, fc.card)) continue;
-
-    const curATK = fc.effectiveATK();
-    const boostedATK = curATK + atkBonus;
     let score = 0;
+    const curATK = card.effectiveATK();
+    const boostedATK = curATK + atkBonus;
 
     if (curATK <= oppMaxVal && boostedATK > oppMaxVal) {
       score += AI_SCORE.EQUIP_UNLOCK_KILL;
     }
 
     score += curATK * 0.3;
+    if (!card.hasAttacked && card.position === 'atk') score += 500;
+    if (card.position === 'def' && defBonus > 0) score += 300;
 
-    if (!fc.hasAttacked && fc.position === 'atk') score += 500;
+    return score;
+  }, { oppMonsters, ownMonsters });
 
-    if (fc.position === 'def' && defBonus > 0) score += 300;
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestZone = z;
-    }
-  }
-  return bestZone;
+  return result?.zone ?? -1;
 }
 
 export function pickDebuffTarget(
   oppMonsters: Array<FieldCard | null>,
-  atkDebuff: number,
+  _atkDebuff: number,
   equipCard?: CardData,
 ): number {
-  let bestZone = -1;
-  let bestScore = -Infinity;
-
-  for (let z = 0; z < oppMonsters.length; z++) {
-    const fc = oppMonsters[z];
-    if (!fc || fc.faceDown) continue;
-    if (equipCard && !meetsEquipRequirement(equipCard, fc.card)) continue;
+  const result = findBestFieldTarget(oppMonsters, 'effectiveATK', ({ card }) => {
+    if (equipCard && !meetsEquipRequirement(equipCard, card.card)) {
+      return -Infinity;
+    }
 
     let score = 0;
-    const curATK = fc.effectiveATK();
+    score += card.effectiveATK();
+    if (card.card.effect) score += 500;
 
-    score += curATK;
+    return score;
+  }, { oppMonsters, ownMonsters: [] });
 
-    if (fc.card.effect) score += 500;
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestZone = z;
-    }
-  }
-  return bestZone;
+  return result?.zone ?? -1;
 }
 
 export function pickBestGraveyardMonster(
@@ -580,10 +563,7 @@ export function pickBestGraveyardMonster(
     let score = atk;
 
     if (atk > oppMaxATK && oppMaxATK > 0) score += AI_SCORE.REVIVE_BEATS_STRONGEST;
-
     if (card.effect) score += 500;
-
-    // Fusion monsters tend to be stronger and were expensive to create
     if (card.type === CardType.Fusion) score += 300;
 
     if (score > bestScore) {
@@ -593,31 +573,79 @@ export function pickBestGraveyardMonster(
   }
   return best;
 }
+  }
+  return best;
+}
 
 export function pickSpellBuffTarget(
   ownMonsters: Array<FieldCard | null>,
   oppMonsters: Array<FieldCard | null>,
 ): FieldCard | null {
-  const oppMaxATK = oppMonsters
-    .filter((fc): fc is FieldCard => fc !== null)
-    .reduce((max, fc) => Math.max(max, fc.effectiveATK()), 0);
+  const oppMaxATK = getMaxMonsterValue(oppMonsters, 'effectiveATK');
 
-  let best: FieldCard | null = null;
+  const result = findBestFieldTarget(ownMonsters, 'effectiveATK', ({ card }) => {
+    let score = card.effectiveATK();
+    if (!card.hasAttacked && card.position === 'atk') score += 500;
+    const diff = oppMaxATK - card.effectiveATK();
+    if (diff > 0 && diff < AI_SCORE.BUFF_KILL_THRESHOLD) score += AI_SCORE.BUFF_UNLOCK_KILL;
+    return score;
+  });
+
+  return result?.card ?? null;
+}
+
+interface FieldTargetCandidate<T = FieldCard> {
+  card: T | null;
+  zone: number;
+}
+
+interface TargetScoreContext {
+  card: FieldCard;
+  zone: number;
+  side: Owner;
+  oppMonsters: Array<FieldCard | null>;
+  ownMonsters: Array<FieldCard | null>;
+}
+
+type TargetScorer = (ctx: TargetScoreContext) => number;
+
+function findBestFieldTarget<TFieldCard extends FieldCard = FieldCard>(
+  candidates: Array<TFieldCard | null>,
+  valueProp: keyof Pick<TFieldCard, 'effectiveATK' | 'effectiveDEF' | 'combatValue'>,
+  scorer: (ctx: TargetScoreContext) => number,
+  context?: Partial<Omit<TargetScoreContext, 'card' | 'zone'>>,
+): { card: TFieldCard; zone: number; score: number } | null {
+  let bestIndex = -1;
   let bestScore = -Infinity;
 
-  for (const fc of ownMonsters) {
-    if (!fc || fc.faceDown) continue;
-    let score = fc.effectiveATK();
+  for (let i = 0; i < candidates.length; i++) {
+    const card = candidates[i];
+    if (!card || card.faceDown) continue;
 
-    if (!fc.hasAttacked && fc.position === 'atk') score += 500;
-
-    const diff = oppMaxATK - fc.effectiveATK();
-    if (diff > 0 && diff < AI_SCORE.BUFF_KILL_THRESHOLD) score += AI_SCORE.BUFF_UNLOCK_KILL;
+    const score = scorer({
+      card,
+      zone: i,
+      side: context?.side ?? 'opponent',
+      oppMonsters: context?.oppMonsters ?? [],
+      ownMonsters: context?.ownMonsters ?? [],
+    });
 
     if (score > bestScore) {
       bestScore = score;
-      best = fc;
+      bestIndex = i;
     }
   }
-  return best;
+
+  return bestIndex !== -1 && candidates[bestIndex]
+    ? { card: candidates[bestIndex]!, zone: bestIndex, score: bestScore }
+    : null;
+}
+
+function getMaxMonsterValue(
+  monsters: Array<FieldCard | null>,
+  valueProp: keyof Pick<FieldCard, 'effectiveATK' | 'effectiveDEF' | 'combatValue'>,
+): number {
+  return monsters
+    .filter((fc): fc is FieldCard => fc !== null)
+    .reduce((max, fc) => Math.max(max, fc[valueProp]()), 0);
 }
