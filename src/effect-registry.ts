@@ -63,8 +63,8 @@ function resolveValue(expr: ValueExpr, ctx: PureEffectCtx): number {
     const raw = ctx.attacker.effectiveATK() * expr.multiply;
     return expr.round === 'floor' ? Math.floor(raw) : Math.ceil(raw);
   }
-  if (expr.from === 'summoned.atk' && ctx.summonedFC) {
-    const raw = (ctx.summonedFC.card.atk ?? 0) * expr.multiply;
+  if (expr.from === 'summoned.atk' && ctx.summoned) {
+    const raw = (ctx.summoned.card.atk ?? 0) * expr.multiply;
     return expr.round === 'floor' ? Math.floor(raw) : Math.ceil(raw);
   }
   return 0;
@@ -78,9 +78,9 @@ function resolveTarget(target: 'opponent' | 'self', owner: Owner): Owner {
 function resolveStatTarget(target: StatTarget, ctx: PureEffectCtx): FieldCard | null {
   if (target === 'attacker')    return ctx.attacker ?? null;
   if (target === 'defender')    return ctx.defender ?? null;
-  if (target === 'summonedFC')  return ctx.summonedFC ?? null;
-  if (target === 'ownMonster')  return ctx.targetFC ?? null;
-  if (target === 'oppMonster')  return ctx.targetFC ?? null;
+  if (target === 'summonedFC')  return ctx.summoned ?? null;
+  if (target === 'ownMonster')  return ctx.target ?? null;
+  if (target === 'oppMonster')  return ctx.target ?? null;
   return null;
 }
 
@@ -523,8 +523,8 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   destroySummonedIf(desc: { minAtk: number }, ctx: PureEffectCtx) {
-    if (ctx.summonedFC && ctx.summonedFC.card.atk !== undefined && ctx.summonedFC.card.atk >= desc.minAtk) {
-      ctx.log(`Trap! ${ctx.summonedFC.card.name} is destroyed!`);
+    if (ctx.summoned && ctx.summoned.card.atk !== undefined && ctx.summoned.card.atk >= desc.minAtk) {
+      ctx.log(`Trap! ${ctx.summoned.card.name} is destroyed!`);
       return { destroySummoned: true };
     }
     return {};
@@ -748,11 +748,11 @@ const IMPL: Record<string, InternalImpl> = {
   },
 
   setFaceDown(_desc: unknown, ctx: PureEffectCtx) {
-    if (!ctx.targetFC) return {};
-    ctx.targetFC.faceDown = true;
-    ctx.targetFC.position = 'def';
-    ctx.targetFC.hasFlipSummoned = false;
-    ctx.log(`${ctx.targetFC.card.name} was set face-down!`);
+    if (!ctx.target) return {};
+    ctx.target.faceDown = true;
+    ctx.target.position = 'def';
+    ctx.target.hasFlipSummoned = false;
+    ctx.log(`${ctx.target.card.name} was set face-down!`);
     return {};
   },
 
@@ -883,11 +883,11 @@ export function makePureCtx(ctx: EffectContext): PureEffectCtx {
   return {
     state,
     owner:      ctx.owner,
-    targetFC:   ctx.targetFC,
+    target:     ctx.target,
     targetCard: ctx.targetCard,
     attacker:   ctx.attacker,
     defender:   ctx.defender,
-    summonedFC: ctx.summonedFC,
+    summoned:   ctx.summoned,
     log:               (msg) => engine.addLog(msg),
     damage:            (owner, amount) => engine.dealDamage(owner, amount),
     heal:              (owner, amount) => engine.gainLP(owner, amount),
