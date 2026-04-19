@@ -279,32 +279,46 @@ export interface BridgeLoadResult {
   warnings: string[];
 }
 
-export async function loadAndApplyTcg(
-  source: string | ArrayBuffer,
-  options?: { lang?: string; onProgress?: (percent: number) => void },
-): Promise<BridgeLoadResult> {
-  // Resolve source to ArrayBuffer so we can extract locale files from the ZIP
-  let buffer: ArrayBuffer;
+async function resolveToBuffer(source: string | ArrayBuffer): Promise<ArrayBuffer> {
   if (typeof source === 'string') {
     const res = await fetch(source);
     if (!res.ok) throw new TcgNetworkError(source, res.status);
-    buffer = await res.arrayBuffer();
-  } else {
-    buffer = source;
+    return await res.arrayBuffer();
   }
+  return source;
+}
 
+async function extractAuxiliaryData(buffer: ArrayBuffer): Promise<void> {
   await Promise.all([
     extractLocalesFromZip(buffer),
     extractExtraDataFromZip(buffer),
   ]);
+}
 
-  const lang = options?.lang ?? (typeof navigator !== 'undefined' ? navigator.language.substring(0, 2) : '');
-  const result = await loadTcgFile(buffer, { lang, onProgress: options?.onProgress });
-  const mod: LoadedMod = {
-    source: typeof source === 'string' ? source : '<ArrayBuffer>',
-    cardIds: [], opponentIds: [], timestamp: Date.now(),
-    manifest: result.manifest,
-  };
+async function extractOpponentsFromZip(buffer: ArrayBuffer, result: TcgLoadResult): Promise<void> {
+  console.warn('[tcg-bridge] loadTcgFile returned no opponents, attempting manual extraction...');
+  try {
+    const zip = await JSZip.loadAsync(buffer);
+    const oppFile = zip.file('opponents.json');
+    if (oppFile) {
+      const rawOpponents = JSON.parse(await oppFile.async('string')) as TcgOpponentDeck[];
+      result.opponents = rawOpponents;
+      console.log('[tcg-bridge] Successfully extracted opponents.json manually');
+    }
+  } catch (e) {
+    console.error('[tcg-bridge] Failed to manually extract opponents:', e);
+  }
+}
+
+async function processTcgData(
+  result: TcgLoadResult,
+  buffer: ArrayBuffer,
+  lang: string,
+  mod: LoadedMod,
+): Promise<void> {
+  if (!result.opponents || result.opponents.length === 0) {
+    await extractOpponentsFromZip(buffer, result);
+  }
 
   // Convert TcgParsedCard[] → CardData[] with collision detection
   for (let i = 0; i < result.parsedCards.length; i++) {
@@ -320,14 +334,12 @@ export async function loadAndApplyTcg(
     mod.cardIds.push(id);
   }
 
-  // Apply game-specific side effects with TCG format type conversion
   if (result.typeMeta?.races)      applyTypeMeta({ races: result.typeMeta.races.map(r => ({ ...r, value: r.value ?? r.key })) });
   if (result.typeMeta?.attributes) applyTypeMeta({ attributes: result.typeMeta.attributes.map(a => ({ ...a, value: a.value ?? a.key })) });
   if (result.typeMeta?.cardTypes)  applyTypeMeta({ cardTypes: result.typeMeta.cardTypes.map(c => ({ ...c, value: c.value ?? c.key })) });
   if (result.typeMeta?.rarities)   applyTypeMeta({ rarities: result.typeMeta.rarities.map(r => ({ ...r, value: r.value ?? r.key })) });
   if (result.rules)                applyRules(result.rules);
   if (result.shopData) {
-    // Convert shop background ArrayBuffers to blob URLs before applying
     if (result.rawShopBackgrounds) {
       const resolvedBgs: Record<string, string> = {};
       for (const [key, buf] of result.rawShopBackgrounds) {
@@ -339,7 +351,6 @@ export async function loadAndApplyTcg(
   }
   if (result.campaignData) applyCampaignData(result.campaignData as unknown as CampaignData);
 
-  // Pick the best opponent description locale
   const oppDescs = result.opponentDescriptions?.get(lang)
     ?? (result.opponentDescriptions?.size ? result.opponentDescriptions.values().next().value! : undefined);
 
@@ -348,16 +359,39 @@ export async function loadAndApplyTcg(
     mod.opponentIds.push(...opponentIds);
   }
   if (result.fusionFormulas) applyFusionFormulas(result.fusionFormulas, result.warnings);
+}
 
-  loadedMods.push(mod);
-  currentManifest = result.manifest ?? null;
-
+function formatResult(result: TcgLoadResult): BridgeLoadResult {
   return {
     cards: result.cards,
     parsedCards: result.parsedCards,
     manifest: result.manifest,
     warnings: result.warnings,
   };
+}
+
+export async function loadAndApplyTcg(
+  source: string | ArrayBuffer,
+  options?: { lang?: string; onProgress?: (percent: number) => void },
+): Promise<BridgeLoadResult> {
+  const buffer = await resolveToBuffer(source);
+  await extractAuxiliaryData(buffer);
+
+  const lang = options?.lang ?? (typeof navigator !== 'undefined' ? navigator.language.substring(0, 2) : '');
+  const result = await loadTcgFile(buffer, { lang, onProgress: options?.onProgress });
+
+  const mod: LoadedMod = {
+    source: typeof source === 'string' ? source : '<ArrayBuffer>',
+    cardIds: [], opponentIds: [], timestamp: Date.now(),
+    manifest: result.manifest,
+  };
+
+  await processTcgData(result, buffer, lang, mod);
+
+  loadedMods.push(mod);
+  currentManifest = result.manifest ?? null;
+
+  return formatResult(result);
 }
 
 /**
