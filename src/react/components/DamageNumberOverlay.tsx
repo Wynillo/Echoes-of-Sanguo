@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { setDamageNumberDispatch } from './damageNumberApi.js';
+import { ANIMATION_TIMING } from '../../constants.js';
 import type { Owner } from '../../types.js';
 
 export function DamageNumberOverlay() {
@@ -22,7 +23,7 @@ export function DamageNumberOverlay() {
 
     const cleanup = () => { if (el.parentNode) el.remove(); };
     el.addEventListener('animationend', cleanup, { once: true });
-    setTimeout(cleanup, 1500);
+    setTimeout(cleanup, ANIMATION_TIMING.DAMAGE_NUMBER_MS);
   }, []);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModal } from '../contexts/ModalContext.js';
+import { ANIMATION_TIMING } from '../../constants.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 
 interface Props { modal: Extract<ModalState, { type: 'coin-toss' }>; }
@@ -12,7 +13,7 @@ export function CoinTossModal({ modal }: Props) {
   const [flipping, setFlipping] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setFlipping(false), 1500);
+    const timer = setTimeout(() => setFlipping(false), ANIMATION_TIMING.COIN_FLIP_MS);
     return () => clearTimeout(timer);
   }, []);
 

@@ -14,6 +14,7 @@ import type { CardData }   from '../../types.js';
 import RaceIcon from '../components/RaceIcon.js';
 import styles from './DeckbuilderScreen.module.css';
 import { GAME_RULES } from '../../rules.js';
+import { ANIMATION_TIMING } from '../../constants.js';
 import { GiCrossedSwords, GiShield } from 'react-icons/gi';
 
 const MAX_DECK = GAME_RULES.maxDeckSize;
@@ -217,16 +218,16 @@ export default function DeckbuilderScreen() {
         type: 'confirm',
         message: t('deckbuilder.confirm_overwrite', 'Overwrite current deck?'),
         onConfirm: () => {
-          Progression.saveDeck(currentDeck);
-          setToast(true);
-          setTimeout(() => setToast(false), 2000);
-        },
+      Progression.saveDeck(currentDeck);
+      setToast(true);
+      setTimeout(() => setToast(false), ANIMATION_TIMING.TOAST_DISMISS_MS);
+    },
       });
       return;
     }
     Progression.saveDeck(currentDeck);
     setToast(true);
-    setTimeout(() => setToast(false), 2000);
+    setTimeout(() => setToast(false), ANIMATION_TIMING.TOAST_DISMISS_MS);
   }
 
 

@@ -11,9 +11,10 @@ import { getRarityById, getCardTypeById } from '../../type-metadata.js';
 import type { DuelStats } from '../../types.js';
 import type { BattleBadges } from '../../battle-badges.js';
 import styles from './DuelResultScreen.module.css';
+import { ANIMATION_TIMING } from '../../constants.js';
 
 const PARTICLE_COUNT = 22;
-const ANIM_LOCK_MS = 3600;
+const ANIM_LOCK_MS = ANIMATION_TIMING.DUEL_RESULT_ANIM_MS;
 
 interface Rewards {
   coins?: number;

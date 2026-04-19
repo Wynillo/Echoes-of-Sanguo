@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ANIMATION_TIMING } from '../../constants.js';
 
 export function ControllerToast() {
   const { t } = useTranslation();
@@ -9,11 +10,11 @@ export function ControllerToast() {
     let timer: number;
     const onConnect = (e: GamepadEvent) => {
       setToast('connected');
-      timer = window.setTimeout(() => setToast(null), 3000);
+      timer = window.setTimeout(() => setToast(null), ANIMATION_TIMING.CONTROLLER_TOAST_MS);
     };
     const onDisconnect = () => {
       setToast('disconnected');
-      timer = window.setTimeout(() => setToast(null), 3000);
+      timer = window.setTimeout(() => setToast(null), ANIMATION_TIMING.CONTROLLER_TOAST_MS);
     };
     window.addEventListener('gamepadconnected', onConnect);
     window.addEventListener('gamepaddisconnected', onDisconnect);

@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from '../i18n.js';
 import { Progression } from '../progression.js';
+import { ANIMATION_TIMING } from '../constants.js';
 import { ScreenProvider, useScreen } from './contexts/ScreenContext.js';
 import { ProgressionProvider } from './contexts/ProgressionContext.js';
 import { CampaignProvider } from './contexts/CampaignContext.js';
@@ -41,7 +42,7 @@ function SaveErrorToast() {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   useEffect(() => {
-    function onError() { setVisible(true); setTimeout(() => setVisible(false), 4000); }
+    function onError() { setVisible(true); setTimeout(() => setVisible(false), ANIMATION_TIMING.ERROR_BANNER_MS); }
     window.addEventListener('eos:save-error', onError);
     return () => window.removeEventListener('eos:save-error', onError);
   }, []);
