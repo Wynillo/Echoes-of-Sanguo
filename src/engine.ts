@@ -1229,31 +1229,42 @@ export class GameEngine {
     }
   }
 
-  async _destroyMonster(owner: Owner, zone: number, reason: string, byOwner: Owner){
-    const st  = this.state[owner];
-    const fc  = st.field.monsters[zone];
-    if(!fc) return;
-    if(fc.indestructible && reason === 'battle'){
-      this.addLog(`${fc.card.name} is indestructible!`);
-      return;
-    }
-    this.ui.playSfx?.('sfx_destroy');
+  async _performMonsterDestruction(
+    owner: Owner,
+    zone: number,
+    fc: FieldCard,
+    options: {
+      playSfx?: boolean;
+      triggerSentToGrave?: boolean;
+      recalcFlags?: boolean;
+      checkPhoenix?: boolean;
+      logMessage?: string;
+    } = {}
+  ): Promise<void> {
+    const {
+      playSfx = true,
+      triggerSentToGrave = true,
+      recalcFlags = true,
+      checkPhoenix = false,
+      logMessage,
+    } = options;
+    const st = this.state[owner];
 
-    // Shadow Reaper / onDestroyByBattle for defender
-    if(reason === 'battle' && byOwner !== owner){
-      await this._triggerEffect(fc, owner, 'onDestroyByOpponent', zone);
-      TriggerBus.emit('onDestroyByOpponent', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
-    }
+    if (logMessage) this.addLog(logMessage);
+    if (playSfx) this.ui.playSfx?.('sfx_destroy');
 
     st.graveyard.push(fc.card);
     st.field.monsters[zone] = null;
     this._removeEquipmentForMonster(owner, zone);
     this.ui.render(this.state);
 
-    await this._triggerSentToGrave(fc.card, owner);
-    this._recalcFieldFlags();
-
-    if (fc.phoenixRevival && !fc.phoenixRevivalUsed) {
+    if (triggerSentToGrave) {
+      await this._triggerSentToGrave(fc.card, owner);
+    }
+    if (recalcFlags) {
+      this._recalcFieldFlags();
+    }
+    if (checkPhoenix && fc.phoenixRevival && !fc.phoenixRevivalUsed) {
       this.addLog(`${fc.card.name} rises from the graveyard!`);
       const revived = await this.specialSummonFromGrave(owner, fc.card);
       if (revived) {
@@ -1263,15 +1274,31 @@ export class GameEngine {
     }
   }
 
+  async _destroyMonster(owner: Owner, zone: number, reason: string, byOwner: Owner){
+    const st  = this.state[owner];
+    const fc  = st.field.monsters[zone];
+    if(!fc) return;
+    if(fc.indestructible && reason === 'battle'){
+      this.addLog(`${fc.card.name} is indestructible!`);
+      return;
+    }
+
+    // Shadow Reaper / onDestroyByBattle for defender
+    if(reason === 'battle' && byOwner !== owner){
+      await this._triggerEffect(fc, owner, 'onDestroyByOpponent', zone);
+      TriggerBus.emit('onDestroyByOpponent', { engine: this, owner, card: fc.card, fieldCard: fc, zone });
+    }
+
+    await this._performMonsterDestruction(owner, zone, fc, {
+      checkPhoenix: true,
+    });
+  }
+
   async _destroyMonsterBySignal(owner: Owner, zone: number, fc: FieldCard): Promise<void> {
-    const st = this.state[owner];
-    this.addLog(`${fc.card.name} was destroyed by trap!`);
-    this.ui.playSfx?.('sfx_destroy');
-    st.graveyard.push(fc.card);
-    st.field.monsters[zone] = null;
-    this._removeEquipmentForMonster(owner, zone);
-    await this._triggerSentToGrave(fc.card, owner);
-    this._recalcFieldFlags();
+    await this._performMonsterDestruction(owner, zone, fc, {
+      logMessage: `${fc.card.name} was destroyed by trap!`,
+      checkPhoenix: true,
+    });
   }
 
   _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): EffectContext {
