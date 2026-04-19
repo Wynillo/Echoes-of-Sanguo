@@ -65,8 +65,15 @@ export function isEquipmentType(type: CardType): boolean {
   return type === CardType.Equipment;
 }
 
+/**
+ * Effect context for card effect handlers.
+ * All effects receive the same capabilities at runtime - no need to choose between
+ * "pure" vs "chain" contexts. This simplifies the API for modders and effect authors.
+ * 
+ * For internal engine usage where direct GameEngine access is needed, use InternalEffectContext.
+ */
 export interface EffectContext {
-  engine:       GameEngine;
+  state:        GameState;
   owner:        Owner;
   targetFC?:    FieldCard;   // targeted FieldCard (targeted spells/traps)
   targetCard?:  CardData;    // targeted CardData (fromGrave spells)
@@ -74,16 +81,8 @@ export interface EffectContext {
   defender?:    FieldCard;
   summonedFC?:  FieldCard;   // FieldCard just summoned (onOpponentSummon traps)
   abortSignal?: AbortSignal; // for timeout/step-limit cancellation
-}
-
-export interface PureEffectCtx {
-  state:        GameState;
-  owner:        Owner;
-  targetFC?:    FieldCard;
-  targetCard?:  CardData;
-  attacker?:    FieldCard;
-  defender?:    FieldCard;
-  summonedFC?:  FieldCard;
+  
+  // Helper methods
   log(msg: string): void;
   damage(owner: Owner, amount: number): void;
   heal(owner: Owner, amount: number): void;
@@ -91,9 +90,8 @@ export interface PureEffectCtx {
   removeEquipment(owner: Owner, zone: number): void;
   removeFieldSpell(owner: Owner): void;
   vfx?(type: 'buff' | 'heal' | 'damage', owner?: Owner, zone?: number): void;
-}
-
-export interface ChainEffectCtx extends PureEffectCtx {
+  
+  // Summon/search methods (always available, even if effect doesn't use them)
   summon(
     owner: Owner,
     card: CardData,
@@ -105,6 +103,22 @@ export interface ChainEffectCtx extends PureEffectCtx {
   removeFromHand(owner: Owner, index: number): CardData;
   removeFromDeck(owner: Owner, index: number): CardData;
   selectFromDeck(cards: CardData[]): Promise<CardData | null>;
+}
+
+/**
+ * Internal effect context for engine-level operations.
+ * Has direct GameEngine access for core engine functions.
+ * Not used by effect handlers - they use EffectContext above.
+ */
+export interface InternalEffectContext {
+  engine:       GameEngine;
+  owner:        Owner;
+  targetFC?:    FieldCard;
+  targetCard?:  CardData;
+  attacker?:    FieldCard;
+  defender?:    FieldCard;
+  summonedFC?:  FieldCard;
+  abortSignal?: AbortSignal;
 }
 
 export interface EffectSignal {

@@ -1,9 +1,8 @@
 import {
   Attribute, CardType,
   type CardData, type CardFilter,
-  type EffectDescriptor, type EffectContext, type EffectSignal, type CardEffectBlock,
+  type EffectDescriptor, type EffectContext, type InternalEffectContext, type EffectSignal, type CardEffectBlock,
   type ValueExpr, type StatTarget, type Owner, type FieldCard,
-  type PureEffectCtx, type ChainEffectCtx,
 } from './types.js';
 import { EchoesOfSanguo } from './debug-logger.js';
 
@@ -57,7 +56,7 @@ function oppOf(owner: Owner): Owner {
   return owner === 'player' ? 'opponent' : 'player';
 }
 
-function resolveValue(expr: ValueExpr, ctx: PureEffectCtx): number {
+function resolveValue(expr: ValueExpr, ctx: EffectContext): number {
   if (typeof expr === 'number') return expr;
   if (expr.from === 'attacker.effectiveATK' && ctx.attacker) {
     const raw = ctx.attacker.effectiveATK() * expr.multiply;
@@ -75,7 +74,7 @@ function resolveTarget(target: 'opponent' | 'self', owner: Owner): Owner {
   return oppOf(owner);
 }
 
-function resolveStatTarget(target: StatTarget, ctx: PureEffectCtx): FieldCard | null {
+function resolveStatTarget(target: StatTarget, ctx: EffectContext): FieldCard | null {
   if (target === 'attacker')    return ctx.attacker ?? null;
   if (target === 'defender')    return ctx.defender ?? null;
   if (target === 'summonedFC')  return ctx.summonedFC ?? null;
@@ -91,7 +90,7 @@ function shuffleArray<T>(arr: T[]): void {
   }
 }
 
-function _triggerBuffVFX(fc: FieldCard, ctx: PureEffectCtx): void {
+function _triggerBuffVFX(fc: FieldCard, ctx: EffectContext): void {
   if (!ctx.vfx) return;
   for (const side of ['player', 'opponent'] as Owner[]) {
     const zone = ctx.state[side].field.monsters.indexOf(fc);
@@ -119,15 +118,12 @@ function findMonsterByATK(
   return idx;
 }
 
-export type EffectImpl = (desc: EffectDescriptor, ctx: EffectContext) => EffectSignal;
-// Internal type — all handlers receive ChainEffectCtx from the dispatcher at runtime.
-// A-handlers declare ctx: PureEffectCtx (supertype → valid via contravariance).
-// B/A+B handlers declare ctx: ChainEffectCtx (same type → valid directly).
-type InternalImpl = (desc: any, ctx: ChainEffectCtx) => EffectSignal | Promise<EffectSignal>;
+export type EffectImpl = (desc: any, ctx: EffectContext) => EffectSignal | Promise<EffectSignal>;
+type InternalImpl = EffectImpl;
 
 const IMPL: Record<string, InternalImpl> = {
 
-  dealDamage(desc: { target: 'opponent' | 'self'; value: ValueExpr }, ctx: PureEffectCtx) {
+  dealDamage(desc: { target: 'opponent' | 'self'; value: ValueExpr }, ctx: EffectContext) {
     const amount = resolveValue(desc.value, ctx);
     const target = resolveTarget(desc.target, ctx.owner);
     ctx.vfx?.('damage', target);
@@ -135,19 +131,19 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  gainLP(desc: { target: 'opponent' | 'self'; value: number | ValueExpr }, ctx: PureEffectCtx) {
+  gainLP(desc: { target: 'opponent' | 'self'; value: number | ValueExpr }, ctx: EffectContext) {
     const amount = resolveValue(desc.value as ValueExpr, ctx);
     const target = resolveTarget(desc.target, ctx.owner);
     ctx.heal(target, amount);
     return {};
   },
 
-  draw(desc: { target: 'self' | 'opponent'; count: number }, ctx: PureEffectCtx) {
+  draw(desc: { target: 'self' | 'opponent'; count: number }, ctx: EffectContext) {
     ctx.draw(resolveTarget(desc.target, ctx.owner), desc.count);
     return {};
   },
 
-  buffField(desc: { value: number; filter?: CardFilter }, ctx: PureEffectCtx) {
+  buffField(desc: { value: number; filter?: CardFilter }, ctx: EffectContext) {
     const monsters = filterFieldMonsters(ctx.state[ctx.owner].field.monsters, desc.filter);
     for (const fm of monsters) {
       fm.permATKBonus = (fm.permATKBonus || 0) + desc.value;
@@ -158,7 +154,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  tempBuffField(desc: { value: number; filter?: CardFilter }, ctx: PureEffectCtx) {
+  tempBuffField(desc: { value: number; filter?: CardFilter }, ctx: EffectContext) {
     const monsters = filterFieldMonsters(ctx.state[ctx.owner].field.monsters, desc.filter);
     for (const fm of monsters) {
       fm.tempATKBonus = (fm.tempATKBonus || 0) + desc.value;
@@ -169,7 +165,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  debuffField(desc: { atkD: number; defD: number }, ctx: PureEffectCtx) {
+  debuffField(desc: { atkD: number; defD: number }, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     ctx.state[opp].field.monsters.forEach(fm => {
       if (!fm) return;
@@ -179,7 +175,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  tempDebuffField(desc: { atkD: number; defD?: number }, ctx: PureEffectCtx) {
+  tempDebuffField(desc: { atkD: number; defD?: number }, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const defD = desc.defD ?? desc.atkD;
     ctx.state[opp].field.monsters.forEach(fm => {
@@ -190,7 +186,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  bounceStrongestOpp(_desc: unknown, ctx: PureEffectCtx) {
+  bounceStrongestOpp(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const strongest = findMonsterByATK(monsters, 'strongest', { excludeUntargetable: true });
@@ -204,7 +200,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  bounceAttacker(_desc: unknown, ctx: PureEffectCtx) {
+  bounceAttacker(_desc: unknown, ctx: EffectContext) {
     if (!ctx.attacker) return {};
     const opp = oppOf(ctx.owner);
     ctx.state[opp].hand.push(ctx.attacker.card);
@@ -214,7 +210,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  bounceAllOppMonsters(_desc: unknown, ctx: PureEffectCtx) {
+  bounceAllOppMonsters(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     for (let i = 0; i < monsters.length; i++) {
@@ -227,7 +223,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async searchDeckToHand(desc: { filter: CardFilter }, ctx: ChainEffectCtx) {
+  async searchDeckToHand(desc: { filter: CardFilter }, ctx: EffectContext) {
     const deck = ctx.state[ctx.owner].deck;
     const matches = deck.filter(c => matchesFilter(c, desc.filter));
     if (matches.length === 0) return {};
@@ -246,7 +242,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  tempAtkBonus(desc: { target: StatTarget; value: number }, ctx: PureEffectCtx) {
+  tempAtkBonus(desc: { target: StatTarget; value: number }, ctx: EffectContext) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       fc.tempATKBonus = (fc.tempATKBonus || 0) + desc.value;
@@ -256,7 +252,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  permAtkBonus(desc: { target: StatTarget; value: number; filter?: CardFilter }, ctx: PureEffectCtx) {
+  permAtkBonus(desc: { target: StatTarget; value: number; filter?: CardFilter }, ctx: EffectContext) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (!fc) return {};
     if (desc.filter && !matchesFilter(fc.card, desc.filter)) return {};
@@ -266,7 +262,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  tempDefBonus(desc: { target: StatTarget; value: number }, ctx: PureEffectCtx) {
+  tempDefBonus(desc: { target: StatTarget; value: number }, ctx: EffectContext) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       fc.tempDEFBonus = (fc.tempDEFBonus || 0) + desc.value;
@@ -275,7 +271,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  permDefBonus(desc: { target: StatTarget; value: number }, ctx: PureEffectCtx) {
+  permDefBonus(desc: { target: StatTarget; value: number }, ctx: EffectContext) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       fc.permDEFBonus = (fc.permDEFBonus || 0) + desc.value;
@@ -284,24 +280,24 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async reviveFromGrave(_desc: unknown, ctx: ChainEffectCtx) {
+  async reviveFromGrave(_desc: unknown, ctx: EffectContext) {
     if (ctx.targetCard) await ctx.summonFromGrave(ctx.owner, ctx.targetCard);
     return {};
   },
 
-  cancelAttack(_desc: unknown, _ctx: PureEffectCtx) {
+  cancelAttack(_desc: unknown, _ctx: EffectContext) {
     return { cancelAttack: true };
   },
 
-  cancelEffect(_desc: unknown, _ctx: PureEffectCtx) {
+  cancelEffect(_desc: unknown, _ctx: EffectContext) {
     return { cancelEffect: true };
   },
 
-  reflectBattleDamage(_desc: unknown, _ctx: PureEffectCtx) {
+  reflectBattleDamage(_desc: unknown, _ctx: EffectContext) {
     return { cancelAttack: true, reflectDamage: true };
   },
 
-  stealMonster(_desc: unknown, ctx: PureEffectCtx) {
+  stealMonster(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const oppMonsters = ctx.state[opp].field.monsters;
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
@@ -319,14 +315,14 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  skipOppDraw(_desc: unknown, ctx: PureEffectCtx) {
+  skipOppDraw(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     ctx.state.skipNextDraw = opp;
     ctx.log(`${opp === 'player' ? 'You' : 'Opponent'} will skip the next Draw Phase!`);
     return {};
   },
 
-  destroyAndDamageBoth(desc: { side: 'opponent' | 'self' }, ctx: PureEffectCtx) {
+  destroyAndDamageBoth(desc: { side: 'opponent' | 'self' }, ctx: EffectContext) {
     const targetOwner = desc.side === 'opponent' ? oppOf(ctx.owner) : ctx.owner;
     const monsters = ctx.state[targetOwner].field.monsters;
     const idx = findMonsterByATK(monsters, 'strongest', {});
@@ -342,34 +338,34 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  preventBattleDamage(_desc: unknown, ctx: PureEffectCtx) {
+  preventBattleDamage(_desc: unknown, ctx: EffectContext) {
     ctx.state[ctx.owner].battleProtection = true;
     ctx.log('Battle damage and destruction prevented this turn!');
     return { cancelAttack: true };
   },
 
-  passive_negateTraps(_desc: unknown, ctx: PureEffectCtx) {
+  passive_negateTraps(_desc: unknown, ctx: EffectContext) {
     if (!ctx.state[ctx.owner].fieldFlags) ctx.state[ctx.owner].fieldFlags = {};
     ctx.state[ctx.owner].fieldFlags!.negateTraps = true;
     ctx.log('All Trap effects are negated!');
     return {};
   },
 
-  passive_negateSpells(_desc: unknown, ctx: PureEffectCtx) {
+  passive_negateSpells(_desc: unknown, ctx: EffectContext) {
     if (!ctx.state[ctx.owner].fieldFlags) ctx.state[ctx.owner].fieldFlags = {};
     ctx.state[ctx.owner].fieldFlags!.negateSpells = true;
     ctx.log('All Spell effects are negated!');
     return {};
   },
 
-  passive_negateMonsterEffects(_desc: unknown, ctx: PureEffectCtx) {
+  passive_negateMonsterEffects(_desc: unknown, ctx: EffectContext) {
     if (!ctx.state[ctx.owner].fieldFlags) ctx.state[ctx.owner].fieldFlags = {};
     ctx.state[ctx.owner].fieldFlags!.negateMonsterEffects = true;
     ctx.log('All monster effects are negated!');
     return {};
   },
 
-  stealMonsterTemp(_desc: unknown, ctx: PureEffectCtx) {
+  stealMonsterTemp(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const oppMonsters = ctx.state[opp].field.monsters;
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
@@ -387,7 +383,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async reviveFromEitherGrave(_desc: unknown, ctx: ChainEffectCtx) {
+  async reviveFromEitherGrave(_desc: unknown, ctx: EffectContext) {
     const ownGY = ctx.state[ctx.owner].graveyard;
     const oppGY = ctx.state[oppOf(ctx.owner)].graveyard;
     let bestCard: CardData | null = null;
@@ -404,7 +400,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  drawThenDiscard(desc: { drawCount: number; discardCount: number }, ctx: PureEffectCtx) {
+  drawThenDiscard(desc: { drawCount: number; discardCount: number }, ctx: EffectContext) {
     ctx.draw(ctx.owner, desc.drawCount);
     const hand = ctx.state[ctx.owner].hand;
     const toDiscard = Math.min(desc.discardCount, hand.length);
@@ -417,7 +413,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  bounceOppHandToDeck(desc: { count: number }, ctx: PureEffectCtx) {
+  bounceOppHandToDeck(desc: { count: number }, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const hand = ctx.state[opp].hand;
     const toReturn = Math.min(desc.count, hand.length);
@@ -430,11 +426,11 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  tributeSelf(_desc: unknown, _ctx: PureEffectCtx) {
+  tributeSelf(_desc: unknown, _ctx: EffectContext) {
     return {};
   },
 
-  preventAttacks(desc: { turns: number }, ctx: PureEffectCtx) {
+  preventAttacks(desc: { turns: number }, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     if (!ctx.state[opp].turnCounters) ctx.state[opp].turnCounters = [];
     ctx.state[opp].turnCounters!.push({ turnsRemaining: desc.turns, effect: 'preventAttacks' });
@@ -442,7 +438,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async createTokens(desc: { tokenId: string; count: number; position: string }, ctx: ChainEffectCtx) {
+  async createTokens(desc: { tokenId: string; count: number; position: string }, ctx: EffectContext) {
     const pos = (desc.position ?? 'def') as 'atk' | 'def';
     for (let i = 0; i < desc.count; i++) {
       const tokenCard: CardData = {
@@ -459,7 +455,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  gameReset(_desc: unknown, ctx: PureEffectCtx) {
+  gameReset(_desc: unknown, ctx: EffectContext) {
     for (const side of ['player', 'opponent'] as Owner[]) {
       const ps = ctx.state[side];
       const allCards: CardData[] = [...ps.hand, ...ps.graveyard];
@@ -486,7 +482,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async excavateAndSummon(desc: { count: number; maxLevel: number }, ctx: ChainEffectCtx) {
+  async excavateAndSummon(desc: { count: number; maxLevel: number }, ctx: EffectContext) {
     for (const side of ['player', 'opponent'] as Owner[]) {
       const ps = ctx.state[side];
       const excavated: CardData[] = [];
@@ -505,7 +501,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  discardEntireHand(desc: { target: 'self' | 'opponent' | 'both' }, ctx: PureEffectCtx) {
+  discardEntireHand(desc: { target: 'self' | 'opponent' | 'both' }, ctx: EffectContext) {
     const discard = (owner: Owner) => {
       const ps = ctx.state[owner];
       while (ps.hand.length > 0) {
@@ -518,11 +514,11 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyAttacker(_desc: unknown, _ctx: PureEffectCtx) {
+  destroyAttacker(_desc: unknown, _ctx: EffectContext) {
     return { cancelAttack: true, destroyAttacker: true };
   },
 
-  destroySummonedIf(desc: { minAtk: number }, ctx: PureEffectCtx) {
+  destroySummonedIf(desc: { minAtk: number }, ctx: EffectContext) {
     if (ctx.summonedFC && ctx.summonedFC.card.atk !== undefined && ctx.summonedFC.card.atk >= desc.minAtk) {
       ctx.log(`Trap! ${ctx.summonedFC.card.name} is destroyed!`);
       return { destroySummoned: true };
@@ -530,7 +526,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyAllOpp(_desc: unknown, ctx: PureEffectCtx) {
+  destroyAllOpp(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     for (let i = 0; i < monsters.length; i++) {
@@ -544,7 +540,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyAll(_desc: unknown, ctx: PureEffectCtx) {
+  destroyAll(_desc: unknown, ctx: EffectContext) {
     for (const side of ['player', 'opponent'] as Owner[]) {
       const monsters = ctx.state[side].field.monsters;
       for (let i = 0; i < monsters.length; i++) {
@@ -559,7 +555,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyWeakestOpp(_desc: unknown, ctx: PureEffectCtx) {
+  destroyWeakestOpp(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const weakestIdx = findMonsterByATK(monsters, 'weakest');
@@ -573,7 +569,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyStrongestOpp(_desc: unknown, ctx: PureEffectCtx) {
+  destroyStrongestOpp(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const strongestIdx = findMonsterByATK(monsters, 'strongest');
@@ -587,7 +583,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  sendTopCardsToGrave(desc: { count: number }, ctx: PureEffectCtx) {
+  sendTopCardsToGrave(desc: { count: number }, ctx: EffectContext) {
     const deck = ctx.state[ctx.owner].deck;
     const count = Math.min(desc.count, deck.length);
     const cards = deck.splice(0, count);
@@ -596,7 +592,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  sendTopCardsToGraveOpp(desc: { count: number }, ctx: PureEffectCtx) {
+  sendTopCardsToGraveOpp(desc: { count: number }, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const deck = ctx.state[opp].deck;
     const count = Math.min(desc.count, deck.length);
@@ -606,7 +602,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  salvageFromGrave(desc: { filter: CardFilter }, ctx: PureEffectCtx) {
+  salvageFromGrave(desc: { filter: CardFilter }, ctx: EffectContext) {
     const grave = ctx.state[ctx.owner].graveyard;
     const idx = grave.findIndex(c => matchesFilter(c, desc.filter));
     if (idx !== -1) {
@@ -617,7 +613,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  recycleFromGraveToDeck(desc: { filter: CardFilter }, ctx: PureEffectCtx) {
+  recycleFromGraveToDeck(desc: { filter: CardFilter }, ctx: EffectContext) {
     const grave = ctx.state[ctx.owner].graveyard;
     const idx = grave.findIndex(c => matchesFilter(c, desc.filter));
     if (idx !== -1) {
@@ -628,7 +624,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  shuffleGraveIntoDeck(_desc: unknown, ctx: PureEffectCtx) {
+  shuffleGraveIntoDeck(_desc: unknown, ctx: EffectContext) {
     const ps = ctx.state[ctx.owner];
     ps.deck.push(...ps.graveyard);
     ps.graveyard.length = 0;
@@ -637,19 +633,19 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  shuffleDeck(_desc: unknown, ctx: PureEffectCtx) {
+  shuffleDeck(_desc: unknown, ctx: EffectContext) {
     shuffleArray(ctx.state[ctx.owner].deck);
     ctx.log('Deck shuffled.');
     return {};
   },
 
-  peekTopCard(_desc: unknown, ctx: PureEffectCtx) {
+  peekTopCard(_desc: unknown, ctx: EffectContext) {
     const deck = ctx.state[ctx.owner].deck;
     ctx.log(deck.length > 0 ? `Top card: ${deck[0].name}` : 'Deck is empty!');
     return {};
   },
 
-  async specialSummonFromHand(desc: { filter?: CardFilter }, ctx: ChainEffectCtx) {
+  async specialSummonFromHand(desc: { filter?: CardFilter }, ctx: EffectContext) {
     const hand = ctx.state[ctx.owner].hand;
     const idx = desc.filter
       ? hand.findIndex(c => matchesFilter(c, desc.filter!))
@@ -661,7 +657,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  discardFromHand(desc: { count: number }, ctx: PureEffectCtx) {
+  discardFromHand(desc: { count: number }, ctx: EffectContext) {
     const hand = ctx.state[ctx.owner].hand;
     const count = Math.min(desc.count, hand.length);
     for (let i = 0; i < count && hand.length > 0; i++) {
@@ -673,7 +669,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  discardOppHand(desc: { count: number }, ctx: PureEffectCtx) {
+  discardOppHand(desc: { count: number }, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const hand = ctx.state[opp].hand;
     const count = Math.min(desc.count, hand.length);
@@ -686,7 +682,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyOppSpellTrap(_desc: unknown, ctx: PureEffectCtx) {
+  destroyOppSpellTrap(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const zones = ctx.state[opp].field.spellTraps;
     for (let i = 0; i < zones.length; i++) {
@@ -701,7 +697,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyAllOppSpellTraps(_desc: unknown, ctx: PureEffectCtx) {
+  destroyAllOppSpellTraps(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const zones = ctx.state[opp].field.spellTraps;
     for (let i = 0; i < zones.length; i++) {
@@ -715,7 +711,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyAllSpellTraps(_desc: unknown, ctx: PureEffectCtx) {
+  destroyAllSpellTraps(_desc: unknown, ctx: EffectContext) {
     for (const side of ['player', 'opponent'] as Owner[]) {
       const zones = ctx.state[side].field.spellTraps;
       for (let i = 0; i < zones.length; i++) {
@@ -730,12 +726,12 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyOppFieldSpell(_desc: unknown, ctx: PureEffectCtx) {
+  destroyOppFieldSpell(_desc: unknown, ctx: EffectContext) {
     ctx.removeFieldSpell(oppOf(ctx.owner));
     return {};
   },
 
-  changePositionOpp(_desc: unknown, ctx: PureEffectCtx) {
+  changePositionOpp(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const idx = findMonsterByATK(monsters, 'strongest');
@@ -747,7 +743,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  setFaceDown(_desc: unknown, ctx: PureEffectCtx) {
+  setFaceDown(_desc: unknown, ctx: EffectContext) {
     if (!ctx.targetFC) return {};
     ctx.targetFC.faceDown = true;
     ctx.targetFC.position = 'def';
@@ -756,7 +752,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  flipAllOppFaceDown(_desc: unknown, ctx: PureEffectCtx) {
+  flipAllOppFaceDown(_desc: unknown, ctx: EffectContext) {
     const opp = oppOf(ctx.owner);
     for (const fc of ctx.state[opp].field.monsters) {
       if (fc && !fc.faceDown) {
@@ -769,7 +765,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyByFilter(desc: { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' }, ctx: PureEffectCtx) {
+  destroyByFilter(desc: { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' }, ctx: EffectContext) {
     const side = desc.side === 'self' ? ctx.owner : oppOf(ctx.owner);
     const monsters = ctx.state[side].field.monsters;
     let idx: number | null = null;
@@ -804,7 +800,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  halveAtk(desc: { target: StatTarget }, ctx: PureEffectCtx) {
+  halveAtk(desc: { target: StatTarget }, ctx: EffectContext) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       const half = Math.floor(fc.effectiveATK() / 2);
@@ -815,7 +811,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  doubleAtk(desc: { target: StatTarget }, ctx: PureEffectCtx) {
+  doubleAtk(desc: { target: StatTarget }, ctx: EffectContext) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       const current = fc.effectiveATK();
@@ -826,7 +822,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  swapAtkDef(desc: { side: 'self' | 'opponent' | 'all' }, ctx: PureEffectCtx) {
+  swapAtkDef(desc: { side: 'self' | 'opponent' | 'all' }, ctx: EffectContext) {
     const sides: Owner[] = desc.side === 'all'
       ? ['player', 'opponent']
       : [desc.side === 'self' ? ctx.owner : oppOf(ctx.owner)];
@@ -847,7 +843,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async specialSummonFromDeck(desc: { filter: CardFilter; faceDown?: boolean; position?: string }, ctx: ChainEffectCtx) {
+  async specialSummonFromDeck(desc: { filter: CardFilter; faceDown?: boolean; position?: string }, ctx: EffectContext) {
     const deck = ctx.state[ctx.owner].deck;
     const idx = deck.findIndex(c => matchesFilter(c, desc.filter));
     if (idx !== -1) {
@@ -859,14 +855,14 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  passive_piercing(_desc: unknown, _ctx: PureEffectCtx)       { return {}; },
-  passive_untargetable(_desc: unknown, _ctx: PureEffectCtx)   { return {}; },
-  passive_directAttack(_desc: unknown, _ctx: PureEffectCtx)   { return {}; },
-  passive_vsAttrBonus(_desc: unknown, _ctx: PureEffectCtx)    { return {}; },
-  passive_phoenixRevival(_desc: unknown, _ctx: PureEffectCtx) { return {}; },
-  passive_indestructible(_desc: unknown, _ctx: PureEffectCtx) { return {}; },
-  passive_effectImmune(_desc: unknown, _ctx: PureEffectCtx)   { return {}; },
-  passive_cantBeAttacked(_desc: unknown, _ctx: PureEffectCtx) { return {}; },
+  passive_piercing(_desc: unknown, _ctx: EffectContext)       { return {}; },
+  passive_untargetable(_desc: unknown, _ctx: EffectContext)   { return {}; },
+  passive_directAttack(_desc: unknown, _ctx: EffectContext)   { return {}; },
+  passive_vsAttrBonus(_desc: unknown, _ctx: EffectContext)    { return {}; },
+  passive_phoenixRevival(_desc: unknown, _ctx: EffectContext) { return {}; },
+  passive_indestructible(_desc: unknown, _ctx: EffectContext) { return {}; },
+  passive_effectImmune(_desc: unknown, _ctx: EffectContext)   { return {}; },
+  passive_cantBeAttacked(_desc: unknown, _ctx: EffectContext) { return {}; },
 };
 
 export const EFFECT_REGISTRY = new Map<string, EffectImpl>(
@@ -877,31 +873,33 @@ export function registerEffect(type: string, impl: EffectImpl): void {
   EFFECT_REGISTRY.set(type, impl);
 }
 
-export function makePureCtx(ctx: EffectContext): PureEffectCtx {
-  const engine = ctx.engine;
-  const state   = engine.getState();
+/**
+ * Creates an effect context from an internal context.
+ * All effects receive the same full-featured context.
+ */
+export function makeEffectCtx(ictx: InternalEffectContext): EffectContext {
+  const engine = ictx.engine;
+  const state  = engine.getState();
   return {
     state,
-    owner:      ctx.owner,
-    targetFC:   ctx.targetFC,
-    targetCard: ctx.targetCard,
-    attacker:   ctx.attacker,
-    defender:   ctx.defender,
-    summonedFC: ctx.summonedFC,
-    log:               (msg) => engine.addLog(msg),
-    damage:            (owner, amount) => engine.dealDamage(owner, amount),
-    heal:              (owner, amount) => engine.gainLP(owner, amount),
-    draw:              (owner, count)  => engine.drawCard(owner, count),
-    removeEquipment:   (owner, zone)   => engine.removeEquipmentForMonster(owner, zone),
-    removeFieldSpell:  (owner)         => engine.removeFieldSpell(owner),
-    vfx:               engine.ui?.playVFX ? (type, owner, zone) => engine.ui.playVFX!(type, owner!, zone) : undefined,
-  };
-}
-
-export function makeChainCtx(ctx: EffectContext): ChainEffectCtx {
-  const engine = ctx.engine;
-  return {
-    ...makePureCtx(ctx),
+    owner:       ictx.owner,
+    targetFC:    ictx.targetFC,
+    targetCard:  ictx.targetCard,
+    attacker:    ictx.attacker,
+    defender:    ictx.defender,
+    summonedFC:  ictx.summonedFC,
+    abortSignal: ictx.abortSignal,
+    
+    // Helper methods
+    log:              (msg) => engine.addLog(msg),
+    damage:           (target, amount) => engine.dealDamage(target, amount),
+    heal:             (target, amount) => engine.gainLP(target, amount),
+    draw:             (target, count)  => engine.drawCard(target, count),
+    removeEquipment:  (owner, zone)    => engine.removeEquipmentForMonster(owner, zone),
+    removeFieldSpell: (owner)          => engine.removeFieldSpell(owner),
+    vfx:              engine.ui?.playVFX ? (type, owner?: Owner, zone?: number) => { if (owner !== undefined) engine.ui.playVFX!(type, owner, zone); } : undefined,
+    
+    // Summon/search methods
     summon:         (owner, card, zone, position, faceDown) => engine.specialSummon(owner, card, zone, position, faceDown),
     summonFromGrave:(owner, card, fromOwner)                => engine.specialSummonFromGrave(owner, card, fromOwner),
     removeFromHand: (owner, index)                          => engine.removeFromHand(owner, index),
@@ -910,7 +908,7 @@ export function makeChainCtx(ctx: EffectContext): ChainEffectCtx {
   };
 }
 
-export function canPayCost(block: CardEffectBlock, ctx: EffectContext): boolean {
+export function canPayCost(block: CardEffectBlock, ctx: InternalEffectContext): boolean {
   if (!block.cost) return true;
   const st = ctx.engine.getState()[ctx.owner];
   if (block.cost.lp && st.lp < block.cost.lp) return false;
@@ -918,7 +916,7 @@ export function canPayCost(block: CardEffectBlock, ctx: EffectContext): boolean 
   return true;
 }
 
-async function payCost(block: CardEffectBlock, ctx: EffectContext): Promise<void> {
+async function payCost(block: CardEffectBlock, ctx: InternalEffectContext): Promise<void> {
   if (!block.cost) return;
   const st = ctx.engine.getState()[ctx.owner];
   if (block.cost.lpHalf) {
@@ -964,7 +962,7 @@ export interface EffectExecutionOptions {
  */
 export async function executeEffectBlock(
   block: CardEffectBlock,
-  ctx: EffectContext,
+  ctx: InternalEffectContext,
   options?: EffectExecutionOptions,
 ): Promise<EffectSignal> {
   const stepCounter = options?.stepCounter ?? { value: 0 };
@@ -983,7 +981,7 @@ export async function executeEffectBlock(
   }
   await payCost(block, ctx);
 
-  const pctx = makeChainCtx(ctx);
+  const pctx = makeEffectCtx(ctx);
   const signal: EffectSignal = {};
   
   for (const action of block.actions) {
