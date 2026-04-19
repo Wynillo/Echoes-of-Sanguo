@@ -367,6 +367,310 @@ function _simulateLethal(
   return dmgToLP >= playerLP ? plan : null;
 }
 
+// ── Helper Functions for planAttacks ───────────────────────────────────────
+
+interface AttackOption {
+  aZone: number;
+  dZone: number;
+  score: number;
+}
+
+interface AttackSelection {
+  plans: AttackPlan[];
+  usedAttackers: Set<number>;
+  usedDefenders: Set<number>;
+}
+
+interface BattleContext {
+  attacker: FieldCard;
+  defender: FieldCard;
+  aAtk: number;
+  dVal: number;
+}
+
+interface BattleStrategy {
+  scoreAttack(ctx: BattleContext): number;
+  shouldAttemptNonPositiveScore(): boolean;
+  handleRemainingAttackers(
+    attackers: Array<{ zone: number; fc: FieldCard }>,
+    defenders: Array<{ zone: number; fc: FieldCard }>,
+    usedAttackers: Set<number>,
+    usedDefenders: Set<number>,
+  ): AttackPlan[];
+}
+
+class AggressiveStrategy implements BattleStrategy {
+  scoreAttack(ctx: BattleContext): number {
+    const { aAtk, dVal, defender } = ctx;
+    let score = 0;
+
+    if (aAtk > dVal) {
+      score += AI_SCORE.DESTROY_TARGET;
+      if (defender.position === 'atk') score += (aAtk - dVal);
+      if (defender.card.effect) score += 500;
+      score += aiEffectiveATK(defender) * 0.5;
+      score -= (aAtk - dVal) * 0.1;
+      if (defender.indestructible) score = -Infinity;
+    } else if (aAtk === dVal && defender.position === 'atk') {
+      score += 100;
+    } else {
+      score -= 500;
+    }
+
+    if (defender.faceDown) {
+      if (aAtk >= AI_SCORE.PROBE_ATK_THRESHOLD) score += AI_SCORE.STRONG_PROBE;
+      else score -= AI_SCORE.FACEDOWN_RISK;
+    }
+
+    return score;
+  }
+
+  shouldAttemptNonPositiveScore(): boolean {
+    return true;
+  }
+
+  handleRemainingAttackers(
+    attackers: Array<{ zone: number; fc: FieldCard }>,
+    defenders: Array<{ zone: number; fc: FieldCard }>,
+    usedAttackers: Set<number>,
+    usedDefenders: Set<number>,
+  ): AttackPlan[] {
+    const plans: AttackPlan[] = [];
+    
+    for (const a of attackers) {
+      if (usedAttackers.has(a.zone)) continue;
+      
+      let weakest: { zone: number; val: number } | null = null;
+      for (const d of defenders) {
+        if (usedDefenders.has(d.zone)) continue;
+        const dVal = aiCombatValue(d.fc);
+        if (!weakest || dVal < weakest.val) weakest = { zone: d.zone, val: dVal };
+      }
+      
+      if (weakest) {
+        plans.push({ attackerZone: a.zone, targetZone: weakest.zone });
+        usedAttackers.add(a.zone);
+        usedDefenders.add(weakest.zone);
+      }
+    }
+    
+    return plans;
+  }
+}
+
+class ConservativeStrategy implements BattleStrategy {
+  scoreAttack(ctx: BattleContext): number {
+    const { aAtk, dVal, defender } = ctx;
+    let score = 0;
+
+    if (aAtk > dVal) {
+      score += AI_SCORE.DESTROY_TARGET;
+      if (defender.position === 'atk') score += (aAtk - dVal);
+      if (defender.card.effect) score += 500;
+      score += aiEffectiveATK(defender) * 0.5;
+      score -= (aAtk - dVal) * 0.1;
+      if (defender.indestructible) score = -Infinity;
+    } else if (aAtk === dVal && defender.position === 'atk') {
+      score -= 200;
+    } else {
+      score = -Infinity;
+    }
+
+    if (defender.faceDown) {
+      score = -Infinity;
+    }
+
+    return score;
+  }
+
+  shouldAttemptNonPositiveScore(): boolean {
+    return false;
+  }
+
+  handleRemainingAttackers(
+    _attackers: Array<{ zone: number; fc: FieldCard }>,
+    _defenders: Array<{ zone: number; fc: FieldCard }>,
+    _usedAttackers: Set<number>,
+    _usedDefenders: Set<number>,
+  ): AttackPlan[] {
+    return [];
+  }
+}
+
+class SmartStrategy implements BattleStrategy {
+  scoreAttack(ctx: BattleContext): number {
+    const { aAtk, dVal, defender } = ctx;
+    let score = 0;
+
+    if (aAtk > dVal) {
+      score += AI_SCORE.DESTROY_TARGET;
+      if (defender.position === 'atk') score += (aAtk - dVal);
+      if (defender.card.effect) score += 500;
+      score += aiEffectiveATK(defender) * 0.5;
+      score -= (aAtk - dVal) * 0.1;
+      if (defender.indestructible) score = -Infinity;
+    } else if (aAtk === dVal && defender.position === 'atk') {
+      score -= 200;
+    } else {
+      score = -Infinity;
+    }
+
+    if (defender.faceDown) {
+      if (aAtk >= AI_SCORE.PROBE_ATK_THRESHOLD) score += AI_SCORE.STRONG_PROBE;
+      else score -= AI_SCORE.FACEDOWN_RISK;
+    }
+
+    return score;
+  }
+
+  shouldAttemptNonPositiveScore(): boolean {
+    return false;
+  }
+
+  handleRemainingAttackers(
+    _attackers: Array<{ zone: number; fc: FieldCard }>,
+    _defenders: Array<{ zone: number; fc: FieldCard }>,
+    _usedAttackers: Set<number>,
+    _usedDefenders: Set<number>,
+  ): AttackPlan[] {
+    return [];
+  }
+}
+
+const STRATEGY_REGISTRY = new Map<string, BattleStrategy>([
+  ['aggressive', new AggressiveStrategy()],
+  ['conservative', new ConservativeStrategy()],
+  ['smart', new SmartStrategy()],
+]);
+
+function getStrategy(strategyName: string): BattleStrategy {
+  return STRATEGY_REGISTRY.get(strategyName) ?? STRATEGY_REGISTRY.get('smart')!;
+}
+
+function buildAttackerList(
+  aiMonsters: Array<FieldCard | null>,
+): Array<{ zone: number; fc: FieldCard }> {
+  const attackers: Array<{ zone: number; fc: FieldCard }> = [];
+  for (let z = 0; z < aiMonsters.length; z++) {
+    const fc = aiMonsters[z];
+    if (!fc || fc.position !== 'atk' || fc.hasAttacked || fc.summonedThisTurn) continue;
+    attackers.push({ zone: z, fc });
+  }
+  return attackers;
+}
+
+function buildDefenderList(
+  plrMonsters: Array<FieldCard | null>,
+): Array<{ zone: number; fc: FieldCard }> {
+  const defenders: Array<{ zone: number; fc: FieldCard }> = [];
+  for (let z = 0; z < plrMonsters.length; z++) {
+    const fc = plrMonsters[z];
+    if (!fc || fc.cantBeAttacked) continue;
+    defenders.push({ zone: z, fc });
+  }
+  return defenders;
+}
+
+function handleDirectAttackers(
+  attackers: Array<{ zone: number; fc: FieldCard }>,
+  usedAttackers: Set<number>,
+): AttackPlan[] {
+  const plans: AttackPlan[] = [];
+  for (const a of attackers) {
+    if (a.fc.canDirectAttack) {
+      plans.push({ attackerZone: a.zone, targetZone: -1 });
+      usedAttackers.add(a.zone);
+    }
+  }
+  return plans;
+}
+
+function scoreAttack(
+  attacker: FieldCard,
+  defender: FieldCard,
+  strategy: BattleStrategy,
+): number {
+  const dVal = aiCombatValue(defender);
+  const aAtk = attacker.effectiveATK();
+  return strategy.scoreAttack({ attacker, defender, aAtk, dVal });
+}
+
+function _buildAttackOptions(
+  attackers: Array<{ zone: number; fc: FieldCard }>,
+  defenders: Array<{ zone: number; fc: FieldCard }>,
+  usedAttackers: Set<number>,
+  strategy: BattleStrategy,
+): AttackOption[] {
+  const attackOptions: AttackOption[] = [];
+  
+  for (const a of attackers) {
+    if (usedAttackers.has(a.zone)) continue;
+    for (const d of defenders) {
+      const score = scoreAttack(a.fc, d.fc, strategy);
+      attackOptions.push({ aZone: a.zone, dZone: d.zone, score });
+    }
+  }
+  
+  return attackOptions;
+}
+
+function _selectAttacks(
+  attackOptions: AttackOption[],
+  usedAttackers: Set<number>,
+  strategy: BattleStrategy,
+): { plans: AttackPlan[]; usedDefenders: Set<number> } {
+  attackOptions.sort((a, b) => b.score - a.score);
+  
+  const plans: AttackPlan[] = [];
+  const usedDefenders = new Set<number>();
+  const shouldAttemptNonPositive = strategy.shouldAttemptNonPositiveScore();
+
+  for (const opt of attackOptions) {
+    if (usedAttackers.has(opt.aZone) || usedDefenders.has(opt.dZone)) continue;
+    if (!shouldAttemptNonPositive && opt.score <= 0) continue;
+    if (opt.score === -Infinity) continue;
+
+    plans.push({ attackerZone: opt.aZone, targetZone: opt.dZone });
+    usedAttackers.add(opt.aZone);
+    usedDefenders.add(opt.dZone);
+  }
+
+  return { plans, usedDefenders };
+}
+
+function selectAttacks(
+  attackers: Array<{ zone: number; fc: FieldCard }>,
+  defenders: Array<{ zone: number; fc: FieldCard }>,
+  usedAttackers: Set<number>,
+  strategy: BattleStrategy,
+): AttackSelection {
+  const attackOptions = _buildAttackOptions(attackers, defenders, usedAttackers, strategy);
+  const { plans, usedDefenders } = _selectAttacks(attackOptions, usedAttackers, strategy);
+  return { plans, usedAttackers, usedDefenders };
+}
+
+function assignRemainingAttacks(
+  attackers: Array<{ zone: number; fc: FieldCard }>,
+  defenders: Array<{ zone: number; fc: FieldCard }>,
+  usedAttackers: Set<number>,
+  usedDefenders: Set<number>,
+  strategy: BattleStrategy,
+): AttackPlan[] {
+  const allDefendersCovered = defenders.every(d => usedDefenders.has(d.zone));
+  
+  if (allDefendersCovered) {
+    const plans: AttackPlan[] = [];
+    for (const a of attackers) {
+      if (usedAttackers.has(a.zone)) continue;
+      plans.push({ attackerZone: a.zone, targetZone: -1 });
+      usedAttackers.add(a.zone);
+    }
+    return plans;
+  }
+  
+  return strategy.handleRemainingAttackers(attackers, defenders, usedAttackers, usedDefenders);
+}
+
 export function planAttacks(
   aiMonsters: Array<FieldCard | null>,
   plrMonsters: Array<FieldCard | null>,
@@ -376,31 +680,15 @@ export function planAttacks(
   const lethal = findLethal(aiMonsters, plrMonsters, playerLP);
   if (lethal) return lethal;
 
-  const strategy = behavior.battleStrategy;
+  const strategy = getStrategy(behavior.battleStrategy);
   const plans: AttackPlan[] = [];
   const usedAttackers = new Set<number>();
 
-  const attackers: { zone: number; fc: FieldCard }[] = [];
-  for (let z = 0; z < aiMonsters.length; z++) {
-    const fc = aiMonsters[z];
-    if (!fc || fc.position !== 'atk' || fc.hasAttacked || fc.summonedThisTurn) continue;
-    attackers.push({ zone: z, fc });
-  }
+  const attackers = buildAttackerList(aiMonsters);
+  const defenders = buildDefenderList(plrMonsters);
 
-  const defenders: { zone: number; fc: FieldCard }[] = [];
-  for (let z = 0; z < plrMonsters.length; z++) {
-    const fc = plrMonsters[z];
-    if (!fc || fc.cantBeAttacked) continue;
-    defenders.push({ zone: z, fc });
-  }
-
-  // canDirectAttack monsters always go direct regardless of defenders
-  for (const a of attackers) {
-    if (a.fc.canDirectAttack) {
-      plans.push({ attackerZone: a.zone, targetZone: -1 });
-      usedAttackers.add(a.zone);
-    }
-  }
+  const directPlans = handleDirectAttackers(attackers, usedAttackers);
+  plans.push(...directPlans);
 
   if (defenders.length === 0) {
     for (const a of attackers) {
@@ -411,83 +699,17 @@ export function planAttacks(
     return plans;
   }
 
-  const attackOptions: { aZone: number; dZone: number; score: number }[] = [];
-  for (const a of attackers) {
-    if (usedAttackers.has(a.zone)) continue;
-    for (const d of defenders) {
-      const dVal = aiCombatValue(d.fc);
-      const aAtk = a.fc.effectiveATK();
-      let score = 0;
+  const selection = selectAttacks(attackers, defenders, usedAttackers, strategy);
+  plans.push(...selection.plans);
 
-      if (aAtk > dVal) {
-        score += AI_SCORE.DESTROY_TARGET;
-        if (d.fc.position === 'atk') score += (aAtk - dVal);
-        // Prioritize destroying effect monsters (they're dangerous)
-        if (d.fc.card.effect) score += 500;
-        score += aiEffectiveATK(d.fc) * 0.5;
-        // Prefer efficient attacks (don't waste a 3000ATK monster on a 100DEF target)
-        score -= (aAtk - dVal) * 0.1;
-        if (d.fc.indestructible) score = -Infinity;
-      } else if (aAtk === dVal && d.fc.position === 'atk') {
-        if (strategy === 'aggressive') score += 100;
-        else score -= 200;
-      } else {
-        if (strategy === 'aggressive') {
-          score -= 500;
-        } else {
-          score = -Infinity;
-        }
-      }
-
-      // Face-down DEF monsters are risky (unknown stats)
-      if (d.fc.faceDown) {
-        if (strategy === 'conservative') score = -Infinity;
-        else if (aAtk >= AI_SCORE.PROBE_ATK_THRESHOLD) score += AI_SCORE.STRONG_PROBE;
-        else score -= AI_SCORE.FACEDOWN_RISK;
-      }
-
-      attackOptions.push({ aZone: a.zone, dZone: d.zone, score });
-    }
-  }
-
-  attackOptions.sort((a, b) => b.score - a.score);
-  const usedDefenders = new Set<number>();
-
-  for (const opt of attackOptions) {
-    if (usedAttackers.has(opt.aZone) || usedDefenders.has(opt.dZone)) continue;
-    if (opt.score <= 0 && strategy !== 'aggressive') continue;
-    if (opt.score === -Infinity) continue;
-
-    plans.push({ attackerZone: opt.aZone, targetZone: opt.dZone });
-    usedAttackers.add(opt.aZone);
-    usedDefenders.add(opt.dZone);
-  }
-
-  const allDefendersCovered = defenders.every(d => usedDefenders.has(d.zone));
-  if (allDefendersCovered) {
-    for (const a of attackers) {
-      if (usedAttackers.has(a.zone)) continue;
-      plans.push({ attackerZone: a.zone, targetZone: -1 });
-      usedAttackers.add(a.zone);
-    }
-  }
-
-  if (strategy === 'aggressive') {
-    for (const a of attackers) {
-      if (usedAttackers.has(a.zone)) continue;
-      let weakest: { zone: number; val: number } | null = null;
-      for (const d of defenders) {
-        if (usedDefenders.has(d.zone)) continue;
-        const dVal = aiCombatValue(d.fc);
-        if (!weakest || dVal < weakest.val) weakest = { zone: d.zone, val: dVal };
-      }
-      if (weakest) {
-        plans.push({ attackerZone: a.zone, targetZone: weakest.zone });
-        usedAttackers.add(a.zone);
-        usedDefenders.add(weakest.zone);
-      }
-    }
-  }
+  const remaining = assignRemainingAttacks(
+    attackers,
+    defenders,
+    selection.usedAttackers,
+    selection.usedDefenders,
+    strategy,
+  );
+  plans.push(...remaining);
 
   return plans;
 }
