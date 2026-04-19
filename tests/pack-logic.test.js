@@ -84,8 +84,8 @@ describe('buildCardPool', () => {
     }
   });
 
-  it('filters by maxRarity', () => {
-    const pool = buildCardPool({ include: { maxRarity: 4 } });
+  it('filters by maxRarity (Rarity.RARE)', () => {
+    const pool = buildCardPool({ include: { maxRarity: 4 } }); // Rarity.RARE
     for (const card of pool) {
       const rarity = card.rarity ?? 1;
       expect(rarity).toBeLessThanOrEqual(4);
