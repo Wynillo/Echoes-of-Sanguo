@@ -913,21 +913,14 @@ export class GameEngine {
   }
 
   /**
-   * FM-style multi-card fusion chain.
-   * If 1 card: normal summon in ATK position.
-   * If 2+ cards: resolve chain, place final result on field.
+   * FM-style multi-card fusion chain (2+ cards only).
+   * For single-card summon, use summonMonster() directly.
    */
   async performFusionChain(owner: Owner, handIndices: number[]): Promise<boolean> {
     const st = this.state[owner];
     const hand = st.hand;
 
-    if (handIndices.length === 0) return false;
-
-    if (handIndices.length === 1) {
-      const zone = st.field.monsters.findIndex(z => z === null);
-      if (zone === -1) { this.addLog('No free zone!'); return false; }
-      return this.summonMonster(owner, handIndices[0], zone, 'atk');
-    }
+    if (handIndices.length < 2) return false;
 
     const zone = st.field.monsters.findIndex(z => z === null);
     if (zone === -1) { this.addLog('No free zone for fusion monster!'); return false; }
