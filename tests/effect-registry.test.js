@@ -409,7 +409,7 @@ describe('tempAtkBonus', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'tempAtkBonus', target: 'ownMonster', value: 700 }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.tempATKBonus).toBe(700);
   });
@@ -441,7 +441,7 @@ describe('permAtkBonus', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: 2 } }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(500);
   });
@@ -451,7 +451,7 @@ describe('permAtkBonus', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: 2 } }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(0);
   });
@@ -460,7 +460,7 @@ describe('permAtkBonus', () => {
     const summoned = { card: { name: 'Test' }, permATKBonus: 0 };
     const e = mockEngine();
     await executeEffectBlock(
-      { trigger: 'onOpponentSummon', actions: [{ type: 'permAtkBonus', target: 'summoned', value: -500 }] },
+      { trigger: 'onOpponentSummon', actions: [{ type: 'permAtkBonus', target: 'summonedFC', value: -500 }] },
       ctx(e, 'player', { summoned }),
     );
     expect(summoned.permATKBonus).toBe(-500);
@@ -472,7 +472,7 @@ describe('permDefBonus', () => {
     const summoned = { card: { name: 'Test' }, permDEFBonus: 0 };
     const e = mockEngine();
     await executeEffectBlock(
-      { trigger: 'onOpponentSummon', actions: [{ type: 'permDefBonus', target: 'summoned', value: -400 }] },
+      { trigger: 'onOpponentSummon', actions: [{ type: 'permDefBonus', target: 'summonedFC', value: -400 }] },
       ctx(e, 'player', { summoned }),
     );
     expect(summoned.permDEFBonus).toBe(-400);

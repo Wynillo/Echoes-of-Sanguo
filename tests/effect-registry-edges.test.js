@@ -386,7 +386,7 @@ describe('permAtkBonus edge cases', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 300 }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(300);
   });
@@ -396,7 +396,7 @@ describe('permAtkBonus edge cases', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 300, filter: { attr: 'dark' } }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(500);
   });
@@ -784,7 +784,7 @@ describe('permAtkBonus — card without attribute and filter set', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 400, filter: { attr: 'fire' } }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(0);
   });
@@ -804,7 +804,7 @@ describe('tempDefBonus — null target', () => {
   it('does nothing when target cannot be resolved', async () => {
     const e = mockEngine();
     await executeEffectBlock(
-      { trigger: 'onSummon', actions: [{ type: 'tempDefBonus', target: 'summoned', value: 200 }] },
+      { trigger: 'onSummon', actions: [{ type: 'tempDefBonus', target: 'summonedFC', value: 200 }] },
       ctx(e),
     );
   });
@@ -816,7 +816,7 @@ describe('resolveStatTarget — oppMonster via targetFC', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'oppMonster', value: -200 }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(-200);
   });
