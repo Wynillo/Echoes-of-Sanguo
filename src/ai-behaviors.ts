@@ -3,25 +3,97 @@ import { CardType, meetsEquipRequirement } from './types.js';
 import type { FieldCard } from './field.js';
 
 export const AI_SCORE = {
+  /**
+   * Bonus for effect monsters - prioritizes cards with triggered abilities.
+   * Set to 10000 to heavily outweigh raw ATK differences (typically 200-500 ATK).
+   * Ensures AI values effect utility over pure stats.
+   */
   EFFECT_CARD_BONUS:      10000,
+  /**
+   * Base score for destroying an opponent's monster.
+   * Worth 1000 points - equivalent to ~1000 ATK advantage.
+   * Removing threats is a core strategic priority.
+   */
   DESTROY_TARGET:         1000,
+  /**
+   * Bonus for probing face-down monsters with high-ATK attackers.
+   * Worth 200 points - minor incentive to reveal hidden information.
+   * Applied when attacker ATK >= PROBE_ATK_THRESHOLD.
+   */
   STRONG_PROBE:           200,
+  /**
+   * Minimum ATK required to safely probe face-down monsters.
+   * Set to 1800 - high enough to survive most DEF monsters but not reckless.
+   * Monsters below this threshold are penalized for probing.
+   */
   PROBE_ATK_THRESHOLD:    1800,
+  /**
+   * Penalty for attacking face-down monsters with insufficient force.
+   * Worth -300 points - discourages risky attacks that might flip into strong DEF.
+   * Applied when attacker ATK < PROBE_ATK_THRESHOLD.
+   */
   FACEDOWN_RISK:          300,
+  /**
+   * Bonus for equipment cards that enable lethal attacks.
+   * Worth 2000 points - high priority for game-winning plays.
+   * Applied when equipment pushes monster ATK above opponent's strongest.
+   */
   EQUIP_UNLOCK_KILL:      2000,
+  /**
+   * Bonus for reviving monsters that outscore opponent's strongest.
+   * Worth 1000 points - values field presence and immediate threat response.
+   * Applied when revived monster ATK > opponent's max field ATK.
+   */
   REVIVE_BEATS_STRONGEST: 1000,
+  /**
+   * Bonus for buff spells that enable lethal attacks.
+   * Worth 800 points - values tempo plays that clear the way.
+   * Applied when buff pushes monster ATK above opponent's strongest.
+   */
   BUFF_UNLOCK_KILL:       800,
+  /**
+   * ATK deficit threshold for considering buff spells.
+   * Set to 1000 - AI will buff if within 1000 ATK of threatening monster.
+   * Buffs beyond this gap are considered inefficient.
+   */
   BUFF_KILL_THRESHOLD:    1000,
+  /**
+   * Survival bonus when AI has low LP and can defend effectively.
+   * Worth 300 points - modest priority on staying alive.
+   * Applied when AI LP < LOW threshold and DEF > opponent's max ATK.
+   */
   LOW_LP_SURVIVAL:        300,
+  /**
+   * Estimated DEF value for face-down monsters.
+   * Set to 1200 - average DEF for mid-level monsters.
+   * Used for combat calculations when actual DEF is unknown.
+   */
   FACEDOWN_DEF_ESTIMATE:  1200,
   // ── Threat / Future Value weights ──
-  /** Weight for LP ratio contribution to threat score */
+  /**
+   * Weight for LP ratio contribution to threat score.
+   * Set to 0.4 - LP differences matter but less than board control.
+   * Multiplied by LP_NORMALIZER (8000) to scale with typical LP range.
+   */
   THREAT_LP_WEIGHT:       0.4,
-  /** Weight for monster power differential in threat score */
+  /**
+   * Weight for monster power differential in threat score.
+   * Set to 1.2 - board control is the primary threat indicator.
+   * Direct ATK comparison (~2000-6000 range) needs minimal scaling.
+   */
   THREAT_BOARD_WEIGHT:    1.2,
-  /** Per-card hand advantage weight in threat score */
+  /**
+   * Per-card hand advantage weight in threat score.
+   * Set to 150 - each card is worth ~150 points of advantage.
+   * Hand size typically ranges 3-8 cards, so total impact ~450-1200.
+   */
   THREAT_HAND_WEIGHT:     150,
-  /** Default discount factor for future board value */
+  /**
+   * Default discount factor for future board value.
+   * Set to 0.7 - future turns are worth 70% of current turn value.
+   * Balances immediate plays vs. long-term setup.
+   * Range: 0.0 (myopic) to 1.0 (far-sighted).
+   */
   FUTURE_GAMMA_DEFAULT:   0.7,
 } as const;
 
