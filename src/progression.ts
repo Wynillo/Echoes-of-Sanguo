@@ -29,6 +29,19 @@ export const MAX_COPIES_PER_CARD = 99;
 export const MAX_EFFECT_ITEM_COUNT = 999;
 
 /**
+ * Volume configuration constants.
+ * Volume uses percentage scale (0-100) to align with UI sliders.
+ * Default of 50% follows industry standard for preventing sudden loud audio
+ * and complies with WCAG 2.1 Audio Control guidelines.
+ */
+export const VOLUME_CONFIG = {
+  SCALE_MAX: 100,           // Maximum volume percentage (0-100 scale)
+  DEFAULT_MASTER: 50,       // 50% - comfortable default for most devices
+  DEFAULT_MUSIC: 50,
+  DEFAULT_SFX: 50,
+} as const;
+
+/**
  * Estimate current localStorage usage in bytes.
  * Counts key + value lengths (UTF-16, multiply by 2 for byte estimate).
  */
@@ -614,7 +627,14 @@ function spendCoins(amount: number): boolean {
 
   interface Settings { lang: string; volMaster: number; volMusic: number; volSfx: number; controllerEnabled: boolean; vibrationEnabled: boolean; }
 
-  const SETTINGS_DEFAULTS: Settings = { lang: 'en', volMaster: 50, volMusic: 50, volSfx: 50, controllerEnabled: true, vibrationEnabled: true };
+  const SETTINGS_DEFAULTS: Settings = {
+    lang: 'en',
+    volMaster: VOLUME_CONFIG.DEFAULT_MASTER,
+    volMusic: VOLUME_CONFIG.DEFAULT_MUSIC,
+    volSfx: VOLUME_CONFIG.DEFAULT_SFX,
+    controllerEnabled: true,
+    vibrationEnabled: true,
+  };
 
   function getSettings(): Settings {
     return { ...SETTINGS_DEFAULTS, ..._load(GLOBAL_KEYS.settings, SETTINGS_DEFAULTS) };

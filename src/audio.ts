@@ -5,6 +5,19 @@
 
 import { Progression } from './progression.js';
 
+/**
+ * Audio configuration constants.
+ * Volume uses percentage scale (0-100) to align with UI sliders.
+ * Default of 50% follows industry standard for preventing sudden loud audio
+ * and complies with WCAG 2.1 Audio Control guidelines.
+ */
+export const AUDIO_CONFIG = {
+  VOLUME_SCALE_MAX: 100,      // Maximum volume percentage (0-100 scale)
+  DEFAULT_MASTER_VOLUME: 50,  // 50% - comfortable default for most devices
+  DEFAULT_MUSIC_VOLUME: 50,
+  DEFAULT_SFX_VOLUME: 50,
+} as const;
+
 const MANIFEST: Record<string, string> = {
   // Music
   music_title:       'audio/music/title.mp3',
@@ -83,10 +96,15 @@ function _ensureContext(): AudioContext {
   return _ctx;
 }
 
+/** Clamps volume to valid percentage range (0-100) */
+export function clampVolume(value: number): number {
+  return Math.max(0, Math.min(value, AUDIO_CONFIG.VOLUME_SCALE_MAX));
+}
+
 function _applyVolumes(master: number, music: number, sfx: number) {
-  if (_masterGain) _masterGain.gain.value = master / 100;
-  if (_musicGain)  _musicGain.gain.value  = music / 100;
-  if (_sfxGain)    _sfxGain.gain.value    = sfx / 100;
+  if (_masterGain) _masterGain.gain.value = clampVolume(master) / AUDIO_CONFIG.VOLUME_SCALE_MAX;
+  if (_musicGain)  _musicGain.gain.value  = clampVolume(music) / AUDIO_CONFIG.VOLUME_SCALE_MAX;
+  if (_sfxGain)    _sfxGain.gain.value    = clampVolume(sfx) / AUDIO_CONFIG.VOLUME_SCALE_MAX;
 }
 
 async function _loadBuffer(id: string): Promise<AudioBuffer | null> {

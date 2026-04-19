@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useModal } from '../contexts/ModalContext.js';
 import { useGame } from '../contexts/GameContext.js';
 import { useGamepadContext } from '../contexts/GamepadContext.js';
-import { Progression } from '../../progression.js';
-import { Audio } from '../../audio.js';
+import { Progression, VOLUME_CONFIG } from '../../progression.js';
+import { Audio, clampVolume } from '../../audio.js';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import i18n from '../../i18n.js';
 import { reloadTcgLocale, getCurrentManifest, getLoadedMods } from '../../tcg-bridge.js';
@@ -33,7 +33,7 @@ export function OptionsModal() {
   const [volMusic, setVolMusic] = useState(saved.volMusic);
   const [volSfx, setVolSfx] = useState(saved.volSfx);
   const [muted, setMuted] = useState(saved.volMaster === 0);
-  const [preMuteVol, setPreMuteVol] = useState(saved.volMaster || 50);
+  const [preMuteVol, setPreMuteVol] = useState(saved.volMaster || VOLUME_CONFIG.DEFAULT_MASTER);
   const [showConfirm, setShowConfirm] = useState(false);
   const { canInstall, triggerInstall } = usePwaInstall();
 
@@ -107,7 +107,7 @@ export function OptionsModal() {
                 Audio.setVolumes(preMuteVol, volMusic, volSfx);
                 setMuted(false);
               } else {
-                setPreMuteVol(volMaster || 50);
+                setPreMuteVol(volMaster || VOLUME_CONFIG.DEFAULT_MASTER);
                 setVolMaster(0);
                 Audio.setVolumes(0, volMusic, volSfx);
                 setMuted(true);
@@ -117,29 +117,29 @@ export function OptionsModal() {
 
           <div className="options-row">
             <label>
-              {t('options.vol_master')}
+               {t('options.vol_master')}
               <span>{volMaster}%</span>
             </label>
-            <input type="range" min="0" max="100" value={volMaster}
-              onChange={e => { const v = +e.target.value; setVolMaster(v); setMuted(v === 0); Audio.setVolumes(v, volMusic, volSfx); }} />
+            <input type="range" min={0} max={VOLUME_CONFIG.SCALE_MAX} value={volMaster}
+              onChange={e => { const v = clampVolume(+e.target.value); setVolMaster(v); setMuted(v === 0); Audio.setVolumes(v, volMusic, volSfx); }} />
           </div>
 
           <div className="options-row">
             <label>
-              {t('options.vol_music')}
+               {t('options.vol_music')}
               <span>{volMusic}%</span>
             </label>
-            <input type="range" min="0" max="100" value={volMusic}
-              onChange={e => { const v = +e.target.value; setVolMusic(v); Audio.setVolumes(volMaster, v, volSfx); }} />
+            <input type="range" min={0} max={VOLUME_CONFIG.SCALE_MAX} value={volMusic}
+              onChange={e => { const v = clampVolume(+e.target.value); setVolMusic(v); Audio.setVolumes(volMaster, v, volSfx); }} />
           </div>
 
           <div className="options-row">
             <label>
-              {t('options.vol_sfx')}
+               {t('options.vol_sfx')}
               <span>{volSfx}%</span>
             </label>
-            <input type="range" min="0" max="100" value={volSfx}
-              onChange={e => { const v = +e.target.value; setVolSfx(v); Audio.setVolumes(volMaster, volMusic, v); }} />
+            <input type="range" min={0} max={VOLUME_CONFIG.SCALE_MAX} value={volSfx}
+              onChange={e => { const v = clampVolume(+e.target.value); setVolSfx(v); Audio.setVolumes(volMaster, volMusic, v); }} />
           </div>
 
           {canInstall && (
