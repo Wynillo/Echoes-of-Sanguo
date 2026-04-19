@@ -1,5 +1,6 @@
 import type { AIGoal, BoardSnapshot, PlayerState } from './types.js';
 import { AI_SCORE } from './ai-behaviors.js';
+import { GAME_RULES } from './rules.js';
 
 /** Create a lightweight board snapshot from live player states. */
 export function snapshotBoard(ai: PlayerState, plr: PlayerState): BoardSnapshot {
@@ -27,7 +28,7 @@ export function snapshotBoard(ai: PlayerState, plr: PlayerState): BoardSnapshot 
  */
 export function computeBoardThreat(snap: BoardSnapshot): number {
   const plrLPSafe = snap.plrLP > 0 ? snap.plrLP : 1;
-  const lpRatio = (snap.aiLP / plrLPSafe - 1) * AI_SCORE.THREAT_LP_WEIGHT * 8000;
+  const lpRatio = (snap.aiLP / plrLPSafe - 1) * AI_SCORE.THREAT_LP_WEIGHT * GAME_RULES.STARTING_LP;
   const boardDiff = (snap.aiMonsterPower - snap.plrMonsterPower) * AI_SCORE.THREAT_BOARD_WEIGHT;
   const handAdv = (snap.aiHandSize - snap.plrHandSize) * AI_SCORE.THREAT_HAND_WEIGHT;
   return lpRatio + boardDiff + handAdv;

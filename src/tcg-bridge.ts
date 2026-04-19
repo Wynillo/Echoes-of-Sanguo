@@ -286,7 +286,11 @@ export async function loadAndApplyTcg(
   // Resolve source to ArrayBuffer so we can extract locale files from the ZIP
   let buffer: ArrayBuffer;
   if (typeof source === 'string') {
-    const res = await fetch(source);
+    const res = await fetch(source, {
+      mode: 'cors',
+      credentials: 'omit',
+      referrerPolicy: 'strict-origin-when-cross-origin',
+    });
     if (!res.ok) throw new TcgNetworkError(source, res.status);
     buffer = await res.arrayBuffer();
   } else {

@@ -91,13 +91,3 @@ export function craftEffectMonster(
   
   return { success: true, card: card ?? undefined };
 }
-
-export function getCard(id: string | number): CardData | null {
-  const strId = String(id);
-  
-  if (isCraftedId(strId)) {
-    return resolveCraftedCard(strId);
-  }
-  
-  return CARD_DB[strId] ?? null;
-}

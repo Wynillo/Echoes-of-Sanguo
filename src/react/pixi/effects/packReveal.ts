@@ -1,5 +1,6 @@
 import { Application, Container, Graphics } from 'pixi.js';
 import { fxManager } from '../fxManager.js';
+import { RARITY_PALETTE_PIXEL, FLASH_CREAM_PIXEL, SPIRAL_PALETTE_PIXEL } from '../../../constants/colors.js';
 
 export interface RarityConfig {
   particleCount: number;
@@ -13,21 +14,21 @@ export const RARITY_CONFIG: Record<number, RarityConfig> = {
   [4]: {
     particleCount: 60,
     beamCount: 4,
-    palette: [0x7090ff, 0x4060cc, 0xa0c0ff, 0xffffff, 0x8888ff],
+    palette: RARITY_PALETTE_PIXEL.RARE,
     bloomRadius: 0,
     spiral: false,
   },
   [6]: {
     particleCount: 120,
     beamCount: 6,
-    palette: [0xffd700, 0xffaa00, 0xfff0a0, 0xffffff, 0xff8800],
+    palette: RARITY_PALETTE_PIXEL.SUPER_RARE,
     bloomRadius: 120,
     spiral: false,
   },
   [8]: {
     particleCount: 180,
     beamCount: 8,
-    palette: [0xe070ff, 0x9030cc, 0xff80ff, 0xffffff, 0xc040ff, 0xff60ff],
+    palette: RARITY_PALETTE_PIXEL.ULTRA_RARE,
     bloomRadius: 160,
     spiral: true,
   },
@@ -77,7 +78,7 @@ export function runPackReveal(
   const H = app.screen.height;
 
   const flash = new Graphics();
-  flash.rect(0, 0, W, H).fill({ color: 0xfffee8 });
+  flash.rect(0, 0, W, H).fill({ color: FLASH_CREAM_PIXEL });
   flash.alpha = 0.8;
   container.addChild(flash);
 
@@ -126,7 +127,6 @@ export function runPackReveal(
     };
   });
 
-  const SPIRAL_PALETTE = [0xff6060, 0xffcc00, 0x60ff60, 0x60a0ff, 0xe070ff];
   const spiralCount = mobile ? 16 : 40;
   const spiralParticles: Particle[] = cfg.spiral
     ? Array.from({ length: spiralCount }, (_, i) => {
@@ -140,7 +140,7 @@ export function runPackReveal(
           vx: Math.cos(tangent) * speed,
           vy: Math.sin(tangent) * speed,
           size: 4,
-          color: SPIRAL_PALETTE[i % SPIRAL_PALETTE.length],
+          color: SPIRAL_PALETTE_PIXEL[i % SPIRAL_PALETTE_PIXEL.length],
           alpha: 1,
           decay: 0.007,
           shape: 'square' as const,

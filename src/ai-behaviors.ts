@@ -45,7 +45,7 @@ export function aiEffectiveDEF(fc: FieldCard): number {
 const DEFAULT: AIBehavior = {
   fusionFirst:            true,
   fusionMinATK:           0,
-  summonPriority:         'highestATK',
+  summonPriority:         'highestAtk',
   positionStrategy:       'smart',
   battleStrategy:         'smart',
   spellRules:             {},
@@ -55,7 +55,7 @@ const DEFAULT: AIBehavior = {
 const AGGRESSIVE: AIBehavior = {
   fusionFirst:            true,
   fusionMinATK:           0,
-  summonPriority:         'highestATK',
+  summonPriority:         'highestAtk',
   positionStrategy:       'aggressive',
   battleStrategy:         'aggressive',
   spellRules:             {},
@@ -68,7 +68,7 @@ const AGGRESSIVE: AIBehavior = {
 const DEFENSIVE: AIBehavior = {
   fusionFirst:            true,
   fusionMinATK:           2000,
-  summonPriority:         'highestDEF',
+  summonPriority:         'highestDef',
   positionStrategy:       'defensive',
   battleStrategy:         'conservative',
   spellRules:             {},
@@ -95,7 +95,7 @@ const SMART: AIBehavior = {
 const CHEATING: AIBehavior = {
   fusionFirst:            true,
   fusionMinATK:           0,
-  summonPriority:         'highestATK',
+  summonPriority:         'highestAtk',
   positionStrategy:       'aggressive',
   battleStrategy:         'aggressive',
   spellRules:             {},
@@ -122,7 +122,7 @@ export function resolveAIBehavior(id?: string): Required<AIBehavior> {
   return {
     fusionFirst:            base.fusionFirst            ?? true,
     fusionMinATK:           base.fusionMinATK           ?? 0,
-    summonPriority:         base.summonPriority         ?? 'highestATK',
+    summonPriority:         base.summonPriority         ?? 'highestAtk',
     positionStrategy:       base.positionStrategy       ?? 'smart',
     battleStrategy:         base.battleStrategy         ?? 'smart',
     spellRules:             base.spellRules             ?? {},
@@ -173,10 +173,10 @@ export function pickSummonCandidate(hand: CardData[], priority: Required<AIBehav
 
     let score: number;
     switch (priority) {
-      case 'highestATK':
+      case 'highestAtk':
         score = card.atk ?? 0;
         break;
-      case 'highestDEF':
+      case 'highestDef':
         score = card.def ?? 0;
         break;
       case 'effectFirst':
