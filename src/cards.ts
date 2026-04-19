@@ -79,19 +79,32 @@ export function makeDeck(ids: string[]): CardData[] {
   });
 }
 
-export function checkFusion(id1: string, id2: string): FusionRecipe | null {
-  // Step 1: Explicit recipe lookup (highest priority)
-  const explicit = FUSION_RECIPES.find(r =>
-    (r.materials[0]===id1 && r.materials[1]===id2) ||
-    (r.materials[0]===id2 && r.materials[1]===id1)
+/** Find explicit fusion recipe by material IDs (order-independent). */
+function findExplicitRecipe(id1: string, id2: string): FusionRecipe | null {
+  const recipe = FUSION_RECIPES.find(r =>
+    (r.materials[0] === id1 && r.materials[1] === id2) ||
+    (r.materials[0] === id2 && r.materials[1] === id1)
   );
-  if (explicit) return explicit;
+  return recipe ?? null;
+}
 
-  // Step 2: Type-based formula lookup (Forbidden Memories style)
+/** Validate that both cards exist and are monsters. */
+function validateFusionMaterials(
+  card1: CardData | undefined,
+  card2: CardData | undefined
+): boolean {
+  if (!card1 || !card2) return false;
+  return card1.type === CardType.Monster && card2.type === CardType.Monster;
+}
+
+/** Find formula-based fusion result for two monster cards. */
+function findFormulaBasedFusion(id1: string, id2: string): FusionRecipe | null {
   const card1 = CARD_DB[id1];
   const card2 = CARD_DB[id2];
-  if (!card1 || !card2) return null;
-  if (card1.type !== CardType.Monster || card2.type !== CardType.Monster) return null;
+
+  if (!validateFusionMaterials(card1, card2)) {
+    return null;
+  }
 
   const threshold = Math.max(card1.atk ?? 0, card2.atk ?? 0);
 
@@ -104,7 +117,15 @@ export function checkFusion(id1: string, id2: string): FusionRecipe | null {
       }
     }
   }
+
   return null;
+}
+
+export function checkFusion(id1: string, id2: string): FusionRecipe | null {
+  const explicitRecipe = findExplicitRecipe(id1, id2);
+  if (explicitRecipe) return explicitRecipe;
+
+  return findFormulaBasedFusion(id1, id2);
 }
 
 /** Check if two cards match a fusion formula's type requirements. */
