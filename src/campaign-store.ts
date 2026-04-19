@@ -4,7 +4,7 @@
 // ============================================================
 
 import type { DialogueScene } from '@wynillo/tcg-format';
-import type { CampaignData, CampaignNode, CampaignProgress, Chapter } from './campaign-types.js';
+import type { CampaignData, CampaignNode, CampaignProgress } from './campaign-types.js';
 import { Progression } from './progression.js';
 
 export const CAMPAIGN_DATA: CampaignData = { chapters: [] };
@@ -60,13 +60,6 @@ export function isNodeUnlocked(nodeId: string, progress: CampaignProgress): bool
     default:
       return false;
   }
-}
-
-/**
- * Get a chapter by ID.
- */
-export function getChapter(chapterId: string): Chapter | undefined {
-  return CAMPAIGN_DATA.chapters.find(ch => ch.id === chapterId);
 }
 
 /**
