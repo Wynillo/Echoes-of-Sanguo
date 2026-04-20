@@ -1503,34 +1503,37 @@ export class GameEngine {
     this.state[owner].battleProtection = false;
   }
 
+  _collectNegateFlags(sources: Array<{ card: CardData; disabled?: boolean }>) {
+    const flags = { negateTraps: false, negateSpells: false, negateMonsterEffects: false };
+    for (const source of sources) {
+      if (source.disabled) continue;
+      const blocks = source.card.effects ?? (source.card.effect ? [source.card.effect] : []);
+      for (const b of blocks) {
+        if (b.trigger !== 'passive') continue;
+        for (const a of b.actions) {
+          if (a.type === 'passive_negateTraps') flags.negateTraps = true;
+          if (a.type === 'passive_negateSpells') flags.negateSpells = true;
+          if (a.type === 'passive_negateMonsterEffects') flags.negateMonsterEffects = true;
+        }
+      }
+    }
+    return flags;
+  }
+
   _recalcFieldFlags(){
     for (const side of ['player', 'opponent'] as Owner[]) {
-      const flags = { negateTraps: false, negateSpells: false, negateMonsterEffects: false };
       const st = this.state[side];
+      const sources: Array<{ card: CardData; disabled?: boolean }> = [];
+      
       for (const fc of st.field.monsters) {
-        if (!fc) continue;
-        const blocks = fc.card.effects ?? (fc.card.effect ? [fc.card.effect] : []);
-        for (const b of blocks) {
-          if (b.trigger !== 'passive') continue;
-          for (const a of b.actions) {
-            if (a.type === 'passive_negateTraps') flags.negateTraps = true;
-            if (a.type === 'passive_negateSpells') flags.negateSpells = true;
-            if (a.type === 'passive_negateMonsterEffects') flags.negateMonsterEffects = true;
-          }
-        }
+        if (fc) sources.push({ card: fc.card });
       }
+      
       for (const fst of st.field.spellTraps) {
-        if (!fst || fst.faceDown) continue;
-        const blocks = fst.card.effects ?? (fst.card.effect ? [fst.card.effect] : []);
-        for (const b of blocks) {
-          for (const a of b.actions) {
-            if (a.type === 'passive_negateTraps') flags.negateTraps = true;
-            if (a.type === 'passive_negateSpells') flags.negateSpells = true;
-            if (a.type === 'passive_negateMonsterEffects') flags.negateMonsterEffects = true;
-          }
-        }
+        if (fst && !fst.faceDown) sources.push({ card: fst.card });
       }
-      st.fieldFlags = flags;
+      
+      st.fieldFlags = this._collectNegateFlags(sources);
     }
   }
 
