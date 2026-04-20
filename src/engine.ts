@@ -1510,15 +1510,10 @@ export class GameEngine {
       this.addLog(`--- ${names[this.state.phase] ?? this.state.phase} ---`);
       this.ui.render(this.state);
     } else {
-      this._resetMonsterFlags(this.state.activePlayer);
-      this._returnTempStolenMonsters(this.state.activePlayer);
-      this._returnSpiritMonsters(this.state.activePlayer);
-      this._tickTurnCounters(this.state.activePlayer);
-      this.state[this.state.activePlayer].normalSummonUsed = false;
-      const opp = this.state.activePlayer === 'player' ? 'opponent' : 'player';
-      this.state[opp].normalSummonUsed = false;
-      const hand = this.state[this.state.activePlayer].hand;
-      while(hand.length > GAME_RULES.handLimitEnd){ hand.shift(); }
+      const active = this.state.activePlayer;
+      const opp = active === 'player' ? 'opponent' : 'player';
+      this._cleanupForTurnEnd(active);
+      this._cleanupForTurnEnd(opp);
       this.endTurn();
     }
   }
@@ -1599,38 +1594,57 @@ export class GameEngine {
     }
   }
 
-  endTurn(){
-    this._resetMonsterFlags('player');
-    this._returnTempStolenMonsters('player');
-    this._returnSpiritMonsters('player');
-    this._tickTurnCounters('player');
+  _cleanupForTurnEnd(owner: Owner): void {
+    this._resetMonsterFlags(owner);
+    this._returnTempStolenMonsters(owner);
+    this._returnSpiritMonsters(owner);
+    this._tickTurnCounters(owner);
+    this._resetSummonFlags(owner);
+    this._enforceHandLimit(owner);
+  }
 
-    this.state.player.normalSummonUsed   = false;
-    this.state.opponent.normalSummonUsed = false;
+  _resetSummonFlags(owner: Owner): void {
+    this.state[owner].normalSummonUsed = false;
+  }
 
-    const hand = this.state.player.hand;
-    while(hand.length > GAME_RULES.handLimitEnd){ hand.shift(); }
+  _enforceHandLimit(owner: Owner): void {
+    const hand = this.state[owner].hand;
+    while (hand.length > GAME_RULES.handLimitEnd) { hand.shift(); }
+  }
 
+  _handleAICrash(err: any): void {
+    EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
+    EchoesOfSanguo.downloadLog('ai_crash');
+    this.state.activePlayer = 'player';
+    this.state.phase = 'main';
+    this.state.turn++;
+    this.state.oneMoveActionUsed = false;
+    this.addLog(`[ERROR] Opponent AI crashed. Your turn (Round ${this.state.turn}).`);
+    this.refillHand('player');
+    this.ui.render(this.state);
+  }
+
+  _transitionToOpponentTurn(): void {
     this.state.activePlayer = 'opponent';
     this.state.phase = 'draw';
     this.state.turn++;
-
     this.addLog(`=== Round ${this.state.turn} - Opponent's turn ===`);
     this.ui.render(this.state);
+  }
 
+  _scheduleAITurn(delayMs: number = 600): void {
     setTimeout(() => {
-      aiTurn(createEngineDependencies(this)).catch(err => {
-        EchoesOfSanguo.log('ERROR', 'AI turn crashed:', err);
-        EchoesOfSanguo.downloadLog('ai_crash');
-        this.state.activePlayer = 'player';
-        this.state.phase = 'main';
-        this.state.turn++;
-        this.state.oneMoveActionUsed = false;
-        this.addLog(`[ERROR] Opponent AI crashed. Your turn (Round ${this.state.turn}).`);
-        this.refillHand('player');
-        this.ui.render(this.state);
-      });
-    }, 600);
+      aiTurn(createEngineDependencies(this))
+        .catch(err => this._handleAICrash(err));
+    }, delayMs);
+  }
+
+  endTurn(){
+    this._cleanupForTurnEnd('player');
+    this._cleanupForTurnEnd('opponent');
+    
+    this._transitionToOpponentTurn();
+    this._scheduleAITurn();
   }
 
   changePosition(owner: Owner, zone: number){
