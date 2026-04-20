@@ -12,12 +12,12 @@ import type { FieldSpellTrap } from '../../../field.js';
 
 const FIELD_ZONES = [0, 1, 2, 3, 4] as const;
 
-interface Props {
+interface PlayerFieldProps {
   showDirect:    boolean;
   setShowDirect: (v: boolean) => void;
 }
 
-export function PlayerField({ showDirect, setShowDirect }: Props) {
+export function PlayerField({ showDirect, setShowDirect }: PlayerFieldProps) {
   const { gameState, gameRef } = useGame();
   const { openModal }          = useModal();
   const { sel, setSel, resetSel } = useSelection();
