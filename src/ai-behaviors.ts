@@ -295,6 +295,87 @@ export interface BoardContext {
   aiLP: number;
 }
 
+/**
+ * Scoring constants for smart summon candidate selection.
+ */
+export const AI_SUMMON_SCORE = {
+  ATK_BASE_MULTIPLIER: 0.5,
+  WEAKER_MONSTER_BONUS: 300,
+  OUTCLASS_OPPONENT_BONUS: 200,
+  DEFENSIVE_BONUS: 100,
+  DIRECT_ATTACK_BONUS_MULTIPLIER: 1,
+  EFFECT_MONSTER_BONUS: 400,
+} as const;
+
+/**
+ * Calculate offensive scoring for a summon candidate.
+ * Includes base ATK score, bonuses for weaker monsters, and outclass bonus.
+ */
+function calculateOffensiveScore(
+  card: CardData,
+  opponentMonsters: FieldCard[],
+  opponentMaxATK: number,
+): number {
+  const atk = card.atk ?? 0;
+  let score = atk * AI_SUMMON_SCORE.ATK_BASE_MULTIPLIER;
+
+  for (const pfc of opponentMonsters) {
+    const pVal = aiCombatValue(pfc);
+    if (atk > pVal) {
+      score += AI_SUMMON_SCORE.WEAKER_MONSTER_BONUS;
+    }
+  }
+
+  if (atk >= opponentMaxATK) {
+    score += AI_SUMMON_SCORE.OUTCLASS_OPPONENT_BONUS;
+  }
+
+  return score;
+}
+
+/**
+ * Calculate defensive scoring for a summon candidate.
+ * Includes DEF-based bonus and low LP survival bonus.
+ */
+function calculateDefensiveScore(
+  card: CardData,
+  opponentMaxATK: number,
+  opponentMaxThreat: number,
+  aiLP: number,
+): number {
+  const atk = card.atk ?? 0;
+  const def = card.def ?? 0;
+  let score = 0;
+
+  if (atk < opponentMaxATK && def >= opponentMaxThreat) {
+    score += AI_SUMMON_SCORE.DEFENSIVE_BONUS;
+  }
+
+  if (aiLP < AI_LP_THRESHOLD.LOW && def > opponentMaxThreat) {
+    score += AI_SCORE.LOW_LP_SURVIVAL;
+  }
+
+  return score;
+}
+
+/**
+ * Calculate direct attack bonus when opponent has no monsters.
+ */
+function calculateDirectAttackBonus(
+  card: CardData,
+  hasOpponentMonsters: boolean,
+): number {
+  if (hasOpponentMonsters) {
+    return 0;
+  }
+  const atk = card.atk ?? 0;
+  return atk * AI_SUMMON_SCORE.DIRECT_ATTACK_BONUS_MULTIPLIER;
+}
+
+/**
+ * Select best monster to summon using multi-factor scoring.
+ * Evaluates ATK, DEF, effects, board state, and LP thresholds.
+ */
 export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): number {
   const playerMonsters = ctx.playerField.filter((fc): fc is FieldCard => fc !== null);
   const playerMaxATK = playerMonsters.reduce((max, fc) =>
@@ -309,25 +390,15 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
     const card = hand[i];
     if (card.type !== CardType.Monster) continue;
 
-    const atk = card.atk ?? 0;
-    const def = card.def ?? 0;
     let score = 0;
 
-    score += atk * 0.5;
+    score += calculateOffensiveScore(card, playerMonsters, playerMaxATK);
+    score += calculateDefensiveScore(card, playerMaxATK, playerMaxThreat, ctx.aiLP);
+    score += calculateDirectAttackBonus(card, playerMonsters.length > 0);
 
-    for (const pfc of playerMonsters) {
-      const pVal = aiCombatValue(pfc);
-      if (atk > pVal) score += 300;
+    if (card.effect) {
+      score += AI_SUMMON_SCORE.EFFECT_MONSTER_BONUS;
     }
-
-    if (atk >= playerMaxATK) score += 200;
-    else if (def >= playerMaxThreat) score += 100;
-
-    if (playerMonsters.length === 0) score += atk;
-
-    if (card.effect) score += 400;
-
-    if (ctx.aiLP < AI_LP_THRESHOLD.LOW && def > playerMaxThreat) score += AI_SCORE.LOW_LP_SURVIVAL;
 
     if (score > bestScore) {
       bestScore = score;
