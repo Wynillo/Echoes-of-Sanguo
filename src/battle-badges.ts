@@ -1,6 +1,6 @@
 import type { DuelStats } from './types.js';
 import { CARD_DB } from './cards.js';
-import { RARITY_DROP_RATES } from './react/utils/pack-logic.js';
+import { DEFAULT_RARITY_PROBABILITIES, RARITY_DROP_RATES } from './react/utils/pack-logic.js';
 import type { DuelRewardConfig, BadgeRank, DropPoolEntry } from './reward-config.js';
 import { DEFAULT_REWARD_CONFIG, getRankEffect } from './reward-config.js';
 
@@ -133,8 +133,8 @@ const RARITY_FALLBACK: Rarity[] = [
 
 function rollRarity(customRates?: Partial<Record<Rarity, number>>): Rarity {
   const rates = customRates
-    ? { ...RARITY_DROP_RATES, ...Object.fromEntries(Object.entries(customRates).map(([k, v]) => [k, v])) }
-    : RARITY_DROP_RATES;
+    ? { ...DEFAULT_RARITY_PROBABILITIES, ...Object.fromEntries(Object.entries(customRates).map(([k, v]) => [k, v])) }
+    : DEFAULT_RARITY_PROBABILITIES;
   const r = Math.random();
   let cumulative = 0;
   const entries = Object.entries(rates)
