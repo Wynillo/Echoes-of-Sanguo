@@ -1021,78 +1021,180 @@ export class GameEngine {
     return true;
   }
 
-  async attack(attackerOwner: Owner, attackerZone: number, defenderZone: number){
-    if(this.hasPreventAttacks(attackerOwner)){ this.addLog('Attacks are prevented!'); return; }
-    const atkSt  = this.state[attackerOwner];
+  private _processTrapResult(
+    trapResult: EffectSignal | null,
+    attackerOwner: Owner,
+    attackerZone: number,
+    attFC: any
+  ): { destroy: boolean, reflect: boolean, cancel: boolean } {
+    if (trapResult?.destroyAttacker) {
+      this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC);
+      attFC.hasAttacked = true;
+      return { destroy: true, reflect: false, cancel: false };
+    }
+    if (trapResult?.reflectDamage) {
+      this.dealDamage(attackerOwner, attFC.effectiveATK());
+      attFC.hasAttacked = true;
+      return { destroy: false, reflect: true, cancel: false };
+    }
+    if (trapResult && trapResult.cancelAttack) {
+      attFC.hasAttacked = true;
+      return { destroy: false, reflect: false, cancel: true };
+    }
+    return { destroy: false, reflect: false, cancel: false };
+  }
+
+  private _validateAttack(
+    attackerOwner: Owner,
+    attackerZone: number,
+    defenderZone: number
+  ): { attFC: any, defFC: any, valid: boolean } {
+    const atkSt = this.state[attackerOwner];
     const defOwn = attackerOwner === 'player' ? 'opponent' : 'player';
-    const defSt  = this.state[defOwn];
+    const defSt = this.state[defOwn];
 
     const attFC = atkSt.field.monsters[attackerZone];
-    if(!attFC){ this.addLog('No attacking monster!'); return; }
-    if(attFC.hasAttacked){ this.addLog(`${attFC.card.name} has already attacked!`); return; }
-    if(attFC.faceDown){
+    if (!attFC) {
+      this.addLog('No attacking monster!');
+      return { attFC: null, defFC: null, valid: false };
+    }
+    if (attFC.hasAttacked) {
+      this.addLog(`${attFC.card.name} has already attacked!`);
+      return { attFC, defFC: null, valid: false };
+    }
+    if (attFC.faceDown) {
       attFC.faceDown = false;
       attFC.position = 'atk';
       this.addLog(`${attFC.card.name} is revealed (attack)!`);
-      await this._triggerFlipSummonEffect(attFC, attackerOwner, attackerZone);
+      this._triggerFlipSummonEffect(attFC, attackerOwner, attackerZone);
       TriggerBus.emit('onFlipSummon', { engine: this, owner: attackerOwner, card: attFC.card, fieldCard: attFC, zone: attackerZone });
     }
-    if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
+    if (attFC.position !== 'atk') {
+      this.addLog('Monster must be in attack position!');
+      return { attFC, defFC: null, valid: false };
+    }
 
     const defFC = defSt.field.monsters[defenderZone];
-    if(defFC && defFC.cantBeAttacked){
-      this.addLog(`${defFC.card.name} cannot be attacked!`); return;
+    if (defFC && defFC.cantBeAttacked) {
+      this.addLog(`${defFC.card.name} cannot be attacked!`);
+      return { attFC, defFC, valid: false };
     }
 
-    if(attackerOwner === 'opponent'){
-      const trapResult = await this._promptPlayerTraps('onAttack', attFC);
-      if(trapResult?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(trapResult?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(trapResult && trapResult.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
-      if(defFC){
-        const trapResult2 = await this._promptPlayerTraps('onOwnMonsterAttacked', attFC, defFC);
-        if(trapResult2?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-        if(trapResult2?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-        if(trapResult2 && trapResult2.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
-        if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
+    return { attFC, defFC, valid: true };
+  }
+
+  private async _handleTrapPhase(
+    attackerOwner: Owner,
+    attackerZone: number,
+    attFC: any,
+    defFC: any
+  ): Promise<{ cancelled: boolean, destroyed: boolean, battleReady: boolean }> {
+    const atkSt = this.state[attackerOwner];
+    const isOpponentAttacking = attackerOwner === 'opponent';
+
+    const trapFn = isOpponentAttacking
+      ? () => this._promptPlayerTraps('onAttack', attFC)
+      : () => this._autoActivateOpponentTraps('onAttack', attFC);
+    const trapResult = await trapFn();
+    const result = this._processTrapResult(trapResult, attackerOwner, attackerZone, attFC);
+
+    if (result.destroy || result.reflect) {
+      this.ui.render(this.state);
+      return { cancelled: false, destroyed: true, battleReady: false };
+    }
+    if (result.cancel) {
+      this.ui.render(this.state);
+      return { cancelled: true, destroyed: false, battleReady: false };
+    }
+
+    if (this._duelEnded || !atkSt.field.monsters[attackerZone]) {
+      this.ui.render(this.state);
+      return { cancelled: false, destroyed: false, battleReady: false };
+    }
+
+    if (defFC) {
+      const trapFn2 = isOpponentAttacking
+        ? () => this._promptPlayerTraps('onOwnMonsterAttacked', attFC, defFC)
+        : () => this._autoActivateOpponentTraps('onOwnMonsterAttacked', attFC, defFC);
+      const trapResult2 = await trapFn2();
+      const result2 = this._processTrapResult(trapResult2, attackerOwner, attackerZone, attFC);
+
+      if (result2.destroy || result2.reflect) {
+        this.ui.render(this.state);
+        return { cancelled: false, destroyed: true, battleReady: false };
+      }
+      if (result2.cancel) {
+        this.ui.render(this.state);
+        return { cancelled: true, destroyed: false, battleReady: false };
+      }
+
+      if (this._duelEnded || !atkSt.field.monsters[attackerZone]) {
+        this.ui.render(this.state);
+        return { cancelled: false, destroyed: false, battleReady: false };
       }
     }
 
-    if(attackerOwner === 'player'){
-      const oppTrap = await this._autoActivateOpponentTraps('onAttack', attFC);
-      if(oppTrap?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(oppTrap?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(oppTrap?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
-      if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
-      if(defFC){
-        const oppTrap2 = await this._autoActivateOpponentTraps('onOwnMonsterAttacked', attFC, defFC);
-        if(oppTrap2?.destroyAttacker){ this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-        if(oppTrap2?.reflectDamage){ this.dealDamage(attackerOwner, attFC.effectiveATK()); attFC.hasAttacked = true; this.ui.render(this.state); return; }
-        if(oppTrap2?.cancelAttack){ attFC.hasAttacked = true; this.ui.render(this.state); return; }
-        if(this._duelEnded || !atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
-      }
+    if (!atkSt.field.monsters[attackerZone]) {
+      this.ui.render(this.state);
+      return { cancelled: false, destroyed: false, battleReady: false };
     }
 
-    if(!atkSt.field.monsters[attackerZone]){ this.ui.render(this.state); return; }
     attFC.hasAttacked = true;
 
-    if(!defFC){
+    return { cancelled: false, destroyed: false, battleReady: true };
+  }
+
+  private async _executeBattlePhase(
+    attackerOwner: Owner,
+    attackerZone: number,
+    defenderZone: number,
+    attFC: any,
+    defFC: any
+  ): Promise<void> {
+    const defOwn = attackerOwner === 'player' ? 'opponent' : 'player';
+
+    if (!defFC) {
       this.addLog(`${attFC.card.name} attacks directly!`);
-      if(this.state[defOwn].battleProtection){
+      if (this.state[defOwn].battleProtection) {
         this.addLog('Battle damage prevented!');
       } else {
-        if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
+        if (this.ui.playAttackAnimation) {
+          await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, null);
+        }
         this.dealDamage(defOwn, attFC.effectiveATK());
-        if(this._duelEnded) return;
+        if (this._duelEnded) return;
         await this._triggerEffect(attFC, attackerOwner, 'onDealBattleDamage', null);
       }
     } else {
-      if(this.ui.playAttackAnimation) await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, defenderZone);
+      if (this.ui.playAttackAnimation) {
+        await this.ui.playAttackAnimation(attackerOwner, attackerZone, defOwn, defenderZone);
+      }
       await this._resolveBattle(attackerOwner, attackerZone, defOwn, defenderZone, attFC, defFC);
     }
-    if(this._duelEnded) return;
-    this.ui.render(this.state);
+
+    if (!this._duelEnded) {
+      this.ui.render(this.state);
+    }
+  }
+
+  async attack(attackerOwner: Owner, attackerZone: number, defenderZone: number) {
+    if (this.hasPreventAttacks(attackerOwner)) {
+      this.addLog('Attacks are prevented!');
+      return;
+    }
+
+    const validation = this._validateAttack(attackerOwner, attackerZone, defenderZone);
+    if (!validation.valid || !validation.attFC) return;
+    const { attFC, defFC } = validation;
+
+    const trapPhase = await this._handleTrapPhase(attackerOwner, attackerZone, attFC, defFC);
+    if (!trapPhase.battleReady) return;
+
+    await this._executeBattlePhase(attackerOwner, attackerZone, defenderZone, attFC, defFC);
+
+    if (!this._duelEnded) {
+      this.ui.render(this.state);
+    }
   }
 
   async attackDirect(attackerOwner: Owner, attackerZone: number){
