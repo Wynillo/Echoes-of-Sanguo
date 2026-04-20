@@ -288,13 +288,13 @@ function _activateSpells(deps, ctx) {
 
 ```typescript
 interface AISpellRule {
-  when: 'always' | 'oppLP>N' | 'selfLP<N';
+  when: 'always' | 'opponentLP>N' | 'selfLP<N';
   threshold?: number;
 }
 
 // Example: Activate only if opponent LP > 3000
 spellRules: {
-  'strong_nuke': { when: 'oppLP>N', threshold: 3000 }
+  'strong_nuke': { when: 'opponentLP>N', threshold: 3000 }
 }
 ```
 

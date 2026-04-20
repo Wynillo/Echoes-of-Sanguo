@@ -691,7 +691,7 @@ interface UICallbacks {
   // Duel lifecycle
   onDuelEnd?: (
     result: 'victory' | 'defeat',
-    oppId: number | null,
+    opponentId: number | null,
     stats: DuelStats,
   ) => void;
 }
