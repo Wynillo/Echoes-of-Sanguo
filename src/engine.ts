@@ -4,6 +4,7 @@ import { CardType } from './types.js';
 import { meetsEquipRequirement } from './types.js';
 import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
 import { TriggerBus } from './trigger-bus.js';
+import { getEffectBlocks } from './utils/effects.js';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types.js';
 
@@ -1303,25 +1304,13 @@ export class GameEngine {
     if (trigger !== 'passive' && this.state[oppSide].fieldFlags?.negateMonsterEffects) {
       return;
     }
-    const blocks = this._getEffectBlocks(card, trigger);
+    const blocks = getEffectBlocks(card, trigger);
     for (const block of blocks) {
       EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: ${trigger}`);
       if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
       const ctx: EffectContext = { engine: this, owner };
       await this._safeExecuteEffect(block, ctx, card.id, `effect trigger=${trigger}`);
     }
-  }
-
-  _getEffectBlocks(card: CardData, trigger: string): CardEffectBlock[] {
-    const blocks: CardEffectBlock[] = [];
-    if (card.effects) {
-      for (const b of card.effects) {
-        if (b.trigger === trigger) blocks.push(b);
-      }
-    } else if (card.effect && card.effect.trigger === trigger) {
-      blocks.push(card.effect);
-    }
-    return blocks;
   }
 
   async _checkAnySummonTraps(summonerOwner: Owner, zone: number): Promise<void> {
@@ -1338,7 +1327,7 @@ export class GameEngine {
   }
 
   async _triggerSentToGrave(card: CardData, owner: Owner): Promise<void> {
-    const blocks = this._getEffectBlocks(card, 'onSentToGrave');
+    const blocks = getEffectBlocks(card, 'onSentToGrave');
     for (const block of blocks) {
       EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: onSentToGrave`);
       if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
@@ -1351,7 +1340,7 @@ export class GameEngine {
     if(fc.hasFlipSummoned) return;
     fc.hasFlipSummoned = true;
     const card = fc.card;
-    const blocks = [...this._getEffectBlocks(card, 'onFlipSummon'), ...this._getEffectBlocks(card, 'onFlip')];
+    const blocks = [...getEffectBlocks(card, 'onFlipSummon'), ...getEffectBlocks(card, 'onFlip')];
     if (blocks.length === 0) return;
     EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Flip Effect`);
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);

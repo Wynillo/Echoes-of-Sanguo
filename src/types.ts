@@ -387,7 +387,6 @@ export declare class FieldCard {
   cantBeAttacked:   boolean;
   equippedCards:    Array<{ zone: number; card: CardData }>;
   originalOwner?:   Owner;
-  _getPassiveBlocks(): CardEffectBlock[];
   effectiveATK():   number;
   effectiveDEF():   number;
   combatValue():    number;
