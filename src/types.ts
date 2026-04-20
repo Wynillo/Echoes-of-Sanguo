@@ -95,22 +95,22 @@ export function isMonsterType(type: CardType): boolean {
 export interface EffectContext {
   engine:       GameEngine;
   owner:        Owner;
-  targetFC?:    FieldCard;   // targeted FieldCard (targeted spells/traps)
+  target?:      FieldCard;   // targeted FieldCard (targeted spells/traps)
   targetCard?:  CardData;    // targeted CardData (fromGrave spells)
   attacker?:    FieldCard;   // attacking FieldCard (onAttack traps)
   defender?:    FieldCard;
-  summonedFC?:  FieldCard;   // FieldCard just summoned (onOpponentSummon traps)
+  summoned?:    FieldCard;   // FieldCard just summoned (onOpponentSummon traps)
   abortSignal?: AbortSignal; // for timeout/step-limit cancellation
 }
 
 export interface PureEffectCtx {
   state:        GameState;
   owner:        Owner;
-  targetFC?:    FieldCard;
+  target?:      FieldCard;
   targetCard?:  CardData;
   attacker?:    FieldCard;
   defender?:    FieldCard;
-  summonedFC?:  FieldCard;
+  summoned?:    FieldCard;
   log(msg: string): void;
   damage(owner: Owner, amount: number): void;
   heal(owner: Owner, amount: number): void;

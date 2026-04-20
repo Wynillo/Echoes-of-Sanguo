@@ -1252,7 +1252,7 @@ export class GameEngine {
         EchoesOfSanguo.log('EFFECT', `${targetInfo.card.name} cannot be targeted by effects – target ignored.`, '#fa0');
         this.addLog(`${targetInfo.card.name} cannot be targeted by effects!`);
       } else {
-        ctx.targetFC = targetInfo;
+        ctx.target = targetInfo;
       }
     } else if(targetInfo && typeof targetInfo === 'object' && 'id' in targetInfo){
       ctx.targetCard = targetInfo as CardData;
@@ -1268,7 +1268,7 @@ export class GameEngine {
       ctx.attacker = args[0];
       ctx.defender = args[1];
     } else if(trapTrigger === 'onOpponentSummon' || trapTrigger === 'onAnySummon'){
-      ctx.summonedFC = args[0];
+      ctx.summoned = args[0];
     } else if(trapTrigger === 'onOpponentTrap'){
       ctx.attacker = args[0];
     }
