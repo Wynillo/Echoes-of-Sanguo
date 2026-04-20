@@ -938,9 +938,6 @@ export function pickBestGraveyardMonster(
   }
   return best;
 }
-  }
-  return best;
-}
 
 export function pickSpellBuffTarget(
   ownMonsters: Array<FieldCard | null>,
