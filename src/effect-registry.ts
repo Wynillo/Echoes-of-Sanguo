@@ -6,6 +6,8 @@ import {
   type PureEffectCtx, type ChainEffectCtx,
 } from './types.js';
 import { EchoesOfSanguo } from './debug-logger.js';
+import { shuffleArray, shuffleInPlace } from './utils/array.js';
+import { findEmptyMonsterZone } from './utils/field-zones.js';
 
 /**
  * Maximum number of effect steps allowed per effect block execution.
@@ -46,7 +48,7 @@ function filterFieldMonsters(monsters: Array<FieldCard | null>, filter?: CardFil
   let result = monsters.filter((fm): fm is FieldCard => fm !== null);
   if (filter) result = result.filter(fm => matchesFilter(fm.card, filter));
   if (filter?.random !== undefined && filter.random > 0) {
-    const shuffled = [...result].sort(() => Math.random() - 0.5);
+    const shuffled = shuffleArray(result);
     result = shuffled.slice(0, Math.min(filter.random, result.length));
   }
   return result;
@@ -82,13 +84,6 @@ function resolveStatTarget(target: StatTarget, ctx: PureEffectCtx): FieldCard | 
   if (target === 'ownMonster')  return ctx.target ?? null;
   if (target === 'oppMonster')  return ctx.target ?? null;
   return null;
-}
-
-function shuffleArray<T>(arr: T[]): void {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
 }
 
 function _triggerBuffVFX(fc: FieldCard, ctx: PureEffectCtx): void {
@@ -307,7 +302,7 @@ const IMPL: Record<string, InternalImpl> = {
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
     if (idx === null || !oppMonsters[idx]) return {};
     const ownMonsters = ctx.state[ctx.owner].field.monsters;
-    const freeZone = ownMonsters.findIndex(z => z === null);
+    const freeZone = findEmptyMonsterZone(ownMonsters);
     if (freeZone === -1) return {};
     const fc = oppMonsters[idx]!;
     oppMonsters[idx] = null;
@@ -375,7 +370,7 @@ const IMPL: Record<string, InternalImpl> = {
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
     if (idx === null || !oppMonsters[idx]) return {};
     const ownMonsters = ctx.state[ctx.owner].field.monsters;
-    const freeZone = ownMonsters.findIndex(z => z === null);
+    const freeZone = findEmptyMonsterZone(ownMonsters);
     if (freeZone === -1) return {};
     const fc = oppMonsters[idx]!;
     oppMonsters[idx] = null;
@@ -632,13 +627,13 @@ const IMPL: Record<string, InternalImpl> = {
     const ps = ctx.state[ctx.owner];
     ps.deck.push(...ps.graveyard);
     ps.graveyard.length = 0;
-    shuffleArray(ps.deck);
+    shuffleInPlace(ps.deck);
     ctx.log('Graveyard shuffled back into deck.');
     return {};
   },
 
   shuffleDeck(_desc: unknown, ctx: PureEffectCtx) {
-    shuffleArray(ctx.state[ctx.owner].deck);
+    shuffleInPlace(ctx.state[ctx.owner].deck);
     ctx.log('Deck shuffled.');
     return {};
   },

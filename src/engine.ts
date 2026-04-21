@@ -5,6 +5,7 @@ import { meetsEquipRequirement } from './types.js';
 import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
 import { TriggerBus } from './trigger-bus.js';
 import { getEffectBlocks } from './utils/effects.js';
+import { findEmptyMonsterZone, findEmptySpellTrapZone } from './utils/field-zones.js';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types.js';
 
@@ -523,7 +524,7 @@ export class GameEngine {
   async specialSummon(owner: Owner, card: CardData, zone?: number, position: Position = 'atk', faceDown = false){
     const st = this.state[owner];
     if(zone === undefined){
-      zone = st.field.monsters.findIndex(z => z === null);
+      zone = findEmptyMonsterZone(st.field.monsters);
       if(zone === -1){ this.addLog('No free monster zone!'); return false; }
     }
     if(st.field.monsters[zone]){ this.addLog('Zone occupied!'); return false; }
@@ -546,8 +547,8 @@ export class GameEngine {
     const graveIdx = sourceSt.graveyard.findIndex(c => c.id === card.id);
     if(graveIdx === -1){ this.addLog('Card not in graveyard!'); return false; }
     const st = this.state[owner];
-    const zone = st.field.monsters.findIndex(z => z === null);
-    if(zone === -1){ this.addLog('No free zone!'); return false; }
+    const zone = findEmptyMonsterZone(st.field.monsters);
+    if(zone === -1){ this.addLog('No free monster zone!'); return false; }
     const [c] = sourceSt.graveyard.splice(graveIdx, 1);
     const fc = new FieldCard(c, 'atk');
     fc.summonedThisTurn = false;
@@ -721,7 +722,7 @@ export class GameEngine {
       return false;
     }
 
-    const zone = st.field.spellTraps.findIndex(z => z === null);
+    const zone = findEmptySpellTrapZone(st.field.spellTraps);
     if (zone === -1) { this.addLog('No free spell/trap zone!'); return false; }
 
     st.hand.splice(handIndex, 1);
@@ -902,7 +903,7 @@ export class GameEngine {
     const recipe = checkFusion(card1.id, card2.id);
     if(!recipe){ this.addLog('No fusion possible!'); return false; }
 
-    const zone = st.field.monsters.findIndex(z => z === null);
+    const zone = findEmptyMonsterZone(st.field.monsters);
     if(zone === -1){ this.addLog('No free zone for fusion monster!'); return false; }
 
     const fusionCardData = CARD_DB[recipe.result];
@@ -941,9 +942,15 @@ export class GameEngine {
     const st = this.state[owner];
     const hand = st.hand;
 
-    if (handIndices.length < 2) return false;
+if (handIndices.length === 0) return false;
 
-    const zone = st.field.monsters.findIndex(z => z === null);
+    if (handIndices.length === 1) {
+      const zone = findEmptyMonsterZone(st.field.monsters);
+      if (zone === -1) { this.addLog('No free monster zone!'); return false; }
+      return this.summonMonster(owner, handIndices[0], zone, 'atk');
+    }
+
+    const zone = findEmptyMonsterZone(st.field.monsters);
     if (zone === -1) { this.addLog('No free zone for fusion monster!'); return false; }
 
     if (!handIndices.every(i => i >= 0 && i < hand.length)) {
@@ -1436,58 +1443,65 @@ export class GameEngine {
     return { cancelled: false, shouldContinue: true };
   }
 
-  async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]){
-    if (this.state.opponent.fieldFlags?.negateTraps) return null;
-    const traps = this.state.player.field.spellTraps;
-    for(let i=0;i<traps.length;i++){
-      const fst = traps[i];
-      if(fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used && fst.card.trapTrigger === triggerType){
-        const promptFn = this.ui.prompt;
-        if (!promptFn) continue;
+  async _findAndActivateTrap(
+    owner: Owner,
+    triggerType: string,
+    requirePrompt: boolean,
+    ...args: FieldCard[]
+  ): Promise<EffectSignal | null> {
+    const opponent = owner === 'player' ? 'opponent' : 'player';
+    if (this.state[opponent].fieldFlags?.negateTraps) return null;
 
-        // Build battle context so the UI can show who attacks what
-        const battleContext: import('./types.js').BattleContext = { triggerType };
-        if (args[0]) {
-          battleContext.attackerName   = args[0].card.name;
-          battleContext.attackerAtk    = args[0].effectiveATK();
-          battleContext.attackerCardId = args[0].card.id;
-        }
-        if (args[1]) {
-          battleContext.defenderName   = args[1].card.name;
-          battleContext.defenderDef    = args[1].effectiveDEF();
-          battleContext.defenderAtk    = args[1].effectiveATK();
-          battleContext.defenderPos    = args[1].position;
-          battleContext.defenderCardId = args[1].card.id;
-        }
-
-        const activate = await promptFn({
-          title: 'Activate trap?',
-          cardId: fst.card.id,
-          message: `${fst.card.name}: ${fst.card.description}`,
-          yes: 'Yes, activate!',
-          no:  'No, skip',
-          battleContext,
-        });
-        if(activate){
-          return await this.activateTrapFromField('player', i, ...args);
-        }
-      }
-    }
-    return null;
-  }
-
-  async _autoActivateOpponentTraps(triggerType: string, ...args: FieldCard[]): Promise<EffectSignal | null> {
-    if (this.state.player.fieldFlags?.negateTraps) return null;
-    const traps = this.state.opponent.field.spellTraps;
+    const traps = this.state[owner].field.spellTraps;
     for (let i = 0; i < traps.length; i++) {
       const fst = traps[i];
       if (fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used
           && fst.card.trapTrigger === triggerType) {
-        return await this.activateTrapFromField('opponent', i, ...args);
+
+        if (requirePrompt) {
+          const promptFn = this.ui.prompt;
+          if (!promptFn) continue;
+
+          const battleContext: import('./types.js').BattleContext = { triggerType };
+          if (args[0]) {
+            battleContext.attackerName   = args[0].card.name;
+            battleContext.attackerAtk    = args[0].effectiveATK();
+            battleContext.attackerCardId = args[0].card.id;
+          }
+          if (args[1]) {
+            battleContext.defenderName   = args[1].card.name;
+            battleContext.defenderDef    = args[1].effectiveDEF();
+            battleContext.defenderAtk    = args[1].effectiveATK();
+            battleContext.defenderPos    = args[1].position;
+            battleContext.defenderCardId = args[1].card.id;
+          }
+
+          const activate = await promptFn({
+            title: 'Activate trap?',
+            cardId: fst.card.id,
+            message: `${fst.card.name}: ${fst.card.description}`,
+            yes: 'Yes, activate!',
+            no:  'No, skip',
+            battleContext,
+          });
+          if (!activate) continue;
+        }
+
+        return await this.activateTrapFromField(owner, i, ...args);
       }
     }
     return null;
   }
+
+  async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]): Promise<EffectSignal | null> {
+    return await this._findAndActivateTrap('player', triggerType, true, ...args);
+  }
+
+  async _autoActivateOpponentTraps(triggerType: string, ...args: FieldCard[]): Promise<EffectSignal | null> {
+    return await this._findAndActivateTrap('opponent', triggerType, false, ...args);
+  }
+
+
 
   _hasPlayableCard(owner: Owner): boolean {
     const st = this.state[owner];
@@ -1586,7 +1600,7 @@ export class GameEngine {
       const fc = st.field.monsters[i];
       if(fc && fc.originalOwner && fc.originalOwner !== owner){
         const oppSt = this.state[opp];
-        const freeZone = oppSt.field.monsters.findIndex(z => z === null);
+        const freeZone = findEmptyMonsterZone(oppSt.field.monsters);
         if(freeZone !== -1){
           fc.originalOwner = undefined;
           fc.hasAttacked = true;
