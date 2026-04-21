@@ -7,6 +7,7 @@ import {
 } from './types.js';
 import { EchoesOfSanguo } from './debug-logger.js';
 import { shuffleArray, shuffleInPlace } from './utils/array.js';
+import { findEmptyMonsterZone } from './utils/field-zones.js';
 
 /**
  * Maximum number of effect steps allowed per effect block execution.
@@ -301,7 +302,7 @@ const IMPL: Record<string, InternalImpl> = {
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
     if (idx === null || !oppMonsters[idx]) return {};
     const ownMonsters = ctx.state[ctx.owner].field.monsters;
-    const freeZone = ownMonsters.findIndex(z => z === null);
+    const freeZone = findEmptyMonsterZone(ownMonsters);
     if (freeZone === -1) return {};
     const fc = oppMonsters[idx]!;
     oppMonsters[idx] = null;
@@ -369,7 +370,7 @@ const IMPL: Record<string, InternalImpl> = {
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
     if (idx === null || !oppMonsters[idx]) return {};
     const ownMonsters = ctx.state[ctx.owner].field.monsters;
-    const freeZone = ownMonsters.findIndex(z => z === null);
+    const freeZone = findEmptyMonsterZone(ownMonsters);
     if (freeZone === -1) return {};
     const fc = oppMonsters[idx]!;
     oppMonsters[idx] = null;

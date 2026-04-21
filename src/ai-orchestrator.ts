@@ -25,6 +25,7 @@ import {
   aiEffectiveDEF,
 } from './ai-behaviors.js';
 import { classifySpell } from './ai/utils/spell-classifier.js';
+import { findEmptyMonsterZone, findEmptySpellTrapZone } from './utils/field-zones.js';
 
 interface TurnContext {
   snap:       BoardSnapshot;
@@ -230,7 +231,7 @@ async function aiMainPhase(deps: AIDependencies): Promise<void> {
       await deps.delay(500);
       await deps.fuseHandWithField('opponent', bestChain.indices[0], bestChain.fieldZone);
     } else if(bestChain){
-      const zone = ai.field.monsters.findIndex(z => z === null);
+      const zone = findEmptyMonsterZone(ai.field.monsters);
       if(zone !== -1){
         const names = bestChain.indices.map(i => ai.hand[i].name);
         EchoesOfSanguo.log('AI', `Fusion chain: ${names.join(' + ')} → ${bestChain.resultName} (ATK:${bestChain.resultATK}, Zone ${zone})`);
@@ -269,7 +270,7 @@ async function aiMainPhase(deps: AIDependencies): Promise<void> {
       const card = ai.hand[bestIdx];
       const cardATK = card.atk ?? 0;
       const cardDEF = card.def ?? 0;
-      let zone = ai.field.monsters.findIndex(z => z === null);
+      let zone = findEmptyMonsterZone(ai.field.monsters);
 
       if(zone === -1 && (bh.positionStrategy === 'smart' || bh.battleStrategy === 'smart')){
         const replaceZone = _findWeakestMonsterZone(ai.field.monsters, cardATK);
@@ -393,7 +394,7 @@ async function aiPlaceTraps(deps: AIDependencies): Promise<void> {
 
   let placed = 0;
   for (const { idx } of trapsInHand) {
-    const zone = ai.field.spellTraps.findIndex(z => z === null);
+    const zone = findEmptySpellTrapZone(ai.field.spellTraps);
     if (zone === -1) break;
     const handIdxAfterRemovals = idx - placed;
     if (handIdxAfterRemovals < 0 || handIdxAfterRemovals >= ai.hand.length) continue;

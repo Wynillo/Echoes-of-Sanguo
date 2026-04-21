@@ -5,6 +5,7 @@ import { meetsEquipRequirement } from './types.js';
 import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
 import { TriggerBus } from './trigger-bus.js';
 import { getEffectBlocks } from './utils/effects.js';
+import { findEmptyMonsterZone, findEmptySpellTrapZone } from './utils/field-zones.js';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types.js';
 
@@ -523,7 +524,7 @@ export class GameEngine {
   async specialSummon(owner: Owner, card: CardData, zone?: number, position: Position = 'atk', faceDown = false){
     const st = this.state[owner];
     if(zone === undefined){
-      zone = st.field.monsters.findIndex(z => z === null);
+      zone = findEmptyMonsterZone(st.field.monsters);
       if(zone === -1){ this.addLog('No free monster zone!'); return false; }
     }
     if(st.field.monsters[zone]){ this.addLog('Zone occupied!'); return false; }
@@ -546,8 +547,8 @@ export class GameEngine {
     const graveIdx = sourceSt.graveyard.findIndex(c => c.id === card.id);
     if(graveIdx === -1){ this.addLog('Card not in graveyard!'); return false; }
     const st = this.state[owner];
-    const zone = st.field.monsters.findIndex(z => z === null);
-    if(zone === -1){ this.addLog('No free zone!'); return false; }
+    const zone = findEmptyMonsterZone(st.field.monsters);
+    if(zone === -1){ this.addLog('No free monster zone!'); return false; }
     const [c] = sourceSt.graveyard.splice(graveIdx, 1);
     const fc = new FieldCard(c, 'atk');
     fc.summonedThisTurn = false;
@@ -721,7 +722,7 @@ export class GameEngine {
       return false;
     }
 
-    const zone = st.field.spellTraps.findIndex(z => z === null);
+    const zone = findEmptySpellTrapZone(st.field.spellTraps);
     if (zone === -1) { this.addLog('No free spell/trap zone!'); return false; }
 
     st.hand.splice(handIndex, 1);
@@ -902,7 +903,7 @@ export class GameEngine {
     const recipe = checkFusion(card1.id, card2.id);
     if(!recipe){ this.addLog('No fusion possible!'); return false; }
 
-    const zone = st.field.monsters.findIndex(z => z === null);
+    const zone = findEmptyMonsterZone(st.field.monsters);
     if(zone === -1){ this.addLog('No free zone for fusion monster!'); return false; }
 
     const fusionCardData = CARD_DB[recipe.result];
@@ -941,9 +942,15 @@ export class GameEngine {
     const st = this.state[owner];
     const hand = st.hand;
 
-    if (handIndices.length < 2) return false;
+if (handIndices.length === 0) return false;
 
-    const zone = st.field.monsters.findIndex(z => z === null);
+    if (handIndices.length === 1) {
+      const zone = findEmptyMonsterZone(st.field.monsters);
+      if (zone === -1) { this.addLog('No free monster zone!'); return false; }
+      return this.summonMonster(owner, handIndices[0], zone, 'atk');
+    }
+
+    const zone = findEmptyMonsterZone(st.field.monsters);
     if (zone === -1) { this.addLog('No free zone for fusion monster!'); return false; }
 
     if (!handIndices.every(i => i >= 0 && i < hand.length)) {
@@ -1586,7 +1593,7 @@ export class GameEngine {
       const fc = st.field.monsters[i];
       if(fc && fc.originalOwner && fc.originalOwner !== owner){
         const oppSt = this.state[opp];
-        const freeZone = oppSt.field.monsters.findIndex(z => z === null);
+        const freeZone = findEmptyMonsterZone(oppSt.field.monsters);
         if(freeZone !== -1){
           fc.originalOwner = undefined;
           fc.hasAttacked = true;
