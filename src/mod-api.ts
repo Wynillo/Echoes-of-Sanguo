@@ -14,7 +14,7 @@
 // list with SHA-256 hash verification. See issue #461.
 // ============================================================
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './cards.js';
-import { EFFECT_REGISTRY, registerEffect } from './effect-registry.js';
+import { EFFECT_REGISTRY, registerEffect, type EffectHandlerManifest, type EffectImpl } from './effect-registry.js';
 import type { FusionRecipe, OpponentConfig, CardData } from './types.js';
 import { loadAndApplyTcg, unloadModCompletely, unloadModCards, getLoadedMods, getCurrentManifest, verifyModIntegrity } from './tcg-bridge.js';
 import { TriggerBus } from './trigger-bus.js';
@@ -131,8 +131,21 @@ const modApi = {
   },
   /** Read-only view of all registered effect implementations. */
   EFFECT_REGISTRY,
-  /** Register a custom effect handler (type string → EffectImpl). */
-  registerEffect,
+  /**
+   * Register a custom effect handler with security validation.
+   * @param manifest - Effect metadata including type, description, and allowed actions
+   * @param impl - Effect implementation function
+   * @throws Error if manifest validation fails or implementation is invalid
+   * 
+   * SECURITY: All custom effects are wrapped with:
+   * - Timeout protection (default 100ms)
+   * - Optional rate limiting (maxCallsPerTurn)
+   * - Validation of manifest and implementation
+   * - Registration logging for debugging
+   */
+  registerEffect(manifest: EffectHandlerManifest, impl: EffectImpl): void {
+    registerEffect(manifest, impl);
+  },
   /**
    * Load a community .tcg archive and merge its cards into the game.
    * SECURITY: Validates source against allowlist OR trusted mods list.
