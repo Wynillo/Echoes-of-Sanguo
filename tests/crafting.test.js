@@ -4,7 +4,6 @@ import { CARD_DB } from '../src/cards.js';
 import { GAME_RULES, applyRules } from '../src/rules.js';
 import { isCraftedId, buildCraftedCard, craftEffectMonster } from '../src/crafting.js';
 import { EFFECT_SOURCES } from '../src/effect-items.js';
-import { registerEffectSourceForTest } from './helpers/effect-sources-test.js';
 import { Progression } from '../src/progression.js';
 import { spendCurrency } from '../src/currencies.js';
 
@@ -22,10 +21,16 @@ describe('Crafting', () => {
   let removeEffectItemSpy;
   let spendCurrencySpy;
 
+  let registerTestEffectSource;
+
   beforeEach(() => {
     Object.keys(TEST_CARDS).forEach(k => { CARD_DB[k] = TEST_CARDS[k]; });
     applyRules({ craftingEnabled: false, craftingCurrency: undefined, craftingCost: 0 });
     Object.keys(EFFECT_SOURCES).forEach(k => delete EFFECT_SOURCES[k]);
+
+    registerTestEffectSource = (source) => {
+      EFFECT_SOURCES[source.id] = source;
+    };
 
     localStorage.clear();
     sessionStorage.clear();
@@ -34,7 +39,7 @@ describe('Crafting', () => {
 
     cardCountSpy = vi.spyOn(Progression, 'cardCount');
     effectItemCountSpy = vi.spyOn(Progression, 'getEffectItemCount');
-    addCraftedCardSpy = vi.spyOn(Progression, 'addCraftedCard').mockReturnValue('100000000');
+    addCraftedCardSpy = vi.spyOn(Progression, 'addCraftedCard').mockReturnValue('crafted_test-uuid-12345');
     addCardsToCollectionSpy = vi.spyOn(Progression, 'addCardsToCollection').mockImplementation(() => {});
     removeCardsFromCollectionSpy = vi.spyOn(Progression, 'removeCardsFromCollection').mockImplementation(() => {});
     removeEffectItemSpy = vi.spyOn(Progression, 'removeEffectItem').mockImplementation(() => true);
@@ -47,13 +52,19 @@ describe('Crafting', () => {
   });
 
   describe('isCraftedId', () => {
-    it('should return true for IDs >= 100000000', () => {
-      expect(isCraftedId('100000000')).toBe(true);
-      expect(isCraftedId('150000000')).toBe(true);
-      expect(isCraftedId(100000001)).toBe(true);
+    it('should return true for UUID-based crafted IDs', () => {
+      expect(isCraftedId('crafted_550e8400-e29b-41d4-a716-446655440000')).toBe(true);
+      expect(isCraftedId('crafted_abc123-def456')).toBe(true);
+      expect(isCraftedId('crafted_test')).toBe(true);
     });
 
-    it('should return false for IDs < 100000000', () => {
+    it('should return false for numeric IDs', () => {
+      expect(isCraftedId('100000000')).toBe(false);
+      expect(isCraftedId('150000000')).toBe(false);
+      expect(isCraftedId(100000001)).toBe(false);
+    });
+
+    it('should return false for regular card IDs', () => {
       expect(isCraftedId('1')).toBe(false);
       expect(isCraftedId('999')).toBe(false);
       expect(isCraftedId(1500)).toBe(false);
@@ -62,20 +73,20 @@ describe('Crafting', () => {
 
   describe('buildCraftedCard', () => {
     it('should combine base card stats with effect source effects', () => {
-      registerEffectSourceForTest({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
+      registerTestEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
       
-      const record = { id: '100000000', baseId: 'monster_001', effectSourceId: 'effect_monster_001' };
+      const record = { id: 'crafted_test-uuid', baseId: 'monster_001', effectSourceId: 'effect_monster_001', createdAt: Date.now() };
       const card = buildCraftedCard(record);
       
       expect(card).not.toBeNull();
-      expect(card.id).toBe('100000000');
+      expect(card.id).toBe('crafted_test-uuid');
       expect(card.name).toBe('Test Monster');
       expect(card.atk).toBe(1000);
       expect(card.effects).toHaveLength(1);
     });
 
     it('should return null for invalid base card', () => {
-      const record = { id: '100000000', baseId: 'nonexistent', effectSourceId: 'effect_monster_001' };
+      const record = { id: 'crafted_test-uuid', baseId: 'nonexistent', effectSourceId: 'effect_monster_001', createdAt: Date.now() };
       expect(buildCraftedCard(record)).toBeNull();
     });
   });
@@ -90,7 +101,7 @@ describe('Crafting', () => {
     it('should fail when player does not own base card', () => {
       applyRules({ craftingEnabled: true });
       cardCountSpy.mockReturnValue(0);
-      registerEffectSourceForTest({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
+      registerTestEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
       
       const result = craftEffectMonster('monster_001', 'effect_monster_001');
       expect(result.success).toBe(false);
@@ -107,7 +118,7 @@ describe('Crafting', () => {
 
     it('should succeed with valid inputs and free crafting', () => {
       applyRules({ craftingEnabled: true, craftingCost: 0 });
-      registerEffectSourceForTest({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
+      registerTestEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
       cardCountSpy.mockReturnValue(1);
       effectItemCountSpy.mockReturnValue(1);
       

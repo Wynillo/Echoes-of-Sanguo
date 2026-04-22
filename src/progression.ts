@@ -108,6 +108,7 @@ export interface CraftedCardRecord {
   id: string;
   baseId: string;
   effectSourceId: string;
+  createdAt: number;
 }
 
 export const Progression = (() => {
@@ -575,27 +576,20 @@ function spendCoins(amount: number): boolean {
     return _load(_key(SLOT_KEY_NAMES.craftedCards), [], v => Array.isArray(v));
   }
 
-  function getNextCraftedId(): number {
-    return _load(_key(SLOT_KEY_NAMES.nextCraftedId), 0, v => typeof v === 'number');
-  }
-
-  function incrementCraftedId(): void {
-    const next = getNextCraftedId() + 1;
-    _save(_key(SLOT_KEY_NAMES.nextCraftedId), next);
+  function generateCraftedCardId(): string {
+    const uuid = crypto.randomUUID();
+    return `crafted_${uuid}`;
   }
 
   function addCraftedCard(baseId: string, effectSourceId: string): string {
-    const CRAFTED_ID_OFFSET = 100_000_000;
-    const nextId = getNextCraftedId();
-    incrementCraftedId();
-    
-    const generatedId = String(CRAFTED_ID_OFFSET + nextId);
+    const generatedId = generateCraftedCardId();
     
     const records = getCraftedCards();
     records.push({
       id: generatedId,
       baseId,
       effectSourceId,
+      createdAt: Date.now(),
     });
     _save(_key(SLOT_KEY_NAMES.craftedCards), records);
     
@@ -822,8 +816,6 @@ function spendCoins(amount: number): boolean {
     getEffectItemCount,
     // Crafted Cards
     getCraftedCards,
-    getNextCraftedId,
-    incrementCraftedId,
     addCraftedCard,
     findCraftedRecord,
     // Deck
