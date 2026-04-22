@@ -252,8 +252,8 @@ async function aiMainPhase(deps: AIDependencies): Promise<void> {
       ? pickSmartSummonCandidate(ai.hand, {
           aiField: ai.field.monsters,
           playerField: plr.field.monsters,
-          playerLP: plr.lp,
-          aiLP: ai.lp,
+          playerLp: plr.lp,
+          aiLp: ai.lp,
         })
       : pickSummonCandidate(ai.hand, bh.summonPriority);
 

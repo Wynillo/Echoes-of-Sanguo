@@ -212,26 +212,26 @@ export function resolveAIBehavior(id?: string): Required<AIBehavior> {
 export function shouldActivateNormalSpell(
   cardId: string,
   behavior: Required<AIBehavior>,
-  playerLP: number,
-  aiLP: number,
+  playerLp: number,
+  aiLp: number,
 ): boolean {
   const rule = behavior.spellRules[cardId];
   if (rule) {
-    return evaluateSpellRule(rule, playerLP, aiLP);
+    return evaluateSpellRule(rule, playerLp, aiLp);
   }
   switch (behavior.defaultSpellActivation) {
     case 'always': return true;
     case 'never':  return false;
-    case 'smart':  return aiLP < playerLP || aiLP < AI_LP_THRESHOLD.DEFENSIVE;
+    case 'smart':  return aiLp < playerLp || aiLp < AI_LP_THRESHOLD.DEFENSIVE;
   }
 }
 
-function evaluateSpellRule(rule: AISpellRule, playerLP: number, aiLP: number): boolean {
+function evaluateSpellRule(rule: AISpellRule, playerLp: number, aiLp: number): boolean {
   const t = rule.threshold ?? 0;
   switch (rule.when) {
-    case 'always':   return true;
-    case 'opponentLP>N':  return playerLP > t;
-    case 'selfLP<N': return aiLP < t;
+    case 'always':      return true;
+    case 'opponentLp>$N': return playerLp > t;
+    case 'playerLp<$N':  return aiLp < t;
   }
 }
 
@@ -291,8 +291,8 @@ export function decideSummonPosition(
 export interface BoardContext {
   aiField: Array<FieldCard | null>;
   playerField: Array<FieldCard | null>;
-  playerLP: number;
-  aiLP: number;
+  playerLp: number;
+  aiLp: number;
 }
 
 /**
@@ -341,7 +341,7 @@ function calculateDefensiveScore(
   card: CardData,
   opponentMaxATK: number,
   opponentMaxThreat: number,
-  aiLP: number,
+  aiLp: number,
 ): number {
   const atk = card.atk ?? 0;
   const def = card.def ?? 0;
@@ -351,7 +351,7 @@ function calculateDefensiveScore(
     score += AI_SUMMON_SCORE.DEFENSIVE_BONUS;
   }
 
-  if (aiLP < AI_LP_THRESHOLD.LOW && def > opponentMaxThreat) {
+  if (aiLp < AI_LP_THRESHOLD.LOW && def > opponentMaxThreat) {
     score += AI_SCORE.LOW_LP_SURVIVAL;
   }
 
@@ -393,7 +393,7 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
     let score = 0;
 
     score += calculateOffensiveScore(card, playerMonsters, playerMaxATK);
-    score += calculateDefensiveScore(card, playerMaxATK, playerMaxThreat, ctx.aiLP);
+    score += calculateDefensiveScore(card, playerMaxATK, playerMaxThreat, ctx.aiLp);
     score += calculateDirectAttackBonus(card, playerMonsters.length > 0);
 
     if (card.effect) {
@@ -416,7 +416,7 @@ export interface AttackPlan {
 export function findLethal(
   aiMonsters: Array<FieldCard | null>,
   plrMonsters: Array<FieldCard | null>,
-  playerLP: number,
+  playerLp: number,
 ): AttackPlan[] | null {
   const attackers: { zone: number; atk: number; canDirect: boolean }[] = [];
   for (let z = 0; z < aiMonsters.length; z++) {
@@ -444,21 +444,21 @@ export function findLethal(
   const directAttackers = attackers.filter(a => a.canDirect);
   if (attackableDefenders.length === 0) {
     const totalDmg = attackers.reduce((s, a) => s + a.atk, 0);
-    if (totalDmg >= playerLP) {
+    if (totalDmg >= playerLp) {
       const sorted = [...attackers].sort((a, b) => b.atk - a.atk);
       return sorted.map(a => ({ attackerZone: a.zone, targetZone: -1 }));
     }
     return null;
   }
 
-  const plan = _simulateLethal(attackers, attackableDefenders, playerLP);
+  const plan = _simulateLethal(attackers, attackableDefenders, playerLp);
   return plan;
 }
 
 function _simulateLethal(
   attackers: { zone: number; atk: number; canDirect: boolean }[],
   defenders: { zone: number; val: number; inAtk: boolean }[],
-  playerLP: number,
+  playerLp: number,
 ): AttackPlan[] | null {
   const sorted = [...attackers].sort((a, b) => b.atk - a.atk);
   const remainingDefs = defenders.map(d => ({ ...d, alive: true }));
@@ -507,7 +507,7 @@ function _simulateLethal(
     }
   }
 
-  return dmgToLP >= playerLP ? plan : null;
+  return dmgToLP >= playerLp ? plan : null;
 }
 
 // ── Helper Functions for planAttacks ───────────────────────────────────────
@@ -817,10 +817,10 @@ function assignRemainingAttacks(
 export function planAttacks(
   aiMonsters: Array<FieldCard | null>,
   plrMonsters: Array<FieldCard | null>,
-  playerLP: number,
+  playerLp: number,
   behavior: Required<AIBehavior>,
 ): AttackPlan[] {
-  const lethal = findLethal(aiMonsters, plrMonsters, playerLP);
+  const lethal = findLethal(aiMonsters, plrMonsters, playerLp);
   if (lethal) return lethal;
 
   const strategy = getStrategy(behavior.battleStrategy);
