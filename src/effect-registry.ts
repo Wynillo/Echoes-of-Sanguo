@@ -532,7 +532,7 @@ const IMPL: Record<string, InternalImpl> = {
     const hand = ctx.state[ctx.owner].hand;
     const toDiscard = Math.min(desc.discardCount, hand.length);
     for (let i = 0; i < toDiscard; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[ctx.owner].graveyard.push(c);
     }
@@ -545,7 +545,7 @@ const IMPL: Record<string, InternalImpl> = {
     const hand = ctx.state[opp].hand;
     const toReturn = Math.min(desc.count, hand.length);
     for (let i = 0; i < toReturn; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[opp].deck.push(c);
     }
@@ -788,7 +788,7 @@ const IMPL: Record<string, InternalImpl> = {
     const hand = ctx.state[ctx.owner].hand;
     const count = Math.min(desc.count, hand.length);
     for (let i = 0; i < count && hand.length > 0; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[ctx.owner].graveyard.push(c);
     }
@@ -801,7 +801,7 @@ const IMPL: Record<string, InternalImpl> = {
     const hand = ctx.state[opp].hand;
     const count = Math.min(desc.count, hand.length);
     for (let i = 0; i < count && hand.length > 0; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[opp].graveyard.push(c);
     }
@@ -1311,7 +1311,7 @@ async function payCost(block: CardEffectBlock, ctx: EffectContext): Promise<void
   }
   if (block.cost.discard) {
     for (let i = 0; i < block.cost.discard && st.hand.length > 0; i++) {
-      const idx = Math.floor(Math.random() * st.hand.length);
+      const idx = randomIndexSecure(st.hand);
       const [c] = st.hand.splice(idx, 1);
       st.graveyard.push(c);
     }
