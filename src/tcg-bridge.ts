@@ -53,13 +53,12 @@ export async function verifyModIntegrity(buffer: ArrayBuffer, expectedHash: stri
     const actualHashHex = uint8ArrayToHex(hashArray);
     
     // Normalize expected hash (handle both base64 and hex)
-    const normalizedExpected = normalizedHash.toLowerCase();
-    const isHex = /^[0-9a-f]+$/i.test(normalizedExpected);
+    const isHex = /^[0-9a-f]+$/i.test(normalizedHash);
     
-    // Compare hashes
+    // Compare hashes (hex is case-insensitive, base64 is case-sensitive)
     const matches = isHex 
-      ? actualHashHex === normalizedExpected
-      : actualHashBase64 === normalizedExpected;
+      ? actualHashHex === normalizedHash.toLowerCase()
+      : actualHashBase64 === normalizedHash;
     
     return matches;
   } catch (error) {

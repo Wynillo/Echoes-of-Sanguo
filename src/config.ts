@@ -12,3 +12,9 @@ export const DB_CONFIG = {
   TCG_CACHE_KEY: 'base-tcg',
   INDEXEDDB_QUOTA_THRESHOLD: 0.8,
 } as const;
+
+export const EXPECTED_TCG_HASHES: Record<string, string> = {
+  // SHA-256 hash of base.tcg for main branch
+  // Update this hash when base.tcg content changes
+  'main': 'ae7a771dda41eae4842eb69f0330a74c7d843384ebb01062ad86e70e22520619',
+} as const;

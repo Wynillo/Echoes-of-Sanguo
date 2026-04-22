@@ -1,7 +1,7 @@
-import { loadAndApplyTcg, type BridgeLoadResult } from './tcg-bridge.js';
+import { loadAndApplyTcg, verifyModIntegrity, type BridgeLoadResult } from './tcg-bridge.js';
 import { ENGINE_VERSION } from './version.js';
 import { secureLogger } from './secure-logger.js';
-import { API_CONFIG, DB_CONFIG } from './config.js';
+import { API_CONFIG, DB_CONFIG, EXPECTED_TCG_HASHES } from './config.js';
 
 const { GITHUB_API_BASE, GITHUB_RAW_BASE, REPO_OWNER, REPO_NAME, CHECK_UPDATE_TIMEOUT_MS } = API_CONFIG;
 const { TCG_CACHE_NAME, TCG_STORE_NAME, TCG_CACHE_KEY, INDEXEDDB_QUOTA_THRESHOLD } = DB_CONFIG;
@@ -106,6 +106,18 @@ async function checkForUpdate(): Promise<void> {
     return;
   }
   const data = await res.arrayBuffer();
+  
+  // SECURITY: Verify file integrity before caching
+  const expectedHash = EXPECTED_TCG_HASHES['main'];
+  if (expectedHash) {
+    const isValid = await verifyModIntegrity(data, expectedHash);
+    if (!isValid) {
+      secureLogger.error('TCG', 'Integrity check FAILED! File hash does not match expected value.');
+      return;
+    }
+    secureLogger.log('TCG', 'Integrity verification passed');
+  }
+  
   await setCachedTcg(sha, data);
   secureLogger.log('TCG', 'Cached new base.tcg (commit', sha.slice(0, 7));
 }
