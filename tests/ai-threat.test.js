@@ -69,7 +69,7 @@ describe('snapshotBoard', () => {
 describe('computeBoardThreat', () => {
   it('returns 0 for perfectly equal state', () => {
     const threat = computeBoardThreat({
-      aiLP: 8000, plrLP: 8000,
+      opponentLp: 8000, playerLp: 8000,
       aiMonsterPower: 0, plrMonsterPower: 0,
       aiHandSize: 0, plrHandSize: 0,
     });
@@ -78,7 +78,7 @@ describe('computeBoardThreat', () => {
 
   it('returns positive when AI is ahead in LP', () => {
     const threat = computeBoardThreat({
-      aiLP: 8000, plrLP: 4000,
+      opponentLp: 8000, playerLp: 4000,
       aiMonsterPower: 0, plrMonsterPower: 0,
       aiHandSize: 0, plrHandSize: 0,
     });
@@ -87,16 +87,16 @@ describe('computeBoardThreat', () => {
 
   it('returns negative when AI is behind in LP', () => {
     const threat = computeBoardThreat({
-      aiLP: 4000, plrLP: 8000,
+      opponentLp: 4000, playerLp: 8000,
       aiMonsterPower: 0, plrMonsterPower: 0,
       aiHandSize: 0, plrHandSize: 0,
     });
     expect(threat).toBeLessThan(0);
   });
 
-  it('handles plrLP <= 0 safely (no divide by zero)', () => {
+  it('handles playerLp <= 0 safely (no divide by zero)', () => {
     const threat = computeBoardThreat({
-      aiLP: 8000, plrLP: 0,
+      opponentLp: 8000, playerLp: 0,
       aiMonsterPower: 0, plrMonsterPower: 0,
       aiHandSize: 0, plrHandSize: 0,
     });
@@ -106,14 +106,14 @@ describe('computeBoardThreat', () => {
 
   it('factors in board power difference', () => {
     const aiBoardAhead = computeBoardThreat({
-      aiLP: 8000, plrLP: 8000,
+      opponentLp: 8000, playerLp: 8000,
       aiMonsterPower: 2000, plrMonsterPower: 0,
       aiHandSize: 0, plrHandSize: 0,
     });
     expect(aiBoardAhead).toBeGreaterThan(0);
 
     const plrBoardAhead = computeBoardThreat({
-      aiLP: 8000, plrLP: 8000,
+      opponentLp: 8000, playerLp: 8000,
       aiMonsterPower: 0, plrMonsterPower: 2000,
       aiHandSize: 0, plrHandSize: 0,
     });
@@ -122,7 +122,7 @@ describe('computeBoardThreat', () => {
 
   it('factors in hand advantage', () => {
     const moreCards = computeBoardThreat({
-      aiLP: 8000, plrLP: 8000,
+      opponentLp: 8000, playerLp: 8000,
       aiMonsterPower: 0, plrMonsterPower: 0,
       aiHandSize: 5, plrHandSize: 2,
     });
@@ -131,10 +131,22 @@ describe('computeBoardThreat', () => {
 
   it('uses correct weight constants', () => {
     const snap = {
-      aiLP: 8000, plrLP: 8000,
+      opponentLp: 8000, playerLp: 8000,
       aiMonsterPower: 1000, plrMonsterPower: 0,
       aiHandSize: 0, plrHandSize: 0,
     };
+    const threat = computeBoardThreat(snap);
+    const expectedBoard = 1000 * AI_SCORE.THREAT_BOARD_WEIGHT;
+    expect(threat).toBe(expectedBoard);
+  });
+});
+
+describe('estimateFutureValue', () => {
+  const baseBefore = {
+    opponentLp: 8000, playerLp: 8000,
+    aiMonsterPower: 0, plrMonsterPower: 0,
+    aiHandSize: 3, plrHandSize: 3,
+  };
     const threat = computeBoardThreat(snap);
     const expectedBoard = 1000 * AI_SCORE.THREAT_BOARD_WEIGHT;
     expect(threat).toBe(expectedBoard);

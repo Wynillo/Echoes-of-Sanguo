@@ -330,6 +330,14 @@ describe('decideSummonPosition', () => {
 // ── shouldActivateNormalSpell ─────────────────────────────
 
   describe('shouldActivateNormalSpell', () => {
+    it('activates (always) when rule is always', () => {
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'test-always': { when: 'always' } },
+      };
+      expect(shouldActivateNormalSpell('test-always', behavior, 8000, 8000)).toBe(true);
+    });
+
     it('activates (opponentLp>$N) when player LP exceeds threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
@@ -359,6 +367,8 @@ describe('decideSummonPosition', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
         spellRules: { 'test-self': { when: 'playerLp<$N', threshold: 5000 } },
+<<<<<<< HEAD
+=======
       };
       expect(shouldActivateNormalSpell('test-self', behavior, 8000, 5000)).toBe(false);
       expect(shouldActivateNormalSpell('test-self', behavior, 8000, 6000)).toBe(false);
@@ -394,6 +404,7 @@ describe('decideSummonPosition', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
         spellRules: { 'test-self': { when: 'playerLp<$N', threshold: 5000 } },
+>>>>>>> main
       };
       expect(shouldActivateNormalSpell('test-self', behavior, 8000, 5000)).toBe(false);
       expect(shouldActivateNormalSpell('test-self', behavior, 8000, 6000)).toBe(false);
@@ -511,7 +522,7 @@ describe('evaluateSpellRule (via shouldActivateNormalSpell)', () => {
 
     it('uses 0 as default threshold when threshold is undefined', () => {
       const b = behaviorWithRule({ when: 'playerLp<$N' });
-      // aiLP < 0 → never true for non-negative LP
+      // aiLp < 0 → never true for non-negative LP
       expect(shouldActivateNormalSpell('TEST', b, 8000, 0)).toBe(false);
       expect(shouldActivateNormalSpell('TEST', b, 8000, 1)).toBe(false);
     });

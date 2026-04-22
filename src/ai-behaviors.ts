@@ -400,6 +400,14 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
       score += AI_SUMMON_SCORE.EFFECT_MONSTER_BONUS;
     }
 
+    if (atk >= playerMaxATK) score += 200;
+    else if (def >= playerMaxThreat) score += 100;
+
+    if (playerMonsters.length === 0) score += atk;
+
+    if (card.effect) score += 400;
+
+    if (ctx.aiLp < AI_LP_THRESHOLD.LOW && def > playerMaxThreat) score += AI_SCORE.LOW_LP_SURVIVAL;
     if (score > bestScore) {
       bestScore = score;
       bestIdx = i;
