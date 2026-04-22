@@ -85,9 +85,10 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
   }, [refresh]);
 
   useEffect(() => {
-    Progression.init();
-    refresh();
-    loadDeck();
+    Progression.init().then(() => {
+      refresh();
+      loadDeck();
+    });
   }, [refresh, loadDeck]);
 
   const value = useMemo(
