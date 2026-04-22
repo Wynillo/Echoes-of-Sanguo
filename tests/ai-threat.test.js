@@ -30,10 +30,10 @@ describe('snapshotBoard', () => {
     const ai = makePlayerState();
     const plr = makePlayerState();
     const snap = snapshotBoard(ai, plr);
+    expect(snap.opponentLp).toBe(8000);
+    expect(snap.playerLp).toBe(8000);
     expect(snap.aiMonsterPower).toBe(0);
     expect(snap.plrMonsterPower).toBe(0);
-    expect(snap.aiLP).toBe(8000);
-    expect(snap.plrLP).toBe(8000);
     expect(snap.aiHandSize).toBe(0);
     expect(snap.plrHandSize).toBe(0);
   });

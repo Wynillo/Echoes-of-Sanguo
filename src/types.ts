@@ -203,7 +203,7 @@ export type AIPositionStrategy = 'smart' | 'aggressive' | 'defensive';
 export type AIBattleStrategy   = 'smart' | 'aggressive' | 'conservative';
 
 export interface AISpellRule {
-  when: 'always' | 'opponentLP>N' | 'selfLP<N';
+  when: 'always' | 'opponentLp>$N' | 'playerLp<$N';
   threshold?: number;
 }
 
@@ -220,8 +220,8 @@ export interface AIGoal {
 }
 
 export interface BoardSnapshot {
-  aiLP:            number;
-  plrLP:           number;
+  opponentLp:      number;
+  playerLp:        number;
   aiMonsterPower:  number;
   plrMonsterPower: number;
   aiHandSize:      number;
