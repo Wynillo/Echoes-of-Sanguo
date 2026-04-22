@@ -483,7 +483,7 @@ interface UICallbacks {
   playSfx?:                   (sfxId: string) => void;
   showDamageNumber?:          (amount: number, owner: Owner) => void;
   onDraw?:                    (owner: Owner, count: number) => void;
-  onDuelEnd?:                 (result, oppId, stats: DuelStats) => void;
+  onDuelEnd?:                 (result, opponentId, stats: DuelStats) => void;
   showCoinToss?:              (playerGoesFirst: boolean) => Promise<void>;
   selectFromDeck?:            (cards: CardData[]) => Promise<CardData>;
 }

@@ -5,14 +5,44 @@ import { SHOP_DATA } from '../../shop-data.js';
 import type { PackSlotDef, PackDef, CardFilter, CardPoolDef } from '../../shop-data.js';
 import type { CardData, Rarity } from '../../types.js';
 
-/** Default drop-chance distribution used for any slot without an explicit rarity or distribution. */
-export const RARITY_DROP_RATES: Record<string, number> = {
-  [1]:    0.60,
-  [2]:  0.30,
-  [4]:      0.089,
-  [6]: 0.01,
-  [8]: 0.001,
+/**
+ * Default rarity probability distribution for pack openings.
+ * Values represent probabilities (0.0-1.0) and MUST sum to 1.0 (100%).
+ * Keys are Rarity enum values, values are probability weights.
+ * 
+ * Probability breakdown:
+ * - Common (1): 60%
+ * - Uncommon (2): 30%
+ * - Rare (4): 8.9%
+ * - Super Rare (6): 1%
+ * - Ultra Rare (8): 0.1%
+ */
+export const DEFAULT_RARITY_PROBABILITIES: Record<string, number> = {
+  [1]:    0.60,    // 60% - Common
+  [2]:    0.30,    // 30% - Uncommon
+  [4]:    0.089,   // 8.9% - Rare
+  [6]:    0.01,    // 1% - Super Rare
+  [8]:    0.001,   // 0.1% - Ultra Rare
 };
+
+/** @deprecated Use DEFAULT_RARITY_PROBABILITIES instead. Will be removed in next major version. */
+export const RARITY_DROP_RATES = DEFAULT_RARITY_PROBABILITIES;
+
+/**
+ * Validates that a probability distribution sums to 1.0 (100%).
+ * Throws an error if the distribution is invalid.
+ * @param dist - Probability distribution object
+ * @throws Error if probabilities don't sum to 1.0
+ */
+export function validateProbabilityDistribution(dist: Record<number, number>): void {
+  const sum = Object.values(dist).reduce((a, b) => a + b, 0);
+  if (Math.abs(sum - 1.0) > 0.0001) {
+    throw new Error(
+      `Probability distribution must sum to 1.0 (100%), got ${sum.toFixed(4)} (${(sum * 100).toFixed(2)}%). ` +
+      `Check rarity drop rate configuration.`
+    );
+  }
+}
 
 function _pickRarityFromSlot(slot: PackSlotDef): Rarity {
   const dist = slot.distribution ?? (slot.rarity == null ? RARITY_DROP_RATES : undefined);
@@ -20,7 +50,7 @@ function _pickRarityFromSlot(slot: PackSlotDef): Rarity {
     const r = Math.random();
     let cumulative = 0;
     const entries = Object.entries(dist)
-      .map(([k, v]) => [Number(k), v] as [number, number])
+      .map(([k, v]) => [Number(k), v] as [rarityKey: number, probability: number])
       .sort((a, b) => a[1] - b[1]);
     for (const [rarity, prob] of entries) {
       cumulative += prob;
@@ -155,7 +185,7 @@ function pickEffectItem(
     const r = Math.random();
     let cumulative = 0;
     const entries = Object.entries(distribution)
-      .map(([k, v]) => [Number(k), v] as [number, number])
+      .map(([k, v]) => [Number(k), v] as [rarityKey: number, probability: number])
       .sort((a, b) => a[1] - b[1]);
     
     for (const [rarityValue, prob] of entries) {

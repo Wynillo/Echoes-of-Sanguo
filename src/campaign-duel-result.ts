@@ -4,6 +4,7 @@ import type { Rarity } from './types.js';
 import type { NodeRewards } from './campaign-types.js';
 import type { BattleBadges } from './battle-badges.js';
 import type { DuelRewardConfig } from './reward-config.js';
+import { ECONOMY } from './economy-config.js';
 import { getRankEffect } from './reward-config.js';
 
 export interface CampaignDuelNav {
@@ -73,7 +74,7 @@ export function computeCampaignDuelNav(
     }
     const rewardCurrencyId = pending.rewardConfig?.ranks?.S?.currencyId
       ?? pending.rewards?.currencyId
-      ?? 'coins';
+      ?? ECONOMY.CURRENCY_COINS;
     const rewardCoins = adjustedRewards?.coins ?? 0;
     if (rewardCoins > 0) {
       ops.addCurrency(rewardCurrencyId, rewardCoins);

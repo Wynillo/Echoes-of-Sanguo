@@ -19,7 +19,8 @@ export const FIELD_RULES = {
 } as const;
 
 export const GAME_RULES = {
-  startingLP: 8000,
+  /** Standard TCG format starting LP (8000 = traditional, 4000 = speed duel) */
+  STARTING_LP: 8000,
   maxLP: 99999,
   handLimitDraw: 10,
   handLimitEnd: 8,

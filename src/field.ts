@@ -1,4 +1,5 @@
 import { extractPassiveFlags } from './effect-registry.js';
+import { getPassiveBlocks } from './utils/effects.js';
 import type { CardData, Owner, Position } from './types.js';
 
 export class FieldCard {
@@ -53,7 +54,7 @@ export class FieldCard {
     this.effectImmune    = false;
     this.cantBeAttacked  = false;
 
-    const passiveBlocks = this._getPassiveBlocks();
+    const passiveBlocks = getPassiveBlocks(this.card);
     for (const block of passiveBlocks) {
       const flags = extractPassiveFlags(block);
       if (flags.piercing)        this.piercing = true;
@@ -66,17 +67,6 @@ export class FieldCard {
     }
   }
 
-  _getPassiveBlocks(): import('./types.js').CardEffectBlock[] {
-    const blocks: import('./types.js').CardEffectBlock[] = [];
-    if (this.card.effects) {
-      for (const b of this.card.effects) {
-        if (b.trigger === 'passive') blocks.push(b);
-      }
-    } else if (this.card.effect && this.card.effect.trigger === 'passive') {
-      blocks.push(this.card.effect);
-    }
-    return blocks;
-  }
   effectiveATK(): number {
     return Math.max(0, (this.card.atk ?? 0) + this.tempATKBonus + this.permATKBonus + this.fieldSpellATKBonus);
   }
