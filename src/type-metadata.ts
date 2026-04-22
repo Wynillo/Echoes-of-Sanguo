@@ -44,7 +44,7 @@ const _attrByKey  = new Map<string, AttributeMeta>();
 const _rarityById = new Map<number, RarityMeta>();
 const _ctById     = new Map<number, CardTypeMeta>();
 
-function rebuildIndices(): void {
+export function rebuildIndices(): void {
   _raceById.clear();   _raceByKey.clear();
   _attrById.clear();   _attrByKey.clear();
   _rarityById.clear();

@@ -16,7 +16,7 @@
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './cards.js';
 import { EFFECT_REGISTRY, registerEffect } from './effect-registry.js';
 import type { FusionRecipe, OpponentConfig, CardData } from './types.js';
-import { loadAndApplyTcg, unloadModCards, getLoadedMods, getCurrentManifest, verifyModIntegrity } from './tcg-bridge.js';
+import { loadAndApplyTcg, unloadModCompletely, unloadModCards, getLoadedMods, getCurrentManifest, verifyModIntegrity } from './tcg-bridge.js';
 import { TriggerBus } from './trigger-bus.js';
 
 // Export types for modders
@@ -187,7 +187,9 @@ const modApi = {
       await loadAndApplyTcg(source, options);
     }
   },
-  /** Partial unload: removes cards and opponents only. Fusion recipes, shop data, etc. are NOT reverted. */
+  /** Completely unload a mod by reverting ALL state changes (cards, opponents, fusion recipes/formulas, shop data, campaign data, rules, type metadata). */
+  unloadModCompletely,
+  /** @deprecated Use unloadModCompletely instead. Partial unload removes only cards and opponents. */
   unloadModCards,
   /** List all currently loaded mods with their card IDs and load order. */
   getLoadedMods,
