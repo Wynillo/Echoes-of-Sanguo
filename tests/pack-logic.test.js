@@ -2,20 +2,58 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CARD_DB } from '../src/cards.js';
 import { CardType } from '../src/types.js';
-import { RARITY_DROP_RATES, openPack, buildCardPool } from '../src/react/utils/pack-logic.js';
+import { DEFAULT_RARITY_PROBABILITIES, RARITY_DROP_RATES, validateProbabilityDistribution, openPack, buildCardPool } from '../src/react/utils/pack-logic.js';
 import { SHOP_DATA } from '../src/shop-data.js';
 import { Progression } from '../src/progression.js';
 
-// ── RARITY_DROP_RATES ────────────────────────────────────
+// ── DEFAULT_RARITY_PROBABILITIES ─────────────────────────
 
-describe('RARITY_DROP_RATES', () => {
+describe('DEFAULT_RARITY_PROBABILITIES', () => {
   it('probabilities sum to 1.0', () => {
-    const sum = Object.values(RARITY_DROP_RATES).reduce((a, b) => a + b, 0);
+    const sum = Object.values(DEFAULT_RARITY_PROBABILITIES).reduce((a, b) => a + b, 0);
     expect(sum).toBeCloseTo(1.0, 5);
   });
 
   it('contains all five rarities', () => {
-    expect(Object.keys(RARITY_DROP_RATES).map(Number).sort((a, b) => a - b)).toEqual([1, 2, 4, 6, 8]);
+    expect(Object.keys(DEFAULT_RARITY_PROBABILITIES).map(Number).sort((a, b) => a - b)).toEqual([1, 2, 4, 6, 8]);
+  });
+
+  it('deprecated RARITY_DROP_RATES references same object', () => {
+    expect(RARITY_DROP_RATES).toBe(DEFAULT_RARITY_PROBABILITIES);
+  });
+});
+
+// ── validateProbabilityDistribution ─────────────────────
+
+describe('validateProbabilityDistribution', () => {
+  it('accepts valid distribution that sums to 1.0', () => {
+    expect(() => {
+      validateProbabilityDistribution({ 1: 0.6, 2: 0.4 });
+    }).not.toThrow();
+  });
+
+  it('accepts distribution with floating point precision', () => {
+    expect(() => {
+      validateProbabilityDistribution(DEFAULT_RARITY_PROBABILITIES);
+    }).not.toThrow();
+  });
+
+  it('rejects distribution that sums to less than 1.0', () => {
+    expect(() => {
+      validateProbabilityDistribution({ 1: 0.5, 2: 0.3 });
+    }).toThrow(/Probability distribution must sum to 1\.0/i);
+  });
+
+  it('rejects distribution that sums to more than 1.0', () => {
+    expect(() => {
+      validateProbabilityDistribution({ 1: 0.7, 2: 0.5 });
+    }).toThrow(/Probability distribution must sum to 1\.0/i);
+  });
+
+  it('rejects empty distribution', () => {
+    expect(() => {
+      validateProbabilityDistribution({});
+    }).toThrow(/Probability distribution must sum to 1\.0/i);
   });
 });
 

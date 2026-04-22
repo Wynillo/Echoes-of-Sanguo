@@ -1,7 +1,11 @@
 import { afterEach } from 'vitest';
 
-// Mock window for node environment tests
-if (typeof window === 'undefined') {
+// Capture node-env detection before we mutate window below — the fixture loader
+// further down guards on `typeof window === 'undefined'` and must see the original
+// value, not the mock we assign here.
+const isNodeEnv = typeof window === 'undefined';
+
+if (isNodeEnv) {
   global.window = {
     confirm: () => false,
     location: { search: '' },
@@ -25,7 +29,7 @@ global.sessionStorage = {
   clear:      ()     => { Object.keys(sessionStore).forEach(k => delete sessionStore[k]); },
 };
 
-if (typeof window === 'undefined') {
+if (isNodeEnv) {
   URL.createObjectURL ??= () => 'blob:mock';
 
   const { readFileSync } = await import('fs');
@@ -37,6 +41,7 @@ if (typeof window === 'undefined') {
     CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS,
     STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS,
   } = await import('../src/cards.js');
+  const { parseEffectString } = await import('../src/effect-serializer.js');
   const { applyShopData } = await import('../src/shop-data.js');
 
   const fixture = JSON.parse(
@@ -45,6 +50,11 @@ if (typeof window === 'undefined') {
 
   for (const raw of fixture.cards) {
     const card = { ...raw, id: String(raw.id) };
+    if (card.effect && typeof card.effect === 'string') {
+      const parsed = {};
+      parseEffectString(card.effect, parsed);
+      Object.assign(card, parsed);
+    }
     CARD_DB[card.id] = card;
   }
 

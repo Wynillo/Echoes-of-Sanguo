@@ -36,14 +36,6 @@ export function intToCardType(n: number, hasEffect: boolean): CardType {
   return ct;
 }
 
-export function raceToInt(r: Race): number {
-  return r;
-}
-
-export function intToRace(n: number): Race {
-  return n;
-}
-
 const TRIGGER_STRINGS: ReadonlySet<string> = new Set([
   'onSummon', 'onDestroyByBattle', 'onDestroyByOpponent', 'passive', 'onFlipSummon', 'onFlip',
   'onDealBattleDamage', 'onSentToGrave',
