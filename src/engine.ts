@@ -1381,6 +1381,7 @@ if (handIndices.length === 0) return false;
     }
   }
 
+<<<<<<< HEAD
   async _handleAttackTraps(
     attackerOwner: Owner,
     attackerZone: number,
@@ -1491,6 +1492,157 @@ if (handIndices.length === 0) return false;
       }
     }
     return null;
+  }
+    if (trapResult?.reflectDamage) {
+      this.dealDamage(attackerOwner, attFC.effectiveATK());
+      attFC.hasAttacked = true;
+      this.ui.render(this.state);
+      return { cancelled: true, shouldContinue: false };
+    }
+    if (trapResult?.cancelAttack) {
+      attFC.hasAttacked = true;
+      this.ui.render(this.state);
+      return { cancelled: true, shouldContinue: false };
+    }
+
+    if (this._duelEnded || !atkSt.field.monsters[attackerZone]) {
+      this.ui.render(this.state);
+      return { cancelled: false, shouldContinue: false };
+    }
+
+    if (defFC) {
+      const trapResult2 = await activateTrapFn('onOwnMonsterAttacked', attFC, defFC);
+      if (trapResult2?.destroyAttacker) {
+        this._destroyMonsterBySignal(attackerOwner, attackerZone, attFC);
+        attFC.hasAttacked = true;
+        this.ui.render(this.state);
+        return { cancelled: true, shouldContinue: false };
+      }
+      if (trapResult2?.reflectDamage) {
+        this.dealDamage(attackerOwner, attFC.effectiveATK());
+        attFC.hasAttacked = true;
+        this.ui.render(this.state);
+        return { cancelled: true, shouldContinue: false };
+      }
+      if (trapResult2?.cancelAttack) {
+        attFC.hasAttacked = true;
+        this.ui.render(this.state);
+        return { cancelled: true, shouldContinue: false };
+      }
+
+      if (this._duelEnded || !atkSt.field.monsters[attackerZone]) {
+        this.ui.render(this.state);
+        return { cancelled: false, shouldContinue: false };
+=======
+  async _findAndActivateTrap(
+    owner: Owner,
+    triggerType: string,
+    requirePrompt: boolean,
+    ...args: FieldCard[]
+  ): Promise<EffectSignal | null> {
+    const opponent = owner === 'player' ? 'opponent' : 'player';
+    if (this.state[opponent].fieldFlags?.negateTraps) return null;
+
+    const traps = this.state[owner].field.spellTraps;
+    for (let i = 0; i < traps.length; i++) {
+      const fst = traps[i];
+      if (fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used
+          && fst.card.trapTrigger === triggerType) {
+
+        if (requirePrompt) {
+          const promptFn = this.ui.prompt;
+          if (!promptFn) continue;
+
+          const battleContext: import('./types.js').BattleContext = { triggerType };
+          if (args[0]) {
+            battleContext.attackerName   = args[0].card.name;
+            battleContext.attackerAtk    = args[0].effectiveATK();
+            battleContext.attackerCardId = args[0].card.id;
+          }
+          if (args[1]) {
+            battleContext.defenderName   = args[1].card.name;
+            battleContext.defenderDef    = args[1].effectiveDEF();
+            battleContext.defenderAtk    = args[1].effectiveATK();
+            battleContext.defenderPos    = args[1].position;
+            battleContext.defenderCardId = args[1].card.id;
+          }
+
+          const activate = await promptFn({
+            title: 'Activate trap?',
+            cardId: fst.card.id,
+            message: `${fst.card.name}: ${fst.card.description}`,
+            yes: 'Yes, activate!',
+            no:  'No, skip',
+            battleContext,
+          });
+          if (!activate) continue;
+        }
+
+        return await this.activateTrapFromField(owner, i, ...args);
+>>>>>>> 7550c0e (refactor: extract duplicate trap activation logic into _findAndActivateTrap helper)
+      }
+    }
+
+    return { cancelled: false, shouldContinue: true };
+  }
+
+<<<<<<< HEAD
+  async _findAndActivateTrap(
+    owner: Owner,
+    triggerType: string,
+    requirePrompt: boolean,
+    ...args: FieldCard[]
+  ): Promise<EffectSignal | null> {
+    const opponent = owner === 'player' ? 'opponent' : 'player';
+    if (this.state[opponent].fieldFlags?.negateTraps) return null;
+
+    const traps = this.state[owner].field.spellTraps;
+    for (let i = 0; i < traps.length; i++) {
+      const fst = traps[i];
+      if (fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used
+          && fst.card.trapTrigger === triggerType) {
+
+        if (requirePrompt) {
+          const promptFn = this.ui.prompt;
+          if (!promptFn) continue;
+
+          const battleContext: import('./types.js').BattleContext = { triggerType };
+          if (args[0]) {
+            battleContext.attackerName   = args[0].card.name;
+            battleContext.attackerAtk    = args[0].effectiveATK();
+            battleContext.attackerCardId = args[0].card.id;
+          }
+          if (args[1]) {
+            battleContext.defenderName   = args[1].card.name;
+            battleContext.defenderDef    = args[1].effectiveDEF();
+            battleContext.defenderAtk    = args[1].effectiveATK();
+            battleContext.defenderPos    = args[1].position;
+            battleContext.defenderCardId = args[1].card.id;
+          }
+
+          const activate = await promptFn({
+            title: 'Activate trap?',
+            cardId: fst.card.id,
+            message: `${fst.card.name}: ${fst.card.description}`,
+            yes: 'Yes, activate!',
+            no:  'No, skip',
+            battleContext,
+          });
+          if (!activate) continue;
+        }
+
+        return await this.activateTrapFromField(owner, i, ...args);
+      }
+    }
+    return null;
+=======
+  async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]){
+    return await this._findAndActivateTrap('player', triggerType, true, ...args);
+  }
+
+  async _autoActivateOpponentTraps(triggerType: string, ...args: FieldCard[]): Promise<EffectSignal | null> {
+    return await this._findAndActivateTrap('opponent', triggerType, false, ...args);
+>>>>>>> 7550c0e (refactor: extract duplicate trap activation logic into _findAndActivateTrap helper)
   }
 
   async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]): Promise<EffectSignal | null> {
