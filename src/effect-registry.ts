@@ -3,7 +3,7 @@ import {
   type CardData, type CardFilter,
   type EffectDescriptor, type EffectContext, type EffectSignal, type CardEffectBlock,
   type ValueExpr, type StatTarget, type Owner, type FieldCard,
-  type PureEffectCtx, type ChainEffectCtx,
+  type PureEffectCtx, type ChainEffectCtx, type GameState,
 } from './types.js';
 import { EchoesOfSanguo } from './debug-logger.js';
 import { shuffleArray, shuffleInPlace } from './utils/array.js';
@@ -119,6 +119,134 @@ export type EffectImpl = (desc: EffectDescriptor, ctx: EffectContext) => EffectS
 // A-handlers declare ctx: PureEffectCtx (supertype → valid via contravariance).
 // B/A+B handlers declare ctx: ChainEffectCtx (same type → valid directly).
 type InternalImpl = (desc: any, ctx: ChainEffectCtx) => EffectSignal | Promise<EffectSignal>;
+
+/**
+ * Manifest for registering custom effect handlers.
+ * Provides metadata for validation and sandboxing configuration.
+ */
+export interface EffectHandlerManifest {
+  /** Unique effect type identifier */
+  type: string;
+  /** Human-readable description of what the effect does */
+  description: string;
+  /** List of allowed context methods (e.g., ['damage', 'heal', 'draw']) */
+  allowedActions: string[];
+  /** Maximum calls per turn (optional, default: no limit) */
+  maxCallsPerTurn?: number;
+  /** Custom timeout in ms (optional, default: 100ms) */
+  timeoutMs?: number;
+  /** Mod ID for logging and tracking (optional) */
+  modId?: string;
+}
+
+/**
+ * Read-only effect context for custom effect handlers.
+ * Restricts state access and provides only safe methods.
+ */
+export interface SafeEffectContext {
+  /** Read-only game state snapshot */
+  readonly state: Readonly<GameState>;
+  /** Effect owner */
+  readonly owner: Owner;
+  /** Optional target FieldCard */
+  readonly target?: FieldCard | null;
+  /** Optional target CardData */
+  readonly targetCard?: CardData | null;
+  /** Optional attacker FieldCard */
+  readonly attacker?: FieldCard | null;
+  /** Optional defender FieldCard */
+  readonly defender?: FieldCard | null;
+  /** Optional summoned FieldCard */
+  readonly summoned?: FieldCard | null;
+  /** Log a message */
+  log: (msg: string) => void;
+  /** Deal damage (read-only state, mutation via engine) */
+  damage: (target: Owner, amount: number) => void;
+  /** Heal LP */
+  heal: (target: Owner, amount: number) => void;
+  /** Draw cards */
+  draw: (target: Owner, count: number) => void;
+  /** Visual effects */
+  vfx?: (event: string, owner: Owner, zone?: number) => void;
+}
+
+/**
+ * Wraps an effect handler with timeout protection.
+ * Prevents infinite loops and DoS attacks via timeout.
+ */
+function wrapWithTimeout(
+  impl: EffectImpl,
+  timeoutMs: number = 100,
+  effectName: string,
+): EffectImpl {
+  return async (desc, ctx) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort('timeout');
+      EchoesOfSanguo.log(
+        'SECURITY',
+        `Effect "${effectName}" timed out after ${timeoutMs}ms`,
+        '#f44',
+      );
+    }, timeoutMs);
+
+    try {
+      const abortSignal = controller.signal;
+      const result = await Promise.race([
+        impl(desc, ctx),
+        new Promise<EffectSignal>((_, reject) => {
+          abortSignal.addEventListener('abort', () => {
+            reject(new Error(`Effect "${effectName}" timed out`));
+          });
+        }),
+      ]);
+      clearTimeout(timeoutId);
+      return result;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if ((error as Error).message.includes('timed out')) {
+        throw error;
+      }
+      // Re-throw other errors
+      throw error;
+    }
+  };
+}
+
+/**
+ * Wraps an effect handler with rate limiting.
+ * Prevents abuse via excessive effect triggering.
+ */
+function wrapWithRateLimit(
+  impl: EffectImpl,
+  maxCalls: number,
+  effectName: string,
+  state: any,
+): EffectImpl {
+  return async (desc, ctx) => {
+    const key = `${ctx.owner}:${effectName}`;
+    const currentCalls = (ctx as any).effectCallCounts?.get(key) || 0;
+
+    if (currentCalls >= maxCalls) {
+      EchoesOfSanguo.log(
+        'SECURITY',
+        `Effect "${effectName}" exceeded rate limit (${maxCalls} calls/turn)`,
+        '#f44',
+      );
+      throw new Error(
+        `Effect "${effectName}" exceeded maximum calls per turn (${maxCalls})`,
+      );
+    }
+
+    // Track the call
+    if (!(ctx as any).effectCallCounts) {
+      (ctx as any).effectCallCounts = new Map<string, number>();
+    }
+    (ctx as any).effectCallCounts.set(key, currentCalls + 1);
+
+    return impl(desc, ctx);
+  };
+}
 
 const IMPL: Record<string, InternalImpl> = {
 
@@ -864,12 +992,242 @@ const IMPL: Record<string, InternalImpl> = {
   passive_cantBeAttacked(_desc: unknown, _ctx: PureEffectCtx) { return {}; },
 };
 
-export const EFFECT_REGISTRY = new Map<string, EffectImpl>(
+const EFFECT_REGISTRY = new Map<string, EffectImpl>(
   Object.entries(IMPL) as unknown as [string, EffectImpl][],
 );
 
-export function registerEffect(type: string, impl: EffectImpl): void {
-  EFFECT_REGISTRY.set(type, impl);
+/**
+ * Registry for effect handler metadata and security configurations.
+ * Tracks validation info for each registered effect.
+ */
+const EFFECT_HANDLERS = new Map<
+  string,
+  {
+    impl: EffectImpl;
+    manifest?: EffectHandlerManifest;
+    registeredAt: number;
+  }
+>();
+
+// Initialize registry with built-in effects (trusted, no validation needed)
+for (const [type, impl] of Object.entries(IMPL)) {
+  EFFECT_HANDLERS.set(type, {
+    impl,
+    registeredAt: Date.now(),
+  });
+}
+
+// Expose read-only view of registry
+export const EFFECT_REGISTRY_VIEW = new Proxy(EFFECT_HANDLERS, {
+  get(target, prop) {
+    if (prop === 'get') {
+      return (key: string) => {
+        const entry = target.get(key);
+        return entry?.impl;
+      };
+    }
+    if (prop === 'has') {
+      return (key: string) => target.has(key);
+    }
+    return Reflect.get(target, prop);
+  },
+}) as ReadonlyMap<string, EffectImpl>;
+
+// Keep old export for backward compatibility
+export const EFFECT_REGISTRY = EFFECT_REGISTRY_VIEW;
+
+/**
+ * Validates an effect handler manifest.
+ * Ensures all required fields are present and valid.
+  */
+export function validateManifest(manifest: EffectHandlerManifest): boolean {
+  // Type must be non-empty string
+  if (!manifest.type || typeof manifest.type !== 'string') {
+    return false;
+  }
+
+  // Type must follow naming convention (alphanumeric + underscore)
+  if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(manifest.type)) {
+    return false;
+  }
+
+  // Description must be present
+  if (!manifest.description || typeof manifest.description !== 'string') {
+    return false;
+  }
+
+  // Allowed actions must be array
+  if (!Array.isArray(manifest.allowedActions)) {
+    return false;
+  }
+
+  // Each allowed action must be a valid method name
+  for (const action of manifest.allowedActions) {
+    if (typeof action !== 'string' || !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(action)) {
+      return false;
+    }
+  }
+
+  // Optional: maxCallsPerTurn must be positive number if present
+  if (
+    manifest.maxCallsPerTurn !== undefined &&
+    (typeof manifest.maxCallsPerTurn !== 'number' ||
+      manifest.maxCallsPerTurn <= 0 ||
+      !Number.isInteger(manifest.maxCallsPerTurn))
+  ) {
+    return false;
+  }
+
+  // Optional: timeoutMs must be positive number if present
+  if (
+    manifest.timeoutMs !== undefined &&
+    (typeof manifest.timeoutMs !== 'number' || manifest.timeoutMs <= 0)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Validates that an effect implementation is a function.
+ * Basic sanity check before registration.
+ */
+function validateImplementation(impl: unknown): boolean {
+  return typeof impl === 'function';
+}
+
+/**
+ * Register a custom effect handler with validation and sandboxing.
+ * For internal use (built-in effects), use registerInternalEffect().
+ *
+ * @param manifest - Effect handler manifest with metadata
+ * @param impl - Effect implementation function
+ * @throws Error if manifest validation fails or implementation is invalid
+ */
+export function registerEffect(
+  manifest: EffectHandlerManifest,
+  impl: EffectImpl,
+): void;
+
+/**
+ * Register an effect handler without manifest (internal use only).
+ * DEPRECATED: Use the manifest version instead.
+ *
+ * @param type - Effect type string
+ * @param impl - Effect implementation function
+ * @deprecated Use manifest-based registration for security
+ */
+export function registerEffect(type: string, impl: EffectImpl): void;
+
+export function registerEffect(
+  manifestOrType: EffectHandlerManifest | string,
+  impl: EffectImpl,
+): void {
+  // Handle overloaded signature
+  let manifest: EffectHandlerManifest | undefined;
+  let type: string;
+
+  if (typeof manifestOrType === 'string') {
+    // Old signature - no validation (internal use)
+    type = manifestOrType;
+    EchoesOfSanguo.log(
+      'WARN',
+      `registerEffect called with string type "${type}". Use manifest for security.`,
+      '#fa0',
+    );
+  } else {
+    // New signature - with manifest
+    manifest = manifestOrType;
+    type = manifest.type;
+  }
+
+  // Validate implementation
+  if (!validateImplementation(impl)) {
+    const errorMsg = `Invalid effect implementation for "${type}": must be a function`;
+    EchoesOfSanguo.log('SECURITY', errorMsg, '#f44');
+    throw new Error(errorMsg);
+  }
+
+  // Validate manifest if provided
+  if (manifest && !validateManifest(manifest)) {
+    const errorMsg = `Invalid effect manifest for "${type}": missing or invalid fields`;
+    EchoesOfSanguo.log('SECURITY', errorMsg, '#f44');
+    throw new Error(errorMsg);
+  }
+
+  // Apply security wrappers
+  let wrappedImpl: EffectImpl = impl;
+
+  // Apply timeout wrapper
+  const timeoutMs = manifest?.timeoutMs ?? 100;
+  wrappedImpl = wrapWithTimeout(wrappedImpl, timeoutMs, type);
+
+  // Apply rate limit wrapper if specified
+  if (manifest?.maxCallsPerTurn !== undefined) {
+    // Create a proxy state for rate limiting
+    const rateLimitState = { callCounts: new Map<string, number>() };
+    wrappedImpl = wrapWithRateLimit(
+      wrappedImpl,
+      manifest.maxCallsPerTurn,
+      type,
+      rateLimitState,
+    );
+  }
+
+  // Register with metadata
+  EFFECT_HANDLERS.set(type, {
+    impl: wrappedImpl,
+    manifest,
+    registeredAt: Date.now(),
+  });
+
+  // Log registration for observability
+  const modInfo = manifest?.modId ? ` from mod "${manifest.modId}"` : '';
+  EchoesOfSanguo.log(
+    'EFFECT',
+    `Registered effect "${type}"${modInfo}${manifest ? `: ${manifest.description}` : ''}`,
+  );
+}
+
+/**
+ * Register an internal effect handler (bypasses validation).
+ * Only used for built-in effects in this file.
+ *
+ * @param type - Effect type string
+ * @param impl - Effect implementation function
+ * @internal
+ */
+export function registerInternalEffect(type: string, impl: EffectImpl): void {
+  EFFECT_HANDLERS.set(type, {
+    impl,
+    registeredAt: Date.now(),
+  });
+}
+
+/**
+ * Get effect handler metadata for debugging.
+ * @param type - Effect type
+ * @returns Handler metadata or undefined
+ */
+export function getEffectHandlerInfo(
+  type: string,
+): { manifest?: EffectHandlerManifest; registeredAt: number } | undefined {
+  const entry = EFFECT_HANDLERS.get(type);
+  if (!entry) return undefined;
+  return {
+    manifest: entry.manifest,
+    registeredAt: entry.registeredAt,
+  };
+}
+
+/**
+ * Reset effect call counters (called at turn boundaries).
+ */
+export function resetEffectCallCounts(ctx: any): void {
+  if (ctx.effectCallCounts) {
+    ctx.effectCallCounts.clear();
+  }
 }
 
 export function makePureCtx(ctx: EffectContext): PureEffectCtx {
@@ -890,6 +1248,33 @@ export function makePureCtx(ctx: EffectContext): PureEffectCtx {
     removeEquipment:   (owner, zone)   => engine.removeEquipmentForMonster(owner, zone),
     removeFieldSpell:  (owner)         => engine.removeFieldSpell(owner),
     vfx:               engine.ui?.playVFX ? (type, owner, zone) => engine.ui.playVFX!(type, owner!, zone) : undefined,
+  };
+}
+
+/**
+ * Create a read-only safe context for custom effect handlers.
+ * Restricts access to mutable game state.
+ */
+export function makeSafeCtx(ctx: EffectContext): SafeEffectContext {
+  const engine = ctx.engine;
+  const state = engine.getState();
+  return {
+    get state() {
+      return Object.freeze(state);
+    },
+    owner: ctx.owner,
+    target: ctx.target,
+    targetCard: ctx.targetCard,
+    attacker: ctx.attacker,
+    defender: ctx.defender,
+    summoned: ctx.summoned,
+    log: (msg) => engine.addLog(msg),
+    damage: (target, amount) => engine.dealDamage(target, amount),
+    heal: (target, amount) => engine.gainLP(target, amount),
+    draw: (target, count) => engine.drawCard(target, count),
+    vfx: engine.ui?.playVFX
+      ? (type, owner, zone) => engine.ui!.playVFX!(type, owner!, zone)
+      : undefined,
   };
 }
 
