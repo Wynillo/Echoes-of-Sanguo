@@ -1,5 +1,5 @@
 import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
-import { CardType, isMonsterType } from './types.js';
+import { CardType, isMonsterType, getCardAtk, getCardAtk } from './types.js';
 import {
   getRaceByKey, getAttrByKey, getRarityById, getRaceById, getAttrById,
   TYPE_META,

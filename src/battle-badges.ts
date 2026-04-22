@@ -1,4 +1,5 @@
 import type { DuelStats } from './types.js';
+import { Rarity } from './types.js';
 import { CARD_DB } from './cards.js';
 import { DEFAULT_RARITY_PROBABILITIES, RARITY_DROP_RATES } from './react/utils/pack-logic.js';
 import type { DuelRewardConfig, BadgeRank, DropPoolEntry } from './reward-config.js';
@@ -128,7 +129,11 @@ export function calculateBattleBadges(stats: DuelStats, rewardConfig?: DuelRewar
 }
 
 const RARITY_FALLBACK: Rarity[] = [
-  8, 6, 4, 2, 1,
+  Rarity.ULTRA_RARE,
+  Rarity.SUPER_RARE,
+  Rarity.RARE,
+  Rarity.UNCOMMON,
+  Rarity.COMMON,
 ];
 
 function rollRarity(customRates?: Partial<Record<Rarity, number>>): Rarity {
@@ -144,7 +149,7 @@ function rollRarity(customRates?: Partial<Record<Rarity, number>>): Rarity {
     cumulative += prob;
     if (r < cumulative) return rarity as Rarity;
   }
-  return 1;
+  return Rarity.COMMON;
 }
 
 /**

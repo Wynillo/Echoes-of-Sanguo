@@ -6,7 +6,7 @@ import { useModal }    from '../contexts/ModalContext.js';
 import { getRarityById } from '../../type-metadata.js';
 import { Card } from '../components/Card.js';
 import { Audio }        from '../../audio.js';
-import { CardType } from '../../types.js';
+import { CardType, Rarity } from '../../types.js';
 import type { CardData }          from '../../types.js';
 import type { CollectionEntry }   from '../../types.js';
 import RaceIcon from '../components/RaceIcon.js';
@@ -249,14 +249,14 @@ export default function PackOpeningScreen() {
 
   // Sort cards by rarity ascending (Common first → UltraRare last)
   const sortedCards = useMemo(() =>
-    [..._cards].sort((a, b) => (a.rarity ?? 1) - (b.rarity ?? 1)),
+    [..._cards].sort((a, b) => (a.rarity ?? Rarity.COMMON) - (b.rarity ?? Rarity.COMMON)),
     [_cards],
   );
 
   const rarityBreakdown = useMemo(() => {
     const counts = new Map<number, number>();
     for (const card of sortedCards) {
-      const r = card.rarity ?? 4;
+      const r = card.rarity ?? Rarity.RARE;
       counts.set(r, (counts.get(r) ?? 0) + 1);
     }
     return [...counts.entries()]
@@ -269,7 +269,7 @@ export default function PackOpeningScreen() {
   const [tapCount, setTapCount] = useState(0);
   const [tearing, setTearing] = useState(false);
   const [revealIndex, setRevealIndex] = useState(-1);
-  const [currentRarity, setCurrentRarity] = useState<number>(4);
+  const [currentRarity, setCurrentRarity] = useState<number>(Rarity.RARE);
   const skipRef = useRef(false);
   const fastForwardRef = useRef(false);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
@@ -398,7 +398,7 @@ export default function PackOpeningScreen() {
         if (cancelled || skipRef.current) break;
 
         const card = sortedCards[i];
-        const rarity = card.rarity ?? 4;
+        const rarity = card.rarity ?? Rarity.RARE;
 
         setRevealIndex(i);
         setCurrentRarity(rarity);
@@ -420,8 +420,8 @@ export default function PackOpeningScreen() {
 
         const holdTime = HOLD_BY_RARITY[rarity] ?? DEFAULT_HOLD_DURATION_S;
         const hasSparkle = rarity in SPARKLE_CONFIG;
-        const hasBg = rarity >= 5;
-        const hasRays = rarity >= 7;
+        const hasBg = rarity >= Rarity.UNCOMMON;
+        const hasRays = rarity >= Rarity.SUPER_RARE;
 
         const tl = gsap.timeline();
         currentTl = tl;
@@ -467,7 +467,7 @@ if (hasBg && bgEl) {
         }, undefined, '-=0.2');
 
         // Screen shake for SR/UR at flip moment
-        if (rarity >= 7 && screenEl) {
+        if (rarity >= Rarity.SUPER_RARE && screenEl) {
           const intensity = SHAKE_INTENSITY[rarity] ?? 5;
           tl.call(() => {
             shakeScreen(screenEl, intensity, ANIMATION_TIMINGS.SHAKE_DURATION / 1000);
@@ -481,7 +481,7 @@ if (hasBg && bgEl) {
             if (frontEl) frontEl.classList.add(styles.sparkle);
           }
           const tintEl = scanlineTintRef.current;
-          if (tintEl && rarity >= 4) {
+          if (tintEl && rarity >= Rarity.RARE) {
             tintEl.style.setProperty(
               '--scanline-color',
               SCANLINE_COLORS[rarity] ?? 'rgba(255,255,255,0.04)',
@@ -489,7 +489,7 @@ if (hasBg && bgEl) {
           }
         });
 
-        if (rarity >= 4) {
+        if (rarity >= Rarity.RARE) {
           const tintEl = scanlineTintRef.current;
           if (tintEl) {
             tl.fromTo(
@@ -593,9 +593,9 @@ if (hasBg && bgEl) {
       <div ref={screenRef} className={styles.screen} onClick={handleSkip}>
         <div ref={bgRef} className={`${styles.bgEffect} ${getBgClass(currentRarity)}`} />
 
-        {currentRarity >= 7 && (
+        {currentRarity >= Rarity.SUPER_RARE && (
           <div ref={lightRaysRef} className={styles.lightRaysContainer}>
-            <div className={currentRarity === 8 ? styles.lightRaysUR : styles.lightRaysSR} />
+            <div className={currentRarity === Rarity.ULTRA_RARE ? styles.lightRaysUR : styles.lightRaysSR} />
           </div>
         )}
 
@@ -668,7 +668,7 @@ if (hasBg && bgEl) {
         <div className={styles.grid}>
           {sortedCards.map((card, i) => {
             const isNew = !ownedBefore.has(card.id);
-            const rarity = card.rarity ?? 4;
+            const rarity = card.rarity ?? Rarity.RARE;
             return (
               <div
                 key={i}

@@ -3,7 +3,8 @@ import { EFFECT_SOURCES, type EffectSource } from '../../effect-items.js';
 import { Progression } from '../../progression.js';
 import { SHOP_DATA } from '../../shop-data.js';
 import type { PackSlotDef, PackDef, CardFilter, CardPoolDef } from '../../shop-data.js';
-import type { CardData, Rarity } from '../../types.js';
+import { Rarity, getCardRarity } from '../../types.js';
+import type { CardData } from '../../types.js';
 
 /**
  * Default rarity probability distribution for pack openings.
@@ -18,11 +19,11 @@ import type { CardData, Rarity } from '../../types.js';
  * - Ultra Rare (8): 0.1%
  */
 export const DEFAULT_RARITY_PROBABILITIES: Record<string, number> = {
-  [1]:    0.60,    // 60% - Common
-  [2]:    0.30,    // 30% - Uncommon
-  [4]:    0.089,   // 8.9% - Rare
-  [6]:    0.01,    // 1% - Super Rare
-  [8]:    0.001,   // 0.1% - Ultra Rare
+  [Rarity.COMMON]:      0.60,    // 60% - Common
+  [Rarity.UNCOMMON]:    0.30,    // 30% - Uncommon
+  [Rarity.RARE]:        0.089,   // 8.9% - Rare
+  [Rarity.SUPER_RARE]:  0.01,    // 1% - Super Rare
+  [Rarity.ULTRA_RARE]:  0.001,   // 0.1% - Ultra Rare
 };
 
 /** @deprecated Use DEFAULT_RARITY_PROBABILITIES instead. Will be removed in next major version. */
@@ -76,7 +77,7 @@ function _expandSlots(packDef: { slots: PackSlotDef[] }): Rarity[] {
  * Prefers replacing Uncommon over Common (highest rarity below Rare first).
  */
 function _applyPity(rarities: Rarity[]): Rarity[] {
-  if (rarities.some(r => r >= 4)) return rarities;
+  if (rarities.some(r => r >= Rarity.RARE)) return rarities;
 
   let replaceIdx = 0;
   let bestRarity = -1;
@@ -86,7 +87,7 @@ function _applyPity(rarities: Rarity[]): Rarity[] {
       replaceIdx = i;
     }
   }
-  rarities[replaceIdx] = 4;
+  rarities[replaceIdx] = Rarity.RARE;
   return rarities;
 }
 
@@ -101,7 +102,7 @@ function _matchesFilter(card: CardData, f: CardFilter): boolean {
   if (f.races?.length && card.race !== undefined && !f.races.includes(card.race)) return false;
   if (f.attributes?.length && card.attribute !== undefined && !f.attributes.includes(card.attribute)) return false;
   if (f.spellTypes?.length && card.spellType !== undefined && !f.spellTypes.includes(card.spellType)) return false;
-  const rarity = card.rarity ?? 1;
+  const rarity = card.rarity ?? Rarity.COMMON;
   if (f.maxRarity !== undefined && rarity > f.maxRarity) return false;
   if (f.minRarity !== undefined && rarity < f.minRarity) return false;
   if (f.maxAtk !== undefined && card.atk !== undefined && card.atk > f.maxAtk) return false;
@@ -235,16 +236,16 @@ export function openPack(packId: string): (CardData | EffectSource)[] {
     const { idx } = cardRarities[i];
     let rarity = raritiesToApply[i];
     
-    let candidates = pool.filter(c => (c.rarity ?? 1) === rarity);
+    let candidates = pool.filter(c => (c.rarity ?? Rarity.COMMON) === rarity);
     const fallbacks: Partial<Record<Rarity, Rarity>> = {
-      [8]: 6,
-      [6]: 4,
-      [4]: 2,
-      [2]: 1,
+      [Rarity.ULTRA_RARE]: Rarity.SUPER_RARE,
+      [Rarity.SUPER_RARE]: Rarity.RARE,
+      [Rarity.RARE]: Rarity.UNCOMMON,
+      [Rarity.UNCOMMON]: Rarity.COMMON,
     };
     while (!candidates.length && fallbacks[rarity]) {
       rarity = fallbacks[rarity]!;
-      candidates = pool.filter(c => (c.rarity ?? 1) === rarity);
+      candidates = pool.filter(c => (c.rarity ?? Rarity.COMMON) === rarity);
     }
     if (!candidates.length) candidates = pool.length ? pool : Object.values(CARD_DB) as CardData[];
     results[idx] = candidates[Math.floor(Math.random() * candidates.length)];

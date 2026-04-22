@@ -10,6 +10,7 @@ import { SHOP_DATA, type PackPrice } from '../../shop-data.js';
 import type { PackDef, PackSlotDef, CurrencyDef } from '../../shop-data.js';
 import { ECONOMY, CURRENCY_UNLOCK_CHAPTERS } from '../../economy-config.js';
 import { Audio }               from '../../audio.js';
+import { Rarity } from '../../types.js';
 import type { CardData } from '../../types.js';
 import type { EffectSource } from '../../effect-items.js';
 import { CraftingScreen } from '../CraftingScreen.js';
@@ -30,7 +31,7 @@ function computeDistribution(slots: PackSlotDef[]): { rarity: number; guaranteed
         map.set(r, entry);
       }
     } else {
-      const r = slot.rarity ?? 4;
+      const r = slot.rarity ?? Rarity.RARE;
       const entry = map.get(r) ?? { guaranteed: 0, chancePct: 0 };
       entry.guaranteed += slot.count;
       map.set(r, entry);
@@ -44,7 +45,7 @@ function computeDistribution(slots: PackSlotDef[]): { rarity: number; guaranteed
 function countByRarity(cards: CardData[]): { rarity: number; count: number }[] {
   const map = new Map<number, number>();
   for (const c of cards) {
-    const r = c.rarity ?? 4;
+    const r = c.rarity ?? Rarity.RARE;
     map.set(r, (map.get(r) ?? 0) + 1);
   }
   return Array.from(map.entries())

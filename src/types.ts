@@ -64,7 +64,18 @@ export enum CardType {
  */
 export type Attribute = number;
 export type Race = number;
-export type Rarity = number;
+
+/**
+ * Rarity enum for card rarity levels.
+ * Values skip numbers to allow bit-flag operations and future expansion.
+ */
+export enum Rarity {
+  COMMON = 1,
+  UNCOMMON = 2,
+  RARE = 4,
+  SUPER_RARE = 6,
+  ULTRA_RARE = 8,
+}
 
 // Type aliases for backward compatibility with existing code
 export type EffectDescriptorMap = TcgEffectDescriptorMap;

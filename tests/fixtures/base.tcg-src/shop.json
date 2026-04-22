@@ -1,4 +1,5 @@
 {
+  // NOTE: rarity values correspond to Rarity enum: 1=COMMON, 2=UNCOMMON, 4=RARE, 6=SUPER_RARE, 8=ULTRA_RARE
   "packs": [
     {
       "id": "starter-pack",
