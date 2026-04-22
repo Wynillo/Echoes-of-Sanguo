@@ -38,6 +38,21 @@ const ALLOWED_AUDIO_TYPES = new Set([
 const MAX_AUDIO_SIZE_BYTES = 10 * 1024 * 1024;
 const AUDIO_FETCH_TIMEOUT_MS = 30000;
 
+/**
+ * Audio configuration constants for tuning audio behavior.
+ * Centralized to avoid magic numbers and make audio tuning easier.
+ */
+const AUDIO_CONFIG = {
+  /** Crossfade duration in seconds - long enough to be smooth, short enough to be responsive */
+  MUSIC_FADE_SECONDS: 0.4,
+  /** Buffer time in milliseconds after fade-out completes before disconnecting source. Prevents race condition between gain ramp completion and source stop. */
+  FADE_BUFFER_MS: 50,
+  /** Maximum concurrent instances of the same SFX to prevent audio overload on lower-end devices */
+  MAX_CONCURRENT_SFX: 3,
+  /** Volume scale divisor - volumes are percentage-based (0-100), divided by this to get 0.0-1.0 gain range */
+  VOLUME_SCALE: 100,
+} as const;
+
 function validateAudioPath(path: string): boolean {
   if (!path.startsWith('/audio/')) {
     return false;
@@ -61,7 +76,6 @@ let _currentMusic: { source: AudioBufferSourceNode; trackGain: GainNode; id: str
 let _musicRequestId = 0;
 // Concurrency limiter: track active source count per SFX ID
 const _activeSfx = new Map<string, number>();
-const MAX_CONCURRENT_SFX = 3;
 
 function _ensureContext(): AudioContext {
   if (!_ctx) {
@@ -84,9 +98,9 @@ function _ensureContext(): AudioContext {
 }
 
 function _applyVolumes(master: number, music: number, sfx: number) {
-  if (_masterGain) _masterGain.gain.value = master / 100;
-  if (_musicGain)  _musicGain.gain.value  = music / 100;
-  if (_sfxGain)    _sfxGain.gain.value    = sfx / 100;
+  if (_masterGain) _masterGain.gain.value = master / AUDIO_CONFIG.VOLUME_SCALE;
+  if (_musicGain)  _musicGain.gain.value  = music / AUDIO_CONFIG.VOLUME_SCALE;
+  if (_sfxGain)    _sfxGain.gain.value    = sfx / AUDIO_CONFIG.VOLUME_SCALE;
 }
 
 async function _loadBuffer(id: string): Promise<AudioBuffer | null> {
@@ -153,8 +167,6 @@ function setVolumes(master: number, music: number, sfx: number): void {
   _applyVolumes(master, music, sfx);
 }
 
-const MUSIC_FADE_S = 0.4; // crossfade duration in seconds
-
 async function playMusic(trackId: string): Promise<void> {
   _ensureContext();
   if (_currentMusic?.id === trackId) return;
@@ -165,10 +177,10 @@ async function playMusic(trackId: string): Promise<void> {
     _currentMusic = null;
     const ctx = _ensureContext();
     old.trackGain.gain.setValueAtTime(old.trackGain.gain.value, ctx.currentTime);
-    old.trackGain.gain.linearRampToValueAtTime(0, ctx.currentTime + MUSIC_FADE_S);
+    old.trackGain.gain.linearRampToValueAtTime(0, ctx.currentTime + AUDIO_CONFIG.MUSIC_FADE_SECONDS);
     setTimeout(() => {
       try { old.source.stop(); old.trackGain.disconnect(); } catch { /* already stopped */ }
-    }, MUSIC_FADE_S * 1000 + 50);
+    }, AUDIO_CONFIG.MUSIC_FADE_SECONDS * 1000 + AUDIO_CONFIG.FADE_BUFFER_MS);
   }
 
   const requestId = ++_musicRequestId;
@@ -179,7 +191,7 @@ async function playMusic(trackId: string): Promise<void> {
   const ctx = _ensureContext();
   const trackGain = ctx.createGain();
   trackGain.gain.setValueAtTime(0, ctx.currentTime);
-  trackGain.gain.linearRampToValueAtTime(1, ctx.currentTime + MUSIC_FADE_S);
+  trackGain.gain.linearRampToValueAtTime(1, ctx.currentTime + AUDIO_CONFIG.MUSIC_FADE_SECONDS);
   trackGain.connect(_musicGain!);
 
   const source = ctx.createBufferSource();
@@ -200,7 +212,7 @@ function stopMusic(): void {
 
 async function playSfx(sfxId: string): Promise<void> {
   // Prevent unbounded stacking of the same SFX
-  if ((_activeSfx.get(sfxId) ?? 0) >= MAX_CONCURRENT_SFX) return;
+  if ((_activeSfx.get(sfxId) ?? 0) >= AUDIO_CONFIG.MAX_CONCURRENT_SFX) return;
 
   const buf = await _loadBuffer(sfxId);
   if (!buf) return;

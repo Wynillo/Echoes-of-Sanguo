@@ -2,7 +2,7 @@ import { Component } from 'react';
 import type { ReactNode, ErrorInfo } from 'react';
 import i18n from '../../i18n.js';
 
-interface Props {
+interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
   onReset?: () => void;
@@ -12,7 +12,7 @@ interface State {
   error: Error | null;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
   state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {
