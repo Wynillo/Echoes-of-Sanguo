@@ -39,7 +39,7 @@ describe('Crafting', () => {
 
     cardCountSpy = vi.spyOn(Progression, 'cardCount');
     effectItemCountSpy = vi.spyOn(Progression, 'getEffectItemCount');
-    addCraftedCardSpy = vi.spyOn(Progression, 'addCraftedCard').mockReturnValue('100000000');
+    addCraftedCardSpy = vi.spyOn(Progression, 'addCraftedCard').mockReturnValue('crafted_test-uuid-12345');
     addCardsToCollectionSpy = vi.spyOn(Progression, 'addCardsToCollection').mockImplementation(() => {});
     removeCardsFromCollectionSpy = vi.spyOn(Progression, 'removeCardsFromCollection').mockImplementation(() => {});
     removeEffectItemSpy = vi.spyOn(Progression, 'removeEffectItem').mockImplementation(() => true);
@@ -52,13 +52,19 @@ describe('Crafting', () => {
   });
 
   describe('isCraftedId', () => {
-    it('should return true for IDs >= 100000000', () => {
-      expect(isCraftedId('100000000')).toBe(true);
-      expect(isCraftedId('150000000')).toBe(true);
-      expect(isCraftedId(100000001)).toBe(true);
+    it('should return true for UUID-based crafted IDs', () => {
+      expect(isCraftedId('crafted_550e8400-e29b-41d4-a716-446655440000')).toBe(true);
+      expect(isCraftedId('crafted_abc123-def456')).toBe(true);
+      expect(isCraftedId('crafted_test')).toBe(true);
     });
 
-    it('should return false for IDs < 100000000', () => {
+    it('should return false for numeric IDs', () => {
+      expect(isCraftedId('100000000')).toBe(false);
+      expect(isCraftedId('150000000')).toBe(false);
+      expect(isCraftedId(100000001)).toBe(false);
+    });
+
+    it('should return false for regular card IDs', () => {
       expect(isCraftedId('1')).toBe(false);
       expect(isCraftedId('999')).toBe(false);
       expect(isCraftedId(1500)).toBe(false);
@@ -69,18 +75,18 @@ describe('Crafting', () => {
     it('should combine base card stats with effect source effects', () => {
       registerTestEffectSource({ id: 'effect_monster_001', name: 'Test Effect', rarity: 4 });
       
-      const record = { id: '100000000', baseId: 'monster_001', effectSourceId: 'effect_monster_001' };
+      const record = { id: 'crafted_test-uuid', baseId: 'monster_001', effectSourceId: 'effect_monster_001', createdAt: Date.now() };
       const card = buildCraftedCard(record);
       
       expect(card).not.toBeNull();
-      expect(card.id).toBe('100000000');
+      expect(card.id).toBe('crafted_test-uuid');
       expect(card.name).toBe('Test Monster');
       expect(card.atk).toBe(1000);
       expect(card.effects).toHaveLength(1);
     });
 
     it('should return null for invalid base card', () => {
-      const record = { id: '100000000', baseId: 'nonexistent', effectSourceId: 'effect_monster_001' };
+      const record = { id: 'crafted_test-uuid', baseId: 'nonexistent', effectSourceId: 'effect_monster_001', createdAt: Date.now() };
       expect(buildCraftedCard(record)).toBeNull();
     });
   });
