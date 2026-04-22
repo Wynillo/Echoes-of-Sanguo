@@ -682,7 +682,7 @@ describe('extractPassiveFlags', () => {
       actions: [{ type: 'passive_indestructible' }, { type: 'passive_effectImmune' }, { type: 'passive_cantBeAttacked' }],
     });
     expect(flags.indestructible).toBe(true);
-    expect(flags.effectImmune).toBe(true);
-    expect(flags.cantBeAttacked).toBe(true);
+    expect(flags.isEffectImmune).toBe(true);
+    expect(flags.cannotBeAttacked).toBe(true);
   });
 });

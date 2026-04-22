@@ -502,7 +502,7 @@ function mockFieldCard(overrides = {}) {
     hasAttacked: false,
     summonedThisTurn: false,
     canDirectAttack: false,
-    cantBeAttacked: false,
+    cannotBeAttacked: false,
     indestructible: false,
     piercing: false,
     effectiveATK() { return this.card.atk + (this._atkBonus ?? 0); },
