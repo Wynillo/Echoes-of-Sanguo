@@ -3,8 +3,54 @@ import type { CampaignProgress } from './campaign-types.js';
 import { getCurrency, addCurrency as _addCurrency, spendCurrency as _spendCurrency } from './currencies.js';
 import { ECONOMY, DEFAULT_CHAPTER } from './economy-config.js';
 import { secureLogger } from './secure-logger.js';
+import { createSignedPayload, verifySignedPayload, ensureSlotKey } from './progression-crypto.js';
+
+/**
+ * Save slot progression manager with integrity verification.
+ * 
+ * SECURITY BOUNDARIES:
+ * - Slot data is signed with per-slot HMAC-SHA256 keys
+ * - Signatures detect casual localStorage manipulation
+ * - Protects against: accidental corruption, simple tampering
+ * - Does NOT protect against: determined attackers with dev tools access
+ * 
+ * This is a single-player client-side game. Slots provide organization
+ * and integrity checking, not cryptographic security.
+ */
 
 export type SlotId = 1 | 2 | 3;
+
+/**
+ * Current save file version for migration support.
+ * Increment when breaking changes are made to save structure.
+ * v2: Collection ID format change (old uppercase IDs → new format)
+ */
+export const SAVE_VERSION = 2;
+
+/**
+ * Number of save slots available to players.
+ * 3 slots - standard for single-player games (primary, secondary, backup).
+ */
+export const MAX_SAVE_SLOTS = 3;
+
+/**
+ * Total opponents in campaign mode.
+ * Fixed at 10 to match campaign chapter structure.
+ */
+export const CAMPAIGN_OPPONENT_COUNT = 10;
+
+/**
+ * localStorage key constants for debugging and development tools.
+ * All keys use 'tcg_' prefix to avoid conflicts with other applications.
+ */
+export const STORAGE_KEYS = Object.freeze({
+  /** User settings (language, volume, controller preferences) */
+  SETTINGS: 'tcg_settings',
+  /** Save slot metadata */
+  SLOT_META: 'tcg_slot_meta',
+  /** Currently active save slot */
+  ACTIVE_SLOT: 'tcg_active_slot',
+} as const);
 
 export interface SlotMeta {
   slot: SlotId;
@@ -76,6 +122,7 @@ export interface CraftedCardRecord {
   id: string;
   baseId: string;
   effectSourceId: string;
+  createdAt: number;
 }
 
 export const Progression = (() => {
@@ -104,24 +151,27 @@ export const Progression = (() => {
     nextCraftedId:    'next_crafted_id',
   } as const;
 
-  /** Global keys (not per-slot) */
   const GLOBAL_KEYS = {
-    settings:   'tcg_settings',
-    slotMeta:   'tcg_slot_meta',
-    activeSlot: 'tcg_active_slot',
-  } as const;
+    settings: STORAGE_KEYS.SETTINGS,
+    slotMeta: STORAGE_KEYS.SLOT_META,
+    activeSlot: STORAGE_KEYS.ACTIVE_SLOT,
+  };
 
   const DUEL_CHECKPOINT_SUFFIX = 'duel_checkpoint';
 
-  const SAVE_VERSION   = 2;
-  const OPPONENT_COUNT = 10;
-  const SLOT_IDS: SlotId[] = [1, 2, 3];
+  const SLOT_IDS: SlotId[] = [1, 2, 3].slice(0, MAX_SAVE_SLOTS) as SlotId[];
 
   let activeSlot: SlotId | null = null;
+  let slotKeysReady = false;
 
   /** Build a localStorage key for a given slot and logical key name */
   function _slotKey(slot: SlotId, name: string): string {
     return `tcg_s${slot}_${name}`;
+  }
+  
+  /** Get signature storage key for a localStorage key */
+  function _sigKey(key: string): string {
+    return `${key}_sig`;
   }
 
   /** Get the localStorage key for the active slot. Throws if no slot is active. */
@@ -181,7 +231,7 @@ export const Progression = (() => {
   function _save(key: string, value: unknown): boolean {
     try {
       const serialized = JSON.stringify(value);
-      const estimatedSize = (key.length + serialized.length) * 2; // UTF-16 bytes
+      const estimatedSize = (key.length + serialized.length) * 2;
       
       if (!checkQuotaBeforeSave(estimatedSize)) {
         handleQuotaExceeded();
@@ -189,6 +239,18 @@ export const Progression = (() => {
       }
       
       localStorage.setItem(key, serialized);
+      
+      // Fire-and-forget signature creation for slot data
+      if (activeSlot && slotKeysReady) {
+        createSignedPayload(activeSlot, { k: key, v: value })
+          .then(({ payload, signature }: { payload: string; signature: string }) => {
+            localStorage.setItem(_sigKey(key), JSON.stringify({ p: payload, s: signature }));
+          })
+          .catch((err: Error) => {
+            secureLogger.warn('PROGRESSION', `Signature creation failed for "${key}":`, err);
+          });
+      }
+      
       return true;
     } catch (e) {
       if ((e as Error).name === 'QuotaExceededError') {
@@ -202,7 +264,7 @@ export const Progression = (() => {
 
   function _defaultOpponents(): Record<number, OpponentRecord> {
     const ops: Record<number, OpponentRecord> = {};
-    for (let i = 1; i <= OPPONENT_COUNT; i++) {
+    for (let i = 1; i <= CAMPAIGN_OPPONENT_COUNT; i++) {
       ops[i] = { unlocked: i === 1, wins: 0, losses: 0 };
     }
     return ops;
@@ -245,7 +307,7 @@ export const Progression = (() => {
         empty,
         starterRace: empty ? null : (meta?.starterRace ?? localStorage.getItem(_slotKey(slot, SLOT_KEY_NAMES.starterRace)) ?? null),
         coins: empty ? 0 : (meta?.coins ?? getCurrency(slot as SlotId, ECONOMY.CURRENCY_COINS)),
-        currentChapter: empty ? ECONOMY.DEFAULT_CHAPTER : (meta?.currentChapter ?? ECONOMY.DEFAULT_CHAPTER),
+        currentChapter: empty ? DEFAULT_CHAPTER : (meta?.currentChapter ?? DEFAULT_CHAPTER),
         lastSaved: empty ? null : (meta?.lastSaved ?? null),
       };
     });
@@ -268,7 +330,9 @@ export const Progression = (() => {
   /** Delete all data for a specific slot */
   function deleteSlot(slot: SlotId): void {
     Object.values(SLOT_KEY_NAMES).forEach(name => {
-      localStorage.removeItem(_slotKey(slot, name));
+      const key = _slotKey(slot, name);
+      localStorage.removeItem(key);
+      localStorage.removeItem(_sigKey(key));
     });
     localStorage.removeItem(_slotKey(slot, DUEL_CHECKPOINT_SUFFIX));
     const stored = _load<Record<number, unknown>>(GLOBAL_KEYS.slotMeta, {});
@@ -283,6 +347,38 @@ export const Progression = (() => {
   /** Check if any slot has data (for showing Load Game button) */
   function hasAnySave(): boolean {
     return SLOT_IDS.some(slot => !isSlotEmpty(slot));
+  }
+
+  /**
+   * Verify integrity of slot data signatures.
+   * Logs warnings for any tampering detected.
+   * Returns true if all signatures valid, false otherwise.
+   */
+  async function verifySlotIntegrity(slot: SlotId): Promise<boolean> {
+    let allValid = true;
+    
+    for (const name of Object.values(SLOT_KEY_NAMES)) {
+      const key = _slotKey(slot, name);
+      const sigRaw = localStorage.getItem(_sigKey(key));
+      const dataRaw = localStorage.getItem(key);
+      
+      if (!sigRaw || !dataRaw) continue;
+      
+      try {
+        const { p: payload, s: signature } = JSON.parse(sigRaw) as { p: string; s: string };
+        const verified = await verifySignedPayload(slot, payload, signature);
+        
+        if (verified === null) {
+          secureLogger.warn('SECURITY', `Signature verification failed for slot ${slot}, key "${key}"`);
+          allValid = false;
+        }
+      } catch (err) {
+        secureLogger.warn('SECURITY', `Signature parse error for slot ${slot}, key "${key}":`, err);
+        allValid = false;
+      }
+    }
+    
+    return allValid;
   }
 
   // ── Migration ────────────────────────────────────────────
@@ -324,7 +420,7 @@ export const Progression = (() => {
     const starterRace = localStorage.getItem(_slotKey(slot, SLOT_KEY_NAMES.starterRace)) ?? null;
     const coins = _load(_slotKey(slot, SLOT_KEY_NAMES.coins), 0);
     const progress = _load(_slotKey(slot, SLOT_KEY_NAMES.campaignProgress),
-      { completedNodes: [], currentChapter: ECONOMY.DEFAULT_CHAPTER },
+      { completedNodes: [], currentChapter: DEFAULT_CHAPTER },
       v => v !== null && typeof v === 'object' && Array.isArray((v as Record<string, unknown>).completedNodes));
     _save(GLOBAL_KEYS.slotMeta, {
       [slot]: {
@@ -340,7 +436,7 @@ export const Progression = (() => {
 
   // ── Initialization ───────────────────────────────────────
 
-  function init() {
+  async function init() {
     _migrateFromFlatKeys();
 
     if (activeSlot === null) {
@@ -348,6 +444,14 @@ export const Progression = (() => {
     }
 
     if (activeSlot === null) return;
+
+    // Pre-derive slot keys for signature operations
+    try {
+      await ensureSlotKey(activeSlot);
+      slotKeysReady = true;
+    } catch (err) {
+      secureLogger.warn('PROGRESSION', 'Slot key derivation failed, signatures disabled:', err);
+    }
 
     const initKey = _key(SLOT_KEY_NAMES.initialized);
     const coinsKey = _key(SLOT_KEY_NAMES.coins);
@@ -546,27 +650,20 @@ function spendCoins(amount: number): boolean {
     return _load(_key(SLOT_KEY_NAMES.craftedCards), [], v => Array.isArray(v));
   }
 
-  function getNextCraftedId(): number {
-    return _load(_key(SLOT_KEY_NAMES.nextCraftedId), 0, v => typeof v === 'number');
-  }
-
-  function incrementCraftedId(): void {
-    const next = getNextCraftedId() + 1;
-    _save(_key(SLOT_KEY_NAMES.nextCraftedId), next);
+  function generateCraftedCardId(): string {
+    const uuid = crypto.randomUUID();
+    return `crafted_${uuid}`;
   }
 
   function addCraftedCard(baseId: string, effectSourceId: string): string {
-    const CRAFTED_ID_OFFSET = 100_000_000;
-    const nextId = getNextCraftedId();
-    incrementCraftedId();
-    
-    const generatedId = String(CRAFTED_ID_OFFSET + nextId);
+    const generatedId = generateCraftedCardId();
     
     const records = getCraftedCards();
     records.push({
       id: generatedId,
       baseId,
       effectSourceId,
+      createdAt: Date.now(),
     });
     _save(_key(SLOT_KEY_NAMES.craftedCards), records);
     
@@ -598,7 +695,7 @@ function spendCoins(amount: number): boolean {
 
     if (won) {
       ops[id].wins++;
-      if (id < OPPONENT_COUNT && ops[id + 1] && !ops[id + 1].unlocked) {
+      if (id < CAMPAIGN_OPPONENT_COUNT && ops[id + 1] && !ops[id + 1].unlocked) {
         ops[id + 1].unlocked = true;
       }
     } else {
@@ -638,7 +735,7 @@ function spendCoins(amount: number): boolean {
   }
 
   function getCampaignProgress(): CampaignProgress {
-    return _load(_key(SLOT_KEY_NAMES.campaignProgress), { completedNodes: [], currentChapter: ECONOMY.DEFAULT_CHAPTER },
+    return _load(_key(SLOT_KEY_NAMES.campaignProgress), { completedNodes: [], currentChapter: DEFAULT_CHAPTER },
       v => v !== null && typeof v === 'object' && Array.isArray((v as Record<string, unknown>).completedNodes));
   }
 
@@ -752,6 +849,10 @@ function spendCoins(amount: number): boolean {
   // ── Public API ───────────────────────────────────────────
 
   return {
+    SAVE_VERSION,
+    MAX_SAVE_SLOTS,
+    CAMPAIGN_OPPONENT_COUNT,
+    STORAGE_KEYS,
     // Quota Management (exported for external use)
     estimateStorageSize,
     checkQuotaBeforeSave,
@@ -789,8 +890,6 @@ function spendCoins(amount: number): boolean {
     getEffectItemCount,
     // Crafted Cards
     getCraftedCards,
-    getNextCraftedId,
-    incrementCraftedId,
     addCraftedCard,
     findCraftedRecord,
     // Deck

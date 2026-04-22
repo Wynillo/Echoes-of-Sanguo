@@ -62,7 +62,7 @@ describe('resolveValue edge cases', () => {
     expect(e.dealDamage).toHaveBeenCalledWith('opponent', 0);
   });
 
-  it('returns 0 when summoned.atk is used but summonedFC is missing', async () => {
+  it('returns 0 when summoned.atk is used but summoned is missing', async () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: { from: 'summoned.atk', multiply: 1, round: 'floor' } }] },
@@ -84,10 +84,10 @@ describe('resolveValue edge cases', () => {
 
   it('handles summoned monster with undefined atk as 0', async () => {
     const e = mockEngine();
-    const summonedFC = { card: {} }; // atk is undefined
+    const summoned = { card: {} }; // atk is undefined
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: { from: 'summoned.atk', multiply: 2, round: 'floor' } }] },
-      ctx(e, 'player', { summonedFC }),
+      ctx(e, 'player', { summoned }),
     );
     expect(e.dealDamage).toHaveBeenCalledWith('opponent', 0);
   });
@@ -350,7 +350,7 @@ describe('reviveFromGrave edge cases', () => {
 });
 
 describe('destroySummonedIf edge cases', () => {
-  it('does not destroy when summonedFC is missing', async () => {
+  it('does not destroy when summoned is missing', async () => {
     const e = mockEngine();
     const signal = await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'destroySummonedIf', minAtk: 1000 }] },
@@ -360,21 +360,21 @@ describe('destroySummonedIf edge cases', () => {
   });
 
   it('does not destroy when atk is exactly at threshold', async () => {
-    const summonedFC = { card: { name: 'Exact', atk: 1000 } };
+    const summoned = { card: { name: 'Exact', atk: 1000 } };
     const e = mockEngine();
     const signal = await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'destroySummonedIf', minAtk: 1000 }] },
-      ctx(e, 'player', { summonedFC }),
+      ctx(e, 'player', { summoned }),
     );
     expect(signal.destroySummoned).toBe(true);
   });
 
   it('does not destroy when atk is undefined', async () => {
-    const summonedFC = { card: { name: 'NoAtk' } };
+    const summoned = { card: { name: 'NoAtk' } };
     const e = mockEngine();
     const signal = await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'destroySummonedIf', minAtk: 0 }] },
-      ctx(e, 'player', { summonedFC }),
+      ctx(e, 'player', { summoned }),
     );
     expect(signal.destroySummoned).toBeUndefined();
   });
@@ -386,7 +386,7 @@ describe('permAtkBonus edge cases', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 300 }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(300);
   });
@@ -396,7 +396,7 @@ describe('permAtkBonus edge cases', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 300, filter: { attr: 'dark' } }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(500);
   });
@@ -502,7 +502,7 @@ describe('extractPassiveFlags edge cases', () => {
     expect(flags.cannotBeTargeted).toBe(false);
     expect(flags.canDirectAttack).toBe(false);
     expect(flags.vsAttrBonus).toBeNull();
-    expect(flags.phoenixRevival).toBe(false);
+    expect(flags.hasPhoenixRevival).toBe(false);
   });
 
   it('extracts directAttack flag', () => {
@@ -512,7 +512,7 @@ describe('extractPassiveFlags edge cases', () => {
 
   it('extracts phoenixRevival flag', () => {
     const flags = extractPassiveFlags({ trigger: 'passive', actions: [{ type: 'passive_phoenixRevival' }] });
-    expect(flags.phoenixRevival).toBe(true);
+    expect(flags.hasPhoenixRevival).toBe(true);
   });
 
   it('extracts all flags at once', () => {
@@ -530,7 +530,7 @@ describe('extractPassiveFlags edge cases', () => {
     expect(flags.cannotBeTargeted).toBe(true);
     expect(flags.canDirectAttack).toBe(true);
     expect(flags.vsAttrBonus).toEqual({ attr: 'water', atk: 300 });
-    expect(flags.phoenixRevival).toBe(true);
+    expect(flags.hasPhoenixRevival).toBe(true);
   });
 
   it('ignores non-passive action types', () => {
@@ -784,7 +784,7 @@ describe('permAtkBonus — card without attribute and filter set', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 400, filter: { attr: 'fire' } }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(0);
   });
@@ -816,7 +816,7 @@ describe('resolveStatTarget — oppMonster via targetFC', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'oppMonster', value: -200 }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(-200);
   });
@@ -825,10 +825,10 @@ describe('resolveStatTarget — oppMonster via targetFC', () => {
 describe('summoned.atk — ceil rounding', () => {
   it('uses ceil rounding for summoned.atk value expression', async () => {
     const e = mockEngine();
-    const summonedFC = { card: { atk: 1001 } };
+    const summoned = { card: { atk: 1001 } };
     await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: { from: 'summoned.atk', multiply: 0.5, round: 'ceil' } }] },
-      ctx(e, 'player', { summonedFC }),
+      ctx(e, 'player', { summoned }),
     );
     expect(e.dealDamage).toHaveBeenCalledWith('opponent', 501);
   });
@@ -894,11 +894,11 @@ describe('passive effect runtime execution', () => {
 
 describe('destroySummonedIf — atk is 0 with minAtk 0', () => {
   it('destroys when atk is 0 and minAtk is 0 (0 >= 0)', async () => {
-    const summonedFC = { card: { name: 'ZeroAtk', atk: 0 } };
+    const summoned = { card: { name: 'ZeroAtk', atk: 0 } };
     const e = mockEngine();
     const signal = await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'destroySummonedIf', minAtk: 0 }] },
-      ctx(e, 'player', { summonedFC }),
+      ctx(e, 'player', { summoned }),
     );
     expect(signal.destroySummoned).toBe(true);
   });

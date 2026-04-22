@@ -58,15 +58,9 @@ function normalisePackPrice(price: number | PackPrice): PackPrice {
   return price;
 }
 
-const CURRENCY_GATE: Record<string, number> = {
-  coins: 1,
-  moderncoins: 3,
-  ancientcoins: 6,
-};
-
 function isCurrencyVisible(currency: { id: string; requiredChapter?: number }, currentChapter: string): boolean {
-  const chapterNum = parseInt(currentChapter.replace('ch', ''), 10) || 1;
-  const required = currency.requiredChapter ?? CURRENCY_GATE[currency.id] ?? 1;
+  const chapterNum = ECONOMY.HELPERS.chapterNumber(currentChapter);
+  const required = currency.requiredChapter ?? CURRENCY_UNLOCK_CHAPTERS[currency.id] ?? 1;
   return chapterNum >= required;
 }
 

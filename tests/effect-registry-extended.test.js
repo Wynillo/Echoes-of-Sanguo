@@ -286,7 +286,7 @@ describe('setFaceDown', () => {
   it('sets targetFC face-down in def position', async () => {
     const fc = makeFC(1000, 500, { card: { name: 'Target', atk: 1000, def: 500, type: 1 }, position: 'atk', faceDown: false, hasFlipSummoned: true });
     const e = mockEngine();
-    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'setFaceDown' }] }, ctx(e, 'player', { targetFC: fc }));
+    await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'setFaceDown' }] }, ctx(e, 'player', { target: fc }));
     expect(fc.faceDown).toBe(true);
     expect(fc.position).toBe('def');
     expect(fc.hasFlipSummoned).toBe(false);
