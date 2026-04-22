@@ -1,7 +1,7 @@
-import { loadAndApplyTcg, type BridgeLoadResult } from './tcg-bridge.js';
+import { loadAndApplyTcg, verifyModIntegrity, type BridgeLoadResult } from './tcg-bridge.js';
 import { ENGINE_VERSION } from './version.js';
 import { secureLogger } from './secure-logger.js';
-import { API_CONFIG, DB_CONFIG } from './config.js';
+import { API_CONFIG, DB_CONFIG, EXPECTED_TCG_HASHES } from './config.js';
 import { computeArrayBufferHash } from './storage-security.js';
 
 const { GITHUB_API_BASE, GITHUB_RAW_BASE, REPO_OWNER, REPO_NAME, CHECK_UPDATE_TIMEOUT_MS } = API_CONFIG;
@@ -180,10 +180,21 @@ async function checkForUpdate(): Promise<void> {
   }
   const data = await res.arrayBuffer();
   
-  // Verify integrity before caching
-  const isValid = await verifyTcgIntegrity(data, sha);
-  if (!isValid) {
-    secureLogger.warn('TCG', 'Integrity check failed for update, discarding');
+  // SECURITY: Verify file integrity using both SHA and expected hash (defense in depth)
+  const expectedHash = EXPECTED_TCG_HASHES['main'];
+  if (expectedHash) {
+    const isModValid = await verifyModIntegrity(data, expectedHash);
+    if (!isModValid) {
+      secureLogger.error('TCG', 'Integrity check FAILED! File hash does not match expected value.');
+      return;
+    }
+    secureLogger.log('TCG', 'Mod integrity verification passed');
+  }
+  
+  // Also verify against commit SHA for additional security
+  const isShaValid = await verifyTcgIntegrity(data, sha);
+  if (!isShaValid) {
+    secureLogger.warn('TCG', 'SHA integrity check failed for update, discarding');
     return;
   }
   
