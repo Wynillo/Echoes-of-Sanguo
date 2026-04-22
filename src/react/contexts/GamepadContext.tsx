@@ -1,6 +1,26 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { Progression } from '../../progression.js';
 
+/**
+ * Gamepad button indices following W3C Gamepad Standard mapping.
+ * Supports Xbox-style and Standard gamepad layout.
+ * @see https://www.w3.org/TR/gamepad/#remapping
+ */
+const GAMEPAD_BUTTON = {
+  A: 0,
+  B: 1,
+  X: 2,
+  Y: 3,
+  LEFT_BUMPER: 4,
+  RIGHT_BUMPER: 5,
+  SELECT: 8,
+  START: 9,
+  DPAD_UP: 12,
+  DPAD_DOWN: 13,
+  DPAD_LEFT: 14,
+  DPAD_RIGHT: 15,
+} as const;
+
 export interface GamepadButtons {
   a: boolean;
   b: boolean;
@@ -65,18 +85,18 @@ const GamepadContext = createContext<GamepadCtx>({
 
 export function readButtons(gamepad: Gamepad): GamepadButtons {
   return {
-    a: gamepad.buttons[0]?.pressed ?? false,
-    b: gamepad.buttons[1]?.pressed ?? false,
-    x: gamepad.buttons[2]?.pressed ?? false,
-    y: gamepad.buttons[3]?.pressed ?? false,
-    start: gamepad.buttons[9]?.pressed ?? false,
-    select: gamepad.buttons[8]?.pressed ?? false,
-    dpadUp: gamepad.buttons[12]?.pressed ?? false,
-    dpadDown: gamepad.buttons[13]?.pressed ?? false,
-    dpadLeft: gamepad.buttons[14]?.pressed ?? false,
-    dpadRight: gamepad.buttons[15]?.pressed ?? false,
-    leftBumper: gamepad.buttons[4]?.pressed ?? false,
-    rightBumper: gamepad.buttons[5]?.pressed ?? false,
+    a: gamepad.buttons[GAMEPAD_BUTTON.A]?.pressed ?? false,
+    b: gamepad.buttons[GAMEPAD_BUTTON.B]?.pressed ?? false,
+    x: gamepad.buttons[GAMEPAD_BUTTON.X]?.pressed ?? false,
+    y: gamepad.buttons[GAMEPAD_BUTTON.Y]?.pressed ?? false,
+    start: gamepad.buttons[GAMEPAD_BUTTON.START]?.pressed ?? false,
+    select: gamepad.buttons[GAMEPAD_BUTTON.SELECT]?.pressed ?? false,
+    dpadUp: gamepad.buttons[GAMEPAD_BUTTON.DPAD_UP]?.pressed ?? false,
+    dpadDown: gamepad.buttons[GAMEPAD_BUTTON.DPAD_DOWN]?.pressed ?? false,
+    dpadLeft: gamepad.buttons[GAMEPAD_BUTTON.DPAD_LEFT]?.pressed ?? false,
+    dpadRight: gamepad.buttons[GAMEPAD_BUTTON.DPAD_RIGHT]?.pressed ?? false,
+    leftBumper: gamepad.buttons[GAMEPAD_BUTTON.LEFT_BUMPER]?.pressed ?? false,
+    rightBumper: gamepad.buttons[GAMEPAD_BUTTON.RIGHT_BUMPER]?.pressed ?? false,
   };
 }
 
@@ -171,6 +191,7 @@ export function GamepadProvider({ children }: { children: React.ReactNode }) {
   const vibrate = useCallback((pattern: VibratePattern) => {
     if (!vibrationEnabled || !connected) return;
     const gamepads = navigator.getGamepads();
+    // Primary controller assumption: gamepads[0] is the player's main gamepad
     doVibrate(gamepads[0], pattern, vibrationEnabled);
   }, [vibrationEnabled, connected]);
 
@@ -179,6 +200,7 @@ export function GamepadProvider({ children }: { children: React.ReactNode }) {
 
     function pollGamepad() {
       const gamepads = navigator.getGamepads();
+      // Primary controller assumption: gamepads[0] is the player's main gamepad
       const gamepad = gamepads[0];
 
       if (!gamepad || !gamepad.connected) {

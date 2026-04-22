@@ -1,4 +1,5 @@
 import { extractPassiveFlags } from './effect-registry.js';
+import { getPassiveBlocks } from './utils/effects.js';
 import type { CardData, Owner, Position } from './types.js';
 
 export class FieldCard {
@@ -18,10 +19,10 @@ export class FieldCard {
   piercing: boolean;
   cannotBeTargeted: boolean;
   canDirectAttack: boolean;
-  phoenixRevival: boolean;
+  hasPhoenixRevival: boolean;
   indestructible: boolean;
-  effectImmune: boolean;
-  cantBeAttacked: boolean;
+  isEffectImmune: boolean;
+  cannotBeAttacked: boolean;
   equippedCards: Array<{ zone: number; card: CardData }>;
   originalOwner?: Owner;
 
@@ -48,35 +49,24 @@ export class FieldCard {
     this.piercing = false;
     this.cannotBeTargeted = false;
     this.canDirectAttack  = false;
-    this.phoenixRevival  = false;
+    this.hasPhoenixRevival  = false;
     this.indestructible  = false;
-    this.effectImmune    = false;
-    this.cantBeAttacked  = false;
+    this.isEffectImmune    = false;
+    this.cannotBeAttacked  = false;
 
-    const passiveBlocks = this._getPassiveBlocks();
+    const passiveBlocks = getPassiveBlocks(this.card);
     for (const block of passiveBlocks) {
       const flags = extractPassiveFlags(block);
-      if (flags.piercing)        this.piercing = true;
-      if (flags.cannotBeTargeted) this.cannotBeTargeted = true;
-      if (flags.canDirectAttack) this.canDirectAttack = true;
-      if (flags.phoenixRevival)  this.phoenixRevival = true;
-      if (flags.indestructible)  this.indestructible = true;
-      if (flags.effectImmune)    this.effectImmune = true;
-      if (flags.cantBeAttacked)  this.cantBeAttacked = true;
+      if (flags.piercing)           this.piercing = true;
+      if (flags.cannotBeTargeted)   this.cannotBeTargeted = true;
+      if (flags.canDirectAttack)    this.canDirectAttack = true;
+      if (flags.hasPhoenixRevival)  this.hasPhoenixRevival = true;
+      if (flags.indestructible)     this.indestructible = true;
+      if (flags.isEffectImmune)     this.isEffectImmune = true;
+      if (flags.cannotBeAttacked)   this.cannotBeAttacked = true;
     }
   }
 
-  _getPassiveBlocks(): import('./types.js').CardEffectBlock[] {
-    const blocks: import('./types.js').CardEffectBlock[] = [];
-    if (this.card.effects) {
-      for (const b of this.card.effects) {
-        if (b.trigger === 'passive') blocks.push(b);
-      }
-    } else if (this.card.effect && this.card.effect.trigger === 'passive') {
-      blocks.push(this.card.effect);
-    }
-    return blocks;
-  }
   effectiveATK(): number {
     return Math.max(0, (this.card.atk ?? 0) + this.tempATKBonus + this.permATKBonus + this.fieldSpellATKBonus);
   }

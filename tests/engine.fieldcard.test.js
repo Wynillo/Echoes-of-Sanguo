@@ -73,6 +73,6 @@ describe('FieldCard', () => {
   it('reads phoenixRevival passive flag', () => {
     const card = { ...baseCard, effect: { trigger:'passive', actions:[{ type:'passive_phoenixRevival' }] } };
     const fc = new FieldCard(card);
-    expect(fc.phoenixRevival).toBe(true);
+    expect(fc.hasPhoenixRevival).toBe(true);
   });
 });

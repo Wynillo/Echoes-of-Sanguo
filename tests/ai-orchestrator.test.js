@@ -10,7 +10,7 @@ function monster(atk, def = 0, extras = {}) {
 
 function makeFC(atk, def = 0, opts = {}) {
   const fc = new FieldCard(monster(atk, def, opts.cardExtras), opts.position ?? 'atk');
-  if (opts.cantBeAttacked) fc.cantBeAttacked = true;
+  if (opts.cannotBeAttacked) fc.cannotBeAttacked = true;
   if (opts.indestructible) fc.indestructible = true;
   if (opts.faceDown) fc.faceDown = true;
   return fc;
@@ -41,16 +41,16 @@ describe('aiBattlePickTarget', () => {
       expect(target).toBe(0); // weakest opponent
     });
 
-    it('skips cantBeAttacked monsters', () => {
+    it('skips  cannotBeAttacked monsters', () => {
       const atk = makeFC(2000);
-      const plrMonsters = [makeFC(500, 0, { cantBeAttacked: true }), makeFC(1500), null, null, null];
+      const plrMonsters = [makeFC(500, 0, { cannotBeAttacked: true }), makeFC(1500), null, null, null];
       const target = aiBattlePickTarget(atk, plrMonsters, behavior);
       expect(target).toBe(1);
     });
 
-    it('returns -1 when all monsters have cantBeAttacked', () => {
+    it('returns -1 when all monsters have  cannotBeAttacked', () => {
       const atk = makeFC(2000);
-      const plrMonsters = [makeFC(500, 0, { cantBeAttacked: true }), null, null, null, null];
+      const plrMonsters = [makeFC(500, 0, { cannotBeAttacked: true }), null, null, null, null];
       const target = aiBattlePickTarget(atk, plrMonsters, behavior);
       expect(target).toBe(-1);
     });
