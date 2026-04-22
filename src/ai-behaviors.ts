@@ -341,7 +341,7 @@ function calculateDefensiveScore(
   card: CardData,
   opponentMaxATK: number,
   opponentMaxThreat: number,
-  aiLP: number,
+  aiLp: number,
 ): number {
   const atk = card.atk ?? 0;
   const def = card.def ?? 0;
@@ -351,7 +351,7 @@ function calculateDefensiveScore(
     score += AI_SUMMON_SCORE.DEFENSIVE_BONUS;
   }
 
-  if (aiLP < AI_LP_THRESHOLD.LOW && def > opponentMaxThreat) {
+  if (aiLp < AI_LP_THRESHOLD.LOW && def > opponentMaxThreat) {
     score += AI_SCORE.LOW_LP_SURVIVAL;
   }
 
@@ -393,14 +393,13 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
     let score = 0;
 
     score += calculateOffensiveScore(card, playerMonsters, playerMaxATK);
-    score += calculateDefensiveScore(card, playerMaxATK, playerMaxThreat, ctx.aiLP);
+    score += calculateDefensiveScore(card, playerMaxATK, playerMaxThreat, ctx.aiLp);
     score += calculateDirectAttackBonus(card, playerMonsters.length > 0);
 
     if (card.effect) {
       score += AI_SUMMON_SCORE.EFFECT_MONSTER_BONUS;
     }
 
-<<<<<<< HEAD
     if (atk >= playerMaxATK) score += 200;
     else if (def >= playerMaxThreat) score += 100;
 
@@ -409,9 +408,6 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
     if (card.effect) score += 400;
 
     if (ctx.aiLp < AI_LP_THRESHOLD.LOW && def > playerMaxThreat) score += AI_SCORE.LOW_LP_SURVIVAL;
-
-=======
->>>>>>> main
     if (score > bestScore) {
       bestScore = score;
       bestIdx = i;
@@ -439,7 +435,7 @@ export function findLethal(
 
   if (attackers.length === 0) return null;
 
-  const defenders: { zone: number; val: number; inAtk: boolean; cantBeAttacked: boolean }[] = [];
+  const defenders: { zone: number; val: number; inAtk: boolean; cannotBeAttacked: boolean }[] = [];
   for (let z = 0; z < plrMonsters.length; z++) {
     const fc = plrMonsters[z];
     if (!fc) continue;
@@ -447,11 +443,11 @@ export function findLethal(
       zone: z,
       val: aiCombatValue(fc),
       inAtk: fc.position === 'atk',
-      cantBeAttacked: fc.cantBeAttacked,
+      cannotBeAttacked: fc.cannotBeAttacked,
     });
   }
 
-  const attackableDefenders = defenders.filter(d => !d.cantBeAttacked);
+  const attackableDefenders = defenders.filter(d => !d.cannotBeAttacked);
 
   const directAttackers = attackers.filter(a => a.canDirect);
   if (attackableDefenders.length === 0) {

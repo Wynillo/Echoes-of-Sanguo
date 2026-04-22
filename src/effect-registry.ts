@@ -532,7 +532,7 @@ const IMPL: Record<string, InternalImpl> = {
     const hand = ctx.state[ctx.owner].hand;
     const toDiscard = Math.min(desc.discardCount, hand.length);
     for (let i = 0; i < toDiscard; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[ctx.owner].graveyard.push(c);
     }
@@ -545,7 +545,7 @@ const IMPL: Record<string, InternalImpl> = {
     const hand = ctx.state[opp].hand;
     const toReturn = Math.min(desc.count, hand.length);
     for (let i = 0; i < toReturn; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[opp].deck.push(c);
     }
@@ -788,7 +788,7 @@ const IMPL: Record<string, InternalImpl> = {
     const hand = ctx.state[ctx.owner].hand;
     const count = Math.min(desc.count, hand.length);
     for (let i = 0; i < count && hand.length > 0; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[ctx.owner].graveyard.push(c);
     }
@@ -801,7 +801,7 @@ const IMPL: Record<string, InternalImpl> = {
     const hand = ctx.state[opp].hand;
     const count = Math.min(desc.count, hand.length);
     for (let i = 0; i < count && hand.length > 0; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[opp].graveyard.push(c);
     }
@@ -1311,7 +1311,7 @@ async function payCost(block: CardEffectBlock, ctx: EffectContext): Promise<void
   }
   if (block.cost.discard) {
     for (let i = 0; i < block.cost.discard && st.hand.length > 0; i++) {
-      const idx = Math.floor(Math.random() * st.hand.length);
+      const idx = randomIndexSecure(st.hand);
       const [c] = st.hand.splice(idx, 1);
       st.graveyard.push(c);
     }
@@ -1399,31 +1399,31 @@ export function extractPassiveFlags(block: CardEffectBlock): {
   cannotBeTargeted: boolean;
   canDirectAttack: boolean;
   vsAttrBonus: { attr: Attribute; atk: number } | null;
-  phoenixRevival: boolean;
+  hasPhoenixRevival: boolean;
   indestructible: boolean;
-  effectImmune: boolean;
-  cantBeAttacked: boolean;
+  isEffectImmune: boolean;
+  cannotBeAttacked: boolean;
 } {
   const flags = {
     piercing: false,
     cannotBeTargeted: false,
     canDirectAttack: false,
     vsAttrBonus: null as { attr: Attribute; atk: number } | null,
-    phoenixRevival: false,
+    hasPhoenixRevival: false,
     indestructible: false,
-    effectImmune: false,
-    cantBeAttacked: false,
+    isEffectImmune: false,
+    cannotBeAttacked: false,
   };
   for (const action of block.actions) {
     switch (action.type) {
-      case 'passive_piercing':       flags.piercing = true; break;
-      case 'passive_untargetable':   flags.cannotBeTargeted = true; break;
-      case 'passive_directAttack':   flags.canDirectAttack = true; break;
-      case 'passive_vsAttrBonus':    flags.vsAttrBonus = { attr: action.attr, atk: action.atk }; break;
-      case 'passive_phoenixRevival': flags.phoenixRevival = true; break;
-      case 'passive_indestructible': flags.indestructible = true; break;
-      case 'passive_effectImmune':   flags.effectImmune = true; break;
-      case 'passive_cantBeAttacked': flags.cantBeAttacked = true; break;
+      case 'passive_piercing':         flags.piercing = true; break;
+      case 'passive_untargetable':     flags.cannotBeTargeted = true; break;
+      case 'passive_directAttack':     flags.canDirectAttack = true; break;
+      case 'passive_vsAttrBonus':      flags.vsAttrBonus = { attr: action.attr, atk: action.atk }; break;
+      case 'passive_phoenixRevival':   flags.hasPhoenixRevival = true; break;
+      case 'passive_indestructible':   flags.indestructible = true; break;
+      case 'passive_effectImmune':     flags.isEffectImmune = true; break;
+      case 'passive_cantBeAttacked':   flags.cannotBeAttacked = true; break;
     }
   }
   return flags;

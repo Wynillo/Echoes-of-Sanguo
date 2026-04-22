@@ -248,14 +248,14 @@ async function aiMainPhase(deps: AIDependencies): Promise<void> {
 
   EchoesOfSanguo.log('AI', 'Considering summon:', ai.hand.filter(c => c.type === CardType.Monster).map(c => `${c.name}(${c.atk})`));
   if(!ai.normalSummonUsed){
-  let bestIdx = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
-    ? pickSmartSummonCandidate(ai.hand, {
-      aiField: ai.field.monsters,
-      playerField: plr.field.monsters,
-      playerLp: plr.lp,
-      aiLp: ai.lp,
-    })
-    : pickSummonCandidate(ai.hand, bh.summonPriority);
+    let bestIdx = (bh.battleStrategy === 'smart' || bh.positionStrategy === 'smart')
+      ? pickSmartSummonCandidate(ai.hand, {
+          aiField: ai.field.monsters,
+          playerField: plr.field.monsters,
+          playerLp: plr.lp,
+          aiLp: ai.lp,
+        })
+      : pickSummonCandidate(ai.hand, bh.summonPriority);
 
     if (bh.holdFusionPiece && bestIdx !== -1 && ai.field.monsters.some(Boolean)) {
       const candidate = ai.hand[bestIdx];
@@ -549,7 +549,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     let bestTarget = -1, bestScore = -Infinity;
     for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
       const def = plrMonsters[dz];
-      if (!def || def.cantBeAttacked) continue;
+      if (!def || def.cannotBeAttacked) continue;
       const defVal = aiCombatValue(def);
       if (atk.effectiveATK() > defVal) {
         // Prefer destroying effect monsters and high-ATK threats
@@ -563,7 +563,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     let weakest = -1, weakVal = Infinity;
     for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
       const def = plrMonsters[dz];
-      if (!def || def.cantBeAttacked) continue;
+      if (!def || def.cannotBeAttacked) continue;
       const defVal = aiCombatValue(def);
       if (defVal < weakVal) { weakVal = defVal; weakest = dz; }
     }
@@ -573,7 +573,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
   let bestTarget = -1, bestScore = -Infinity;
   for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
     const def = plrMonsters[dz];
-    if (!def || def.cantBeAttacked) continue;
+    if (!def || def.cannotBeAttacked) continue;
     const defVal = aiCombatValue(def);
     if (atk.effectiveATK() > defVal) {
       let score = defVal;
@@ -594,7 +594,7 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
   let safeTarget = -1, safeScore = -Infinity;
   for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
     const def = plrMonsters[dz];
-    if (!def || def.cantBeAttacked || def.position !== 'def') continue;
+    if (!def || def.cannotBeAttacked || def.position !== 'def') continue;
     const defVal = aiEffectiveDEF(def);
     if (atk.effectiveATK() >= defVal) {
       let score = 1000 - defVal; // prefer weaker DEF (easier kill)
@@ -685,6 +685,9 @@ function _findSmartFusionChain(
   };
 }
 
+// Minimum ATK advantage required to replace an existing monster on the field
+const MIN_ATK_ADVANTAGE = 500;
+
 function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementATK: number): number {
   let weakestZone = -1;
   let weakestATK = Infinity;
@@ -695,7 +698,7 @@ function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementA
     const atk = fc.effectiveATK();
     // Only replace if the new monster is significantly stronger (500 ATK threshold)
     // 500 ATK represents ~15-25% improvement for typical 2000-3000 ATK monsters
-    if (atk < weakestATK && replacementATK >= atk + 500) {
+    if (atk < weakestATK && replacementATK >= atk + MIN_ATK_ADVANTAGE) {
       weakestATK = atk;
       weakestZone = z;
     }

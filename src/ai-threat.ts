@@ -27,15 +27,15 @@ export function snapshotBoard(ai: PlayerState, plr: PlayerState): BoardSnapshot 
  * Positive = AI is ahead. Negative = AI is losing.
  *
  * Threat score combines three factors:
- * - LP ratio: scaled by GAME_RULES.STARTING_LP so the (aiLP/plrLP - 1) ratio lives in
+ * - LP ratio: scaled by GAME_RULES.STARTING_LP so the (opponentLp/playerLp - 1) ratio lives in
  *   the same ~8000-point range as board power (ATK totals typically 2000–6000), keeping
  *   LP relevant without dominating the score.
  * - Board differential: raw ATK difference weighted by THREAT_BOARD_WEIGHT
  * - Hand advantage: per-card value weighted by THREAT_HAND_WEIGHT
  */
 export function computeBoardThreat(snap: BoardSnapshot): number {
-  const plrLpSafe = snap.playerLp > 0 ? snap.playerLp : 1;
-  const lpRatio = (snap.opponentLp / plrLpSafe - 1) * AI_SCORE.THREAT_LP_WEIGHT * GAME_RULES.STARTING_LP;
+  const playerLpSafe = snap.playerLp > 0 ? snap.playerLp : 1;
+  const lpRatio = (snap.opponentLp / playerLpSafe - 1) * AI_SCORE.THREAT_LP_WEIGHT * GAME_RULES.STARTING_LP;
   const boardDiff = (snap.aiMonsterPower - snap.plrMonsterPower) * AI_SCORE.THREAT_BOARD_WEIGHT;
   const handAdv = (snap.aiHandSize - snap.plrHandSize) * AI_SCORE.THREAT_HAND_WEIGHT;
   return lpRatio + boardDiff + handAdv;

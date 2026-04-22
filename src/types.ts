@@ -381,10 +381,10 @@ export declare class FieldCard {
   piercing:         boolean;
   cannotBeTargeted: boolean;
   canDirectAttack:  boolean;
-  phoenixRevival:   boolean;
+  hasPhoenixRevival: boolean;
   indestructible:   boolean;
-  effectImmune:     boolean;
-  cantBeAttacked:   boolean;
+  isEffectImmune:     boolean;
+  cannotBeAttacked:   boolean;
   equippedCards:    Array<{ zone: number; card: CardData }>;
   originalOwner?:   Owner;
   effectiveATK():   number;
