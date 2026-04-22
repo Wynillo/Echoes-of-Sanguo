@@ -1061,7 +1061,7 @@ if (handIndices.length === 0) return false;
     if(attFC.position !== 'atk'){ this.addLog('Monster must be in attack position!'); return; }
 
     const defFC = defSt.field.monsters[defenderZone];
-    if(defFC && defFC.cantBeAttacked){
+    if(defFC && defFC.cannotBeAttacked){
       this.addLog(`${defFC.card.name} cannot be attacked!`); return;
     }
 

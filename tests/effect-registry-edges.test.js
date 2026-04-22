@@ -502,7 +502,7 @@ describe('extractPassiveFlags edge cases', () => {
     expect(flags.cannotBeTargeted).toBe(false);
     expect(flags.canDirectAttack).toBe(false);
     expect(flags.vsAttrBonus).toBeNull();
-    expect(flags.phoenixRevival).toBe(false);
+    expect(flags.hasPhoenixRevival).toBe(false);
   });
 
   it('extracts directAttack flag', () => {
@@ -512,7 +512,7 @@ describe('extractPassiveFlags edge cases', () => {
 
   it('extracts phoenixRevival flag', () => {
     const flags = extractPassiveFlags({ trigger: 'passive', actions: [{ type: 'passive_phoenixRevival' }] });
-    expect(flags.phoenixRevival).toBe(true);
+    expect(flags.hasPhoenixRevival).toBe(true);
   });
 
   it('extracts all flags at once', () => {
@@ -530,7 +530,7 @@ describe('extractPassiveFlags edge cases', () => {
     expect(flags.cannotBeTargeted).toBe(true);
     expect(flags.canDirectAttack).toBe(true);
     expect(flags.vsAttrBonus).toEqual({ attr: 'water', atk: 300 });
-    expect(flags.phoenixRevival).toBe(true);
+    expect(flags.hasPhoenixRevival).toBe(true);
   });
 
   it('ignores non-passive action types', () => {
