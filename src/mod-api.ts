@@ -8,6 +8,10 @@
 // been replaced with controlled access methods to prevent
 // accidental or malicious corruption of game state.
 //
+// XSS HARDENING: All exposed data is deep-frozen to prevent
+// prototype pollution and object tampering. Trigger events
+// are validated to block sensitive internal events. See issue #414.
+//
 // MOD SOURCE VALIDATION: Subresource Integrity (SRI) checks
 // prevent loading malicious .tcg files from untrusted sources.
 // Sources are validated against an allowlist OR trusted mods
@@ -17,7 +21,24 @@ import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './card
 import { EFFECT_REGISTRY, registerEffect, type EffectHandlerManifest, type EffectImpl } from './effect-registry.js';
 import type { FusionRecipe, OpponentConfig, CardData } from './types.js';
 import { loadAndApplyTcg, unloadModCompletely, unloadModCards, getLoadedMods, getCurrentManifest, verifyModIntegrity } from './tcg-bridge.js';
-import { TriggerBus } from './trigger-bus.js';
+import { TriggerBus, type TriggerContext } from './trigger-bus.js';
+
+/**
+ * Deep freeze utility to prevent object tampering and prototype pollution.
+ * Recursively freezes all nested properties, making the entire object graph immutable.
+ */
+function deepFreeze<T>(obj: T): Readonly<T> {
+  if (obj === null || typeof obj !== 'object') return obj as Readonly<T>;
+  if (Object.isFrozen(obj)) return obj as Readonly<T>;
+  Object.freeze(obj);
+  for (const key of Object.keys(obj)) {
+    const value = (obj as Record<string, unknown>)[key];
+    if (typeof value === 'object' && value !== null) {
+      deepFreeze(value);
+    }
+  }
+  return obj as Readonly<T>;
+}
 
 // Export types for modders
 export type { FusionRecipe, OpponentConfig, CardData };
@@ -113,20 +134,23 @@ declare global {
 }
 
 const modApi = {
-  /** Returns a read-only copy of the card database to prevent direct mutation. */
+  /** Returns a deep-frozen copy of the card database to prevent mutation and XSS amplification. */
   getCardDb(): Readonly<Record<string, CardData>> {
-    return { ...CARD_DB } as Readonly<Record<string, CardData>>;
+    return deepFreeze({ ...CARD_DB });
   },
-  /** Register a fusion recipe safely through controlled API. */
+  /** Register a fusion recipe safely through controlled API with user confirmation. */
   registerFusion(recipe: FusionRecipe): void {
+    if (!window.confirm(`Register fusion recipe: ${recipe.materials.join(' + ')} → ${recipe.result}?`)) return;
     FUSION_RECIPES.push(recipe);
   },
-  /** Register an opponent config safely through controlled API. */
+  /** Register an opponent config safely through controlled API with user confirmation. */
   registerOpponent(config: OpponentConfig): void {
+    if (!window.confirm(`Register opponent: ${config.name}?`)) return;
     OPPONENT_CONFIGS.push(config);
   },
-  /** Register a starter deck safely through controlled API. */
+  /** Register a starter deck safely through controlled API with user confirmation. */
   registerStarterDeck(deckId: number, cards: string[]): void {
+    if (!window.confirm(`Register starter deck ${deckId} with ${cards.length} cards?`)) return;
     STARTER_DECKS[deckId] = cards;
   },
   /** Read-only view of all registered effect implementations. */
@@ -208,12 +232,25 @@ const modApi = {
   getLoadedMods,
   /** Get the manifest of the currently loaded TCG mod, or null if none loaded. */
   getCurrentManifest,
-  /** Fire effects with a custom trigger name. */
-  emitTrigger: TriggerBus.emit,
-  /** Subscribe to a trigger event (returns unsubscribe function). */
-  addTriggerHook: TriggerBus.on,
+  /** Fire a trigger event (limited to safe events to prevent XSS amplification). */
+  emitTrigger(event: string, ctx: TriggerContext): void {
+    const SAFE_EVENTS = new Set(['custom', 'user_action']);
+    if (!SAFE_EVENTS.has(event)) {
+      throw new Error(`Event "${event}" cannot be triggered externally`);
+    }
+    TriggerBus.emit(event, ctx);
+  },
+  /** Subscribe to trigger events (read-only, blocks sensitive internal events). */
+  addTriggerHook(event: string, handler: (ctx: TriggerContext) => void): () => void {
+    const SAFE_EVENTS = new Set(['custom', 'user_action', 'battle_start', 'turn_end']);
+    if (!SAFE_EVENTS.has(event)) {
+      throw new Error(`Cannot subscribe to event "${event}"`);
+    }
+    return TriggerBus.on(event, handler);
+  },
 };
 
+Object.freeze(modApi);
 window.EchoesOfSanguoMod = modApi;
 
 export const modApiForTesting = modApi;
