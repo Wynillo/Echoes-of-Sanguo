@@ -7,7 +7,7 @@ import { CARD_DB, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS } from '../sr
 
 // ── Helpers ─────────────────────────────────────────────────
 
-const VALID_CARD = { id: 1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 };
+const VALID_CARD = { id: 1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 }; // rarity: Rarity.COMMON
 
 async function buildMinimalZip(overrides = {}) {
   const zip = new JSZip();
@@ -95,7 +95,7 @@ describe('loadAndApplyTcg (bridge)', () => {
 
   it('loads equipment card with atkBonus, defBonus', async () => {
     const equipCard = {
-      id: 10, type: 5, level: 1, rarity: 4,
+      id: 10, type: 5, level: 1, rarity: 4, // Rarity.RARE
       atkBonus: 500, defBonus: 200,
     };
     const buf = await buildMinimalZip({
@@ -111,7 +111,7 @@ describe('loadAndApplyTcg (bridge)', () => {
 
   it('infers trapTrigger from effect string when not set in TCG data', async () => {
     const trapCard = {
-      id: 99, type: 4, rarity: 1,
+      id: 99, type: 4, rarity: 1, // Rarity.COMMON
       effect: 'onAttack:destroyAttacker()',
     };
     const buf = await buildMinimalZip({ cards: [VALID_CARD, trapCard] });
@@ -123,7 +123,7 @@ describe('loadAndApplyTcg (bridge)', () => {
 
   it('preserves explicit trapTrigger over effect-inferred value', async () => {
     const trapCard = {
-      id: 98, type: 4, rarity: 1, trapTrigger: 5,
+      id: 98, type: 4, rarity: 1, trapTrigger: 5, // rarity: Rarity.COMMON
       effect: 'onOpponentSpell:cancelEffect()',
     };
     const buf = await buildMinimalZip({ cards: [VALID_CARD, trapCard] });

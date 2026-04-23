@@ -390,13 +390,29 @@ const pool: CardPoolDef = {
 
 ```typescript
 // src/react/utils/pack-logic.ts
-export const RARITY_DROP_RATES: Record<string, number> = {
-  [1]: 0.60,   // Common: 60%
-  [2]: 0.30,   // Uncommon: 30%
-  [4]: 0.089,  // Rare: 8.9%
-  [6]: 0.01,   // Super Rare: 1%
-  [8]: 0.001,  // Ultra Rare: 0.1%
+/**
+ * Default rarity probability distribution for pack openings.
+ * Values represent probabilities (0.0-1.0) and MUST sum to 1.0 (100%).
+ */
+export const DEFAULT_RARITY_PROBABILITIES: Record<string, number> = {
+  [1]: 0.60,    // 60% - Common
+  [2]: 0.30,    // 30% - Uncommon
+  [4]: 0.089,   // 8.9% - Rare
+  [6]: 0.01,    // 1% - Super Rare
+  [8]: 0.001,   // 0.1% - Ultra Rare
 };
+
+// Deprecated alias (for backward compatibility)
+export const RARITY_DROP_RATES = DEFAULT_RARITY_PROBABILITIES;
+```
+
+### Validation
+
+The probability distribution is validated at runtime to ensure values sum to 1.0:
+
+```typescript
+// Throws Error if distribution doesn't sum to 100%
+validateProbabilityDistribution(DEFAULT_RARITY_PROBABILITIES);
 ```
 
 ### Rarity Enum Values

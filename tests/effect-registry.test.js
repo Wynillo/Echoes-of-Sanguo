@@ -166,10 +166,10 @@ describe('dealDamage', () => {
 
   it('resolves summoned.atk value expression', async () => {
     const e = mockEngine();
-    const summonedFC = { card: { atk: 1500 } };
+    const summoned = { card: { atk: 1500 } };
     await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'dealDamage', target: 'opponent', value: { from: 'summoned.atk', multiply: 0.5, round: 'floor' } }] },
-      ctx(e, 'player', { summonedFC }),
+      ctx(e, 'player', { summoned }),
     );
     expect(e.dealDamage).toHaveBeenCalledWith('opponent', 750);
   });
@@ -409,7 +409,7 @@ describe('tempAtkBonus', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'tempAtkBonus', target: 'ownMonster', value: 700 }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.tempATKBonus).toBe(700);
   });
@@ -441,7 +441,7 @@ describe('permAtkBonus', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: 2 } }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(500);
   });
@@ -451,31 +451,31 @@ describe('permAtkBonus', () => {
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onSummon', actions: [{ type: 'permAtkBonus', target: 'ownMonster', value: 500, filter: { attr: 2 } }] },
-      ctx(e, 'player', { targetFC: target }),
+      ctx(e, 'player', { target: target }),
     );
     expect(target.permATKBonus).toBe(0);
   });
 
-  it('applies perm ATK debuff to summonedFC', async () => {
-    const summonedFC = { card: { name: 'Test' }, permATKBonus: 0 };
+  it('applies perm ATK debuff to summoned', async () => {
+    const summoned = { card: { name: 'Test' }, permATKBonus: 0 };
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'permAtkBonus', target: 'summonedFC', value: -500 }] },
-      ctx(e, 'player', { summonedFC }),
+      ctx(e, 'player', { summoned }),
     );
-    expect(summonedFC.permATKBonus).toBe(-500);
+    expect(summoned.permATKBonus).toBe(-500);
   });
 });
 
 describe('permDefBonus', () => {
-  it('applies permanent DEF debuff to summonedFC', async () => {
-    const summonedFC = { card: { name: 'Test' }, permDEFBonus: 0 };
+  it('applies permanent DEF debuff to summoned', async () => {
+    const summoned = { card: { name: 'Test' }, permDEFBonus: 0 };
     const e = mockEngine();
     await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'permDefBonus', target: 'summonedFC', value: -400 }] },
-      ctx(e, 'player', { summonedFC }),
+      ctx(e, 'player', { summoned }),
     );
-    expect(summonedFC.permDEFBonus).toBe(-400);
+    expect(summoned.permDEFBonus).toBe(-400);
   });
 });
 
@@ -528,21 +528,21 @@ describe('destroyAttacker', () => {
 
 describe('destroySummonedIf', () => {
   it('destroys summoned monster if ATK >= threshold', async () => {
-    const summonedFC = { card: { name: 'Big', atk: 2000 } };
+    const summoned = { card: { name: 'Big', atk: 2000 } };
     const e = mockEngine();
     const signal = await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'destroySummonedIf', minAtk: 1000 }] },
-      ctx(e, 'player', { summonedFC }),
+      ctx(e, 'player', { summoned }),
     );
     expect(signal.destroySummoned).toBe(true);
   });
 
   it('does not destroy if ATK < threshold', async () => {
-    const summonedFC = { card: { name: 'Small', atk: 500 } };
+    const summoned = { card: { name: 'Small', atk: 500 } };
     const e = mockEngine();
     const signal = await executeEffectBlock(
       { trigger: 'onOpponentSummon', actions: [{ type: 'destroySummonedIf', minAtk: 1000 }] },
-      ctx(e, 'player', { summonedFC }),
+      ctx(e, 'player', { summoned }),
     );
     expect(signal.destroySummoned).toBeUndefined();
   });
@@ -682,7 +682,7 @@ describe('extractPassiveFlags', () => {
       actions: [{ type: 'passive_indestructible' }, { type: 'passive_effectImmune' }, { type: 'passive_cantBeAttacked' }],
     });
     expect(flags.indestructible).toBe(true);
-    expect(flags.effectImmune).toBe(true);
-    expect(flags.cantBeAttacked).toBe(true);
+    expect(flags.isEffectImmune).toBe(true);
+    expect(flags.cannotBeAttacked).toBe(true);
   });
 });

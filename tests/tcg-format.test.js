@@ -149,9 +149,9 @@ describe('Effect Serializer', () => {
 // ── Card Validator Tests ────────────────────────────────────
 
 describe.skip('Card Validator (validators removed from @wynillo/tcg-format)', () => {
-  const validMonster = { id: 1, level: 3, atk: 1000, def: 800, rarity: 1, type: 1, attribute: 3, race: 4 };
-  const validSpell = { id: 2, level: 1, rarity: 1, type: 3, effect: 'onSummon:dealDamage(opponent,800)' };
-  const validTrap = { id: 3, level: 1, rarity: 1, type: 4 };
+  const validMonster = { id: 1, level: 3, atk: 1000, def: 800, rarity: 1, type: 1, attribute: 3, race: 4 }; // rarity: Rarity.COMMON
+  const validSpell = { id: 2, level: 1, rarity: 1, type: 3, effect: 'onSummon:dealDamage(opponent,800)' }; // rarity: Rarity.COMMON
+  const validTrap = { id: 3, level: 1, rarity: 1, type: 4 }; // rarity: Rarity.COMMON
 
   it('validates a correct card array', () => {
     const result = validateTcgCards([validMonster, validSpell, validTrap]);
@@ -182,7 +182,7 @@ describe.skip('Card Validator (validators removed from @wynillo/tcg-format)', ()
   });
 
   it('rejects invalid rarity', () => {
-    const result = validateTcgCards([{ ...validMonster, rarity: 3 }]);
+    const result = validateTcgCards([{ ...validMonster, rarity: 3 }]); // 3 is not a valid Rarity value
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('rarity');
   });
@@ -320,7 +320,7 @@ describe('TCG Builder', () => {
     const card = {
       id: '306', name: 'Flame Sword', type: CardType.Equipment,
       description: 'A sword imbued with fire',
-      rarity: 4, atkBonus: 500, defBonus: 0,
+      rarity: 4, atkBonus: 500, defBonus: 0, // rarity: Rarity.RARE
     };
     const tc = cardDataToTcgCard(card, 306);
     expect(tc.id).toBe(306);
@@ -337,7 +337,7 @@ describe('TCG Builder', () => {
     const card = {
       id: '307', name: 'Dragon Armor', type: CardType.Equipment,
       description: 'Armor for dragons only',
-      rarity: 4, atkBonus: 300, defBonus: 600
+      rarity: 4, atkBonus: 300, defBonus: 600 // rarity: Rarity.RARE
     };
     const tc = cardDataToTcgCard(card, 307);
     expect(tc.atkBonus).toBe(300);
@@ -347,7 +347,7 @@ describe('TCG Builder', () => {
   it('omits equipRequirement fields when not present', () => {
     const card = {
       id: '1', name: 'Basic Sword', type: CardType.Equipment,
-      description: 'A basic sword', rarity: 1, atkBonus: 200, defBonus: 0,
+      description: 'A basic sword', rarity: 1, atkBonus: 200, defBonus: 0, // rarity: Rarity.COMMON
     };
     const tc = cardDataToTcgCard(card, 1);
     expect(tc.equipReqRace).toBeUndefined();

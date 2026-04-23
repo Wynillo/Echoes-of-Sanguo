@@ -1,3 +1,33 @@
+/**
+ * Type Definition Conventions
+ * ===========================
+ *
+ * This file uses both `type` aliases and `interface` declarations following
+ * these conventions:
+ *
+ * **Use `type` for:**
+ * - Union types (e.g., `Owner`, `Phase`, `Position`)
+ * - Type aliases for primitives that come from external sources
+ *   (e.g., `Attribute`, `Race`, `Rarity` from TCG format)
+ * - Mapped types and type transformations (e.g., `EffectDescriptor`)
+ * - Re-exports of types from external libraries
+ *
+ * **Use `interface` for:**
+ * - Object shapes representing data structures (e.g., `CardData`, `GameState`)
+ * - When declaration merging or `extends` is needed
+ * - Context and configuration objects (e.g., `EffectContext`, `OpponentConfig`)
+ *
+ * **Special case: Attribute, Race, Rarity**
+ * These are defined as `type` aliases to `number` (not enums) because:
+ * 1. They originate from the TCG format library as numeric IDs
+ * 2. Type metadata (display names, colors, icons) is provided separately
+ *    via `type-metadata.ts` using the `TYPE_META` registry
+ * 3. This maintains compatibility with the external TCG format
+ *
+ * See: TypeScript Handbook - Interfaces vs Type Aliases
+ * https://www.typescriptlang.org/docs/handbook/2/everyday-types.html
+ */
+
 // Import effect types from TCG format library (single source of truth)
 import type {
   TcgTrapTrigger,
@@ -72,9 +102,26 @@ export enum CardType {
   Trap      = 4,
   Equipment = 5,
 }
+
+/**
+ * Primitive type aliases for TCG numeric IDs.
+ * These are not enums because they come from the external TCG format
+ * as plain numbers. Type metadata is provided via type-metadata.ts.
+ */
 export type Attribute = number;
 export type Race = number;
-export type Rarity = number;
+
+/**
+ * Rarity enum for card rarity levels.
+ * Values skip numbers to allow bit-flag operations and future expansion.
+ */
+export enum Rarity {
+  COMMON = 1,
+  UNCOMMON = 2,
+  RARE = 4,
+  SUPER_RARE = 6,
+  ULTRA_RARE = 8,
+}
 
 // Type aliases for backward compatibility with existing code
 export type EffectDescriptorMap = TcgEffectDescriptorMap;
@@ -98,37 +145,29 @@ export type {
   TcgCardEffectBlock,
 };
 
-export function isEffectMonster(card: CardData): boolean {
-  return card.type === CardType.Monster && !!card.effect;
-}
-
 export function isMonsterType(type: CardType): boolean {
   return type === CardType.Monster || type === CardType.Fusion;
-}
-
-export function isEquipmentType(type: CardType): boolean {
-  return type === CardType.Equipment;
 }
 
 export interface EffectContext {
   engine:       GameEngine;
   owner:        Owner;
-  targetFC?:    FieldCard;   // targeted FieldCard (targeted spells/traps)
+  target?:      FieldCard;   // targeted FieldCard (targeted spells/traps)
   targetCard?:  CardData;    // targeted CardData (fromGrave spells)
   attacker?:    FieldCard;   // attacking FieldCard (onAttack traps)
   defender?:    FieldCard;
-  summonedFC?:  FieldCard;   // FieldCard just summoned (onOpponentSummon traps)
+  summoned?:    FieldCard;   // FieldCard just summoned (onOpponentSummon traps)
   abortSignal?: AbortSignal; // for timeout/step-limit cancellation
 }
 
 export interface PureEffectCtx {
   state:        GameState;
   owner:        Owner;
-  targetFC?:    FieldCard;
+  target?:      FieldCard;
   targetCard?:  CardData;
   attacker?:    FieldCard;
   defender?:    FieldCard;
-  summonedFC?:  FieldCard;
+  summoned?:    FieldCard;
   log(msg: string): void;
   damage(owner: Owner, amount: number): void;
   heal(owner: Owner, amount: number): void;
@@ -216,12 +255,12 @@ export interface FusionFormula {
   resultPool: string[];  // Card IDs (string, post-loader conversion)
 }
 
-export type AISummonPriority   = 'highestATK' | 'highestDEF' | 'effectFirst' | 'lowestLevel';
+export type AISummonPriority   = 'highestAtk' | 'highestDef' | 'effectFirst' | 'lowestLevel';
 export type AIPositionStrategy = 'smart' | 'aggressive' | 'defensive';
 export type AIBattleStrategy   = 'smart' | 'aggressive' | 'conservative';
 
 export interface AISpellRule {
-  when: 'always' | 'oppLP>N' | 'selfLP<N';
+  when: 'always' | 'opponentLp>$N' | 'playerLp<$N';
   threshold?: number;
 }
 
@@ -238,8 +277,8 @@ export interface AIGoal {
 }
 
 export interface BoardSnapshot {
-  aiLP:            number;
-  plrLP:           number;
+  opponentLp:      number;
+  playerLp:        number;
   aiMonsterPower:  number;
   plrMonsterPower: number;
   aiHandSize:      number;
@@ -350,23 +389,62 @@ export interface PromptOptions {
   battleContext?: BattleContext;
 }
 
-export interface UICallbacks {
-  render:               (state: GameState) => void;
-  log:                  (msg: string) => void;
-  prompt?:              (opts: PromptOptions) => Promise<boolean>;
-  showResult?:          (result: 'victory' | 'defeat') => void;
-  showActivation?:      (card: CardData, text: string) => Promise<void> | void;
-  playAttackAnimation?: (atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number | null) => Promise<void>;
-  playFusionAnimation?: (owner: Owner, handIdx1: number, handIdx2: number, resultZone: number) => Promise<void>;
-  playFusionChainAnimation?: (owner: Owner, handIndices: number[], resultZone: number) => Promise<void>;
-  playVFX?:             (type: 'buff' | 'heal' | 'damage', owner: Owner, zone?: number) => Promise<void>;
-  playSfx?:             (sfxId: string) => void;
-  showDamageNumber?:    (amount: number, owner: Owner) => void;
-  onDraw?:              (owner: Owner, count: number) => void;
-  onDuelEnd?:           (result: 'victory' | 'defeat', oppId: number | null, stats: DuelStats) => void;
-  showCoinToss?:        (playerGoesFirst: boolean) => Promise<void>;
-  selectFromDeck?:      (cards: CardData[]) => Promise<CardData>;
+/**
+ * Interface Segregation Principle applied to UI callbacks.
+ * Split into focused interfaces by concern:
+ * - UIRender: Core rendering and logging
+ * - UIAnimations: Visual animations (attacks, fusions, VFX)
+ * - UIAudio: Sound effects
+ * - UIPrompts: User interaction prompts
+ * - UILifecycle: Game lifecycle events
+ */
+
+/** Core rendering and logging - required for any UI implementation */
+export interface UIRender {
+  render(state: GameState): void;
+  log(msg: string): void;
 }
+
+/** Visual animations - optional for non-graphical interfaces */
+export interface UIAnimations {
+  playAttackAnimation(atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number | null): Promise<void>;
+  playFusionAnimation(owner: Owner, handIdx1: number, handIdx2: number, resultZone: number): Promise<void>;
+  playFusionChainAnimation(owner: Owner, handIndices: number[], resultZone: number): Promise<void>;
+  playVFX(type: 'buff' | 'heal' | 'damage', owner: Owner, zone?: number): Promise<void>;
+}
+
+/** Audio/sound effects - optional for silent/muted interfaces */
+export interface UIAudio {
+  playSfx(sfxId: string): void;
+}
+
+/** User prompts and selections - optional for automated/non-interactive interfaces */
+export interface UIPrompts {
+  prompt(opts: PromptOptions): Promise<boolean>;
+  selectFromDeck(cards: CardData[]): Promise<CardData>;
+  showCoinToss(playerGoesFirst: boolean): Promise<void>;
+}
+
+/** Game lifecycle events - optional for headless/embedded engines */
+export interface UILifecycle {
+  showResult(result: 'victory' | 'defeat'): void;
+  showActivation(card: CardData, text: string): Promise<void> | void;
+  onDraw(owner: Owner, count: number): void;
+  onDuelEnd(result: 'victory' | 'defeat', oppId: number | null, stats: DuelStats): void;
+}
+
+/** Damage number overlay - separate for fine-grained control */
+export interface UIDamageFX {
+  showDamageNumber(amount: number, owner: Owner): void;
+}
+
+/**
+ * Legacy UICallbacks interface - kept for backwards compatibility.
+ * New implementations should use the segregated interfaces directly.
+ * 
+ * @deprecated Use UIRender & Partial<UIAnimations> & Partial<UIAudio> & Partial<UIPrompts> & Partial<UILifecycle> & Partial<UIDamageFX>
+ */
+export interface UICallbacks extends UIRender, Partial<UIAnimations>, Partial<UIAudio>, Partial<UIPrompts>, Partial<UILifecycle>, Partial<UIDamageFX> {}
 
 export interface CollectionEntry {
   id:    string;
@@ -404,13 +482,12 @@ export declare class FieldCard {
   piercing:         boolean;
   cannotBeTargeted: boolean;
   canDirectAttack:  boolean;
-  phoenixRevival:   boolean;
+  hasPhoenixRevival: boolean;
   indestructible:   boolean;
-  effectImmune:     boolean;
-  cantBeAttacked:   boolean;
+  isEffectImmune:     boolean;
+  cannotBeAttacked:   boolean;
   equippedCards:    Array<{ zone: number; card: CardData }>;
   originalOwner?:   Owner;
-  _getPassiveBlocks(): CardEffectBlock[];
   resetTurnState(): void;
   effectiveATK():   number;
   effectiveDEF():   number;
@@ -455,3 +532,44 @@ export declare class GameEngine {
   endTurn(): void;
   advancePhase(): void;
 }
+
+// Default implementations for testing and headless scenarios
+
+/** Minimal silent UI implementation - useful for testing and headless engines */
+export const SilentUI: UIRender = {
+  render: () => {},
+  log: () => {},
+};
+
+/** Null animations - no-op implementation for testing */
+export const NullAnimations: UIAnimations = {
+  playAttackAnimation: () => Promise.resolve(),
+  playFusionAnimation: () => Promise.resolve(),
+  playFusionChainAnimation: () => Promise.resolve(),
+  playVFX: () => Promise.resolve(),
+};
+
+/** Silent audio - no-op implementation for muted testing */
+export const SilentAudio: UIAudio = {
+  playSfx: () => {},
+};
+
+/** Null prompts - should not be used without overrides, causes infinite waits */
+export const NullPrompts: UIPrompts = {
+  prompt: () => Promise.resolve(false),
+  selectFromDeck: (cards: CardData[]) => Promise.resolve(cards[0]),
+  showCoinToss: () => Promise.resolve(),
+};
+
+/** Minimal lifecycle - no-op for embedded/headless scenarios */
+export const NullLifecycle: UILifecycle = {
+  showResult: () => {},
+  showActivation: () => {},
+  onDraw: () => {},
+  onDuelEnd: () => {},
+};
+
+/** Null damage FX - no-op for testing */
+export const NullDamageFX: UIDamageFX = {
+  showDamageNumber: () => {},
+};

@@ -7,17 +7,18 @@ import { FieldCardComponent }     from '../../components/FieldCardComponent.js';
 import { FieldSpellTrapComponent } from '../../components/FieldSpellTrapComponent.js';
 import { CardType, meetsEquipRequirement } from '../../../types.js';
 import { checkFusion, CARD_DB } from '../../../cards.js';
+import { FIELD_RULES } from '../../../rules.js';
 import type { FieldCard } from '../../../field.js';
 import type { FieldSpellTrap } from '../../../field.js';
 
-const FIELD_ZONES = [0, 1, 2, 3, 4] as const;
+const FIELD_ZONES = Array.from({ length: FIELD_RULES.MONSTER_ZONES_PER_PLAYER }, (_, i) => i);
 
-interface Props {
+interface PlayerFieldProps {
   showDirect:    boolean;
   setShowDirect: (v: boolean) => void;
 }
 
-export function PlayerField({ showDirect, setShowDirect }: Props) {
+export function PlayerField({ showDirect, setShowDirect }: PlayerFieldProps) {
   const { gameState, gameRef } = useGame();
   const { openModal }          = useModal();
   const { sel, setSel, resetSel } = useSelection();

@@ -4,7 +4,7 @@ import { attachHover } from './hoverApi.js';
 import { useLongPress } from '../hooks/useLongPress.js';
 import type { CardData } from '../../types.js';
 
-interface Props {
+interface HandCardProps {
   card: CardData;
   index: number;
   playable: boolean;
@@ -21,7 +21,7 @@ interface Props {
   onLongPress?: () => void;
 }
 
-export function HandCard({ card, index, playable, dimmed, fusionable, targetable, chainSelected, chainIndex, fusionSelected, fusionIndex, newlyDrawn, drawDelay, onClick, onLongPress }: Props) {
+export function HandCard({ card, index, playable, dimmed, fusionable, targetable, chainSelected, chainIndex, fusionSelected, fusionIndex, newlyDrawn, drawDelay, onClick, onLongPress }: HandCardProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const isSelected = chainSelected || fusionSelected;

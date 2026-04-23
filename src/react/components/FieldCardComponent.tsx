@@ -3,7 +3,7 @@ import { attachHover } from './hoverApi.js';
 import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
 import type { FieldCard, CardData } from '../../types.js';
 
-interface Props {
+interface FieldCardComponentProps {
   fc: FieldCard;
   owner: 'player' | 'opponent';
   zone: number;
@@ -24,7 +24,7 @@ const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
 export function FieldCardComponent({
   fc, owner, zone, selected, targetable, interactive, canAttack, viewable,
   onOwnClick, onAttackerSelect, onDefenderClick, onViewClick, onDetail,
-}: Props) {
+}: FieldCardComponentProps) {
   const { t } = useTranslation();
   const { card } = fc;
   const isPlayer = owner === 'player';
@@ -83,8 +83,8 @@ export function FieldCardComponent({
 
   const passiveIcons: string[] = [];
   if (fc.indestructible) passiveIcons.push('\uD83D\uDEE1\uFE0F');
-  if (fc.cantBeAttacked) passiveIcons.push('\uD83D\uDEAB');
-  if (fc.effectImmune)   passiveIcons.push('\u2726');
+  if (fc.cannotBeAttacked) passiveIcons.push('\uD83D\uDEAB');
+  if (fc.isEffectImmune)   passiveIcons.push('\u2726');
   if (fc.piercing)       passiveIcons.push('\u26A1');
 
   const effATK = fc.effectiveATK();

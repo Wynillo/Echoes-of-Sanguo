@@ -7,10 +7,9 @@ import { CardType } from './types.js';
 import type { CardData } from './types.js';
 import type { CraftedCardRecord } from './progression.js';
 
-const CRAFTED_ID_OFFSET = 100_000_000;
-
 export function isCraftedId(id: string | number): boolean {
-  return Number(id) >= CRAFTED_ID_OFFSET;
+  if (typeof id === 'number') return false;
+  return id.startsWith('crafted_');
 }
 
 export function buildCraftedCard(record: CraftedCardRecord): CardData | null {
@@ -90,14 +89,4 @@ export function craftEffectMonster(
   const card = buildCraftedCard({ id: newId, baseId: baseCardId, effectSourceId });
   
   return { success: true, card: card ?? undefined };
-}
-
-export function getCard(id: string | number): CardData | null {
-  const strId = String(id);
-  
-  if (isCraftedId(strId)) {
-    return resolveCraftedCard(strId);
-  }
-  
-  return CARD_DB[strId] ?? null;
 }

@@ -48,7 +48,7 @@ function spell(overrides = {}) {
 describe('resolveAIBehavior', () => {
   it('returns default behavior when called with no arguments', () => {
     const b = resolveAIBehavior();
-    expect(b.summonPriority).toBe('highestATK');
+    expect(b.summonPriority).toBe('highestAtk');
     expect(b.positionStrategy).toBe('smart');
     expect(b.battleStrategy).toBe('smart');
     expect(b.fusionFirst).toBe(true);
@@ -58,7 +58,7 @@ describe('resolveAIBehavior', () => {
 
   it('returns default behavior when called with undefined', () => {
     const b = resolveAIBehavior(undefined);
-    expect(b.summonPriority).toBe('highestATK');
+    expect(b.summonPriority).toBe('highestAtk');
     expect(b.positionStrategy).toBe('smart');
   });
 
@@ -71,7 +71,7 @@ describe('resolveAIBehavior', () => {
 
   it('resolves "defensive" profile', () => {
     const b = resolveAIBehavior('defensive');
-    expect(b.summonPriority).toBe('highestDEF');
+    expect(b.summonPriority).toBe('highestDef');
     expect(b.positionStrategy).toBe('defensive');
     expect(b.battleStrategy).toBe('conservative');
     expect(b.fusionMinATK).toBe(2000);
@@ -121,22 +121,22 @@ describe('resolveAIBehavior', () => {
 describe('pickSummonCandidate', () => {
   describe('empty hand', () => {
     it('returns -1 for an empty hand', () => {
-      expect(pickSummonCandidate([], 'highestATK')).toBe(-1);
+      expect(pickSummonCandidate([], 'highestAtk')).toBe(-1);
     });
   });
 
   describe('hand with no monsters', () => {
     it('returns -1 when hand has only spells', () => {
       const hand = [spell(), spell({ id: 'test-spell-2' })];
-      expect(pickSummonCandidate(hand, 'highestATK')).toBe(-1);
+      expect(pickSummonCandidate(hand, 'highestAtk')).toBe(-1);
     });
   });
 
   describe('single monster', () => {
     it('returns its index regardless of priority', () => {
       const hand = [monster()];
-      expect(pickSummonCandidate(hand, 'highestATK')).toBe(0);
-      expect(pickSummonCandidate(hand, 'highestDEF')).toBe(0);
+      expect(pickSummonCandidate(hand, 'highestAtk')).toBe(0);
+      expect(pickSummonCandidate(hand, 'highestDef')).toBe(0);
       expect(pickSummonCandidate(hand, 'effectFirst')).toBe(0);
       expect(pickSummonCandidate(hand, 'lowestLevel')).toBe(0);
     });
@@ -149,7 +149,7 @@ describe('pickSummonCandidate', () => {
         monster({ id: 'B', atk: 1500 }),
         monster({ id: 'C', atk: 1200 }),
       ];
-      expect(pickSummonCandidate(hand, 'highestATK')).toBe(1);
+      expect(pickSummonCandidate(hand, 'highestAtk')).toBe(1);
     });
 
     it('picks first monster on ATK tie (first encountered wins)', () => {
@@ -158,7 +158,7 @@ describe('pickSummonCandidate', () => {
         monster({ id: 'B', atk: 1500 }),
       ];
       // Both have score 1500; first one (index 0) sets bestScore, second does NOT beat it (strict >)
-      expect(pickSummonCandidate(hand, 'highestATK')).toBe(0);
+      expect(pickSummonCandidate(hand, 'highestAtk')).toBe(0);
     });
 
     it('skips non-monster cards', () => {
@@ -166,7 +166,7 @@ describe('pickSummonCandidate', () => {
         spell(),
         monster({ id: 'M', atk: 500 }),
       ];
-      expect(pickSummonCandidate(hand, 'highestATK')).toBe(1);
+      expect(pickSummonCandidate(hand, 'highestAtk')).toBe(1);
     });
 
     it('handles monster with undefined atk (treated as 0)', () => {
@@ -174,7 +174,7 @@ describe('pickSummonCandidate', () => {
         monster({ id: 'A', atk: undefined }),
         monster({ id: 'B', atk: 100 }),
       ];
-      expect(pickSummonCandidate(hand, 'highestATK')).toBe(1);
+      expect(pickSummonCandidate(hand, 'highestAtk')).toBe(1);
     });
   });
 
@@ -185,7 +185,7 @@ describe('pickSummonCandidate', () => {
         monster({ id: 'B', def: 2000 }),
         monster({ id: 'C', def: 1500 }),
       ];
-      expect(pickSummonCandidate(hand, 'highestDEF')).toBe(1);
+      expect(pickSummonCandidate(hand, 'highestDef')).toBe(1);
     });
 
     it('handles monster with undefined def (treated as 0)', () => {
@@ -193,7 +193,7 @@ describe('pickSummonCandidate', () => {
         monster({ id: 'A', def: undefined }),
         monster({ id: 'B', def: 50 }),
       ];
-      expect(pickSummonCandidate(hand, 'highestDEF')).toBe(1);
+      expect(pickSummonCandidate(hand, 'highestDef')).toBe(1);
     });
   });
 
@@ -272,7 +272,7 @@ describe('pickSummonCandidate', () => {
         spell({ id: 'S3' }),
         monster({ id: 'M2', atk: 1000 }),
       ];
-      expect(pickSummonCandidate(hand, 'highestATK')).toBe(4);
+      expect(pickSummonCandidate(hand, 'highestAtk')).toBe(4);
     });
   });
 });
@@ -329,9 +329,8 @@ describe('decideSummonPosition', () => {
 
 // ── shouldActivateNormalSpell ─────────────────────────────
 
-describe('shouldActivateNormalSpell', () => {
-  describe('with matching spell rule', () => {
-    it('activates when rule condition "always" is met', () => {
+  describe('shouldActivateNormalSpell', () => {
+    it('activates (always) when rule is always', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
         spellRules: { 'test-always': { when: 'always' } },
@@ -339,35 +338,73 @@ describe('shouldActivateNormalSpell', () => {
       expect(shouldActivateNormalSpell('test-always', behavior, 8000, 8000)).toBe(true);
     });
 
-    it('activates (oppLP>N) when player LP exceeds threshold', () => {
+    it('activates (opponentLp>$N) when player LP exceeds threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'test-opp': { when: 'oppLP>N', threshold: 800 } },
+        spellRules: { 'test-opp': { when: 'opponentLp>$N', threshold: 800 } },
       };
       expect(shouldActivateNormalSpell('test-opp', behavior, 1000, 8000)).toBe(true);
     });
 
-    it('does not activate (oppLP>N) when player LP is at or below threshold', () => {
+    it('does not activate (opponentLp>$N) when player LP is at or below threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'test-opp': { when: 'oppLP>N', threshold: 800 } },
+        spellRules: { 'test-opp': { when: 'opponentLp>$N', threshold: 800 } },
       };
       expect(shouldActivateNormalSpell('test-opp', behavior, 800, 8000)).toBe(false);
       expect(shouldActivateNormalSpell('test-opp', behavior, 500, 8000)).toBe(false);
     });
 
-    it('activates (selfLP<N) when AI LP is below threshold', () => {
+    it('activates (playerLp<$N) when AI LP is below threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'test-self': { when: 'selfLP<N', threshold: 5000 } },
+        spellRules: { 'test-self': { when: 'playerLp<$N', threshold: 5000 } },
       };
       expect(shouldActivateNormalSpell('test-self', behavior, 8000, 4000)).toBe(true);
     });
 
-    it('does not activate (selfLP<N) when AI LP is at or above threshold', () => {
+    it('does not activate (playerLp<$N) when AI LP is at or above threshold', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
-        spellRules: { 'test-self': { when: 'selfLP<N', threshold: 5000 } },
+        spellRules: { 'test-self': { when: 'playerLp<$N', threshold: 5000 } },
+<<<<<<< HEAD
+=======
+      };
+      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 5000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 6000)).toBe(false);
+    });
+  });
+
+    it('activates (opponentLp>$N) when player LP exceeds threshold', () => {
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'test-opp': { when: 'opponentLp>$N', threshold: 800 } },
+      };
+      expect(shouldActivateNormalSpell('test-opp', behavior, 1000, 8000)).toBe(true);
+    });
+
+    it('does not activate (opponentLp>$N) when player LP is at or below threshold', () => {
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'test-opp': { when: 'opponentLp>$N', threshold: 800 } },
+      };
+      expect(shouldActivateNormalSpell('test-opp', behavior, 800, 8000)).toBe(false);
+      expect(shouldActivateNormalSpell('test-opp', behavior, 500, 8000)).toBe(false);
+    });
+
+    it('activates (playerLp<$N) when AI LP is below threshold', () => {
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'test-self': { when: 'playerLp<$N', threshold: 5000 } },
+      };
+      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 4000)).toBe(true);
+    });
+
+    it('does not activate (playerLp<$N) when AI LP is at or above threshold', () => {
+      const behavior = {
+        ...resolveAIBehavior('default'),
+        spellRules: { 'test-self': { when: 'playerLp<$N', threshold: 5000 } },
+>>>>>>> main
       };
       expect(shouldActivateNormalSpell('test-self', behavior, 8000, 5000)).toBe(false);
       expect(shouldActivateNormalSpell('test-self', behavior, 8000, 6000)).toBe(false);
@@ -409,7 +446,7 @@ describe('shouldActivateNormalSpell', () => {
     it('uses rule even when defaultSpellActivation is "always"', () => {
       const behavior = {
         ...resolveAIBehavior('aggressive'),
-        spellRules: { 'test-spell': { when: 'selfLP<N', threshold: 3000 } },
+        spellRules: { 'test-spell': { when: 'playerLp<$N', threshold: 3000 } },
       };
       // defaultSpellActivation is 'always' but test-spell has a specific rule
       // AI LP 8000 >= 3000, so rule returns false
@@ -449,43 +486,43 @@ describe('evaluateSpellRule (via shouldActivateNormalSpell)', () => {
     });
   });
 
-  describe('condition: oppLP>N', () => {
-    it('returns true when playerLP > threshold', () => {
-      const b = behaviorWithRule({ when: 'oppLP>N', threshold: 4000 });
+  describe('condition: opponentLp>$N', () => {
+    it('returns true when playerLp > threshold', () => {
+      const b = behaviorWithRule({ when: 'opponentLp>$N', threshold: 4000 });
       expect(shouldActivateNormalSpell('TEST', b, 4001, 8000)).toBe(true);
       expect(shouldActivateNormalSpell('TEST', b, 8000, 8000)).toBe(true);
     });
 
-    it('returns false when playerLP <= threshold', () => {
-      const b = behaviorWithRule({ when: 'oppLP>N', threshold: 4000 });
+    it('returns false when playerLp <= threshold', () => {
+      const b = behaviorWithRule({ when: 'opponentLp>$N', threshold: 4000 });
       expect(shouldActivateNormalSpell('TEST', b, 4000, 8000)).toBe(false);
       expect(shouldActivateNormalSpell('TEST', b, 3000, 8000)).toBe(false);
     });
 
     it('uses 0 as default threshold when threshold is undefined', () => {
-      const b = behaviorWithRule({ when: 'oppLP>N' });
-      // playerLP > 0
+      const b = behaviorWithRule({ when: 'opponentLp>$N' });
+      // playerLp > 0
       expect(shouldActivateNormalSpell('TEST', b, 1, 8000)).toBe(true);
       expect(shouldActivateNormalSpell('TEST', b, 0, 8000)).toBe(false);
     });
   });
 
-  describe('condition: selfLP<N', () => {
-    it('returns true when aiLP < threshold', () => {
-      const b = behaviorWithRule({ when: 'selfLP<N', threshold: 5000 });
+  describe('condition: playerLp<$N', () => {
+    it('returns true when aiLp < threshold', () => {
+      const b = behaviorWithRule({ when: 'playerLp<$N', threshold: 5000 });
       expect(shouldActivateNormalSpell('TEST', b, 8000, 4999)).toBe(true);
       expect(shouldActivateNormalSpell('TEST', b, 8000, 1)).toBe(true);
     });
 
-    it('returns false when aiLP >= threshold', () => {
-      const b = behaviorWithRule({ when: 'selfLP<N', threshold: 5000 });
+    it('returns false when aiLp >= threshold', () => {
+      const b = behaviorWithRule({ when: 'playerLp<$N', threshold: 5000 });
       expect(shouldActivateNormalSpell('TEST', b, 8000, 5000)).toBe(false);
       expect(shouldActivateNormalSpell('TEST', b, 8000, 8000)).toBe(false);
     });
 
     it('uses 0 as default threshold when threshold is undefined', () => {
-      const b = behaviorWithRule({ when: 'selfLP<N' });
-      // aiLP < 0 → never true for non-negative LP
+      const b = behaviorWithRule({ when: 'playerLp<$N' });
+      // aiLp < 0 → never true for non-negative LP
       expect(shouldActivateNormalSpell('TEST', b, 8000, 0)).toBe(false);
       expect(shouldActivateNormalSpell('TEST', b, 8000, 1)).toBe(false);
     });
@@ -502,7 +539,7 @@ function mockFieldCard(overrides = {}) {
     hasAttacked: false,
     summonedThisTurn: false,
     canDirectAttack: false,
-    cantBeAttacked: false,
+    cannotBeAttacked: false,
     indestructible: false,
     piercing: false,
     effectiveATK() { return this.card.atk + (this._atkBonus ?? 0); },
@@ -524,8 +561,8 @@ describe('pickSmartSummonCandidate', () => {
     expect(pickSmartSummonCandidate([], {
       aiField: [null, null, null, null, null],
       playerField: [null, null, null, null, null],
-      playerLP: 8000,
-      aiLP: 8000,
+      playerLp: 8000,
+      aiLp: 8000,
     })).toBe(-1);
   });
 
@@ -538,8 +575,8 @@ describe('pickSmartSummonCandidate', () => {
     const result = pickSmartSummonCandidate(hand, {
       aiField: [null, null, null, null, null],
       playerField: [plrFC, null, null, null, null],
-      playerLP: 8000,
-      aiLP: 8000,
+      playerLp: 8000,
+      aiLp: 8000,
     });
     expect(result).toBe(1); // B can beat P1
   });
@@ -555,8 +592,8 @@ describe('pickSmartSummonCandidate', () => {
     const result = pickSmartSummonCandidate(hand, {
       aiField: [null, null, null, null, null],
       playerField: [null, null, null, null, null],
-      playerLP: 8000,
-      aiLP: 8000,
+      playerLp: 8000,
+      aiLp: 8000,
     });
     expect(result).toBe(1); // B has effect bonus
   });
@@ -566,8 +603,8 @@ describe('pickSmartSummonCandidate', () => {
     const result = pickSmartSummonCandidate(hand, {
       aiField: [null, null, null, null, null],
       playerField: [null, null, null, null, null],
-      playerLP: 8000,
-      aiLP: 8000,
+      playerLp: 8000,
+      aiLp: 8000,
     });
     expect(result).toBe(1);
   });

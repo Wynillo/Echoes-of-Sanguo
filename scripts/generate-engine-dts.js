@@ -196,11 +196,11 @@ declare global {
   interface EffectContext {
     engine:       any;
     owner:        Owner;
-    targetFC?:    any;
+    target?:      any;
     targetCard?:  CardData;
     attacker?:    any;
     defender?:    any;
-    summonedFC?:  any;
+    summoned?:    any;
   }
 
   // ── TriggerBus Context ────────────────────────────────────────
