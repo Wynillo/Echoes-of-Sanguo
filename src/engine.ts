@@ -2,9 +2,9 @@ import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, res
 import { executeEffectBlock, matchesFilter, EffectExecutionError, MAX_EFFECT_STEPS } from './effect-registry.js';
 import { CardType } from './types.js';
 import { meetsEquipRequirement } from './types.js';
-import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, InternalEffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
+import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
 import { TriggerBus } from './trigger-bus.js';
-import { TrapResolver } from './trap-resolver.js';
+import { Option } from './option.js';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types.js';
 
@@ -67,7 +67,6 @@ export { FieldCard, FieldSpellTrap } from './field.js';
 export class GameEngine {
   state!: GameState; // initialized in initGame() before any gameplay method is called
   ui: UICallbacks;
-  private trapResolver: TrapResolver;
   _trapResolve: ((result: boolean) => void) | null;
   _currentOpponentId: number | null;
   _aiBehavior!: Required<AIBehavior>;
@@ -85,18 +84,14 @@ export class GameEngine {
     this.ui = uiCallbacks;
     this._trapResolve = null;
     this._currentOpponentId = null;
-    
-    this.trapResolver = new TrapResolver({
-      getState: () => this.state,
-      getTrapZones: (owner) => this.state[owner].field.spellTraps,
-      getMonsterAt: (owner, zone) => this.state[owner].field.monsters[zone],
-      promptPlayer: (opts) => this.ui.prompt!(opts),
-      activateTrap: (owner, zone, args) => this.activateTrapFromField(owner, zone, ...args),
-      showActivation: (card, text) => this.ui.showActivation?.(card, text),
-      playSfx: (sfxId) => this.ui.playSfx?.(sfxId),
-      addLog: (msg) => this.addLog(msg),
-      get owner() { return this.state.activePlayer; }
-    });
+  }
+
+  /**
+   * Get a monster at the given zone, returning Option type to avoid null checks.
+   * Returns Some<FieldCard> if a monster is present, None if the zone is empty.
+   */
+  getMonsterAt(owner: Owner, zone: number): Option<FieldCard> {
+    return Option.fromNullable(this.state[owner].field.monsters[zone]);
   }
 
   _initStats(): void {
@@ -509,8 +504,14 @@ export class GameEngine {
   }
 
   async flipSummon(owner: Owner, zone: number){
-    const fc = this.state[owner].field.monsters[zone];
-    if(!fc || !fc.faceDown){ this.addLog('No face-down monster!'); return false; }
+    const fcResult = this.getMonsterAt(owner, zone);
+    if (fcResult.isNone()) {
+      this.addLog('No monster in that zone!');
+      return false;
+    }
+    const fc = fcResult.value;
+    
+    if(!fc.faceDown){ this.addLog('No face-down monster!'); return false; }
     if(fc.summonedThisTurn){ this.addLog('Cannot flip on the same turn!'); return false; }
     fc.faceDown = false;
     this.addLog(`${fc.card.name} is flipped face-up (Flip Summon)!`);
@@ -1083,16 +1084,18 @@ export class GameEngine {
     attackerOwner: Owner,
     attackerZone: number,
     defenderZone: number
-  ): { attFC: any, defFC: any, valid: boolean } {
+  ): { attFC: FieldCard | null, defFC: FieldCard | null, valid: boolean } {
     const atkSt = this.state[attackerOwner];
     const defOwn = attackerOwner === 'player' ? 'opponent' : 'player';
     const defSt = this.state[defOwn];
 
-    const attFC = atkSt.field.monsters[attackerZone];
-    if (!attFC) {
+    const attFCResult = this.getMonsterAt(attackerOwner, attackerZone);
+    if (attFCResult.isNone()) {
       this.addLog('No attacking monster!');
       return { attFC: null, defFC: null, valid: false };
     }
+    const attFC = attFCResult.value;
+    
     if (attFC.hasAttacked) {
       this.addLog(`${attFC.card.name} has already attacked!`);
       return { attFC, defFC: null, valid: false };
@@ -1526,11 +1529,56 @@ export class GameEngine {
   }
 
   async _promptPlayerTraps(triggerType: string, ...args: FieldCard[]){
-    return this.trapResolver.checkTrapActivation(triggerType, args, true);
+    if (this.state.opponent.fieldFlags?.negateTraps) return null;
+    const traps = this.state.player.field.spellTraps;
+    for(let i=0;i<traps.length;i++){
+      const fst = traps[i];
+      if(fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used && fst.card.trapTrigger === triggerType){
+        const promptFn = this.ui.prompt;
+        if (!promptFn) continue;
+
+        // Build battle context so the UI can show who attacks what
+        const battleContext: import('./types.js').BattleContext = { triggerType };
+        if (args[0]) {
+          battleContext.attackerName   = args[0].card.name;
+          battleContext.attackerAtk    = args[0].effectiveATK();
+          battleContext.attackerCardId = args[0].card.id;
+        }
+        if (args[1]) {
+          battleContext.defenderName   = args[1].card.name;
+          battleContext.defenderDef    = args[1].effectiveDEF();
+          battleContext.defenderAtk    = args[1].effectiveATK();
+          battleContext.defenderPos    = args[1].position;
+          battleContext.defenderCardId = args[1].card.id;
+        }
+
+        const activate = await promptFn({
+          title: 'Activate trap?',
+          cardId: fst.card.id,
+          message: `${fst.card.name}: ${fst.card.description}`,
+          yes: 'Yes, activate!',
+          no:  'No, skip',
+          battleContext,
+        });
+        if(activate){
+          return await this.activateTrapFromField('player', i, ...args);
+        }
+      }
+    }
+    return null;
   }
 
   async _autoActivateOpponentTraps(triggerType: string, ...args: FieldCard[]): Promise<EffectSignal | null> {
-    return this.trapResolver.checkTrapActivation(triggerType, args, false);
+    if (this.state.player.fieldFlags?.negateTraps) return null;
+    const traps = this.state.opponent.field.spellTraps;
+    for (let i = 0; i < traps.length; i++) {
+      const fst = traps[i];
+      if (fst && fst.card.type === CardType.Trap && fst.faceDown && !fst.used
+          && fst.card.trapTrigger === triggerType) {
+        return await this.activateTrapFromField('opponent', i, ...args);
+      }
+    }
+    return null;
   }
 
   _hasPlayableCard(owner: Owner): boolean {
