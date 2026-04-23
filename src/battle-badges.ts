@@ -1,6 +1,7 @@
 import type { DuelStats } from './types.js';
+import { Rarity } from './types.js';
 import { CARD_DB } from './cards.js';
-import { RARITY_DROP_RATES } from './react/utils/pack-logic.js';
+import { DEFAULT_RARITY_PROBABILITIES, RARITY_DROP_RATES } from './react/utils/pack-logic.js';
 import type { DuelRewardConfig, BadgeRank, DropPoolEntry } from './reward-config.js';
 import { DEFAULT_REWARD_CONFIG, getRankEffect } from './reward-config.js';
 
@@ -21,8 +22,11 @@ export interface BattleBadges {
   cardDropCount: number;
 }
 
-/** Pick the first matching range value. Ranges are [max, modifier] checked with <=. */
-function rangeScore(value: number, ranges: [number, number][]): number {
+/**
+ * Pick the first matching range value from threshold-modifier pairs.
+ * Range tuple structure: [maxThreshold, scoreModifier] - checked with <=
+ */
+function rangeScore(value: number, ranges: Array<[maxThreshold: number, scoreModifier: number]>): number {
   for (const [max, mod] of ranges) {
     if (value <= max) return mod;
   }
@@ -125,23 +129,27 @@ export function calculateBattleBadges(stats: DuelStats, rewardConfig?: DuelRewar
 }
 
 const RARITY_FALLBACK: Rarity[] = [
-  8, 6, 4, 2, 1,
+  Rarity.ULTRA_RARE,
+  Rarity.SUPER_RARE,
+  Rarity.RARE,
+  Rarity.UNCOMMON,
+  Rarity.COMMON,
 ];
 
 function rollRarity(customRates?: Partial<Record<Rarity, number>>): Rarity {
   const rates = customRates
-    ? { ...RARITY_DROP_RATES, ...Object.fromEntries(Object.entries(customRates).map(([k, v]) => [k, v])) }
-    : RARITY_DROP_RATES;
+    ? { ...DEFAULT_RARITY_PROBABILITIES, ...Object.fromEntries(Object.entries(customRates).map(([k, v]) => [k, v])) }
+    : DEFAULT_RARITY_PROBABILITIES;
   const r = Math.random();
   let cumulative = 0;
   const entries = Object.entries(rates)
-    .map(([k, v]) => [Number(k), v] as [number, number])
+    .map(([k, v]) => [Number(k), v] as [rarityKey: number, probability: number])
     .sort((a, b) => a[1] - b[1]);
   for (const [rarity, prob] of entries) {
     cumulative += prob;
     if (r < cumulative) return rarity as Rarity;
   }
-  return 1;
+  return Rarity.COMMON;
 }
 
 /**

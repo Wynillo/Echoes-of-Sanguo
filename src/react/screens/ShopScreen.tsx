@@ -8,7 +8,9 @@ import { getRarityById } from '../../type-metadata.js';
 import { openPack, isPackUnlocked, buildCardPool } from '../utils/pack-logic.js';
 import { SHOP_DATA, type PackPrice } from '../../shop-data.js';
 import type { PackDef, PackSlotDef, CurrencyDef } from '../../shop-data.js';
+import { ECONOMY, CURRENCY_UNLOCK_CHAPTERS } from '../../economy-config.js';
 import { Audio }               from '../../audio.js';
+import { Rarity } from '../../types.js';
 import type { CardData } from '../../types.js';
 import type { EffectSource } from '../../effect-items.js';
 import { CraftingScreen } from '../CraftingScreen.js';
@@ -29,7 +31,7 @@ function computeDistribution(slots: PackSlotDef[]): { rarity: number; guaranteed
         map.set(r, entry);
       }
     } else {
-      const r = slot.rarity ?? 4;
+      const r = slot.rarity ?? Rarity.RARE;
       const entry = map.get(r) ?? { guaranteed: 0, chancePct: 0 };
       entry.guaranteed += slot.count;
       map.set(r, entry);
@@ -43,7 +45,7 @@ function computeDistribution(slots: PackSlotDef[]): { rarity: number; guaranteed
 function countByRarity(cards: CardData[]): { rarity: number; count: number }[] {
   const map = new Map<number, number>();
   for (const c of cards) {
-    const r = c.rarity ?? 4;
+    const r = c.rarity ?? Rarity.RARE;
     map.set(r, (map.get(r) ?? 0) + 1);
   }
   return Array.from(map.entries())
@@ -52,19 +54,13 @@ function countByRarity(cards: CardData[]): { rarity: number; count: number }[] {
 }
 
 function normalisePackPrice(price: number | PackPrice): PackPrice {
-  if (typeof price === 'number') return { currencyId: 'coins', amount: price };
+  if (typeof price === 'number') return { currencyId: ECONOMY.CURRENCY_COINS, amount: price };
   return price;
 }
 
-const CURRENCY_GATE: Record<string, number> = {
-  coins: 1,
-  moderncoins: 3,
-  ancientcoins: 6,
-};
-
 function isCurrencyVisible(currency: { id: string; requiredChapter?: number }, currentChapter: string): boolean {
-  const chapterNum = parseInt(currentChapter.replace('ch', ''), 10) || 1;
-  const required = currency.requiredChapter ?? CURRENCY_GATE[currency.id] ?? 1;
+  const chapterNum = ECONOMY.HELPERS.chapterNumber(currentChapter);
+  const required = currency.requiredChapter ?? CURRENCY_UNLOCK_CHAPTERS[currency.id] ?? 1;
   return chapterNum >= required;
 }
 
@@ -72,7 +68,7 @@ export default function ShopScreen() {
   const { navigateTo } = useScreen();
   const { currencies, refresh } = useProgression();
   const { progress } = useCampaign();
-  const bgUrl = SHOP_DATA.backgrounds[progress.currentChapter] ?? SHOP_DATA.backgrounds['ch1'] ?? '';
+  const bgUrl = SHOP_DATA.backgrounds[progress.currentChapter] ?? SHOP_DATA.backgrounds[ECONOMY.DEFAULT_CHAPTER] ?? '';
   const { t } = useTranslation();
   const [infoTarget, setInfoTarget] = useState<{ pack: PackDef } | null>(null);
   const [activeTab, setActiveTab] = useState<'packs' | 'crafting'>('packs');

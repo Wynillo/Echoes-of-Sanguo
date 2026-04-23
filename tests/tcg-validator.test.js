@@ -10,7 +10,7 @@ import JSZip from 'jszip';
 function buildMinimalZip() {
   const zip = new JSZip();
   zip.file('cards.json', JSON.stringify([
-    { id: 1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 },
+    { id: 1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 }, // rarity: Rarity.COMMON
   ]));
   zip.folder('img');
   zip.file('manifest.json', JSON.stringify({ formatVersion: 2 }));
@@ -38,7 +38,7 @@ describe.skip('validateTcgArchive', () => {
   it('rejects missing img/ folder', async () => {
     const zip = new JSZip();
     zip.file('cards.json', JSON.stringify([
-      { id: 1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 },
+      { id: 1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 }, // rarity: 1 (Rarity.COMMON)
     ]));
     zip.file('manifest.json', JSON.stringify({ formatVersion: 2 }));
     const result = await validateTcgArchive(zip);
@@ -49,8 +49,8 @@ describe.skip('validateTcgArchive', () => {
   it('allows card without matching definition', async () => {
     const zip = buildMinimalZip();
     zip.file('cards.json', JSON.stringify([
-      { id: 1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 },
-      { id: 2, type: 1, level: 4, rarity: 1, atk: 1200, def: 900, attribute: 1, race: 2 },
+      { id: 1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 }, // rarity: Rarity.COMMON
+      { id: 2, type: 1, level: 4, rarity: 1, atk: 1200, def: 900, attribute: 1, race: 2 }, // rarity: Rarity.COMMON
     ]));
     const result = await validateTcgArchive(zip);
     expect(result.valid).toBe(true);
@@ -75,7 +75,7 @@ describe.skip('validateTcgArchive', () => {
   it('rejects invalid card in cards.json (negative id)', async () => {
     const zip = buildMinimalZip();
     zip.file('cards.json', JSON.stringify([
-      { id: -1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 },
+      { id: -1, type: 1, level: 3, rarity: 1, atk: 1000, def: 800, attribute: 3, race: 1 }, // rarity: 1 (Rarity.COMMON)
     ]));
     const result = await validateTcgArchive(zip);
     expect(result.valid).toBe(false);

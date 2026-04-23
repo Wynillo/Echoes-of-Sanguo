@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useMemo, useEffect } 
 import type { CampaignData, CampaignProgress, CampaignNode, PendingDuel, NodeRewards } from '../../campaign-types.js';
 import { CAMPAIGN_DATA, isNodeUnlocked as storeIsNodeUnlocked, getNode, hasCampaignData } from '../../campaign-store.js';
 import { Progression } from '../../progression.js';
+import { DEFAULT_CHAPTER } from '../../economy-config.js';
 import { useProgression } from './ProgressionContext.js';
 import { OPPONENT_CONFIGS } from '../../cards.js';
 import type { OpponentConfig } from '../../types.js';
@@ -20,7 +21,7 @@ interface CampaignCtx {
 
 const CampaignContext = createContext<CampaignCtx>({
   campaignData: { chapters: [] },
-  progress: { completedNodes: [], currentChapter: 'ch1' },
+  progress: { completedNodes: [], currentChapter: DEFAULT_CHAPTER },
   isNodeUnlocked: () => false,
   completeNode: () => {},
   hasCampaign: false,
@@ -35,7 +36,7 @@ export function CampaignProvider({ children }: { children: React.ReactNode }) {
     try {
       return Progression.getCampaignProgress();
     } catch {
-      return { completedNodes: [], currentChapter: 'ch1' };
+      return { completedNodes: [], currentChapter: DEFAULT_CHAPTER };
     }
   });
   const [pendingDuel, setPendingDuel] = useState<PendingDuel | null>(null);

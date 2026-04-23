@@ -1,5 +1,5 @@
 import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
-import { CardType, isMonsterType } from './types.js';
+import { CardType, isMonsterType, getCardAtk, getCardAtk } from './types.js';
 import {
   getRaceByKey, getAttrByKey, getRarityById, getRaceById, getAttrById,
   TYPE_META,
@@ -7,48 +7,6 @@ import {
 import { isCraftedId, resolveCraftedCard } from './crafting.js';
 
 export const TYPE = CardType;
-
-/** @deprecated Use getRarityById() from type-metadata.ts instead */
-export const RARITY_COLOR: Record<number, string> = new Proxy({} as Record<number, string>, {
-  get(_t, prop) { const id = Number(prop); return getRarityById(id)?.color ?? '#aaa'; },
-  ownKeys() { return TYPE_META.rarities.map(r => String(r.id)); },
-  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
-});
-
-/** @deprecated Use getRarityById() from type-metadata.ts instead */
-export const RARITY_NAME: Record<number, string> = new Proxy({} as Record<number, string>, {
-  get(_t, prop) { const id = Number(prop); return getRarityById(id)?.value ?? ''; },
-  ownKeys() { return TYPE_META.rarities.map(r => String(r.id)); },
-  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
-});
-
-/** @deprecated Use getRaceByKey() from type-metadata.ts instead */
-export const RACE_ICON: Record<string, string> = new Proxy({} as Record<string, string>, {
-  get(_t, prop) { return getRaceByKey(String(prop))?.icon ?? ''; },
-  ownKeys() { return TYPE_META.races.map(r => r.key); },
-  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
-});
-
-/** @deprecated Use getRaceByKey() from type-metadata.ts instead */
-export const RACE_NAME: Record<string, string> = new Proxy({} as Record<string, string>, {
-  get(_t, prop) { return getRaceByKey(String(prop))?.value ?? ''; },
-  ownKeys() { return TYPE_META.races.map(r => r.key); },
-  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
-});
-
-/** @deprecated Use getAttrByKey() from type-metadata.ts instead */
-export const ATTR_SYMBOL: Record<string, string> = new Proxy({} as Record<string, string>, {
-  get(_t, prop) { return getAttrByKey(String(prop))?.symbol ?? '✦'; },
-  ownKeys() { return TYPE_META.attributes.map(a => a.key); },
-  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
-});
-
-/** @deprecated Use getAttrByKey() from type-metadata.ts instead */
-export const ATTR_NAME: Record<string, string> = new Proxy({} as Record<string, string>, {
-  get(_t, prop) { return getAttrByKey(String(prop))?.value ?? ''; },
-  ownKeys() { return TYPE_META.attributes.map(a => a.key); },
-  getOwnPropertyDescriptor() { return { configurable: true, enumerable: true }; },
-});
 
 export const CARD_DB: Record<string, CardData> = {};
 export const FUSION_RECIPES: FusionRecipe[] = [];
@@ -80,10 +38,10 @@ export function makeDeck(ids: string[]): CardData[] {
 }
 
 export function checkFusion(id1: string, id2: string): FusionRecipe | null {
-  // Step 1: Explicit recipe lookup (highest priority)
+  // materials: [materialA, materialB] - order-independent (either combination matches)
   const explicit = FUSION_RECIPES.find(r =>
-    (r.materials[0]===id1 && r.materials[1]===id2) ||
-    (r.materials[0]===id2 && r.materials[1]===id1)
+    (r.materials[0] === id1 && r.materials[1] === id2) ||
+    (r.materials[0] === id2 && r.materials[1] === id1)
   );
   if (explicit) return explicit;
 

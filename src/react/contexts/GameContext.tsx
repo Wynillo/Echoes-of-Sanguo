@@ -175,7 +175,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const rewardCfg = resolveRewardConfig(
         pending?.rewardConfig,
         opponentCfg?.rewardConfig,
-        pending ? 'campaign' : 'free',
       );
 
       const badges: BattleBadges | null = result === 'victory' && stats
