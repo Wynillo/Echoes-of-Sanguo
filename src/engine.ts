@@ -2,7 +2,7 @@ import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, res
 import { executeEffectBlock, matchesFilter, EffectExecutionError, MAX_EFFECT_STEPS } from './effect-registry.js';
 import { CardType } from './types.js';
 import { meetsEquipRequirement } from './types.js';
-import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
+import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, InternalEffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
 import { TriggerBus } from './trigger-bus.js';
 import { TrapResolver } from './trap-resolver.js';
 // Re-export for backwards compatibility
@@ -300,7 +300,7 @@ export class GameEngine {
 
   private async _safeExecuteEffect(
     block: CardEffectBlock,
-    ctx: EffectContext,
+    ctx: InternalEffectContext,
     cardId: string,
     label: string,
     options?: { stepCounter?: { value: number }; timeoutMs?: number },
@@ -758,7 +758,7 @@ export class GameEngine {
     if (this.ui.showActivation) await this.ui.showActivation(card, card.description);
 
     if (card.effect) {
-      const ctx: EffectContext = { engine: this, owner, targetFC };
+      const ctx: InternalEffectContext = { engine: this, owner, targetFC };
       await this._safeExecuteEffect(card.effect, ctx, card.id, 'equipment effect');
     }
 
@@ -1431,8 +1431,8 @@ export class GameEngine {
     this._recalcFieldFlags();
   }
 
-  _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): EffectContext {
-    const ctx: EffectContext = { engine: this, owner };
+  _buildSpellContext(owner: Owner, targetInfo: FieldCard | CardData | null): InternalEffectContext {
+    const ctx: InternalEffectContext = { engine: this, owner };
     if(targetInfo instanceof FieldCard){
       if(targetInfo.cannotBeTargeted){
         EchoesOfSanguo.log('EFFECT', `${targetInfo.card.name} cannot be targeted by effects – target ignored.`, '#fa0');
@@ -1446,8 +1446,8 @@ export class GameEngine {
     return ctx;
   }
 
-  _buildTrapContext(owner: Owner, trapTrigger: string | undefined, args: FieldCard[]): EffectContext {
-    const ctx: EffectContext = { engine: this, owner };
+  _buildTrapContext(owner: Owner, trapTrigger: string | undefined, args: FieldCard[]): InternalEffectContext {
+    const ctx: InternalEffectContext = { engine: this, owner };
     if(trapTrigger === 'onAttack'){
       ctx.attacker = args[0];
     } else if(trapTrigger === 'onOwnMonsterAttacked'){
@@ -1471,7 +1471,7 @@ export class GameEngine {
     for (const block of blocks) {
       EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: ${trigger}`);
       if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
-      const ctx: EffectContext = { engine: this, owner };
+      const ctx: InternalEffectContext = { engine: this, owner };
       await this._safeExecuteEffect(block, ctx, card.id, `effect trigger=${trigger}`);
     }
   }
@@ -1506,7 +1506,7 @@ export class GameEngine {
     for (const block of blocks) {
       EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Trigger: onSentToGrave`);
       if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
-      const ctx: EffectContext = { engine: this, owner };
+      const ctx: InternalEffectContext = { engine: this, owner };
       await this._safeExecuteEffect(block, ctx, card.id, 'onSentToGrave');
     }
   }
@@ -1519,7 +1519,7 @@ export class GameEngine {
     if (blocks.length === 0) return;
     EchoesOfSanguo.log('EFFECT', `${card.name} (${owner}) – Flip Effect`);
     if(this.ui.showActivation) await this.ui.showActivation(card, card.description);
-    const ctx: EffectContext = { engine: this, owner };
+    const ctx: InternalEffectContext = { engine: this, owner };
     for (const block of blocks) {
       await this._safeExecuteEffect(block, ctx, card.id, 'flip effect');
     }
