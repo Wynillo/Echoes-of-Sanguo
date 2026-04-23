@@ -66,7 +66,6 @@ export interface ShopData {
   backgrounds: Record<string, string>;
 }
 
-import { CURRENCY_IDS } from './economy-config.js';
 
 export const SHOP_DATA: ShopData = {
   backgrounds: {},
