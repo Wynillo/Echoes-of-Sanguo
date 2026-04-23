@@ -1,5 +1,4 @@
 {
-  // NOTE: rarity values correspond to Rarity enum: 1=COMMON, 2=UNCOMMON, 4=RARE, 6=SUPER_RARE, 8=ULTRA_RARE
   "cards": [
     { "id": "1",  "name": "Iron Knight",       "type": 1, "race": 4, "attribute": 5, "atk": 1200, "def": 1000, "rarity": 1, "level": 3, "description": "A sturdy knight." },
     { "id": "2",  "name": "Shadow Mage",       "type": 1, "race": 2, "attribute": 2, "atk": 1100, "def":  900, "rarity": 1, "level": 3, "description": "A dark sorcerer." },

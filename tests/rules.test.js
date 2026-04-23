@@ -10,7 +10,7 @@ afterEach(() => {
 
 describe('GAME_RULES', () => {
   it('has correct default values', () => {
-    expect(GAME_RULES.startingLP).toBe(8000);
+    expect(GAME_RULES.STARTING_LP).toBe(8000);
     expect(GAME_RULES.maxLP).toBe(99999);
     expect(GAME_RULES.handLimitDraw).toBe(10);
     expect(GAME_RULES.handLimitEnd).toBe(8);
@@ -25,13 +25,13 @@ describe('GAME_RULES', () => {
 
 describe('applyRules', () => {
   it('overrides specified fields', () => {
-    applyRules({ startingLP: 4000, maxLP: 50000 });
-    expect(GAME_RULES.startingLP).toBe(4000);
+    applyRules({ STARTING_LP: 4000, maxLP: 50000 });
+    expect(GAME_RULES.STARTING_LP).toBe(4000);
     expect(GAME_RULES.maxLP).toBe(50000);
   });
 
   it('preserves unspecified fields', () => {
-    applyRules({ startingLP: 4000 });
+    applyRules({ STARTING_LP: 4000 });
     expect(GAME_RULES.maxLP).toBe(99999);
     expect(GAME_RULES.fieldZones).toBe(5);
     expect(GAME_RULES.handLimitEnd).toBe(8);
@@ -39,7 +39,7 @@ describe('applyRules', () => {
 
   it('handles empty partial', () => {
     applyRules({});
-    expect(GAME_RULES.startingLP).toBe(8000);
+    expect(GAME_RULES.STARTING_LP).toBe(8000);
   });
 
   it('can disable hand refill', () => {
