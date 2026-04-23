@@ -30,10 +30,15 @@ export const DEFAULT_REWARD_CONFIG: DuelRewardConfig = {
 export function resolveRewardConfig(
   nodeConfig?: DuelRewardConfig,
   opponentConfig?: DuelRewardConfig,
+  mode?: 'campaign' | 'free',
 ): DuelRewardConfig {
   const candidates = [nodeConfig, opponentConfig];
   for (const cfg of candidates) {
     if (!cfg) continue;
+    const cfgMode = (cfg as any).mode;
+    if (cfgMode && cfgMode !== 'both' && cfgMode !== mode) {
+      continue;
+    }
     return cfg;
   }
   return DEFAULT_REWARD_CONFIG;
