@@ -1,10 +1,13 @@
 import {
   Attribute, CardType,
   type CardData, type CardFilter,
-  type EffectDescriptor, type EffectContext, type InternalEffectContext, type EffectSignal, type CardEffectBlock,
+  type EffectDescriptor, type EffectContext, type EffectSignal, type CardEffectBlock,
   type ValueExpr, type StatTarget, type Owner, type FieldCard,
+  type PureEffectCtx, type ChainEffectCtx, type GameState,
 } from './types.js';
 import { EchoesOfSanguo } from './debug-logger.js';
+import { shuffleArray, shuffleInPlace } from './utils/array.js';
+import { findEmptyMonsterZone } from './utils/field-zones.js';
 
 /**
  * Maximum number of effect steps allowed per effect block execution.
@@ -45,7 +48,7 @@ function filterFieldMonsters(monsters: Array<FieldCard | null>, filter?: CardFil
   let result = monsters.filter((fm): fm is FieldCard => fm !== null);
   if (filter) result = result.filter(fm => matchesFilter(fm.card, filter));
   if (filter?.random !== undefined && filter.random > 0) {
-    const shuffled = [...result].sort(() => Math.random() - 0.5);
+    const shuffled = shuffleArray(result);
     result = shuffled.slice(0, Math.min(filter.random, result.length));
   }
   return result;
@@ -56,14 +59,14 @@ function oppOf(owner: Owner): Owner {
   return owner === 'player' ? 'opponent' : 'player';
 }
 
-function resolveValue(expr: ValueExpr, ctx: EffectContext): number {
+function resolveValue(expr: ValueExpr, ctx: PureEffectCtx): number {
   if (typeof expr === 'number') return expr;
   if (expr.from === 'attacker.effectiveATK' && ctx.attacker) {
     const raw = ctx.attacker.effectiveATK() * expr.multiply;
     return expr.round === 'floor' ? Math.floor(raw) : Math.ceil(raw);
   }
-  if (expr.from === 'summoned.atk' && ctx.summonedFC) {
-    const raw = (ctx.summonedFC.card.atk ?? 0) * expr.multiply;
+  if (expr.from === 'summoned.atk' && ctx.summoned) {
+    const raw = (ctx.summoned.card.atk ?? 0) * expr.multiply;
     return expr.round === 'floor' ? Math.floor(raw) : Math.ceil(raw);
   }
   return 0;
@@ -74,23 +77,16 @@ function resolveTarget(target: 'opponent' | 'self', owner: Owner): Owner {
   return oppOf(owner);
 }
 
-function resolveStatTarget(target: StatTarget, ctx: EffectContext): FieldCard | null {
+function resolveStatTarget(target: StatTarget, ctx: PureEffectCtx): FieldCard | null {
   if (target === 'attacker')    return ctx.attacker ?? null;
   if (target === 'defender')    return ctx.defender ?? null;
-  if (target === 'summonedFC')  return ctx.summonedFC ?? null;
-  if (target === 'ownMonster')  return ctx.targetFC ?? null;
-  if (target === 'oppMonster')  return ctx.targetFC ?? null;
+  if (target === 'summonedFC')  return ctx.summoned ?? null;
+  if (target === 'ownMonster')  return ctx.target ?? null;
+  if (target === 'oppMonster')  return ctx.target ?? null;
   return null;
 }
 
-function shuffleArray<T>(arr: T[]): void {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-
-function _triggerBuffVFX(fc: FieldCard, ctx: EffectContext): void {
+function _triggerBuffVFX(fc: FieldCard, ctx: PureEffectCtx): void {
   if (!ctx.vfx) return;
   for (const side of ['player', 'opponent'] as Owner[]) {
     const zone = ctx.state[side].field.monsters.indexOf(fc);
@@ -118,12 +114,143 @@ function findMonsterByATK(
   return idx;
 }
 
-export type EffectImpl = (desc: any, ctx: EffectContext) => EffectSignal | Promise<EffectSignal>;
-type InternalImpl = EffectImpl;
+export type EffectImpl = (desc: EffectDescriptor, ctx: EffectContext) => EffectSignal;
+// Internal type — all handlers receive ChainEffectCtx from the dispatcher at runtime.
+// A-handlers declare ctx: PureEffectCtx (supertype → valid via contravariance).
+// B/A+B handlers declare ctx: ChainEffectCtx (same type → valid directly).
+type InternalImpl = (desc: any, ctx: ChainEffectCtx) => EffectSignal | Promise<EffectSignal>;
+
+/**
+ * Manifest for registering custom effect handlers.
+ * Provides metadata for validation and sandboxing configuration.
+ */
+export interface EffectHandlerManifest {
+  /** Unique effect type identifier */
+  type: string;
+  /** Human-readable description of what the effect does */
+  description: string;
+  /** List of allowed context methods (e.g., ['damage', 'heal', 'draw']) */
+  allowedActions: string[];
+  /** Maximum calls per turn (optional, default: no limit) */
+  maxCallsPerTurn?: number;
+  /** Custom timeout in ms (optional, default: 100ms) */
+  timeoutMs?: number;
+  /** Mod ID for logging and tracking (optional) */
+  modId?: string;
+}
+
+/**
+ * Read-only effect context for custom effect handlers.
+ * Restricts state access and provides only safe methods.
+ */
+export interface SafeEffectContext {
+  /** Read-only game state snapshot */
+  readonly state: Readonly<GameState>;
+  /** Effect owner */
+  readonly owner: Owner;
+  /** Optional target FieldCard */
+  readonly target?: FieldCard | null;
+  /** Optional target CardData */
+  readonly targetCard?: CardData | null;
+  /** Optional attacker FieldCard */
+  readonly attacker?: FieldCard | null;
+  /** Optional defender FieldCard */
+  readonly defender?: FieldCard | null;
+  /** Optional summoned FieldCard */
+  readonly summoned?: FieldCard | null;
+  /** Log a message */
+  log: (msg: string) => void;
+  /** Deal damage (read-only state, mutation via engine) */
+  damage: (target: Owner, amount: number) => void;
+  /** Heal LP */
+  heal: (target: Owner, amount: number) => void;
+  /** Draw cards */
+  draw: (target: Owner, count: number) => void;
+  /** Visual effects */
+  vfx?: (event: string, owner: Owner, zone?: number) => void;
+}
+
+/**
+ * Wraps an effect handler with timeout protection.
+ * Prevents infinite loops and DoS attacks via timeout.
+ */
+function wrapWithTimeout(
+  impl: EffectImpl,
+  timeoutMs: number = 100,
+  effectName: string,
+): EffectImpl {
+  return async (desc, ctx) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort('timeout');
+      EchoesOfSanguo.log(
+        'SECURITY',
+        `Effect "${effectName}" timed out after ${timeoutMs}ms`,
+        '#f44',
+      );
+    }, timeoutMs);
+
+    try {
+      const abortSignal = controller.signal;
+      const result = await Promise.race([
+        impl(desc, ctx),
+        new Promise<EffectSignal>((_, reject) => {
+          abortSignal.addEventListener('abort', () => {
+            reject(new Error(`Effect "${effectName}" timed out`));
+          });
+        }),
+      ]);
+      clearTimeout(timeoutId);
+      return result;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if ((error as Error).message.includes('timed out')) {
+        throw error;
+      }
+      // Re-throw other errors
+      throw error;
+    }
+  };
+}
+
+/**
+ * Wraps an effect handler with rate limiting.
+ * Prevents abuse via excessive effect triggering.
+ */
+function wrapWithRateLimit(
+  impl: EffectImpl,
+  maxCalls: number,
+  effectName: string,
+  state: any,
+): EffectImpl {
+  return async (desc, ctx) => {
+    const key = `${ctx.owner}:${effectName}`;
+    const currentCalls = (ctx as any).effectCallCounts?.get(key) || 0;
+
+    if (currentCalls >= maxCalls) {
+      EchoesOfSanguo.log(
+        'SECURITY',
+        `Effect "${effectName}" exceeded rate limit (${maxCalls} calls/turn)`,
+        '#f44',
+      );
+      throw new Error(
+        `Effect "${effectName}" exceeded maximum calls per turn (${maxCalls})`,
+      );
+    }
+
+    // Track the call
+    if (!(ctx as any).effectCallCounts) {
+      (ctx as any).effectCallCounts = new Map<string, number>();
+    }
+    (ctx as any).effectCallCounts.set(key, currentCalls + 1);
+
+    return impl(desc, ctx);
+  };
+}
 
 const IMPL: Record<string, InternalImpl> = {
 
-  dealDamage(desc: { target: 'opponent' | 'self'; value: ValueExpr }, ctx: EffectContext) {
+  dealDamage(desc: { target: 'opponent' | 'self'; value: ValueExpr }, ctx: PureEffectCtx) {
     const amount = resolveValue(desc.value, ctx);
     const target = resolveTarget(desc.target, ctx.owner);
     ctx.vfx?.('damage', target);
@@ -131,19 +258,19 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  gainLP(desc: { target: 'opponent' | 'self'; value: number | ValueExpr }, ctx: EffectContext) {
+  gainLP(desc: { target: 'opponent' | 'self'; value: number | ValueExpr }, ctx: PureEffectCtx) {
     const amount = resolveValue(desc.value as ValueExpr, ctx);
     const target = resolveTarget(desc.target, ctx.owner);
     ctx.heal(target, amount);
     return {};
   },
 
-  draw(desc: { target: 'self' | 'opponent'; count: number }, ctx: EffectContext) {
+  draw(desc: { target: 'self' | 'opponent'; count: number }, ctx: PureEffectCtx) {
     ctx.draw(resolveTarget(desc.target, ctx.owner), desc.count);
     return {};
   },
 
-  buffField(desc: { value: number; filter?: CardFilter }, ctx: EffectContext) {
+  buffField(desc: { value: number; filter?: CardFilter }, ctx: PureEffectCtx) {
     const monsters = filterFieldMonsters(ctx.state[ctx.owner].field.monsters, desc.filter);
     for (const fm of monsters) {
       fm.permATKBonus = (fm.permATKBonus || 0) + desc.value;
@@ -154,7 +281,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  tempBuffField(desc: { value: number; filter?: CardFilter }, ctx: EffectContext) {
+  tempBuffField(desc: { value: number; filter?: CardFilter }, ctx: PureEffectCtx) {
     const monsters = filterFieldMonsters(ctx.state[ctx.owner].field.monsters, desc.filter);
     for (const fm of monsters) {
       fm.tempATKBonus = (fm.tempATKBonus || 0) + desc.value;
@@ -165,7 +292,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  debuffField(desc: { atkD: number; defD: number }, ctx: EffectContext) {
+  debuffField(desc: { atkD: number; defD: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     ctx.state[opp].field.monsters.forEach(fm => {
       if (!fm) return;
@@ -175,7 +302,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  tempDebuffField(desc: { atkD: number; defD?: number }, ctx: EffectContext) {
+  tempDebuffField(desc: { atkD: number; defD?: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const defD = desc.defD ?? desc.atkD;
     ctx.state[opp].field.monsters.forEach(fm => {
@@ -186,7 +313,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  bounceStrongestOpp(_desc: unknown, ctx: EffectContext) {
+  bounceStrongestOpp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const strongest = findMonsterByATK(monsters, 'strongest', { excludeUntargetable: true });
@@ -200,7 +327,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  bounceAttacker(_desc: unknown, ctx: EffectContext) {
+  bounceAttacker(_desc: unknown, ctx: PureEffectCtx) {
     if (!ctx.attacker) return {};
     const opp = oppOf(ctx.owner);
     ctx.state[opp].hand.push(ctx.attacker.card);
@@ -210,7 +337,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  bounceAllOppMonsters(_desc: unknown, ctx: EffectContext) {
+  bounceAllOppMonsters(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     for (let i = 0; i < monsters.length; i++) {
@@ -223,7 +350,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async searchDeckToHand(desc: { filter: CardFilter }, ctx: EffectContext) {
+  async searchDeckToHand(desc: { filter: CardFilter }, ctx: ChainEffectCtx) {
     const deck = ctx.state[ctx.owner].deck;
     const matches = deck.filter(c => matchesFilter(c, desc.filter));
     if (matches.length === 0) return {};
@@ -242,7 +369,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  tempAtkBonus(desc: { target: StatTarget; value: number }, ctx: EffectContext) {
+  tempAtkBonus(desc: { target: StatTarget; value: number }, ctx: PureEffectCtx) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       fc.tempATKBonus = (fc.tempATKBonus || 0) + desc.value;
@@ -252,7 +379,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  permAtkBonus(desc: { target: StatTarget; value: number; filter?: CardFilter }, ctx: EffectContext) {
+  permAtkBonus(desc: { target: StatTarget; value: number; filter?: CardFilter }, ctx: PureEffectCtx) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (!fc) return {};
     if (desc.filter && !matchesFilter(fc.card, desc.filter)) return {};
@@ -262,7 +389,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  tempDefBonus(desc: { target: StatTarget; value: number }, ctx: EffectContext) {
+  tempDefBonus(desc: { target: StatTarget; value: number }, ctx: PureEffectCtx) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       fc.tempDEFBonus = (fc.tempDEFBonus || 0) + desc.value;
@@ -271,7 +398,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  permDefBonus(desc: { target: StatTarget; value: number }, ctx: EffectContext) {
+  permDefBonus(desc: { target: StatTarget; value: number }, ctx: PureEffectCtx) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       fc.permDEFBonus = (fc.permDEFBonus || 0) + desc.value;
@@ -280,30 +407,30 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async reviveFromGrave(_desc: unknown, ctx: EffectContext) {
+  async reviveFromGrave(_desc: unknown, ctx: ChainEffectCtx) {
     if (ctx.targetCard) await ctx.summonFromGrave(ctx.owner, ctx.targetCard);
     return {};
   },
 
-  cancelAttack(_desc: unknown, _ctx: EffectContext) {
+  cancelAttack(_desc: unknown, _ctx: PureEffectCtx) {
     return { cancelAttack: true };
   },
 
-  cancelEffect(_desc: unknown, _ctx: EffectContext) {
+  cancelEffect(_desc: unknown, _ctx: PureEffectCtx) {
     return { cancelEffect: true };
   },
 
-  reflectBattleDamage(_desc: unknown, _ctx: EffectContext) {
+  reflectBattleDamage(_desc: unknown, _ctx: PureEffectCtx) {
     return { cancelAttack: true, reflectDamage: true };
   },
 
-  stealMonster(_desc: unknown, ctx: EffectContext) {
+  stealMonster(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const oppMonsters = ctx.state[opp].field.monsters;
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
     if (idx === null || !oppMonsters[idx]) return {};
     const ownMonsters = ctx.state[ctx.owner].field.monsters;
-    const freeZone = ownMonsters.findIndex(z => z === null);
+    const freeZone = findEmptyMonsterZone(ownMonsters);
     if (freeZone === -1) return {};
     const fc = oppMonsters[idx]!;
     oppMonsters[idx] = null;
@@ -315,14 +442,14 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  skipOppDraw(_desc: unknown, ctx: EffectContext) {
+  skipOppDraw(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     ctx.state.skipNextDraw = opp;
     ctx.log(`${opp === 'player' ? 'You' : 'Opponent'} will skip the next Draw Phase!`);
     return {};
   },
 
-  destroyAndDamageBoth(desc: { side: 'opponent' | 'self' }, ctx: EffectContext) {
+  destroyAndDamageBoth(desc: { side: 'opponent' | 'self' }, ctx: PureEffectCtx) {
     const targetOwner = desc.side === 'opponent' ? oppOf(ctx.owner) : ctx.owner;
     const monsters = ctx.state[targetOwner].field.monsters;
     const idx = findMonsterByATK(monsters, 'strongest', {});
@@ -338,40 +465,40 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  preventBattleDamage(_desc: unknown, ctx: EffectContext) {
+  preventBattleDamage(_desc: unknown, ctx: PureEffectCtx) {
     ctx.state[ctx.owner].battleProtection = true;
     ctx.log('Battle damage and destruction prevented this turn!');
     return { cancelAttack: true };
   },
 
-  passive_negateTraps(_desc: unknown, ctx: EffectContext) {
+  passive_negateTraps(_desc: unknown, ctx: PureEffectCtx) {
     if (!ctx.state[ctx.owner].fieldFlags) ctx.state[ctx.owner].fieldFlags = {};
     ctx.state[ctx.owner].fieldFlags!.negateTraps = true;
     ctx.log('All Trap effects are negated!');
     return {};
   },
 
-  passive_negateSpells(_desc: unknown, ctx: EffectContext) {
+  passive_negateSpells(_desc: unknown, ctx: PureEffectCtx) {
     if (!ctx.state[ctx.owner].fieldFlags) ctx.state[ctx.owner].fieldFlags = {};
     ctx.state[ctx.owner].fieldFlags!.negateSpells = true;
     ctx.log('All Spell effects are negated!');
     return {};
   },
 
-  passive_negateMonsterEffects(_desc: unknown, ctx: EffectContext) {
+  passive_negateMonsterEffects(_desc: unknown, ctx: PureEffectCtx) {
     if (!ctx.state[ctx.owner].fieldFlags) ctx.state[ctx.owner].fieldFlags = {};
     ctx.state[ctx.owner].fieldFlags!.negateMonsterEffects = true;
     ctx.log('All monster effects are negated!');
     return {};
   },
 
-  stealMonsterTemp(_desc: unknown, ctx: EffectContext) {
+  stealMonsterTemp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const oppMonsters = ctx.state[opp].field.monsters;
     const idx = findMonsterByATK(oppMonsters, 'strongest', { excludeUntargetable: true });
     if (idx === null || !oppMonsters[idx]) return {};
     const ownMonsters = ctx.state[ctx.owner].field.monsters;
-    const freeZone = ownMonsters.findIndex(z => z === null);
+    const freeZone = findEmptyMonsterZone(ownMonsters);
     if (freeZone === -1) return {};
     const fc = oppMonsters[idx]!;
     oppMonsters[idx] = null;
@@ -383,7 +510,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async reviveFromEitherGrave(_desc: unknown, ctx: EffectContext) {
+  async reviveFromEitherGrave(_desc: unknown, ctx: ChainEffectCtx) {
     const ownGY = ctx.state[ctx.owner].graveyard;
     const oppGY = ctx.state[oppOf(ctx.owner)].graveyard;
     let bestCard: CardData | null = null;
@@ -400,12 +527,12 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  drawThenDiscard(desc: { drawCount: number; discardCount: number }, ctx: EffectContext) {
+  drawThenDiscard(desc: { drawCount: number; discardCount: number }, ctx: PureEffectCtx) {
     ctx.draw(ctx.owner, desc.drawCount);
     const hand = ctx.state[ctx.owner].hand;
     const toDiscard = Math.min(desc.discardCount, hand.length);
     for (let i = 0; i < toDiscard; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[ctx.owner].graveyard.push(c);
     }
@@ -413,12 +540,12 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  bounceOppHandToDeck(desc: { count: number }, ctx: EffectContext) {
+  bounceOppHandToDeck(desc: { count: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const hand = ctx.state[opp].hand;
     const toReturn = Math.min(desc.count, hand.length);
     for (let i = 0; i < toReturn; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[opp].deck.push(c);
     }
@@ -426,11 +553,11 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  tributeSelf(_desc: unknown, _ctx: EffectContext) {
+  tributeSelf(_desc: unknown, _ctx: PureEffectCtx) {
     return {};
   },
 
-  preventAttacks(desc: { turns: number }, ctx: EffectContext) {
+  preventAttacks(desc: { turns: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     if (!ctx.state[opp].turnCounters) ctx.state[opp].turnCounters = [];
     ctx.state[opp].turnCounters!.push({ turnsRemaining: desc.turns, effect: 'preventAttacks' });
@@ -438,7 +565,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async createTokens(desc: { tokenId: string; count: number; position: string }, ctx: EffectContext) {
+  async createTokens(desc: { tokenId: string; count: number; position: string }, ctx: ChainEffectCtx) {
     const pos = (desc.position ?? 'def') as 'atk' | 'def';
     for (let i = 0; i < desc.count; i++) {
       const tokenCard: CardData = {
@@ -455,7 +582,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  gameReset(_desc: unknown, ctx: EffectContext) {
+  gameReset(_desc: unknown, ctx: PureEffectCtx) {
     for (const side of ['player', 'opponent'] as Owner[]) {
       const ps = ctx.state[side];
       const allCards: CardData[] = [...ps.hand, ...ps.graveyard];
@@ -482,7 +609,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async excavateAndSummon(desc: { count: number; maxLevel: number }, ctx: EffectContext) {
+  async excavateAndSummon(desc: { count: number; maxLevel: number }, ctx: ChainEffectCtx) {
     for (const side of ['player', 'opponent'] as Owner[]) {
       const ps = ctx.state[side];
       const excavated: CardData[] = [];
@@ -501,7 +628,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  discardEntireHand(desc: { target: 'self' | 'opponent' | 'both' }, ctx: EffectContext) {
+  discardEntireHand(desc: { target: 'self' | 'opponent' | 'both' }, ctx: PureEffectCtx) {
     const discard = (owner: Owner) => {
       const ps = ctx.state[owner];
       while (ps.hand.length > 0) {
@@ -514,19 +641,19 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyAttacker(_desc: unknown, _ctx: EffectContext) {
+  destroyAttacker(_desc: unknown, _ctx: PureEffectCtx) {
     return { cancelAttack: true, destroyAttacker: true };
   },
 
-  destroySummonedIf(desc: { minAtk: number }, ctx: EffectContext) {
-    if (ctx.summonedFC && ctx.summonedFC.card.atk !== undefined && ctx.summonedFC.card.atk >= desc.minAtk) {
-      ctx.log(`Trap! ${ctx.summonedFC.card.name} is destroyed!`);
+  destroySummonedIf(desc: { minAtk: number }, ctx: PureEffectCtx) {
+    if (ctx.summoned && ctx.summoned.card.atk !== undefined && ctx.summoned.card.atk >= desc.minAtk) {
+      ctx.log(`Trap! ${ctx.summoned.card.name} is destroyed!`);
       return { destroySummoned: true };
     }
     return {};
   },
 
-  destroyAllOpp(_desc: unknown, ctx: EffectContext) {
+  destroyAllOpp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     for (let i = 0; i < monsters.length; i++) {
@@ -540,7 +667,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyAll(_desc: unknown, ctx: EffectContext) {
+  destroyAll(_desc: unknown, ctx: PureEffectCtx) {
     for (const side of ['player', 'opponent'] as Owner[]) {
       const monsters = ctx.state[side].field.monsters;
       for (let i = 0; i < monsters.length; i++) {
@@ -555,7 +682,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyWeakestOpp(_desc: unknown, ctx: EffectContext) {
+  destroyWeakestOpp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const weakestIdx = findMonsterByATK(monsters, 'weakest');
@@ -569,7 +696,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyStrongestOpp(_desc: unknown, ctx: EffectContext) {
+  destroyStrongestOpp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const strongestIdx = findMonsterByATK(monsters, 'strongest');
@@ -583,7 +710,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  sendTopCardsToGrave(desc: { count: number }, ctx: EffectContext) {
+  sendTopCardsToGrave(desc: { count: number }, ctx: PureEffectCtx) {
     const deck = ctx.state[ctx.owner].deck;
     const count = Math.min(desc.count, deck.length);
     const cards = deck.splice(0, count);
@@ -592,7 +719,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  sendTopCardsToGraveOpp(desc: { count: number }, ctx: EffectContext) {
+  sendTopCardsToGraveOpp(desc: { count: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const deck = ctx.state[opp].deck;
     const count = Math.min(desc.count, deck.length);
@@ -602,7 +729,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  salvageFromGrave(desc: { filter: CardFilter }, ctx: EffectContext) {
+  salvageFromGrave(desc: { filter: CardFilter }, ctx: PureEffectCtx) {
     const grave = ctx.state[ctx.owner].graveyard;
     const idx = grave.findIndex(c => matchesFilter(c, desc.filter));
     if (idx !== -1) {
@@ -613,7 +740,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  recycleFromGraveToDeck(desc: { filter: CardFilter }, ctx: EffectContext) {
+  recycleFromGraveToDeck(desc: { filter: CardFilter }, ctx: PureEffectCtx) {
     const grave = ctx.state[ctx.owner].graveyard;
     const idx = grave.findIndex(c => matchesFilter(c, desc.filter));
     if (idx !== -1) {
@@ -624,28 +751,28 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  shuffleGraveIntoDeck(_desc: unknown, ctx: EffectContext) {
+  shuffleGraveIntoDeck(_desc: unknown, ctx: PureEffectCtx) {
     const ps = ctx.state[ctx.owner];
     ps.deck.push(...ps.graveyard);
     ps.graveyard.length = 0;
-    shuffleArray(ps.deck);
+    shuffleInPlace(ps.deck);
     ctx.log('Graveyard shuffled back into deck.');
     return {};
   },
 
-  shuffleDeck(_desc: unknown, ctx: EffectContext) {
-    shuffleArray(ctx.state[ctx.owner].deck);
+  shuffleDeck(_desc: unknown, ctx: PureEffectCtx) {
+    shuffleInPlace(ctx.state[ctx.owner].deck);
     ctx.log('Deck shuffled.');
     return {};
   },
 
-  peekTopCard(_desc: unknown, ctx: EffectContext) {
+  peekTopCard(_desc: unknown, ctx: PureEffectCtx) {
     const deck = ctx.state[ctx.owner].deck;
     ctx.log(deck.length > 0 ? `Top card: ${deck[0].name}` : 'Deck is empty!');
     return {};
   },
 
-  async specialSummonFromHand(desc: { filter?: CardFilter }, ctx: EffectContext) {
+  async specialSummonFromHand(desc: { filter?: CardFilter }, ctx: ChainEffectCtx) {
     const hand = ctx.state[ctx.owner].hand;
     const idx = desc.filter
       ? hand.findIndex(c => matchesFilter(c, desc.filter!))
@@ -657,11 +784,11 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  discardFromHand(desc: { count: number }, ctx: EffectContext) {
+  discardFromHand(desc: { count: number }, ctx: PureEffectCtx) {
     const hand = ctx.state[ctx.owner].hand;
     const count = Math.min(desc.count, hand.length);
     for (let i = 0; i < count && hand.length > 0; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[ctx.owner].graveyard.push(c);
     }
@@ -669,12 +796,12 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  discardOppHand(desc: { count: number }, ctx: EffectContext) {
+  discardOppHand(desc: { count: number }, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const hand = ctx.state[opp].hand;
     const count = Math.min(desc.count, hand.length);
     for (let i = 0; i < count && hand.length > 0; i++) {
-      const idx = Math.floor(Math.random() * hand.length);
+      const idx = randomIndexSecure(hand);
       const [c] = hand.splice(idx, 1);
       ctx.state[opp].graveyard.push(c);
     }
@@ -682,7 +809,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyOppSpellTrap(_desc: unknown, ctx: EffectContext) {
+  destroyOppSpellTrap(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const zones = ctx.state[opp].field.spellTraps;
     for (let i = 0; i < zones.length; i++) {
@@ -697,7 +824,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyAllOppSpellTraps(_desc: unknown, ctx: EffectContext) {
+  destroyAllOppSpellTraps(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const zones = ctx.state[opp].field.spellTraps;
     for (let i = 0; i < zones.length; i++) {
@@ -711,7 +838,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyAllSpellTraps(_desc: unknown, ctx: EffectContext) {
+  destroyAllSpellTraps(_desc: unknown, ctx: PureEffectCtx) {
     for (const side of ['player', 'opponent'] as Owner[]) {
       const zones = ctx.state[side].field.spellTraps;
       for (let i = 0; i < zones.length; i++) {
@@ -726,12 +853,12 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyOppFieldSpell(_desc: unknown, ctx: EffectContext) {
+  destroyOppFieldSpell(_desc: unknown, ctx: PureEffectCtx) {
     ctx.removeFieldSpell(oppOf(ctx.owner));
     return {};
   },
 
-  changePositionOpp(_desc: unknown, ctx: EffectContext) {
+  changePositionOpp(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     const monsters = ctx.state[opp].field.monsters;
     const idx = findMonsterByATK(monsters, 'strongest');
@@ -743,16 +870,16 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  setFaceDown(_desc: unknown, ctx: EffectContext) {
-    if (!ctx.targetFC) return {};
-    ctx.targetFC.faceDown = true;
-    ctx.targetFC.position = 'def';
-    ctx.targetFC.hasFlipSummoned = false;
-    ctx.log(`${ctx.targetFC.card.name} was set face-down!`);
+  setFaceDown(_desc: unknown, ctx: PureEffectCtx) {
+    if (!ctx.target) return {};
+    ctx.target.faceDown = true;
+    ctx.target.position = 'def';
+    ctx.target.hasFlipSummoned = false;
+    ctx.log(`${ctx.target.card.name} was set face-down!`);
     return {};
   },
 
-  flipAllOppFaceDown(_desc: unknown, ctx: EffectContext) {
+  flipAllOppFaceDown(_desc: unknown, ctx: PureEffectCtx) {
     const opp = oppOf(ctx.owner);
     for (const fc of ctx.state[opp].field.monsters) {
       if (fc && !fc.faceDown) {
@@ -765,7 +892,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  destroyByFilter(desc: { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' }, ctx: EffectContext) {
+  destroyByFilter(desc: { filter?: CardFilter; mode: 'weakest' | 'strongest' | 'highestDef' | 'first'; side?: 'opponent' | 'self' }, ctx: PureEffectCtx) {
     const side = desc.side === 'self' ? ctx.owner : oppOf(ctx.owner);
     const monsters = ctx.state[side].field.monsters;
     let idx: number | null = null;
@@ -800,7 +927,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  halveAtk(desc: { target: StatTarget }, ctx: EffectContext) {
+  halveAtk(desc: { target: StatTarget }, ctx: PureEffectCtx) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       const half = Math.floor(fc.effectiveATK() / 2);
@@ -811,7 +938,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  doubleAtk(desc: { target: StatTarget }, ctx: EffectContext) {
+  doubleAtk(desc: { target: StatTarget }, ctx: PureEffectCtx) {
     const fc = resolveStatTarget(desc.target, ctx);
     if (fc) {
       const current = fc.effectiveATK();
@@ -822,7 +949,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  swapAtkDef(desc: { side: 'self' | 'opponent' | 'all' }, ctx: EffectContext) {
+  swapAtkDef(desc: { side: 'self' | 'opponent' | 'all' }, ctx: PureEffectCtx) {
     const sides: Owner[] = desc.side === 'all'
       ? ['player', 'opponent']
       : [desc.side === 'self' ? ctx.owner : oppOf(ctx.owner)];
@@ -843,7 +970,7 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  async specialSummonFromDeck(desc: { filter: CardFilter; faceDown?: boolean; position?: string }, ctx: EffectContext) {
+  async specialSummonFromDeck(desc: { filter: CardFilter; faceDown?: boolean; position?: string }, ctx: ChainEffectCtx) {
     const deck = ctx.state[ctx.owner].deck;
     const idx = deck.findIndex(c => matchesFilter(c, desc.filter));
     if (idx !== -1) {
@@ -855,51 +982,306 @@ const IMPL: Record<string, InternalImpl> = {
     return {};
   },
 
-  passive_piercing(_desc: unknown, _ctx: EffectContext)       { return {}; },
-  passive_untargetable(_desc: unknown, _ctx: EffectContext)   { return {}; },
-  passive_directAttack(_desc: unknown, _ctx: EffectContext)   { return {}; },
-  passive_vsAttrBonus(_desc: unknown, _ctx: EffectContext)    { return {}; },
-  passive_phoenixRevival(_desc: unknown, _ctx: EffectContext) { return {}; },
-  passive_indestructible(_desc: unknown, _ctx: EffectContext) { return {}; },
-  passive_effectImmune(_desc: unknown, _ctx: EffectContext)   { return {}; },
-  passive_cantBeAttacked(_desc: unknown, _ctx: EffectContext) { return {}; },
+  passive_piercing(_desc: unknown, _ctx: PureEffectCtx)       { return {}; },
+  passive_untargetable(_desc: unknown, _ctx: PureEffectCtx)   { return {}; },
+  passive_directAttack(_desc: unknown, _ctx: PureEffectCtx)   { return {}; },
+  passive_vsAttrBonus(_desc: unknown, _ctx: PureEffectCtx)    { return {}; },
+  passive_phoenixRevival(_desc: unknown, _ctx: PureEffectCtx) { return {}; },
+  passive_indestructible(_desc: unknown, _ctx: PureEffectCtx) { return {}; },
+  passive_effectImmune(_desc: unknown, _ctx: PureEffectCtx)   { return {}; },
+  passive_cantBeAttacked(_desc: unknown, _ctx: PureEffectCtx) { return {}; },
 };
 
-export const EFFECT_REGISTRY = new Map<string, EffectImpl>(
+const EFFECT_REGISTRY = new Map<string, EffectImpl>(
   Object.entries(IMPL) as unknown as [string, EffectImpl][],
 );
 
-export function registerEffect(type: string, impl: EffectImpl): void {
-  EFFECT_REGISTRY.set(type, impl);
+/**
+ * Registry for effect handler metadata and security configurations.
+ * Tracks validation info for each registered effect.
+ */
+const EFFECT_HANDLERS = new Map<
+  string,
+  {
+    impl: EffectImpl;
+    manifest?: EffectHandlerManifest;
+    registeredAt: number;
+  }
+>();
+
+// Initialize registry with built-in effects (trusted, no validation needed)
+for (const [type, impl] of Object.entries(IMPL)) {
+  EFFECT_HANDLERS.set(type, {
+    impl,
+    registeredAt: Date.now(),
+  });
+}
+
+// Expose read-only view of registry
+export const EFFECT_REGISTRY_VIEW = new Proxy(EFFECT_HANDLERS, {
+  get(target, prop) {
+    if (prop === 'get') {
+      return (key: string) => {
+        const entry = target.get(key);
+        return entry?.impl;
+      };
+    }
+    if (prop === 'has') {
+      return (key: string) => target.has(key);
+    }
+    return Reflect.get(target, prop);
+  },
+}) as ReadonlyMap<string, EffectImpl>;
+
+// Keep old export for backward compatibility
+export const EFFECT_REGISTRY = EFFECT_REGISTRY_VIEW;
+
+/**
+ * Validates an effect handler manifest.
+ * Ensures all required fields are present and valid.
+  */
+export function validateManifest(manifest: EffectHandlerManifest): boolean {
+  // Type must be non-empty string
+  if (!manifest.type || typeof manifest.type !== 'string') {
+    return false;
+  }
+
+  // Type must follow naming convention (alphanumeric + underscore)
+  if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(manifest.type)) {
+    return false;
+  }
+
+  // Description must be present
+  if (!manifest.description || typeof manifest.description !== 'string') {
+    return false;
+  }
+
+  // Allowed actions must be array
+  if (!Array.isArray(manifest.allowedActions)) {
+    return false;
+  }
+
+  // Each allowed action must be a valid method name
+  for (const action of manifest.allowedActions) {
+    if (typeof action !== 'string' || !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(action)) {
+      return false;
+    }
+  }
+
+  // Optional: maxCallsPerTurn must be positive number if present
+  if (
+    manifest.maxCallsPerTurn !== undefined &&
+    (typeof manifest.maxCallsPerTurn !== 'number' ||
+      manifest.maxCallsPerTurn <= 0 ||
+      !Number.isInteger(manifest.maxCallsPerTurn))
+  ) {
+    return false;
+  }
+
+  // Optional: timeoutMs must be positive number if present
+  if (
+    manifest.timeoutMs !== undefined &&
+    (typeof manifest.timeoutMs !== 'number' || manifest.timeoutMs <= 0)
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
- * Creates an effect context from an internal context.
- * All effects receive the same full-featured context.
+ * Validates that an effect implementation is a function.
+ * Basic sanity check before registration.
  */
-export function makeEffectCtx(ictx: InternalEffectContext): EffectContext {
-  const engine = ictx.engine;
-  const state  = engine.getState();
+function validateImplementation(impl: unknown): boolean {
+  return typeof impl === 'function';
+}
+
+/**
+ * Register a custom effect handler with validation and sandboxing.
+ * For internal use (built-in effects), use registerInternalEffect().
+ *
+ * @param manifest - Effect handler manifest with metadata
+ * @param impl - Effect implementation function
+ * @throws Error if manifest validation fails or implementation is invalid
+ */
+export function registerEffect(
+  manifest: EffectHandlerManifest,
+  impl: EffectImpl,
+): void;
+
+/**
+ * Register an effect handler without manifest (internal use only).
+ * DEPRECATED: Use the manifest version instead.
+ *
+ * @param type - Effect type string
+ * @param impl - Effect implementation function
+ * @deprecated Use manifest-based registration for security
+ */
+export function registerEffect(type: string, impl: EffectImpl): void;
+
+export function registerEffect(
+  manifestOrType: EffectHandlerManifest | string,
+  impl: EffectImpl,
+): void {
+  // Handle overloaded signature
+  let manifest: EffectHandlerManifest | undefined;
+  let type: string;
+
+  if (typeof manifestOrType === 'string') {
+    // Old signature - no validation (internal use)
+    type = manifestOrType;
+    EchoesOfSanguo.log(
+      'WARN',
+      `registerEffect called with string type "${type}". Use manifest for security.`,
+      '#fa0',
+    );
+  } else {
+    // New signature - with manifest
+    manifest = manifestOrType;
+    type = manifest.type;
+  }
+
+  // Validate implementation
+  if (!validateImplementation(impl)) {
+    const errorMsg = `Invalid effect implementation for "${type}": must be a function`;
+    EchoesOfSanguo.log('SECURITY', errorMsg, '#f44');
+    throw new Error(errorMsg);
+  }
+
+  // Validate manifest if provided
+  if (manifest && !validateManifest(manifest)) {
+    const errorMsg = `Invalid effect manifest for "${type}": missing or invalid fields`;
+    EchoesOfSanguo.log('SECURITY', errorMsg, '#f44');
+    throw new Error(errorMsg);
+  }
+
+  // Apply security wrappers
+  let wrappedImpl: EffectImpl = impl;
+
+  // Apply timeout wrapper
+  const timeoutMs = manifest?.timeoutMs ?? 100;
+  wrappedImpl = wrapWithTimeout(wrappedImpl, timeoutMs, type);
+
+  // Apply rate limit wrapper if specified
+  if (manifest?.maxCallsPerTurn !== undefined) {
+    // Create a proxy state for rate limiting
+    const rateLimitState = { callCounts: new Map<string, number>() };
+    wrappedImpl = wrapWithRateLimit(
+      wrappedImpl,
+      manifest.maxCallsPerTurn,
+      type,
+      rateLimitState,
+    );
+  }
+
+  // Register with metadata
+  EFFECT_HANDLERS.set(type, {
+    impl: wrappedImpl,
+    manifest,
+    registeredAt: Date.now(),
+  });
+
+  // Log registration for observability
+  const modInfo = manifest?.modId ? ` from mod "${manifest.modId}"` : '';
+  EchoesOfSanguo.log(
+    'EFFECT',
+    `Registered effect "${type}"${modInfo}${manifest ? `: ${manifest.description}` : ''}`,
+  );
+}
+
+/**
+ * Register an internal effect handler (bypasses validation).
+ * Only used for built-in effects in this file.
+ *
+ * @param type - Effect type string
+ * @param impl - Effect implementation function
+ * @internal
+ */
+export function registerInternalEffect(type: string, impl: EffectImpl): void {
+  EFFECT_HANDLERS.set(type, {
+    impl,
+    registeredAt: Date.now(),
+  });
+}
+
+/**
+ * Get effect handler metadata for debugging.
+ * @param type - Effect type
+ * @returns Handler metadata or undefined
+ */
+export function getEffectHandlerInfo(
+  type: string,
+): { manifest?: EffectHandlerManifest; registeredAt: number } | undefined {
+  const entry = EFFECT_HANDLERS.get(type);
+  if (!entry) return undefined;
+  return {
+    manifest: entry.manifest,
+    registeredAt: entry.registeredAt,
+  };
+}
+
+/**
+ * Reset effect call counters (called at turn boundaries).
+ */
+export function resetEffectCallCounts(ctx: any): void {
+  if (ctx.effectCallCounts) {
+    ctx.effectCallCounts.clear();
+  }
+}
+
+export function makePureCtx(ctx: EffectContext): PureEffectCtx {
+  const engine = ctx.engine;
+  const state   = engine.getState();
   return {
     state,
-    owner:       ictx.owner,
-    targetFC:    ictx.targetFC,
-    targetCard:  ictx.targetCard,
-    attacker:    ictx.attacker,
-    defender:    ictx.defender,
-    summonedFC:  ictx.summonedFC,
-    abortSignal: ictx.abortSignal,
-    
-    // Helper methods
-    log:              (msg) => engine.addLog(msg),
-    damage:           (target, amount) => engine.dealDamage(target, amount),
-    heal:             (target, amount) => engine.gainLP(target, amount),
-    draw:             (target, count)  => engine.drawCard(target, count),
-    removeEquipment:  (owner, zone)    => engine.removeEquipmentForMonster(owner, zone),
-    removeFieldSpell: (owner)          => engine.removeFieldSpell(owner),
-    vfx:              engine.ui?.playVFX ? (type, owner?: Owner, zone?: number) => { if (owner !== undefined) engine.ui.playVFX!(type, owner, zone); } : undefined,
-    
-    // Summon/search methods
+    owner:      ctx.owner,
+    target:     ctx.target,
+    targetCard: ctx.targetCard,
+    attacker:   ctx.attacker,
+    defender:   ctx.defender,
+    summoned:   ctx.summoned,
+    log:               (msg) => engine.addLog(msg),
+    damage:            (owner, amount) => engine.dealDamage(owner, amount),
+    heal:              (owner, amount) => engine.gainLP(owner, amount),
+    draw:              (owner, count)  => engine.drawCard(owner, count),
+    removeEquipment:   (owner, zone)   => engine.removeEquipmentForMonster(owner, zone),
+    removeFieldSpell:  (owner)         => engine.removeFieldSpell(owner),
+    vfx:               engine.ui?.playVFX ? (type, owner, zone) => engine.ui.playVFX!(type, owner!, zone) : undefined,
+  };
+}
+
+/**
+ * Create a read-only safe context for custom effect handlers.
+ * Restricts access to mutable game state.
+ */
+export function makeSafeCtx(ctx: EffectContext): SafeEffectContext {
+  const engine = ctx.engine;
+  const state = engine.getState();
+  return {
+    get state() {
+      return Object.freeze(state);
+    },
+    owner: ctx.owner,
+    target: ctx.target,
+    targetCard: ctx.targetCard,
+    attacker: ctx.attacker,
+    defender: ctx.defender,
+    summoned: ctx.summoned,
+    log: (msg) => engine.addLog(msg),
+    damage: (target, amount) => engine.dealDamage(target, amount),
+    heal: (target, amount) => engine.gainLP(target, amount),
+    draw: (target, count) => engine.drawCard(target, count),
+    vfx: engine.ui?.playVFX
+      ? (type, owner, zone) => engine.ui!.playVFX!(type, owner!, zone)
+      : undefined,
+  };
+}
+
+export function makeChainCtx(ctx: EffectContext): ChainEffectCtx {
+  const engine = ctx.engine;
+  return {
+    ...makePureCtx(ctx),
     summon:         (owner, card, zone, position, faceDown) => engine.specialSummon(owner, card, zone, position, faceDown),
     summonFromGrave:(owner, card, fromOwner)                => engine.specialSummonFromGrave(owner, card, fromOwner),
     removeFromHand: (owner, index)                          => engine.removeFromHand(owner, index),
@@ -908,7 +1290,7 @@ export function makeEffectCtx(ictx: InternalEffectContext): EffectContext {
   };
 }
 
-export function canPayCost(block: CardEffectBlock, ctx: InternalEffectContext): boolean {
+export function canPayCost(block: CardEffectBlock, ctx: EffectContext): boolean {
   if (!block.cost) return true;
   const st = ctx.engine.getState()[ctx.owner];
   if (block.cost.lp && st.lp < block.cost.lp) return false;
@@ -916,7 +1298,7 @@ export function canPayCost(block: CardEffectBlock, ctx: InternalEffectContext): 
   return true;
 }
 
-async function payCost(block: CardEffectBlock, ctx: InternalEffectContext): Promise<void> {
+async function payCost(block: CardEffectBlock, ctx: EffectContext): Promise<void> {
   if (!block.cost) return;
   const st = ctx.engine.getState()[ctx.owner];
   if (block.cost.lpHalf) {
@@ -929,7 +1311,7 @@ async function payCost(block: CardEffectBlock, ctx: InternalEffectContext): Prom
   }
   if (block.cost.discard) {
     for (let i = 0; i < block.cost.discard && st.hand.length > 0; i++) {
-      const idx = Math.floor(Math.random() * st.hand.length);
+      const idx = randomIndexSecure(st.hand);
       const [c] = st.hand.splice(idx, 1);
       st.graveyard.push(c);
     }
@@ -962,7 +1344,7 @@ export interface EffectExecutionOptions {
  */
 export async function executeEffectBlock(
   block: CardEffectBlock,
-  ctx: InternalEffectContext,
+  ctx: EffectContext,
   options?: EffectExecutionOptions,
 ): Promise<EffectSignal> {
   const stepCounter = options?.stepCounter ?? { value: 0 };
@@ -981,7 +1363,7 @@ export async function executeEffectBlock(
   }
   await payCost(block, ctx);
 
-  const pctx = makeEffectCtx(ctx);
+  const pctx = makeChainCtx(ctx);
   const signal: EffectSignal = {};
   
   for (const action of block.actions) {
@@ -1017,31 +1399,31 @@ export function extractPassiveFlags(block: CardEffectBlock): {
   cannotBeTargeted: boolean;
   canDirectAttack: boolean;
   vsAttrBonus: { attr: Attribute; atk: number } | null;
-  phoenixRevival: boolean;
+  hasPhoenixRevival: boolean;
   indestructible: boolean;
-  effectImmune: boolean;
-  cantBeAttacked: boolean;
+  isEffectImmune: boolean;
+  cannotBeAttacked: boolean;
 } {
   const flags = {
     piercing: false,
     cannotBeTargeted: false,
     canDirectAttack: false,
     vsAttrBonus: null as { attr: Attribute; atk: number } | null,
-    phoenixRevival: false,
+    hasPhoenixRevival: false,
     indestructible: false,
-    effectImmune: false,
-    cantBeAttacked: false,
+    isEffectImmune: false,
+    cannotBeAttacked: false,
   };
   for (const action of block.actions) {
     switch (action.type) {
-      case 'passive_piercing':       flags.piercing = true; break;
-      case 'passive_untargetable':   flags.cannotBeTargeted = true; break;
-      case 'passive_directAttack':   flags.canDirectAttack = true; break;
-      case 'passive_vsAttrBonus':    flags.vsAttrBonus = { attr: action.attr, atk: action.atk }; break;
-      case 'passive_phoenixRevival': flags.phoenixRevival = true; break;
-      case 'passive_indestructible': flags.indestructible = true; break;
-      case 'passive_effectImmune':   flags.effectImmune = true; break;
-      case 'passive_cantBeAttacked': flags.cantBeAttacked = true; break;
+      case 'passive_piercing':         flags.piercing = true; break;
+      case 'passive_untargetable':     flags.cannotBeTargeted = true; break;
+      case 'passive_directAttack':     flags.canDirectAttack = true; break;
+      case 'passive_vsAttrBonus':      flags.vsAttrBonus = { attr: action.attr, atk: action.atk }; break;
+      case 'passive_phoenixRevival':   flags.hasPhoenixRevival = true; break;
+      case 'passive_indestructible':   flags.indestructible = true; break;
+      case 'passive_effectImmune':     flags.isEffectImmune = true; break;
+      case 'passive_cantBeAttacked':   flags.cannotBeAttacked = true; break;
     }
   }
   return flags;
