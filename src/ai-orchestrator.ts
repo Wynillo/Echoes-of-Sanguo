@@ -299,16 +299,6 @@ async function aiMainPhase(deps: AIDependencies): Promise<void> {
         } else {
           await deps.summonMonster('opponent', bestIdx, zone, summonPos);
         }
-        const summonedFC = ai.field.monsters[zone];
-        if(summonedFC){
-          const trapResult = await deps.promptPlayerTraps('onOpponentSummon', summonedFC);
-          if(trapResult && trapResult.destroySummoned){
-            EchoesOfSanguo.log('TRAP', `Trap hole destroyed ${summonedFC.card.name}`);
-            ai.graveyard.push(summonedFC.card);
-            ai.field.monsters[zone] = null;
-            deps.render(state);
-          }
-        }
       }
     }
   }
