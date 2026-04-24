@@ -14,7 +14,6 @@ import RaceIcon from '../components/RaceIcon';
 import styles from './PackOpeningScreen.module.css';
 
 type Phase = 'pack' | 'reveal' | 'summary';
-type Rarity = 4 | 5 | 6 | 7 | 8;
 
 /**
  * Number of taps required to open a pack.
@@ -59,11 +58,11 @@ const RARITY_COLORS = {
  * Accessibility note: reduced-motion preferences already supported via skipRef.
  */
 const HOLD_BY_RARITY: Record<Rarity, number> = {
-  [4]: DEFAULT_HOLD_DURATION_S,  // Common: 0.5s
-  [5]: DEFAULT_HOLD_DURATION_S,  // Uncommon: 0.5s
-  [6]: 0.8,  // Rare: 0.8s
-  [7]: 1.2,  // Super Rare: 1.2s
-  [8]: 1.6,  // Ultra Rare: 1.6s
+  [Rarity.COMMON]: DEFAULT_HOLD_DURATION_S,
+  [Rarity.UNCOMMON]: DEFAULT_HOLD_DURATION_S,
+  [Rarity.RARE]: 0.8,
+  [Rarity.SUPER_RARE]: 1.2,
+  [Rarity.ULTRA_RARE]: 1.6,
 };
 
 /**

@@ -2,15 +2,16 @@ import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, res
 import { executeEffectBlock, matchesFilter, EffectExecutionError } from './effect-registry';
 import { CardType } from './types';
 import { meetsEquipRequirement } from './types';
-import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types';
+import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats, EffectContext } from './types';
 import { TriggerBus } from './trigger-bus';
-import { Option } from './option';
+import { Option, Some } from './option';
 // Re-export for backwards compatibility
 export { meetsEquipRequirement } from './types';
+export type { GameState } from './types';
 
 
 // Internal effect context for safe execution
-type InternalEffectContext = import("./types").EffectContext;
+type InternalEffectContext = EffectContext;
 export interface SerializedFieldCardData {
   cardId: string;
   position: Position;
@@ -512,7 +513,7 @@ export class GameEngine {
       this.addLog('No monster in that zone!');
       return false;
     }
-    const fc = fcResult.value;
+    const fc = (fcResult as Some<FieldCard>).value;
     
     if(!fc.faceDown){ this.addLog('No face-down monster!'); return false; }
     if(fc.turnState.summonedThisTurn){ this.addLog('Cannot flip on the same turn!'); return false; }    fc.faceDown = false;
@@ -761,7 +762,7 @@ export class GameEngine {
     if (this.ui.showActivation) await this.ui.showActivation(card, card.description);
 
     if (card.effect) {
-      const ctx: InternalEffectContext = { engine: this, owner, targetFC };
+      const ctx: InternalEffectContext = { engine: this, owner, target: targetFC };
       await this._safeExecuteEffect(card.effect, ctx, card.id, 'equipment effect');
     }
 
@@ -1096,7 +1097,7 @@ export class GameEngine {
       this.addLog('No attacking monster!');
       return { attFC: null, defFC: null, valid: false };
     }
-    const attFC = attFCResult.value;
+    const attFC = (attFCResult as Some<FieldCard>).value;
     
     if (attFC.turnState.hasAttacked) {
       this.addLog(`${attFC.card.name} has already attacked!`);
@@ -1114,7 +1115,7 @@ export class GameEngine {
     }
 
     const defFC = defSt.field.monsters[defenderZone];
-    if (defFC && defFC.cantBeAttacked) {
+    if (defFC && defFC.cannotBeAttacked) {
       this.addLog(`${defFC.card.name} cannot be attacked!`);
       return { attFC, defFC, valid: false };
     }
@@ -1312,7 +1313,7 @@ export class GameEngine {
   async _resolveBattle(atkOwner: Owner, atkZone: number, defOwner: Owner, defZone: number, attFC: FieldCard, defFC: FieldCard){
     const shouldContinue = await this._handleFlipReveal(defFC, defOwner, defZone);
     if (!shouldContinue) return;
-    const { effATK, defVal, modeStr } = this._calculateCombatValues(attFC, defFC, atkVal);
+    const { effATK, defVal, modeStr } = this._calculateCombatValues(attFC, defFC);
 
     this.addLog(`${attFC.card.name} (ATK ${effATK}) vs ${defFC.card.name} (${modeStr} ${defVal})`);
 
@@ -1375,9 +1376,10 @@ export class GameEngine {
     }
   }
 
-  private _calculateCombatValues(attFC: FieldCard, defFC: FieldCard, atkVal: number): { effATK: number, defVal: number, modeStr: string }{
+  private _calculateCombatValues(attFC: FieldCard, defFC: FieldCard): { effATK: number, defVal: number, modeStr: string }{
     const defVal = defFC.combatValue();
     const modeStr= defFC.position === 'atk' ? 'ATK' : 'DEF';
+    const atkVal = attFC.effectiveATK();
 
     let atkBonus = 0;
     if(attFC.vsAttrBonus && defFC.card.attribute === attFC.vsAttrBonus.attr)
@@ -1412,7 +1414,7 @@ export class GameEngine {
     await this._triggerSentToGrave(fc.card, owner);
     this._recalcFieldFlags();
 
-    if (fc.phoenixRevival && !fc.phoenixRevivalUsed) {
+    if (fc.hasPhoenixRevival && !fc.phoenixRevivalUsed) {
       this.addLog(`${fc.card.name} rises from the graveyard!`);
       const revived = await this.specialSummonFromGrave(owner, fc.card);
       if (revived) {
@@ -1440,7 +1442,7 @@ export class GameEngine {
         EchoesOfSanguo.log('EFFECT', `${targetInfo.card.name} cannot be targeted by effects – target ignored.`, '#fa0');
         this.addLog(`${targetInfo.card.name} cannot be targeted by effects!`);
       } else {
-        ctx.targetFC = targetInfo;
+        ctx.target = targetInfo;
       }
     } else if(targetInfo && typeof targetInfo === 'object' && 'id' in targetInfo){
       ctx.targetCard = targetInfo as CardData;
@@ -1456,7 +1458,7 @@ export class GameEngine {
       ctx.attacker = args[0];
       ctx.defender = args[1];
     } else if(trapTrigger === 'onOpponentSummon' || trapTrigger === 'onAnySummon'){
-      ctx.summonedFC = args[0];
+      ctx.summoned = args[0];
     } else if(trapTrigger === 'onOpponentTrap'){
       ctx.attacker = args[0];
     }

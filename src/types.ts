@@ -144,7 +144,7 @@ export interface PureEffectCtx {
   draw(owner: Owner, count?: number): void;
   removeEquipment(owner: Owner, zone: number): void;
   removeFieldSpell(owner: Owner): void;
-  vfx?(type: 'buff' | 'heal' | 'damage', owner?: Owner, zone?: number): void;
+  vfx?(type: 'buff' | 'heal' | 'damage', owner?: Owner, zone?: number): void | Promise<void>;
 }
 
 export interface ChainEffectCtx extends PureEffectCtx {
@@ -457,6 +457,7 @@ export declare class FieldCard {
   indestructible:   boolean;
   isEffectImmune:     boolean;
   cannotBeAttacked:   boolean;
+  vsAttrBonus?:       { attr: number; atk: number };
   equippedCards:    Array<{ zone: number; card: CardData }>;
   originalOwner?:   Owner;
   resetTurnState(): void;

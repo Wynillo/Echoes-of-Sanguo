@@ -27,6 +27,7 @@ export class FieldCard {
   indestructible: boolean;
   isEffectImmune: boolean;
   cannotBeAttacked: boolean;
+  vsAttrBonus?: { attr: number; atk: number };
   equippedCards: Array<{ zone: number; card: CardData }>;
   originalOwner?: Owner;
 
@@ -69,6 +70,7 @@ export class FieldCard {
       if (flags.indestructible) this.indestructible = true;
       if (flags.isEffectImmune) this.isEffectImmune = true;
       if (flags.cannotBeAttacked) this.cannotBeAttacked = true;
+      if (flags.vsAttrBonus) this.vsAttrBonus = flags.vsAttrBonus;
     }
   }
 

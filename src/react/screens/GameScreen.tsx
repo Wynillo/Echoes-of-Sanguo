@@ -60,7 +60,7 @@ export default function GameScreen() {
         if (sel.mode === 'attack' && sel.attackerZone !== null) {
           const defZone = sel.trapFieldZone ?? null;
           if (defZone !== null) {
-            game.attackMonster('player', sel.attackerZone, defZone);
+            game.attack('player', sel.attackerZone, defZone);
             vibratePatterns.onAttack();
             resetSel();
           } else {
@@ -68,7 +68,7 @@ export default function GameScreen() {
             resetSel();
           }
         } else if (sel.mode === 'spell-target' && sel.spellHandIndex !== null && sel.spellFieldZone !== null) {
-          game.setSpell('player', sel.spellHandIndex, sel.spellFieldZone);
+          game.setSpellTrap('player', sel.spellHandIndex, sel.spellFieldZone);
           vibratePatterns.onCardPlay();
           resetSel();
         } else if (sel.mode === 'equip-target' && sel.equipHandIndex !== null && sel.equipCard) {
