@@ -1,5 +1,6 @@
 import type { CardData, CardEffectBlock, CardFilter, EffectCost, EffectDescriptor, EffectTrigger, TrapTrigger, ValueExpr, StatTarget } from './types';
 import { getRaceById, getAttrById } from './type-metadata';
+import { CardType } from './types';
 
 export type TFunction = (key: string, opts?: Record<string, unknown>) => string;
 
@@ -53,12 +54,18 @@ function filterText(filter: CardFilter | undefined, t: TFunction): string {
   return base;
 }
 
-function triggerText(trigger: EffectTrigger | TrapTrigger, t: TFunction): string {
-  return t(`effectText.trigger_${trigger}`);
+function triggerText(trigger: EffectTrigger | TrapTrigger, t: TFunction, cardType?: CardType): string {
+  const key = trigger === 'onSummon' && (cardType === CardType.Spell || cardType === CardType.Trap)
+    ? 'effectText.trigger_onSummon_spell'
+    : `effectText.trigger_${trigger}`;
+  return t(key);
 }
 
-function triggerTooltip(trigger: EffectTrigger | TrapTrigger, t: TFunction): string {
-  return t(`effectText.trigger_${trigger}_tip`);
+function triggerTooltip(trigger: EffectTrigger | TrapTrigger, t: TFunction, cardType?: CardType): string {
+  const key = trigger === 'onSummon' && (cardType === CardType.Spell || cardType === CardType.Trap)
+    ? 'effectText.trigger_onSummon_spell_tip'
+    : `effectText.trigger_${trigger}_tip`;
+  return t(key);
 }
 
 function costText(cost: EffectCost, t: TFunction): string {
@@ -255,12 +262,12 @@ function actionTooltip(a: EffectDescriptor, t: TFunction): string | undefined {
   return result !== key ? result : undefined;
 }
 
-export function buildEffectBlockSegments(block: CardEffectBlock, t: TFunction): EffectTextSegment[] {
+export function buildEffectBlockSegments(block: CardEffectBlock, t: TFunction, cardType?: CardType): EffectTextSegment[] {
   const segments: EffectTextSegment[] = [];
 
   segments.push({
-    text: triggerText(block.trigger, t),
-    tooltip: triggerTooltip(block.trigger, t),
+    text: triggerText(block.trigger, t, cardType),
+    tooltip: triggerTooltip(block.trigger, t, cardType),
     type: 'trigger',
   });
 
@@ -289,8 +296,8 @@ export function buildEffectBlockSegments(block: CardEffectBlock, t: TFunction): 
   return segments;
 }
 
-export function buildEffectBlockText(block: CardEffectBlock, t: TFunction): string {
-  return buildEffectBlockSegments(block, t).map(s => s.text).join('');
+export function buildEffectBlockText(block: CardEffectBlock, t: TFunction, cardType?: CardType): string {
+  return buildEffectBlockSegments(block, t, cardType).map(s => s.text).join('');
 }
 
 function getEffectBlocks(card: CardData): CardEffectBlock[] {
@@ -300,9 +307,9 @@ function getEffectBlocks(card: CardData): CardEffectBlock[] {
 }
 
 export function buildCardEffectSegments(card: CardData, t: TFunction): EffectTextSegment[][] {
-  return getEffectBlocks(card).map(block => buildEffectBlockSegments(block, t));
+  return getEffectBlocks(card).map(block => buildEffectBlockSegments(block, t, card.type));
 }
 
 export function buildCardEffectText(card: CardData, t: TFunction): string[] {
-  return getEffectBlocks(card).map(block => buildEffectBlockText(block, t));
+  return getEffectBlocks(card).map(block => buildEffectBlockText(block, t, card.type));
 }

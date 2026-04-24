@@ -538,6 +538,7 @@
   },
   "effectText": {
     "trigger_onSummon": "Bei Beschwörung",
+    "trigger_onSummon_spell": "Bei Aktivierung",
     "trigger_onDestroyByBattle": "Bei Zerstörung im Kampf",
     "trigger_onDestroyByOpponent": "Bei Zerstörung durch Gegner",
     "trigger_passive": "Passiv",
@@ -554,6 +555,7 @@
     "trigger_onOpponentTrap": "Wenn Gegner eine Falle aktiviert",
 
     "trigger_onSummon_tip": "Aktiviert sich, wenn dieses Monster beschworen wird",
+    "trigger_onSummon_spell_tip": "Aktiviert sich, wenn diese Karte aktiviert wird",
     "trigger_onDestroyByBattle_tip": "Aktiviert sich, wenn dieses Monster im Kampf zerstört wird",
     "trigger_onDestroyByOpponent_tip": "Aktiviert sich, wenn dieses Monster vom Gegner zerstört wird",
     "trigger_passive_tip": "Immer aktiv, solange dieses Monster offen auf dem Feld liegt",

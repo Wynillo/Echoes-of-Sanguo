@@ -124,6 +124,34 @@ describe('buildCardEffectText', () => {
     const lines = buildCardEffectText(card, stubT);
     expect(lines).toHaveLength(2);
   });
+
+  it('uses trigger_onSummon for monster cards', () => {
+    const card = {
+      id: '4', name: 'Spell', type: CardType.Spell, description: 'test',
+      effect: makeBlock('onSummon', [{ type: 'gainLP', target: 'self', value: 2000 }]),
+    } as CardData;
+    const lines = buildCardEffectText(card, stubT);
+    expect(lines[0]).toContain('trigger_onSummon_spell');
+  });
+
+  it('uses trigger_onSummon for trap cards too', () => {
+    const card = {
+      id: '5', name: 'Trap', type: CardType.Trap, description: 'test',
+      effect: makeBlock('onSummon', [{ type: 'dealDamage', target: 'opponent', value: 500 }]),
+    } as CardData;
+    const lines = buildCardEffectText(card, stubT);
+    expect(lines[0]).toContain('trigger_onSummon_spell');
+  });
+
+  it('still uses trigger_onSummon for monsters', () => {
+    const card = {
+      id: '6', name: 'Monster', type: CardType.Monster, description: 'test',
+      effect: makeBlock('onSummon', [{ type: 'dealDamage', target: 'opponent', value: 500 }]),
+    } as CardData;
+    const lines = buildCardEffectText(card, stubT);
+    expect(lines[0]).toContain('trigger_onSummon');
+    expect(lines[0]).not.toContain('trigger_onSummon_spell');
+  });
 });
 
 describe('action coverage', () => {
