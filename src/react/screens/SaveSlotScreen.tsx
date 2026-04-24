@@ -5,6 +5,7 @@ import { useProgression } from '../contexts/ProgressionContext';
 import { useCampaign }    from '../contexts/CampaignContext';
 import { useModal }       from '../contexts/ModalContext';
 import { Progression }    from '../../progression';
+import { getRaceById }    from '../../type-metadata';
 import type { SlotId, SlotMeta } from '../../progression';
 import styles from './SaveSlotScreen.module.css';
 
@@ -108,7 +109,7 @@ export default function SaveSlotScreen() {
                 <div className={styles.slotInfo}>
                   {meta.starterRace && (
                     <div className={styles.infoRow}>
-                      <span>{t('slots.race_label', { race: t(`cards.race_${meta.starterRace}`) })}</span>
+                      <span>{t('slots.race_label', { race: getRaceById(Number(meta.starterRace))?.value ?? meta.starterRace })}</span>
                     </div>
                   )}
                   <div className={styles.infoRow}>
