@@ -538,6 +538,7 @@
   },
   "effectText": {
     "trigger_onSummon": "On Summon",
+    "trigger_onSummon_spell": "On Activation",
     "trigger_onDestroyByBattle": "When destroyed in battle",
     "trigger_onDestroyByOpponent": "When destroyed by opponent",
     "trigger_passive": "Passive",
@@ -554,6 +555,7 @@
     "trigger_onOpponentTrap": "When opponent activates a trap",
 
     "trigger_onSummon_tip": "Activates when this monster is summoned to the field",
+    "trigger_onSummon_spell_tip": "Activates when this card is activated",
     "trigger_onDestroyByBattle_tip": "Activates when this monster is destroyed in battle",
     "trigger_onDestroyByOpponent_tip": "Activates when this monster is destroyed by the opponent",
     "trigger_passive_tip": "Always active while this monster is face-up on the field",
