@@ -432,14 +432,6 @@ export const Progression = (() => {
 
     if (activeSlot === null) return;
 
-    // Pre-derive slot keys for signature operations
-    try {
-      await ensureSlotKey(activeSlot);
-      slotKeysReady = true;
-    } catch (err) {
-      secureLogger.warn('PROGRESSION', 'Slot key derivation failed, signatures disabled:', err);
-    }
-
     const initKey = _key(SLOT_KEY_NAMES.initialized);
     const coinsKey = _key(SLOT_KEY_NAMES.coins);
     const collectionKey = _key(SLOT_KEY_NAMES.collection);
@@ -475,6 +467,14 @@ export const Progression = (() => {
         }
         _save(versionKey, SAVE_VERSION);
       }
+    }
+
+    // Pre-derive slot keys for signature operations (async — runs after sync init)
+    try {
+      await ensureSlotKey(activeSlot);
+      slotKeysReady = true;
+    } catch (err) {
+      secureLogger.warn('PROGRESSION', 'Slot key derivation failed, signatures disabled:', err);
     }
   }
 

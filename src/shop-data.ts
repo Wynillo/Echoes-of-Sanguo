@@ -75,7 +75,7 @@ export const SHOP_DATA: ShopData = {
 
 export function applyShopData(data: Partial<ShopData>): void {
   if (data.packs) {
-    SHOP_DATA.packs = data.packs;
+    SHOP_DATA.packs.push(...data.packs);
   }
   if (data.currencies) {
     for (const incoming of data.currencies) {

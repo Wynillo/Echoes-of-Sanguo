@@ -446,9 +446,6 @@ export function pickSmartSummonCandidate(hand: CardData[], ctx: BoardContext): n
     if (atk >= playerMaxATK) score += AI_SUMMON_SCORE.OUTCLASS_OPPONENT_BONUS;
     else if (def >= playerMaxThreat) score += AI_SUMMON_SCORE.DEFENSIVE_BONUS;
 
-    if (playerMonsters.length === 0) score += atk;
-
-
     if (ctx.aiLp < AI_LP_THRESHOLD.LOW && def > playerMaxThreat) score += AI_SCORE.LOW_LP_SURVIVAL;
     if (score > bestScore) {
       bestScore = score;

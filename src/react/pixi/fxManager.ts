@@ -1,5 +1,5 @@
 import { Application, Container } from 'pixi.js';
-import { Rarity } from '../types.js';
+import { Rarity } from '../../types.js';
 import { runPackReveal } from './effects/packReveal.js';
 
 let _app: Application | null = null;

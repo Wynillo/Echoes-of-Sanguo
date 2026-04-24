@@ -24,7 +24,7 @@ export function applyCampaignData(data: CampaignData): void {
       if (post) node.postDialogue = post;
     }
   }
-  CAMPAIGN_DATA.chapters = data.chapters;
+  CAMPAIGN_DATA.chapters.push(...data.chapters);
 }
 
 /**
