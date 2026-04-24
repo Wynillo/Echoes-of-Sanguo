@@ -1,8 +1,8 @@
-import { loadAndApplyTcg, verifyModIntegrity, type BridgeLoadResult } from './tcg-bridge.js';
-import { ENGINE_VERSION } from './version.js';
-import { secureLogger } from './secure-logger.js';
-import { API_CONFIG, DB_CONFIG, EXPECTED_TCG_HASHES } from './config.js';
-import { computeArrayBufferHash } from './storage-security.js';
+import { loadAndApplyTcg, verifyModIntegrity, type BridgeLoadResult } from './tcg-bridge';
+import { ENGINE_VERSION } from './version';
+import { secureLogger } from './secure-logger';
+import { API_CONFIG, DB_CONFIG, EXPECTED_TCG_HASHES } from './config';
+import { computeArrayBufferHash } from './storage-security';
 
 const { GITHUB_API_BASE, GITHUB_RAW_BASE, REPO_OWNER, REPO_NAME, CHECK_UPDATE_TIMEOUT_MS } = API_CONFIG;
 const { TCG_CACHE_NAME, TCG_STORE_NAME, TCG_CACHE_KEY, INDEXEDDB_QUOTA_THRESHOLD } = DB_CONFIG;
@@ -12,7 +12,6 @@ const COMMIT_URL = `${GITHUB_API_BASE}/repos/${REPO}/commits/main`;
 const RAW_BASE = `${GITHUB_RAW_BASE}/${REPO}`;
 
 // IndexedDB helpers
-
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(TCG_CACHE_NAME, 1);

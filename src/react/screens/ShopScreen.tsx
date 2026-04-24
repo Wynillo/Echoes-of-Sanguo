@@ -1,19 +1,19 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useScreen }      from '../contexts/ScreenContext.js';
-import { useProgression } from '../contexts/ProgressionContext.js';
-import { useCampaign }    from '../contexts/CampaignContext.js';
-import { Progression }    from '../../progression.js';
-import { getRarityById } from '../../type-metadata.js';
-import { openPack, isPackUnlocked, buildCardPool } from '../utils/pack-logic.js';
-import { SHOP_DATA, type PackPrice } from '../../shop-data.js';
-import type { PackDef, PackSlotDef, CurrencyDef } from '../../shop-data.js';
-import { ECONOMY, CURRENCY_UNLOCK_CHAPTERS } from '../../economy-config.js';
-import { Audio }               from '../../audio.js';
-import { Rarity } from '../../types.js';
-import type { CardData } from '../../types.js';
-import type { EffectSource } from '../../effect-items.js';
-import { CraftingScreen } from '../CraftingScreen.js';
+import { useScreen }      from '../contexts/ScreenContext';
+import { useProgression } from '../contexts/ProgressionContext';
+import { useCampaign }    from '../contexts/CampaignContext';
+import { Progression }    from '../../progression';
+import { getRarityById } from '../../type-metadata';
+import { openPack, isPackUnlocked, buildCardPool } from '../utils/pack-logic';
+import { SHOP_DATA, type PackPrice } from '../../shop-data';
+import type { PackDef, PackSlotDef } from '../../shop-data';
+import { ECONOMY, CURRENCY_UNLOCK_CHAPTERS } from '../../economy-config';
+import { Audio }               from '../../audio';
+import { Rarity } from '../../types';
+import type { CardData } from '../../types';
+import type { EffectSource } from '../../effect-items';
+import { CraftingScreen } from '../CraftingScreen';
 import styles from './ShopScreen.module.css';
 
 function totalCards(slots: PackSlotDef[]): number {
@@ -79,7 +79,7 @@ export default function ShopScreen() {
     const { currencyId, amount } = normalisePackPrice(pkg.price);
     const slot = Progression.getActiveSlot();
     if (!slot) return;
-    import('../../currencies.js').then(({ spendCurrency }) => {
+    import('../../currencies').then(({ spendCurrency }) => {
       if (!spendCurrency(slot, currencyId, amount)) return;
       Audio.playSfx('sfx_coin');
       const preOpen = Progression.getCollection();

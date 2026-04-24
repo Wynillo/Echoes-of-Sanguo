@@ -1,5 +1,3 @@
-import { CardType, Attribute, Race, Rarity } from './types.js';
-
 export interface RaceMeta {
   id:     number;
   key:    string;

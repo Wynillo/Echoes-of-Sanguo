@@ -1,4 +1,4 @@
-import { Rarity } from './types.js';
+import { Rarity } from './types';
 
 export type BadgeRank = 'S' | 'A' | 'B';
 

@@ -1,22 +1,9 @@
-import type { CollectionEntry, OpponentRecord } from './types.js';
-import type { CampaignProgress } from './campaign-types.js';
-import { getCurrency, addCurrency as _addCurrency, spendCurrency as _spendCurrency } from './currencies.js';
-import { ECONOMY, DEFAULT_CHAPTER } from './economy-config.js';
-import { secureLogger } from './secure-logger.js';
-import { createSignedPayload, verifySignedPayload, ensureSlotKey } from './progression-crypto.js';
-
-/**
- * Save slot progression manager with integrity verification.
- * 
- * SECURITY BOUNDARIES:
- * - Slot data is signed with per-slot HMAC-SHA256 keys
- * - Signatures detect casual localStorage manipulation
- * - Protects against: accidental corruption, simple tampering
- * - Does NOT protect against: determined attackers with dev tools access
- * 
- * This is a single-player client-side game. Slots provide organization
- * and integrity checking, not cryptographic security.
- */
+import type { CollectionEntry, OpponentRecord } from './types';
+import type { CampaignProgress } from './campaign-types';
+import { getCurrency, addCurrency as _addCurrency, spendCurrency as _spendCurrency } from './currencies';
+import { ECONOMY, DEFAULT_CHAPTER } from './economy-config';
+import { secureLogger } from './secure-logger';
+import { createSignedPayload, verifySignedPayload, ensureSlotKey } from './progression-crypto';
 
 export type SlotId = 1 | 2 | 3;
 

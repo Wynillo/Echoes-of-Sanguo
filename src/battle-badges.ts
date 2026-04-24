@@ -1,11 +1,11 @@
-import type { DuelStats } from './types.js';
-import { Rarity } from './types.js';
-import { CARD_DB } from './cards.js';
-import { DEFAULT_RARITY_PROBABILITIES, RARITY_DROP_RATES } from './react/utils/pack-logic.js';
-import type { DuelRewardConfig, BadgeRank, DropPoolEntry } from './reward-config.js';
-import { DEFAULT_REWARD_CONFIG, getRankEffect } from './reward-config.js';
+import type { DuelStats } from './types';
+import { Rarity } from './types';
+import { CARD_DB } from './cards';
+import { DEFAULT_RARITY_PROBABILITIES } from './react/utils/pack-logic';
+import type { DuelRewardConfig, BadgeRank, DropPoolEntry } from './reward-config';
+import { DEFAULT_REWARD_CONFIG, getRankEffect } from './reward-config';
 
-export type { BadgeRank } from './reward-config.js';
+export type { BadgeRank } from './reward-config';
 export type BadgeCategory = 'POW' | 'TEC';
 
 export interface BadgeResult {

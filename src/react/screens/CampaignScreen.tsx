@@ -1,13 +1,13 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useTranslation }   from 'react-i18next';
 import type { TFunction }   from 'i18next';
-import { useScreen }        from '../contexts/ScreenContext.js';
-import { useCampaign }      from '../contexts/CampaignContext.js';
-import { useGame }           from '../contexts/GameContext.js';
-import { useModal }          from '../contexts/ModalContext.js';
-import { OPPONENT_CONFIGS }  from '../../cards.js';
-import type { CampaignNode, Chapter } from '../../campaign-types.js';
-import RaceIcon from '../components/RaceIcon.js';
+import { useScreen }        from '../contexts/ScreenContext';
+import { useCampaign }      from '../contexts/CampaignContext';
+import { useGame }           from '../contexts/GameContext';
+import { useModal }          from '../contexts/ModalContext';
+import { OPPONENT_CONFIGS }  from '../../cards';
+import type { CampaignNode, Chapter } from '../../campaign-types';
+import RaceIcon from '../components/RaceIcon';
 import styles from './CampaignScreen.module.css';
 
 function getUnlockHint(node: CampaignNode, t: TFunction): string {
@@ -143,7 +143,7 @@ export default function CampaignScreen() {
             message: t('campaign.gauntlet_warning', 'This is a gauntlet: {{count}} consecutive duels. You cannot save between fights. Continue?', { count: node.gauntlet.length }),
             onConfirm: () => {
               const firstOppId = node.gauntlet![0];
-              const firstCfg = (OPPONENT_CONFIGS as import('../../types.js').OpponentConfig[]).find(c => c.id === firstOppId);
+              const firstCfg = (OPPONENT_CONFIGS as import('../../types').OpponentConfig[]).find(c => c.id === firstOppId);
               if (!firstCfg) {
                 console.error(`[CampaignScreen] Failed to find opponent config for gauntlet node "${node.id}", opponent ${firstOppId}`);
                 openModal({ type: 'alert', message: t('campaign.error_no_opponent', 'Cannot start duel: opponent configuration not found. Please check that the campaign data is loaded correctly.') });

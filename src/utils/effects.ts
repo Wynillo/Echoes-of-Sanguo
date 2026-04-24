@@ -1,4 +1,4 @@
-import type { CardData, CardEffectBlock } from '../types.js';
+import type { CardData, CardEffectBlock } from '../types';
 
 export function getEffectBlocks(card: CardData, trigger: string): CardEffectBlock[] {
   const blocks: CardEffectBlock[] = [];

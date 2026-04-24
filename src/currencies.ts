@@ -1,6 +1,6 @@
-import type { SlotId } from './progression.js';
-import { MAX_CURRENCY_AMOUNT } from './economy-config.js';
-import { verifyHMAC, deriveKey } from './storage-security.js';
+import type { SlotId } from './progression';
+import { MAX_CURRENCY_AMOUNT } from './economy-config';
+import { verifyHMAC, deriveKey } from './storage-security';
 
 const CURRENCY_ID_COINS = 'coins';
 const HMAC_CACHE = new Map<SlotId, Promise<string>>();
@@ -37,7 +37,7 @@ export async function verifyCurrencyIntegrity(slot: SlotId): Promise<boolean> {
 }
 
 export async function signCurrencyValue(slot: SlotId, value: number): Promise<void> {
-  const { computeHMAC } = await import('./storage-security.js');
+  const { computeHMAC } = await import('./storage-security');
   const key = await getCachedKey(slot);
   const currencyKey = _currencyKey(slot, CURRENCY_ID_COINS);
   

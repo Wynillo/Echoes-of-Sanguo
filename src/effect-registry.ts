@@ -4,11 +4,11 @@ import {
   type EffectDescriptor, type EffectContext, type EffectSignal, type CardEffectBlock,
   type ValueExpr, type StatTarget, type Owner, type FieldCard,
   type PureEffectCtx, type ChainEffectCtx, type GameState,
-} from './types.js';
-import { EchoesOfSanguo } from './debug-logger.js';
-import { shuffleArray, shuffleInPlace } from './utils/array.js';
-import { randomIndexSecure } from './utils/random.js';
-import { findEmptyMonsterZone } from './utils/field-zones.js';
+} from './types';
+import { EchoesOfSanguo } from './debug-logger';
+import { shuffleArray, shuffleInPlace } from './utils/array';
+import { randomIndexSecure } from './utils/random';
+import { findEmptyMonsterZone } from './utils/field-zones';
 
 /**
  * Maximum number of effect steps allowed per effect block execution.
@@ -1321,7 +1321,7 @@ async function payCost(block: CardEffectBlock, ctx: EffectContext): Promise<void
     const monsters = ctx.engine.getState()[ctx.owner].field.monsters;
     for (let i = 0; i < monsters.length; i++) {
       const fc = monsters[i];
-      if (fc && fc.card.effect?.actions.some((a: import('./types.js').EffectDescriptor) => a.type === block.actions[0]?.type)) {
+      if (fc && fc.card.effect?.actions.some((a: import('./types').EffectDescriptor) => a.type === block.actions[0]?.type)) {
         await ctx.engine.chainTribute(ctx.owner, fc.card);
         break;
       }

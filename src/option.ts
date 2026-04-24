@@ -1,24 +1,3 @@
-/**
- * Option/Maybe type for eliminating null checks in field monster access.
- * 
- * This type provides a functional alternative to null/undefined checks,
- * making code more expressive and reducing repetitive null-checking boilerplate.
- * 
- * Example usage:
- * ```typescript
- * // Before
- * const fc = this.state[owner].field.monsters[zone];
- * if(!fc) return;
- * if(fc.hasAttacked) return;
- * 
- * // After
- * const result = this.getMonsterAt(owner, zone);
- * if (result.isNone()) return;
- * const fc = result.value;
- * if(fc.hasAttacked) return;
- * ```
- */
-
 export type Option<T> = Some<T> | None;
 
 /**

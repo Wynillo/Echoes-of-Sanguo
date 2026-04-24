@@ -1,4 +1,4 @@
-import { shuffleSecure, shuffleArraySecure } from './random.js';
+import { shuffleSecure, shuffleArraySecure } from './random';
 
 /**
  * Fisher-Yates shuffle - returns a new shuffled array.

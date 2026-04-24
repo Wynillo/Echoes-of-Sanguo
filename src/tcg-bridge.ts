@@ -1,19 +1,18 @@
 import { loadTcgFile, TcgNetworkError, TcgFormatError } from '@wynillo/tcg-format';
 import JSZip from 'jszip';
 import i18next from 'i18next';
-import path from 'path';
 import type { TcgLoadResult, TcgParsedCard, TcgOpponentDeck, TcgOpponentDescription, TcgFusionFormula, TcgManifest } from '@wynillo/tcg-format';
-import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
-import { CardType } from './types.js';
-import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from './cards.js';
-import { intToTrapTrigger, isTrapTrigger } from './enums.js';
-import { isValidEffectString, parseEffectString } from './effect-serializer.js';
-import { applyRules, GAME_RULES, type GameRules } from './rules.js';
-import { applyTypeMeta, rebuildIndices, type TypeMetaData } from './type-metadata.js';
-import { applyShopData, SHOP_DATA, type ShopData } from './shop-data.js';
-import { applyCampaignData, CAMPAIGN_DATA } from './campaign-store.js';
-import type { CampaignData } from './campaign-types.js';
-import { TYPE_META } from './type-metadata.js';
+import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types';
+import { CardType } from './types';
+import { CARD_DB, FUSION_RECIPES, FUSION_FORMULAS, OPPONENT_CONFIGS, STARTER_DECKS, PLAYER_DECK_IDS, OPPONENT_DECK_IDS } from './cards';
+import { intToTrapTrigger, isTrapTrigger } from './enums';
+import { isValidEffectString, parseEffectString } from './effect-serializer';
+import { applyRules, GAME_RULES, type GameRules } from './rules';
+import { applyTypeMeta, rebuildIndices, type TypeMetaData } from './type-metadata';
+import { applyShopData, SHOP_DATA, type ShopData } from './shop-data';
+import { applyCampaignData, CAMPAIGN_DATA } from './campaign-store';
+import type { CampaignData } from './campaign-types';
+import { TYPE_META } from './type-metadata';
 
 // Re-export error classes for consumers
 export { TcgNetworkError, TcgFormatError };
@@ -348,11 +347,11 @@ async function extractOpponentsFromZip(buffer: ArrayBuffer, result: TcgLoadResul
   console.warn('[tcg-bridge] loadTcgFile returned no opponents, attempting manual extraction...');
   try {
     const zip = await JSZip.loadAsync(buffer);
-    const oppFile = zip.file('opponents.json');
+    const oppFile = zip.file('opponentson');
     if (oppFile) {
       const rawOpponents = JSON.parse(await oppFile.async('string')) as TcgOpponentDeck[];
       result.opponents = rawOpponents;
-      console.log('[tcg-bridge] Successfully extracted opponents.json manually');
+      console.log('[tcg-bridge] Successfully extracted opponentson manually');
     }
   } catch (e) {
     console.error('[tcg-bridge] Failed to manually extract opponents:', e);
@@ -628,31 +627,34 @@ const localeCache = new Map<string, TcgLocale>();
 // Locale cache eviction policy
 const MAX_LOCALE_CACHE_SIZE = 10; // Maximum languages to cache
 
-/**
- * Validates that a file path within a ZIP archive is safe and doesn't contain directory traversal.
- * Uses path.resolve canonicalization to prevent Zip Slip vulnerability.
- * See: https://snyk.io/research/zip-slip-vulnerability
- */
+function _normalizePath(p: string): string {
+  const parts = p.split('/');
+  const resolved: string[] = [];
+  for (const part of parts) {
+    if (part === '' || part === '.') continue;
+    if (part === '..') {
+      if (resolved.length > 0) resolved.pop();
+      else resolved.push('..');
+    } else {
+      resolved.push(part);
+    }
+  }
+  return resolved.join('/');
+}
+
 function validateZipPath(filePath: string): void {
-  // Normalize path separators to forward slashes
   const normalized = filePath.replace(/\\/g, '/');
   
-  // Reject absolute paths (Unix or Windows style)
   if (normalized.startsWith('/') || normalized.startsWith('\\') || /^[a-zA-Z]:/.test(normalized)) {
     throw new Error(`Invalid path in ZIP archive: "${filePath}" - absolute paths not allowed`);
   }
   
-  // Normalize the path and check for directory traversal
-  const resolvedPath = path.normalize(normalized);
+  const resolvedPath = _normalizePath(normalized);
   
-  // After normalization, the path should not escape the current directory
-  // path.normalize will convert "foo/../bar" to "bar", but ".." or "foo/../../bar" 
-  // will still start with ".." indicating traversal attempt
   if (resolvedPath.startsWith('..') || resolvedPath.startsWith('/') || resolvedPath.startsWith('\\')) {
     throw new Error(`Invalid path in ZIP archive: "${filePath}" - directory traversal not allowed`);
   }
   
-  // Double-check: resolved path should not contain ".." segments
   if (resolvedPath.includes('..')) {
     throw new Error(`Invalid path in ZIP archive: "${filePath}" - directory traversal not allowed`);
   }
@@ -669,26 +671,26 @@ async function extractExtraDataFromZip(buffer: ArrayBuffer): Promise<void> {
   });
 
   // Try both root and tcg-src/ subdirectory for compatibility
-  const starterDecksFile = zip.file('starterDecks.json') ?? zip.file('tcg-src/starterDecks.json');
+  const starterDecksFile = zip.file('starterDeckson') ?? zip.file('tcg-src/starterDeckson');
   if (starterDecksFile) {
     const raw: Record<string, number[]> = JSON.parse(await starterDecksFile.async('string'));
     applyStarterDecks(raw);
   }
 
-  const fusionRecipesFile = zip.file('fusion_recipes.json') ?? zip.file('tcg-src/fusion_recipes.json');
+  const fusionRecipesFile = zip.file('fusion_recipeson') ?? zip.file('tcg-src/fusion_recipeson');
   if (fusionRecipesFile) {
     const raw = JSON.parse(await fusionRecipesFile.async('string'));
     applyFusionRecipes(raw);
   }
 
-  // Extract opponents.json from tcg-src/ if present
-  const opponentsFile = zip.file('tcg-src/opponents.json');
+  // Extract opponentson from tcg-src/ if present
+  const opponentsFile = zip.file('tcg-src/opponentson');
   if (opponentsFile) {
-    console.log('[tcg-bridge] Found opponents.json in tcg-src/, will be loaded by loadTcgFile');
+    console.log('[tcg-bridge] Found opponentson in tcg-src/, will be loaded by loadTcgFile');
   }
 }
 
-const LOCALE_PATTERN = /^locales\/([a-z]{2}(?:-[A-Z]{2})?)\.json$/;
+const LOCALE_PATTERN = /^locales\/([a-z]{2}(?:-[A-Z]{2})?)\on$/;
 
 async function extractLocalesFromZip(buffer: ArrayBuffer): Promise<void> {
   const zip = await JSZip.loadAsync(buffer);

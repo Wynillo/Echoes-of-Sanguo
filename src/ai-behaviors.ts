@@ -1,6 +1,6 @@
-import type { AIBehavior, AISpellRule, CardData, PlayerState, Owner } from './types.js';
-import { CardType, meetsEquipRequirement } from './types.js';
-import type { FieldCard } from './field.js';
+import type { AIBehavior, AISpellRule, CardData, Owner } from './types';
+import { CardType, meetsEquipRequirement } from './types';
+import type { FieldCard } from './field';
 
 export const AI_SCORE = {
   /**

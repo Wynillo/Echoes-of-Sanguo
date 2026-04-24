@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
-import { useScreen } from '../contexts/ScreenContext.js';
-import { useModal } from '../contexts/ModalContext.js';
-import { useGame } from '../contexts/GameContext.js';
-import { useGamepadContext } from '../contexts/GamepadContext.js';
-import { Audio } from '../../audio.js';
-import { CARD_DB } from '../../cards.js';
-import { getRarityById, getCardTypeById } from '../../type-metadata.js';
-import type { DuelStats } from '../../types.js';
-import type { BattleBadges } from '../../battle-badges.js';
+import { useScreen } from '../contexts/ScreenContext';
+import { useModal } from '../contexts/ModalContext';
+import { useGame } from '../contexts/GameContext';
+import { useGamepadContext } from '../contexts/GamepadContext';
+import { Audio } from '../../audio';
+import { CARD_DB } from '../../cards';
+import { getRarityById, getCardTypeById } from '../../type-metadata';
+import type { DuelStats } from '../../types';
+import type { BattleBadges } from '../../battle-badges';
 import styles from './DuelResultScreen.module.css';
 
 const PARTICLE_COUNT = 22;
@@ -91,7 +91,7 @@ export default function DuelResultScreen() {
             nextOpponentName: gn.nextOpponentName,
             resolve: () => {
               openModal(null);
-              startGame((gn.nextCfg ?? null) as import('../../types.js').OpponentConfig | null);
+              startGame((gn.nextCfg ?? null) as import('../../types').OpponentConfig | null);
             },
           });
         } else {

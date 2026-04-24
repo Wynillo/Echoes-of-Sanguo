@@ -1,12 +1,3 @@
-/**
- * Centralized economy configuration for Echoes of Sanguo.
- *
- * DESIGN RATIONALE:
- * Economy uses "Jade Coins" (coins) where players earn by winning duels (50-200 base)
- * and spend on card packs. Pricing: Basic=100 (1 win), Premium=500 (5 wins),
- * Elite=1000+ (10+ wins). Chapter progression unlocks new currencies.
- */
-
 export const DEFAULT_CHAPTER = 'ch1' as const;
 
 export const CURRENCY_IDS = {

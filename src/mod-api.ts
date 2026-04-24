@@ -1,22 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — Modding API
-// Exposes moddable data on window.EchoesOfSanguoMod so that
-// external mod scripts can add cards, opponents, and effects
-// without touching internal ES module imports.
-//
-// SECURITY: Direct mutable references to internal state have
-// been replaced with controlled access methods to prevent
-// accidental or malicious corruption of game state.
-//
-// XSS HARDENING: All exposed data is deep-frozen to prevent
-// prototype pollution and object tampering. Trigger events
-// are validated to block sensitive internal events. See issue #414.
-//
-// MOD SOURCE VALIDATION: Subresource Integrity (SRI) checks
-// prevent loading malicious .tcg files from untrusted sources.
-// Sources are validated against an allowlist OR trusted mods
-// list with SHA-256 hash verification. See issue #461.
-// ============================================================
 import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './cards.js';
 import { EFFECT_REGISTRY, registerEffect, type EffectHandlerManifest, type EffectImpl } from './effect-registry.js';
 import type { FusionRecipe, OpponentConfig, CardData } from './types.js';

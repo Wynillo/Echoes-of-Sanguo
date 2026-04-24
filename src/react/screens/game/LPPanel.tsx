@@ -1,6 +1,6 @@
-import { useAnimatedNumber } from '../../hooks/useAnimatedNumber.js';
-import RaceIcon from '../../components/RaceIcon.js';
-import { GAME_RULES } from '../../../rules.js';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
+import RaceIcon from '../../components/RaceIcon';
+import { GAME_RULES } from '../../../rules';
 
 interface LPPanelProps {
   playerLp:    number;

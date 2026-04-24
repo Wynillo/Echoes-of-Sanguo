@@ -1,5 +1,5 @@
-import type { InternalEffectContext, CardData, Owner } from './types.js';
-import type { FieldCard } from './field.js';
+import type { InternalEffectContext, CardData } from './types';
+import type { FieldCard } from './field';
 
 /** Context passed to TriggerBus handlers — extends InternalEffectContext with the triggering card. */
 export interface TriggerContext extends InternalEffectContext {

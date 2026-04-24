@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useScreen }      from '../contexts/ScreenContext.js';
-import { useModal }       from '../contexts/ModalContext.js';
-import { useGamepadContext } from '../contexts/GamepadContext.js';
-import { Progression }    from '../../progression.js';
+import { useScreen }      from '../contexts/ScreenContext';
+import { useModal }       from '../contexts/ModalContext';
+import { useGamepadContext } from '../contexts/GamepadContext';
+import { Progression }    from '../../progression';
 import styles from './TitleScreen.module.css';
 
 export default function TitleScreen() {

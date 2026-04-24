@@ -1,10 +1,10 @@
-import { CARD_DB } from '../../cards.js';
-import { EFFECT_SOURCES, type EffectSource } from '../../effect-items.js';
-import { Progression } from '../../progression.js';
-import { SHOP_DATA } from '../../shop-data.js';
-import type { PackSlotDef, PackDef, CardFilter, CardPoolDef } from '../../shop-data.js';
-import { Rarity, getCardRarity } from '../../types.js';
-import type { CardData } from '../../types.js';
+import { CARD_DB } from '../../cards';
+import { EFFECT_SOURCES, type EffectSource } from '../../effect-items';
+import { Progression } from '../../progression';
+import { SHOP_DATA } from '../../shop-data';
+import type { PackSlotDef, PackDef, CardFilter, CardPoolDef } from '../../shop-data';
+import { Rarity } from '../../types';
+import type { CardData } from '../../types';
 
 /**
  * Default rarity probability distribution for pack openings.

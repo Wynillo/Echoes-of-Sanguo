@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useScreen }      from '../contexts/ScreenContext.js';
-import { useProgression } from '../contexts/ProgressionContext.js';
-import { Progression }    from '../../progression.js';
-import { STARTER_DECKS }  from '../../cards.js';
-import { getRaceById }    from '../../type-metadata.js';
-import RaceIcon from '../components/RaceIcon.js';
-import { Race } from '../../types.js';
+import { useScreen }      from '../contexts/ScreenContext';
+import { useProgression } from '../contexts/ProgressionContext';
+import { Progression }    from '../../progression';
+import { STARTER_DECKS }  from '../../cards';
+import { getRaceById }    from '../../type-metadata';
+import RaceIcon from '../components/RaceIcon';
+import { Race } from '../../types';
 import styles from './StarterScreen.module.css';
 
 interface StarterRaceEntry { key: string; race: Race }

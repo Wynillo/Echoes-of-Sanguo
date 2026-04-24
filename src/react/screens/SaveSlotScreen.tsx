@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useScreen }      from '../contexts/ScreenContext.js';
-import { useProgression } from '../contexts/ProgressionContext.js';
-import { useCampaign }    from '../contexts/CampaignContext.js';
-import { useModal }       from '../contexts/ModalContext.js';
-import { Progression }    from '../../progression.js';
-import type { SlotId, SlotMeta } from '../../progression.js';
+import { useScreen }      from '../contexts/ScreenContext';
+import { useProgression } from '../contexts/ProgressionContext';
+import { useCampaign }    from '../contexts/CampaignContext';
+import { useModal }       from '../contexts/ModalContext';
+import { Progression }    from '../../progression';
+import type { SlotId, SlotMeta } from '../../progression';
 import styles from './SaveSlotScreen.module.css';
 
 export default function SaveSlotScreen() {
