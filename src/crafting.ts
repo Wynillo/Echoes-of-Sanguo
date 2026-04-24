@@ -86,7 +86,7 @@ export function craftEffectMonster(
   const newId = Progression.addCraftedCard(baseCardId, effectSourceId);
   Progression.addCardsToCollection([newId]);
   
-  const card = buildCraftedCard({ id: newId, baseId: baseCardId, effectSourceId });
+  const card = buildCraftedCard({ id: newId, baseId: baseCardId, effectSourceId, createdAt: Date.now() });
   
   return { success: true, card: card ?? undefined };
 }

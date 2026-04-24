@@ -123,6 +123,7 @@ interface ModStateSnapshot {
     typeMeta?: Array<'races' | 'attributes' | 'rarities' | 'cardTypes'>;
     rules?: string[];
     starterDecks?: number[];
+    campaignData?: boolean;
   };
 }
 
@@ -406,7 +407,7 @@ async function processTcgData(
     snapshot.shopData = deepClone(SHOP_DATA);
     const keys: Array<'packs' | 'currencies' | 'backgrounds'> = [];
     if (result.shopData.packs) keys.push('packs');
-    if (result.shopData.currencies) keys.push('currencies');
+    if (result.shopData.currency) keys.push('currencies');
     if (result.shopData.backgrounds) keys.push('backgrounds');
     if (keys.length > 0) snapshotKeys.shop = keys;
   }

@@ -1,6 +1,6 @@
-import type { AIGoal, BoardSnapshot, PlayerState } from './types.js';
-import { AI_SCORE } from './ai-behaviors.js';
-import { GAME_RULES } from './rules.js';
+import type { AIGoal, BoardSnapshot, PlayerState } from './types';
+import { AI_SCORE } from './ai-behaviors';
+import { GAME_RULES } from './rules';
 
 /** Create a lightweight board snapshot from live player states. */
 export function snapshotBoard(ai: PlayerState, plr: PlayerState): BoardSnapshot {

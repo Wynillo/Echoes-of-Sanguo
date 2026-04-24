@@ -1,8 +1,8 @@
-import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './cards.js';
-import { EFFECT_REGISTRY, registerEffect, type EffectHandlerManifest, type EffectImpl } from './effect-registry.js';
-import type { FusionRecipe, OpponentConfig, CardData } from './types.js';
-import { loadAndApplyTcg, unloadModCompletely, unloadModCards, getLoadedMods, getCurrentManifest, verifyModIntegrity } from './tcg-bridge.js';
-import { TriggerBus, type TriggerContext } from './trigger-bus.js';
+import { CARD_DB, FUSION_RECIPES, OPPONENT_CONFIGS, STARTER_DECKS } from './cards';
+import { EFFECT_REGISTRY, registerEffect, type EffectHandlerManifest, type EffectImpl } from './effect-registry';
+import type { FusionRecipe, OpponentConfig, CardData } from './types';
+import { loadAndApplyTcg, unloadModCompletely, unloadModCards, getLoadedMods, getCurrentManifest, verifyModIntegrity } from './tcg-bridge';
+import { TriggerBus, type TriggerContext } from './trigger-bus';
 
 /**
  * Deep freeze utility to prevent object tampering and prototype pollution.
@@ -72,7 +72,7 @@ function getTrustedModHash(source: string): string | undefined {
  * Only confirm if you trust the mod author and have verified the mod's integrity.
  */
 export async function confirmModLoad(source: string, isTrusted: boolean): Promise<boolean> {
-  const { EchoesOfSanguo } = await import('./debug-logger.js');
+  const { EchoesOfSanguo } = await import('./debug-logger');
   
   // Development bypass: allow loading any mod with query param ?dev-bypass=1
   if (typeof window !== 'undefined' && window.location.search.includes('dev-bypass=1')) {
@@ -163,7 +163,7 @@ const modApi = {
     source: string | ArrayBuffer,
     options?: { lang?: string; onProgress?: (percent: number) => void },
   ): Promise<void> {
-    const { EchoesOfSanguo } = await import('./debug-logger.js');
+    const { EchoesOfSanguo } = await import('./debug-logger');
     
     // Only validate string URLs, not ArrayBuffers (local files)
     if (typeof source === 'string') {

@@ -70,7 +70,7 @@ export default function StarterScreen() {
 
       <div className={styles.preview}>
         <p id="starter-preview-name">
-          {selectedMeta ? `${selectedMeta.emoji ?? selectedMeta.icon ?? ''} ${selectedMeta.value}${t('starter.deck_suffix')}` : ''}
+          {selectedMeta ? `${selectedMeta.icon ?? ''} ${selectedMeta.value}${t('starter.deck_suffix')}` : ''}
         </p>
         <p id="starter-preview-desc">{selected ? t(`starter.${selected.key}_flavor`, { defaultValue: '' }) : ''}</p>
         {selected && (

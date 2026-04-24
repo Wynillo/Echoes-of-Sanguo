@@ -115,11 +115,11 @@ function findMonsterByATK(
   return idx;
 }
 
-export type EffectImpl = (desc: EffectDescriptor, ctx: EffectContext) => EffectSignal;
+export type EffectImpl = (desc: EffectDescriptor, ctx: EffectContext) => EffectSignal | Promise<EffectSignal>;
 // Internal type — all handlers receive ChainEffectCtx from the dispatcher at runtime.
 // A-handlers declare ctx: PureEffectCtx (supertype → valid via contravariance).
 // B/A+B handlers declare ctx: ChainEffectCtx (same type → valid directly).
-type InternalImpl = (desc: any, ctx: ChainEffectCtx) => EffectSignal | Promise<EffectSignal>;
+type InternalImpl = (desc: any, ctx: any) => EffectSignal | Promise<EffectSignal>;
 
 /**
  * Manifest for registering custom effect handlers.
@@ -167,8 +167,12 @@ export interface SafeEffectContext {
   heal: (target: Owner, amount: number) => void;
   /** Draw cards */
   draw: (target: Owner, count: number) => void;
+  /** Remove equipment from a monster zone */
+  removeEquipment: (owner: Owner, zone: number) => void;
+  /** Remove field spell */
+  removeFieldSpell: (owner: Owner) => void;
   /** Visual effects */
-  vfx?: (event: string, owner: Owner, zone?: number) => void;
+  vfx?: (type: 'buff' | 'heal' | 'damage', owner?: Owner, zone?: number) => void | Promise<void>;
 }
 
 /**
@@ -992,18 +996,10 @@ const IMPL: Record<string, InternalImpl> = {
   passive_cantBeAttacked(_desc: unknown, _ctx: PureEffectCtx) { return {}; },
 };
 
-const EFFECT_REGISTRY = new Map<string, EffectImpl>(
-  Object.entries(IMPL) as unknown as [string, EffectImpl][],
-);
-
-/**
- * Registry for effect handler metadata and security configurations.
- * Tracks validation info for each registered effect.
- */
 const EFFECT_HANDLERS = new Map<
   string,
   {
-    impl: EffectImpl;
+    impl: InternalImpl;
     manifest?: EffectHandlerManifest;
     registeredAt: number;
   }
@@ -1023,7 +1019,7 @@ export const EFFECT_REGISTRY_VIEW = new Proxy(EFFECT_HANDLERS, {
     if (prop === 'get') {
       return (key: string) => {
         const entry = target.get(key);
-        return entry?.impl;
+        return entry?.impl as unknown as EffectImpl;
       };
     }
     if (prop === 'has') {
@@ -1031,7 +1027,7 @@ export const EFFECT_REGISTRY_VIEW = new Proxy(EFFECT_HANDLERS, {
     }
     return Reflect.get(target, prop);
   },
-}) as ReadonlyMap<string, EffectImpl>;
+}) as unknown as ReadonlyMap<string, EffectImpl>;
 
 // Keep old export for backward compatibility
 export const EFFECT_REGISTRY = EFFECT_REGISTRY_VIEW;
@@ -1247,7 +1243,7 @@ export function makePureCtx(ctx: EffectContext): PureEffectCtx {
     draw:              (owner, count)  => engine.drawCard(owner, count),
     removeEquipment:   (owner, zone)   => engine.removeEquipmentForMonster(owner, zone),
     removeFieldSpell:  (owner)         => engine.removeFieldSpell(owner),
-    vfx:               engine.ui?.playVFX ? (type, owner, zone) => engine.ui.playVFX!(type, owner!, zone) : undefined,
+    vfx:               engine.ui?.playVFX ? (type: 'buff' | 'heal' | 'damage', owner?: Owner, zone?: number) => engine.ui.playVFX!(type, owner!, zone) : undefined,
   };
 }
 
@@ -1272,8 +1268,10 @@ export function makeSafeCtx(ctx: EffectContext): SafeEffectContext {
     damage: (target, amount) => engine.dealDamage(target, amount),
     heal: (target, amount) => engine.gainLP(target, amount),
     draw: (target, count) => engine.drawCard(target, count),
+    removeEquipment: (owner: Owner, zone: number) => engine.removeEquipmentForMonster(owner, zone),
+    removeFieldSpell: (owner: Owner) => engine.removeFieldSpell(owner),
     vfx: engine.ui?.playVFX
-      ? (type, owner, zone) => engine.ui!.playVFX!(type, owner!, zone)
+      ? (type: 'buff' | 'heal' | 'damage', owner?: Owner, zone?: number) => engine.ui!.playVFX!(type, owner!, zone)
       : undefined,
   };
 }
