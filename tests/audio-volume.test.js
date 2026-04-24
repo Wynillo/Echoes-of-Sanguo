@@ -53,7 +53,7 @@ describe('Audio.setVolumes', () => {
 
     // Mock fetch so _loadBuffer can trigger _ensureContext
     globalThis.fetch = vi.fn(async function () {
-      return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) };
+      return { ok: true, headers: { get: (h) => h === 'Content-Type' ? 'audio/mpeg' : null }, arrayBuffer: async () => new ArrayBuffer(8) };
     });
 
     const mod = await import('../src/audio.ts');
@@ -106,7 +106,7 @@ describe('Audio.setVolumes', () => {
     gainNodes = [];
     globalThis.AudioContext = vi.fn(function () { return createMockAudioContext(); });
     globalThis.fetch = vi.fn(async function () {
-      return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) };
+      return { ok: true, headers: { get: (h) => h === 'Content-Type' ? 'audio/mpeg' : null }, arrayBuffer: async () => new ArrayBuffer(8) };
     });
 
     const mod2 = await import('../src/audio.ts');

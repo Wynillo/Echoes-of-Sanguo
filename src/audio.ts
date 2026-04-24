@@ -2,24 +2,24 @@ import { Progression } from './progression.js';
 
 const MANIFEST: Record<string, string> = {
   // Music
-  music_title:       'audio/music/title.mp3',
-  music_battle:      'audio/music/battle.mp3',
-  music_shop:        'audio/music/shop.mp3',
-  music_victory:     'audio/music/victory.mp3',
-  music_defeat:      'audio/music/defeat.mp3',
+  music_title:       '/audio/music/title.mp3',
+  music_battle:      '/audio/music/battle.mp3',
+  music_shop:        '/audio/music/shop.mp3',
+  music_victory:     '/audio/music/victory.mp3',
+  music_defeat:      '/audio/music/defeat.mp3',
   // SFX
-  sfx_card_play:     'audio/sfx/card-play.mp3',
-  sfx_attack:        'audio/sfx/attack.mp3',
-  sfx_damage:        'audio/sfx/damage.mp3',
-  sfx_destroy:       'audio/sfx/destroy.mp3',
-  sfx_draw:          'audio/sfx/draw.mp3',
-  sfx_fusion:        'audio/sfx/fusion.mp3',
-  sfx_spell:         'audio/sfx/spell.mp3',
-  sfx_trap:          'audio/sfx/trap.mp3',
-  sfx_button:        'audio/sfx/button.mp3',
-  sfx_coin:          'audio/sfx/coin.mp3',
-  sfx_pack_open:     'audio/sfx/pack-open.mp3',
-  sfx_pack_reveal:   'audio/sfx/pack-reveal.mp3',
+  sfx_card_play:     '/audio/sfx/card-play.mp3',
+  sfx_attack:        '/audio/sfx/attack.mp3',
+  sfx_damage:        '/audio/sfx/damage.mp3',
+  sfx_destroy:       '/audio/sfx/destroy.mp3',
+  sfx_draw:          '/audio/sfx/draw.mp3',
+  sfx_fusion:        '/audio/sfx/fusion.mp3',
+  sfx_spell:         '/audio/sfx/spell.mp3',
+  sfx_trap:          '/audio/sfx/trap.mp3',
+  sfx_button:        '/audio/sfx/button.mp3',
+  sfx_coin:          '/audio/sfx/coin.mp3',
+  sfx_pack_open:     '/audio/sfx/pack-open.mp3',
+  sfx_pack_reveal:   '/audio/sfx/pack-reveal.mp3',
 };
 
 const ALLOWED_AUDIO_TYPES = new Set([

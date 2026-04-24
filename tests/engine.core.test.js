@@ -37,7 +37,7 @@ function makeEngine(cbOverrides = {}) {
 /** Put a monster directly on the field, bypassing hand/summon logic. */
 function placeMonster(engine, owner, cardDef, zone = 0, opts = {}) {
   const fc = new FieldCard(cardDef, opts.position ?? 'atk');
-  fc.summonedThisTurn = opts.summonedThisTurn ?? false;
+  fc.turnState.summonedThisTurn = opts.summonedThisTurn ?? false;
   if (opts.piercing)       fc.piercing       = true;
   if (opts.canDirectAttack) fc.canDirectAttack = true;
   engine.state[owner].field.monsters[zone] = fc;
@@ -77,7 +77,7 @@ describe('summonMonster', () => {
   it('summoned monster has no summoning sickness (FM-style)', async () => {
     const { engine } = makeEngine();
     await engine.summonMonster('player', 0, 0);
-    expect(engine.state.player.field.monsters[0].summonedThisTurn).toBe(false);
+    expect(engine.state.player.field.monsters[0].turnState.summonedThisTurn).toBe(false);
   });
 
   it('rejects an occupied zone', async () => {
@@ -116,7 +116,7 @@ describe('specialSummon', () => {
   it('places monster without summoning sickness', async () => {
     const { engine } = makeEngine();
     await engine.specialSummon('player', CARD.atk1000def800);
-    expect(engine.state.player.field.monsters[0].summonedThisTurn).toBe(false);
+    expect(engine.state.player.field.monsters[0].turnState.summonedThisTurn).toBe(false);
   });
 
   it('auto-picks first free zone', async () => {
@@ -186,7 +186,7 @@ describe('attack (ATK vs ATK)', () => {
     const atk = placeMonster(engine, 'player',   CARD.atk1500def600, 0);
     placeMonster(engine, 'opponent', CARD.atk1000def800, 0);
     await engine.attack('player', 0, 0);
-    expect(atk.hasAttacked).toBe(true);
+    expect(atk.turnState.hasAttacked).toBe(true);
   });
 
   it('triggers onDestroyByBattle on the attacker when it wins', async () => {
@@ -273,7 +273,7 @@ describe('attackDirect', () => {
     await engine.attackDirect('player', 0);
 
     expect(engine.state.opponent.lp).toBe(oppLP - 1000);
-    expect(fc.hasAttacked).toBe(true);
+    expect(fc.turnState.hasAttacked).toBe(true);
   });
 
   it('blocked when opponent has monsters (no canDirectAttack flag)', async () => {
@@ -442,17 +442,17 @@ describe('endTurn', () => {
   it('clears hasAttacked on all monsters', () => {
     const { engine } = makeEngine();
     const fc = placeMonster(engine, 'player', CARD.atk1000def800, 0);
-    fc.hasAttacked = true;
+    fc.turnState.hasAttacked = true;
     engine.endTurn();
-    expect(engine.state.player.field.monsters[0].hasAttacked).toBe(false);
+    expect(engine.state.player.field.monsters[0].turnState.hasAttacked).toBe(false);
   });
 
   it('clears summonedThisTurn on all monsters', () => {
     const { engine } = makeEngine();
     const fc = placeMonster(engine, 'player', CARD.atk1000def800, 0);
-    fc.summonedThisTurn = true;
+    fc.turnState.summonedThisTurn = true;
     engine.endTurn();
-    expect(engine.state.player.field.monsters[0].summonedThisTurn).toBe(false);
+    expect(engine.state.player.field.monsters[0].turnState.summonedThisTurn).toBe(false);
   });
 
   it('resets normalSummonUsed for both players', () => {

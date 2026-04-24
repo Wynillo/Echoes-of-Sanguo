@@ -37,8 +37,8 @@ function monster(atk, def = 0, extras = {}) {
 
 function placeMonster(engine, owner, cardDef, zone = 0, opts = {}) {
   const fc = new FieldCard(cardDef, opts.position ?? 'atk');
-  fc.summonedThisTurn = opts.summonedThisTurn ?? false;
-  if (opts.hasAttacked) fc.hasAttacked = true;
+  fc.turnState.summonedThisTurn = opts.summonedThisTurn ?? false;
+  if (opts.hasAttacked) fc.turnState.hasAttacked = true;
   if (opts.tempATKBonus) fc.tempATKBonus = opts.tempATKBonus;
   if (opts.tempDEFBonus) fc.tempDEFBonus = opts.tempDEFBonus;
   if (opts.originalOwner) fc.originalOwner = opts.originalOwner;
@@ -177,8 +177,8 @@ describe('_resetMonsterFlags', () => {
     engine._resetMonsterFlags('player');
     expect(fc.tempATKBonus).toBe(0);
     expect(fc.tempDEFBonus).toBe(0);
-    expect(fc.hasAttacked).toBe(false);
-    expect(fc.summonedThisTurn).toBe(false);
+    expect(fc.turnState.hasAttacked).toBe(false);
+    expect(fc.turnState.summonedThisTurn).toBe(false);
   });
 
   it('clears battleProtection', () => {
@@ -206,7 +206,7 @@ describe('_returnTempStolenMonsters', () => {
 
     expect(engine.state.player.field.monsters[1]).toBeNull();
     expect(engine.state.opponent.field.monsters[0]).toBe(fc);
-    expect(fc.hasAttacked).toBe(true);
+    expect(fc.turnState.hasAttacked).toBe(true);
     expect(fc.originalOwner).toBeUndefined();
   });
 

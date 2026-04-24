@@ -33,7 +33,7 @@ function makeEngine(cbOverrides = {}) {
 
 function placeMonster(engine, owner, cardDef, zone = 0, opts = {}) {
   const fc = new FieldCard(cardDef, opts.position ?? 'atk');
-  fc.summonedThisTurn = opts.summonedThisTurn ?? false;
+  fc.turnState.summonedThisTurn = opts.summonedThisTurn ?? false;
   engine.state[owner].field.monsters[zone] = fc;
   return fc;
 }
