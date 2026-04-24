@@ -12,9 +12,6 @@ npm run test:watch     # Vitest watch mode
 npm run test:coverage  # Coverage report (v8)
 npm run test:e2e       # Playwright E2E (auto-starts dev server)
 npm run generate:engine-dts  # Generate eos-engine.d.ts for modders
-npm run build:android  # Build + Capacitor sync for Android
-npm run cap:sync       # Sync Capacitor changes
-npm run cap:open       # Open Android Studio
 ```
 
 ## Architecture

@@ -10,9 +10,6 @@
     "dev": "vite",
     "build": "npm run copy:tcg && vite build",
     "test:e2e": "playwright test",
-    "build:android": "vite build && cap sync android",
-    "cap:sync": "cap sync",
-    "cap:open": "cap open android",
     "generate:engine-dts": "node scripts/generate-engine-dts.js",
     "release:patch": "npm version patch && git push && git push --tags",
     "release:minor": "npm version minor && git push && git push --tags",
@@ -48,7 +45,6 @@
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.8",
     "vite-node": "^6.0.0",
-    "vite-plugin-pwa": "^0.20.5",
     "vitest": "^4.1.4"
   },
   "overrides": {
@@ -57,20 +53,11 @@
     "@babel/helper-compilation-targets": {
       "lru-cache": "^5.1.1"
     },
-    "vite-plugin-pwa": {
-      "vite": "$vite"
-    },
     "@xmldom/xmldom": "^0.8.12",
     "serialize-javascript": "^7.0.5",
-    "lodash": "^4.18.1",
-    "workbox-build": {
-      "brace-expansion": "^5.0.5"
-    }
+    "lodash": "^4.18.1"
   },
   "dependencies": {
-    "@capacitor/android": "^8.3.0",
-    "@capacitor/cli": "^8.3.0",
-    "@capacitor/core": "^8.3.0",
     "@wynillo/echoes-mod-base": "github:Wynillo/Echoes-of-sanguo-MOD-base#e292999d28d8bbfa0b36ca44c9e140910ecfd3b7",
     "@wynillo/tcg-format": "github:Wynillo/Echoes-of-Sanguo-TCG#fe6f152cb3e17473684199b6863727bb892fcf93",
     "gsap": "^3.14.2",
