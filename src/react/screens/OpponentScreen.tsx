@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useScreen }      from '../contexts/ScreenContext.js';
-import { useProgression } from '../contexts/ProgressionContext.js';
-import { useCampaign }    from '../contexts/CampaignContext.js';
-import { useGame }        from '../contexts/GameContext.js';
-import { OPPONENT_CONFIGS } from '../../cards.js';
-import { getRaceById } from '../../type-metadata.js';
-import RaceIcon from '../components/RaceIcon.js';
-import type { OpponentConfig } from '../../types.js';
+import { useScreen }      from '../contexts/ScreenContext';
+import { useProgression } from '../contexts/ProgressionContext';
+import { useCampaign }    from '../contexts/CampaignContext';
+import { useGame }        from '../contexts/GameContext';
+import { OPPONENT_CONFIGS } from '../../cards';
+import { getRaceById } from '../../type-metadata';
+import RaceIcon from '../components/RaceIcon';
+import type { OpponentConfig } from '../../types';
 import styles from './OpponentScreen.module.css';
 
 export default function OpponentScreen() {

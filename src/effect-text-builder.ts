@@ -1,5 +1,5 @@
-import type { CardData, CardEffectBlock, CardFilter, EffectCost, EffectDescriptor, EffectTrigger, TrapTrigger, ValueExpr, StatTarget } from './types.js';
-import { getRaceById, getAttrById } from './type-metadata.js';
+import type { CardData, CardEffectBlock, CardFilter, EffectCost, EffectDescriptor, EffectTrigger, TrapTrigger, ValueExpr, StatTarget } from './types';
+import { getRaceById, getAttrById } from './type-metadata';
 
 export type TFunction = (key: string, opts?: Record<string, unknown>) => string;
 

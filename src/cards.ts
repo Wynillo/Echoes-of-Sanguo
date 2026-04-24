@@ -1,10 +1,9 @@
-import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types.js';
-import { CardType, isMonsterType, getCardAtk } from './types.js';
+import type { CardData, FusionRecipe, FusionFormula, FusionComboType, OpponentConfig } from './types';
+import { CardType, isMonsterType } from './types';
 import {
-  getRaceByKey, getAttrByKey, getRarityById, getRaceById, getAttrById,
-  TYPE_META,
-} from './type-metadata.js';
-import { isCraftedId, resolveCraftedCard } from './crafting.js';
+  getRaceById, getAttrById,
+} from './type-metadata';
+import { isCraftedId, resolveCraftedCard } from './crafting';
 
 export const TYPE = CardType;
 

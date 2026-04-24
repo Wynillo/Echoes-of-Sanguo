@@ -1,7 +1,7 @@
-import type { Owner, EffectSignal, BattleContext, PromptOptions } from './types.js';
-import type { GameState } from './engine.js';
-import type { FieldCard, FieldSpellTrap, CardData } from './types.js';
-import { CardType } from './types.js';
+import type { Owner, EffectSignal, BattleContext, PromptOptions } from './types';
+import type { GameState } from './engine';
+import type { FieldCard, FieldSpellTrap, CardData } from './types';
+import { CardType } from './types';
 
 export interface TrapResolverDeps {
   getState(): GameState;

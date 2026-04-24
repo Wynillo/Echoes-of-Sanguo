@@ -1,15 +1,15 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useGame }      from '../../contexts/GameContext.js';
-import { useModal }     from '../../contexts/ModalContext.js';
-import { useSelection } from '../../contexts/SelectionContext.js';
-import { FieldCardComponent }     from '../../components/FieldCardComponent.js';
-import { FieldSpellTrapComponent } from '../../components/FieldSpellTrapComponent.js';
-import { CardType, meetsEquipRequirement } from '../../../types.js';
-import { checkFusion, CARD_DB } from '../../../cards.js';
-import { FIELD_RULES } from '../../../rules.js';
-import type { FieldCard } from '../../../field.js';
-import type { FieldSpellTrap } from '../../../field.js';
+import { useGame }      from '../../contexts/GameContext';
+import { useModal }     from '../../contexts/ModalContext';
+import { useSelection } from '../../contexts/SelectionContext';
+import { FieldCardComponent }     from '../../components/FieldCardComponent';
+import { FieldSpellTrapComponent } from '../../components/FieldSpellTrapComponent';
+import { CardType, meetsEquipRequirement } from '../../../types';
+import { checkFusion, CARD_DB } from '../../../cards';
+import { FIELD_RULES } from '../../../rules';
+import type { FieldCard } from '../../../field';
+import type { FieldSpellTrap } from '../../../field';
 
 const FIELD_ZONES = Array.from({ length: FIELD_RULES.MONSTER_ZONES_PER_PLAYER }, (_, i) => i);
 

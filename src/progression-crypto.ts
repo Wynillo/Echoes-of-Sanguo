@@ -1,8 +1,3 @@
-/**
- * Slot integrity verification using HMAC-SHA256.
- * Signs data with slot-specific keys to prevent tampering and cross-slot injection.
- */
-
 const MASTER_SEED = 'eos_progression_master_seed_v1';
 const SALT = 'eos_salt_v1';
 const ENCODER = new TextEncoder();

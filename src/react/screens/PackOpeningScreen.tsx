@@ -1,16 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { gsap } from 'gsap';
-import { useScreen }   from '../contexts/ScreenContext.js';
-import { useModal }    from '../contexts/ModalContext.js';
-import { getRarityById } from '../../type-metadata.js';
-import { Card } from '../components/Card.js';
-import { Audio }        from '../../audio.js';
-import { CardType, Rarity } from '../../types.js';
-import { ANIMATION_TIMING } from '../../constants.js';
-import type { CardData }          from '../../types.js';
-import type { CollectionEntry }   from '../../types.js';
-import RaceIcon from '../components/RaceIcon.js';
+import { useScreen }   from '../contexts/ScreenContext';
+import { useModal }    from '../contexts/ModalContext';
+import { getRarityById } from '../../type-metadata';
+import { Card } from '../components/Card';
+import { Audio }        from '../../audio';
+import { CardType, Rarity } from '../../types';
+import { ANIMATION_TIMING } from '../../constants';
+import type { CardData }          from '../../types';
+import type { CollectionEntry }   from '../../types';
+import RaceIcon from '../components/RaceIcon';
 import styles from './PackOpeningScreen.module.css';
 
 type Phase = 'pack' | 'reveal' | 'summary';

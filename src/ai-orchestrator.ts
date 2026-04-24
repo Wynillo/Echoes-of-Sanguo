@@ -1,19 +1,18 @@
-import { EchoesOfSanguo } from './debug-logger.js';
-import { GAME_RULES } from './rules.js';
-import { CardType, isMonsterType } from './types.js';
-import type { AIBehavior, AIGoal, BoardSnapshot, CardData, Owner, Position, TrapTrigger, GameState, PlayerState } from './types.js';
-import type { FieldCard } from './field.js';
-import { checkFusion, CARD_DB, FUSION_RECIPES } from './cards.js';
-import { AI_SCORE, AI_LP_THRESHOLD } from './ai-behaviors.js';
-import { findBestFusionChain, findBestHandFieldFusion, type FusionChainCandidate } from './fusion-utils.js';
+import { EchoesOfSanguo } from './debug-logger';
+import { GAME_RULES } from './rules';
+import { CardType } from './types';
+import type { AIBehavior, AIGoal, BoardSnapshot, CardData, Owner, Position, TrapTrigger, GameState, PlayerState } from './types';
+import type { FieldCard } from './field';
+import { checkFusion, CARD_DB, FUSION_RECIPES } from './cards';
+import { AI_SCORE, AI_LP_THRESHOLD } from './ai-behaviors';
+import { findAllFusionChains, findBestHandFieldFusion, type FusionChainCandidate } from './fusion-utils';
 import {
   snapshotBoard,
   computeBoardThreat,
   classifyGoalAlignment,
   evaluateTurnGoal,
-} from './ai-threat.js';
-// Use import type to avoid circular dependency (engine.ts → ai-orchestrator.ts → engine.ts)
-import type { GameEngine } from './engine.js';
+} from './ai-threat';
+import type { GameEngine } from './engine';
 import {
   pickSummonCandidate,
   pickSmartSummonCandidate,
@@ -24,9 +23,9 @@ import {
   aiCombatValue,
   aiEffectiveATK,
   aiEffectiveDEF,
-} from './ai-behaviors.js';
-import { classifySpell } from './ai/utils/spell-classifier.js';
-import { findEmptyMonsterZone, findEmptySpellTrapZone } from './utils/field-zones.js';
+} from './ai-behaviors';
+import { classifySpell } from './ai/utils/spell-classifier';
+import { findEmptyMonsterZone, findEmptySpellTrapZone } from './utils/field-zones';
 
 interface TurnContext {
   snap:       BoardSnapshot;
@@ -327,7 +326,7 @@ async function _activateSpells(deps: AIDependencies, ctx: TurnContext): Promise<
   function _spellSortKey(card: CardData): number {
     if (ctx.activeGoal?.id === 'stall_drain') {
       const actions = card.effect?.actions ?? [];
-      if (actions.some((a: import('./types.js').EffectDescriptor) => a.type === 'gainLP')) return -1;
+      if (actions.some((a: import('./types').EffectDescriptor) => a.type === 'gainLP')) return -1;
     }
     return 0;
   }
@@ -552,14 +551,12 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
       if (!def || def.cannotBeAttacked) continue;
       const defVal = aiCombatValue(def);
       if (atk.effectiveATK() > defVal) {
-        // Prefer destroying effect monsters and high-ATK threats
         let score = defVal;
         if (def.card.effect) score += 500;
         if (score > bestScore) { bestScore = score; bestTarget = dz; }
       }
     }
     if (bestTarget !== -1) return bestTarget;
-    // aggressive: attack even unfavorably — pick weakest target to minimize damage
     let weakest = -1, weakVal = Infinity;
     for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
       const def = plrMonsters[dz];
@@ -577,11 +574,8 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
     const defVal = aiCombatValue(def);
     if (atk.effectiveATK() > defVal) {
       let score = defVal;
-      // Prioritize effect monsters — they're dangerous
       if (def.card.effect) score += 500;
-      // Prioritize ATK-mode monsters (deal LP damage)
       if (def.position === 'atk') score += 200;
-      // Bonus for indestructible check
       if (def.indestructible) score = -Infinity;
       if (score > bestScore) { bestScore = score; bestTarget = dz; }
     }
@@ -590,15 +584,13 @@ export function aiBattlePickTarget(atk: FieldCard, plrMonsters: Array<FieldCard 
 
   if (strategy === 'conservative') return -1;
 
-  // smart: also attack DEF-position targets safely, prefer face-down (reveal them)
   let safeTarget = -1, safeScore = -Infinity;
   for (let dz = 0; dz < GAME_RULES.fieldZones; dz++) {
     const def = plrMonsters[dz];
     if (!def || def.cannotBeAttacked || def.position !== 'def') continue;
     const defVal = aiEffectiveDEF(def);
     if (atk.effectiveATK() >= defVal) {
-      let score = 1000 - defVal; // prefer weaker DEF (easier kill)
-      // Face-down monsters are worth revealing
+      let score = 1000 - defVal;
       if (def.faceDown && atk.effectiveATK() >= AI_SCORE.PROBE_ATK_THRESHOLD) score += AI_SCORE.LOW_LP_SURVIVAL;
       if (score > safeScore) { safeScore = score; safeTarget = dz; }
     }
@@ -640,33 +632,31 @@ function _findSmartFusionChain(
   let bestHandChain: FusionChainCandidate | null = null;
   let bestHandScore = -Infinity;
 
-  // Find best hand-only fusion chain
   const handChains = findAllFusionChains(hand, scoring);
   if (handChains.length > 0) {
     bestHandChain = handChains[0];
-    bestHandScore = scoring.scoreChain(bestHandChain);
+    bestHandScore = scoring.scoreChain(handChains[0]);
   }
 
-  // Find best hand+field fusion
   let bestFieldChain: FusionChainCandidate | null = null;
   let bestFieldScore = -Infinity;
 
   if (aiMonsters) {
     const fieldMinScore = bestHandScore > -Infinity ? bestHandScore : 0;
-    bestFieldChain = findBestHandFieldFusion(hand, aiMonsters, scoring, Math.max(fieldMinScore, minATK));
+    const fieldResult = findBestHandFieldFusion(hand, aiMonsters, scoring, Math.max(fieldMinScore, minATK));
 
-    if (bestFieldChain) {
-      bestFieldScore = scoring.scoreChain({
-        indices: bestFieldChain.indices,
-        consumedIds: bestFieldChain.consumedIds,
-        finalCardId: bestFieldChain.finalCardId,
-        finalATK: bestFieldChain.finalATK,
-        fieldZone: bestFieldChain.fieldZone,
-      });
+    if (fieldResult) {
+      bestFieldChain = {
+        indices: fieldResult.indices,
+        consumedIds: [hand[fieldResult.indices[0]]?.id ?? '', CARD_DB[fieldResult.resultCardId]?.id ?? ''],
+        finalCardId: fieldResult.resultCardId,
+        finalATK: fieldResult.resultATK,
+        fieldZone: fieldResult.fieldZone,
+      };
+      bestFieldScore = scoring.scoreChain(bestFieldChain);
     }
   }
 
-  // Select the best between hand-only and hand+field
   let chosen: FusionChainCandidate | null = null;
 
   if (bestHandScore >= bestFieldScore && bestHandChain) {
@@ -685,7 +675,6 @@ function _findSmartFusionChain(
   };
 }
 
-// Minimum ATK advantage required to replace an existing monster on the field
 const MIN_ATK_ADVANTAGE = 500;
 
 function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementATK: number): number {
@@ -696,27 +685,10 @@ function _findWeakestMonsterZone(monsters: Array<FieldCard | null>, replacementA
     const fc = monsters[z];
     if (!fc) continue;
     const atk = fc.effectiveATK();
-    // Only replace if the new monster is significantly stronger (500 ATK threshold)
-    // 500 ATK represents ~15-25% improvement for typical 2000-3000 ATK monsters
     if (atk < weakestATK && replacementATK >= atk + MIN_ATK_ADVANTAGE) {
       weakestATK = atk;
       weakestZone = z;
     }
   }
   return weakestZone;
-}
-
-function _findStrongestMonsterZone(monsters: Array<FieldCard | null>): number {
-  let bestZone = -1;
-  let bestATK = -1;
-
-  for (let z = 0; z < monsters.length; z++) {
-    const fc = monsters[z];
-    if (!fc || fc.faceDown) continue;
-    if (fc.effectiveATK() > bestATK) {
-      bestATK = fc.effectiveATK();
-      bestZone = z;
-    }
-  }
-  return bestZone;
 }

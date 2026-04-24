@@ -1,16 +1,16 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useScreen }      from '../contexts/ScreenContext.js';
-import { useProgression } from '../contexts/ProgressionContext.js';
-import { useModal }        from '../contexts/ModalContext.js';
-import { CARD_DB } from '../../cards.js';
-import { Progression }     from '../../progression.js';
-import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
-import { attachHover }     from '../components/hoverApi.js';
-import { Race, Rarity } from '../../types.js';
-import { getAllRarities, getRarityById, getRaceById } from '../../type-metadata.js';
-import RaceFilterBar from '../components/RaceFilterBar.js';
-import type { CardData } from '../../types.js';
+import { useScreen }      from '../contexts/ScreenContext';
+import { useProgression } from '../contexts/ProgressionContext';
+import { useModal }        from '../contexts/ModalContext';
+import { CARD_DB } from '../../cards';
+import { Progression }     from '../../progression';
+import { Card, cardTypeCss, ATTR_CSS } from '../components/Card';
+import { attachHover }     from '../components/hoverApi';
+import { Race, Rarity } from '../../types';
+import { getAllRarities, getRarityById, getRaceById } from '../../type-metadata';
+import RaceFilterBar from '../components/RaceFilterBar';
+import type { CardData } from '../../types';
 import styles from './CollectionScreen.module.css';
 
 const PAGE_SIZE = 100;

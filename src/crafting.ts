@@ -1,11 +1,11 @@
-import { CARD_DB } from './cards.js';
-import { GAME_RULES } from './rules.js';
-import { Progression } from './progression.js';
-import { getEffectSource } from './effect-items.js';
-import { spendCurrency } from './currencies.js';
-import { CardType } from './types.js';
-import type { CardData } from './types.js';
-import type { CraftedCardRecord } from './progression.js';
+import { CARD_DB } from './cards';
+import { GAME_RULES } from './rules';
+import { Progression } from './progression';
+import { getEffectSource } from './effect-items';
+import { spendCurrency } from './currencies';
+import { CardType } from './types';
+import type { CardData } from './types';
+import type { CraftedCardRecord } from './progression';
 
 export function isCraftedId(id: string | number): boolean {
   if (typeof id === 'number') return false;

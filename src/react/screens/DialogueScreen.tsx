@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useScreen }   from '../contexts/ScreenContext.js';
-import { useGame }     from '../contexts/GameContext.js';
-import { useGamepadContext } from '../contexts/GamepadContext.js';
-import { CAMPAIGN_IMAGES, CAMPAIGN_I18N } from '../../campaign.js';
-import { Progression } from '../../progression.js';
+import { useScreen }   from '../contexts/ScreenContext';
+import { useGame }     from '../contexts/GameContext';
+import { useGamepadContext } from '../contexts/GamepadContext';
+import { CAMPAIGN_IMAGES, CAMPAIGN_I18N } from '../../campaign';
+import { Progression } from '../../progression';
 import type { DialogueScene, ForegroundSprite } from '@wynillo/tcg-format';
-import type { Screen } from '../contexts/ScreenContext.js';
-import type { OpponentConfig } from '../../types.js';
-import RaceIcon from '../components/RaceIcon.js';
+import type { Screen } from '../contexts/ScreenContext';
+import type { OpponentConfig } from '../../types';
+import RaceIcon from '../components/RaceIcon';
 
 const POSITION_LEFT: Record<string, string> = {
   'far-left': '5%',

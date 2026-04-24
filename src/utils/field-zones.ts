@@ -1,10 +1,5 @@
-/**
- * Field zone management utilities.
- * Centralizes zone-finding logic to eliminate duplication across engine and AI code.
- */
-
-import type { PlayerState, GameState, Owner } from '../types.js';
-import type { FieldCard, FieldSpellTrap } from '../field.js';
+import type { PlayerState, GameState, Owner } from '../types';
+import type { FieldCard, FieldSpellTrap } from '../field';
 
 /**
  * Finds the first empty monster zone.

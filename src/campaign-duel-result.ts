@@ -1,11 +1,11 @@
 import type { DialogueScene } from '@wynillo/tcg-format';
-import type { DuelStats } from './types.js';
-import type { Rarity } from './types.js';
-import type { NodeRewards } from './campaign-types.js';
-import type { BattleBadges } from './battle-badges.js';
-import type { DuelRewardConfig } from './reward-config.js';
-import { ECONOMY } from './economy-config.js';
-import { getRankEffect } from './reward-config.js';
+import type { DuelStats } from './types';
+import type { Rarity } from './types';
+import type { NodeRewards } from './campaign-types';
+import type { BattleBadges } from './battle-badges';
+import type { DuelRewardConfig } from './reward-config';
+import { ECONOMY } from './economy-config';
+import { getRankEffect } from './reward-config';
 
 export interface CampaignDuelNav {
   screen: 'duel-result' | 'dialogue' | 'campaign';

@@ -1,11 +1,6 @@
-// ============================================================
-// ECHOES OF SANGUO — Campaign Store
-// Holds campaign data and provides query functions
-// ============================================================
-
 import type { DialogueScene } from '@wynillo/tcg-format';
-import type { CampaignData, CampaignNode, CampaignProgress } from './campaign-types.js';
-import { Progression } from './progression.js';
+import type { CampaignData, CampaignNode, CampaignProgress } from './campaign-types';
+import { Progression } from './progression';
 
 export const CAMPAIGN_DATA: CampaignData = { chapters: [] };
 

@@ -1,8 +1,7 @@
-import { CardType, Race } from './types.js';
-import type { EffectTrigger, TrapTrigger} from './types.js';
+import { CardType } from './types';
+import type { EffectTrigger, TrapTrigger} from './types';
 import {
   TCG_TYPE_MONSTER, TCG_TYPE_FUSION, TCG_TYPE_SPELL, TCG_TYPE_TRAP, TCG_TYPE_EQUIPMENT,
-  TCG_TRAP_TRIGGERS,
   TCG_TRAP_TRIGGER_NAME_TO_ID,
   TCG_TRAP_TRIGGER_ID_TO_NAME,
 } from '@wynillo/tcg-format';

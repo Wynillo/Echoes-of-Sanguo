@@ -1,14 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO — Game Rule Constants
-// Central runtime store with defaults; can be overridden by
-// rules.json inside a .tcg archive.
-// ============================================================
-
-/**
- * Field dimension constants defining the game board layout.
- * Standard Yu-Gi-Oh TCG uses 5 monster zones and 5 spell/trap zones.
- * Speed Duel format uses 3 monster zones.
- */
 export const FIELD_RULES = {
   MONSTER_ZONES_PER_PLAYER: 5,
   SPELL_TRAP_ZONES_PER_PLAYER: 5,

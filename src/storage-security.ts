@@ -1,23 +1,3 @@
-/**
- * Storage security utilities for client-side data integrity verification.
- *
- * SECURITY MODEL:
- * - This module provides integrity verification using SHA-256 hashes and HMAC-SHA256 signatures
- * - It does NOT provide encryption - client-side encryption without secure key storage is security theater
- * - Threat model: XSS attacks, accidental corruption, casual tampering
- * - NOT protected against: determined attackers with browser access, malicious browser extensions
- *
- * HMAC provides stronger protection than plain hashes:
- * - Plain hash: attacker can modify data and recompute hash
- * - HMAC: attacker needs the secret key to generate valid signature
- * - Key is derived client-side and not persisted (memory only)
- *
- * See: OWASP Client-Side Storage Security Cheat Sheet
- *      https://cheatsheetseries.owasp.org/cheatsheets/Client-Side_Storage_Security_Cheat_Sheet.html
- */
-
-// ── Hash Suffixes ─────────────────────────────────────────
-
 const HASH_SUFFIX = '.sha256';
 const HMAC_SUFFIX = '.hmac';
 const TS_SUFFIX = '.ts';

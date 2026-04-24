@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation }  from 'react-i18next';
-import { useScreen }      from '../contexts/ScreenContext.js';
-import { useProgression } from '../contexts/ProgressionContext.js';
-import { useModal }       from '../contexts/ModalContext.js';
-import { useGamepadContext } from '../contexts/GamepadContext.js';
-import { Progression }    from '../../progression.js';
-import RaceIcon from '../components/RaceIcon.js';
+import { useScreen }      from '../contexts/ScreenContext';
+import { useProgression } from '../contexts/ProgressionContext';
+import { useModal }       from '../contexts/ModalContext';
+import { useGamepadContext } from '../contexts/GamepadContext';
+import { Progression }    from '../../progression';
+import RaceIcon from '../components/RaceIcon';
 import styles from './SavePointScreen.module.css';
 
 export default function SavePointScreen() {

@@ -1,12 +1,11 @@
 // src/react/CraftingScreen.tsx
 import { useState, useMemo } from 'react';
-import { CARD_DB } from '../cards.js';
-import { GAME_RULES } from '../rules.js';
-import { Progression } from '../progression.js';
-import { EFFECT_SOURCES } from '../effect-items.js';
-import { craftEffectMonster } from '../crafting.js';
-import { getCurrency } from '../currencies.js';
-import type { CardData } from '../types.js';
+import { CARD_DB } from '../cards';
+import { GAME_RULES } from '../rules';
+import { Progression } from '../progression';
+import { EFFECT_SOURCES } from '../effect-items';
+import { craftEffectMonster } from '../crafting';
+import type { CardData } from '../types';
 import './CraftingScreen.css';
 
 export function CraftingScreen() {

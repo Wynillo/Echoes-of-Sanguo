@@ -1,16 +1,16 @@
-import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, resolveFusionChain } from './cards.js';
-import { executeEffectBlock, matchesFilter, EffectExecutionError, MAX_EFFECT_STEPS } from './effect-registry.js';
-import { CardType } from './types.js';
-import { meetsEquipRequirement } from './types.js';
-import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectContext, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types.js';
-import { TriggerBus } from './trigger-bus.js';
-import { Option } from './option.js';
+import { CARD_DB, OPPONENT_DECK_IDS, PLAYER_DECK_IDS, makeDeck, checkFusion, resolveFusionChain } from './cards';
+import { executeEffectBlock, matchesFilter, EffectExecutionError } from './effect-registry';
+import { CardType } from './types';
+import { meetsEquipRequirement } from './types';
+import type { Owner, Phase, Position, CardData, CardEffectBlock, EffectSignal, GameState, UICallbacks, OpponentConfig, AIBehavior, DuelStats } from './types';
+import { TriggerBus } from './trigger-bus';
+import { Option } from './option';
 // Re-export for backwards compatibility
-export { meetsEquipRequirement } from './types.js';
+export { meetsEquipRequirement } from './types';
 
 
 // Internal effect context for safe execution
-type InternalEffectContext = import("./types.js").EffectContext;
+type InternalEffectContext = import("./types").EffectContext;
 export interface SerializedFieldCardData {
   cardId: string;
   position: Position;
@@ -57,15 +57,15 @@ export interface SerializedCheckpoint {
   opponentId: number | null;
   opponentBehaviorId?: string;
 }
-import { resolveAIBehavior } from './ai-behaviors.js';
-import { GAME_RULES } from './rules.js';
-import { EchoesOfSanguo, ownerLabel } from './debug-logger.js';
-import { FieldCard, FieldSpellTrap } from './field.js';
-import { aiTurn, createEngineDependencies } from './ai-orchestrator.js';
+import { resolveAIBehavior } from './ai-behaviors';
+import { GAME_RULES } from './rules';
+import { EchoesOfSanguo, ownerLabel } from './debug-logger';
+import { FieldCard, FieldSpellTrap } from './field';
+import { aiTurn, createEngineDependencies } from './ai-orchestrator';
 
 // Re-export for backwards compatibility
-export { EchoesOfSanguo } from './debug-logger.js';
-export { FieldCard, FieldSpellTrap } from './field.js';
+export { EchoesOfSanguo } from './debug-logger';
+export { FieldCard, FieldSpellTrap } from './field';
 
 export class GameEngine {
   state!: GameState; // initialized in initGame() before any gameplay method is called
@@ -1537,7 +1537,7 @@ export class GameEngine {
         if (!promptFn) continue;
 
         // Build battle context so the UI can show who attacks what
-        const battleContext: import('./types.js').BattleContext = { triggerType };
+        const battleContext: import('./types').BattleContext = { triggerType };
         if (args[0]) {
           battleContext.attackerName   = args[0].card.name;
           battleContext.attackerAtk    = args[0].effectiveATK();

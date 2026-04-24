@@ -1,26 +1,26 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useGame }      from '../contexts/GameContext.js';
-import { useModal }     from '../contexts/ModalContext.js';
-import { useSelection } from '../contexts/SelectionContext.js';
-import { useGamepadContext } from '../contexts/GamepadContext.js';
-import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
-import { useHapticFeedback } from '../hooks/useHapticFeedback.js';
-import { cleanupAttackAnimations } from '../hooks/useAttackAnimation.js';
-import RaceIcon from '../components/RaceIcon.js';
-import { Phase } from '../../types.js';
-import { ControllerFocusOverlay } from '../components/ControllerFocusOverlay.js';
-import { FIELD_RULES } from '../../rules.js';
+import { useGame }      from '../contexts/GameContext';
+import { useModal }     from '../contexts/ModalContext';
+import { useSelection } from '../contexts/SelectionContext';
+import { useGamepadContext } from '../contexts/GamepadContext';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useHapticFeedback } from '../hooks/useHapticFeedback';
+import { cleanupAttackAnimations } from '../hooks/useAttackAnimation';
+import RaceIcon from '../components/RaceIcon';
+import { Phase } from '../../types';
+import { ControllerFocusOverlay } from '../components/ControllerFocusOverlay';
+import { FIELD_RULES } from '../../rules';
 
-import { OpponentField }   from './game/OpponentField.js';
-import { PlayerField }     from './game/PlayerField.js';
-import { HandArea }        from './game/HandArea.js';
-import { LPPanel }         from './game/LPPanel.js';
+import { OpponentField }   from './game/OpponentField';
+import { PlayerField }     from './game/PlayerField';
+import { HandArea }        from './game/HandArea';
+import { LPPanel }         from './game/LPPanel';
 import {
   PhaseDivider,
   DirectAttackButton,
   NextPhaseButton,
-} from './game/PhaseControls.js';
+} from './game/PhaseControls';
 
 export default function GameScreen() {
   const { gameState, gameRef, logEntries, pendingDraw, clearPendingDraw, lastOpponent } = useGame();

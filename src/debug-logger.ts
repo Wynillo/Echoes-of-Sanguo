@@ -1,12 +1,4 @@
-// ============================================================
-// ECHOES OF SANGUO — Debug Logger
-// ============================================================
-//
-// Toggle with:  EchoesOfSanguo.debug = true   (in browser console)
-// Categories:   PHASE | AI | BATTLE | EFFECT | SUMMON | SPELL | ERROR
-// Each category has its own color; errors always show regardless of flag.
-//
-import type { Owner } from './types.js';
+import type { Owner } from './types';
 
 export const ownerLabel = (owner: Owner): string => owner === 'player' ? 'Player' : 'Opponent';
 

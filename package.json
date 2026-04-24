@@ -58,8 +58,8 @@
     "lodash": "^4.18.1"
   },
   "dependencies": {
-    "@wynillo/echoes-mod-base": "github:Wynillo/Echoes-of-sanguo-MOD-base#e292999d28d8bbfa0b36ca44c9e140910ecfd3b7",
-    "@wynillo/tcg-format": "github:Wynillo/Echoes-of-Sanguo-TCG#fe6f152cb3e17473684199b6863727bb892fcf93",
+    "@wynillo/echoes-mod-base": "github:Wynillo/Echoes-of-sanguo-MOD-base",
+    "@wynillo/tcg-format": "github:Wynillo/Echoes-of-Sanguo-TCG",
     "gsap": "^3.14.2",
     "i18next": "^25.10.10",
     "jszip": "3.10.1",

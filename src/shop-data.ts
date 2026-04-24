@@ -1,5 +1,5 @@
-import type { Rarity } from './types.js';
-import { CURRENCY_IDS } from './economy-config.js';
+import type { Rarity } from './types';
+import { CURRENCY_IDS } from './economy-config';
 
 /** Filter criteria for a card pool. All specified fields use AND logic within the same filter object. */
 export interface CardFilter {

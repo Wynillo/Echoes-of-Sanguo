@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useGame }      from '../../contexts/GameContext.js';
-import { useSelection } from '../../contexts/SelectionContext.js';
-import { Phase } from '../../../types.js';
+import { useGame }      from '../../contexts/GameContext';
+import { useSelection } from '../../contexts/SelectionContext';
+import { Phase } from '../../../types';
 
 interface DirectAttackProps {
   showDirect: boolean;

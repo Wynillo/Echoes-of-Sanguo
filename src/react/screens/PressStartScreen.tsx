@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useScreen } from '../contexts/ScreenContext.js';
-import { useGamepadContext } from '../contexts/GamepadContext.js';
+import { useScreen } from '../contexts/ScreenContext';
+import { useGamepadContext } from '../contexts/GamepadContext';
 import styles from './PressStartScreen.module.css';
 
 export default function PressStartScreen() {

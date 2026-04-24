@@ -1,9 +1,6 @@
-// ============================================================
-// highlightCardText — keyword highlighting for card descriptions
-// ============================================================
 import React from 'react';
-import { TYPE_META, getRaceByKey, getAttrByKey } from '../../type-metadata.js';
-import { escapeHtml } from './sanitize.js';
+import { TYPE_META } from '../../type-metadata';
+import { escapeHtml } from './sanitize';
 
 // ── Static keyword rules (checked before dynamic race/attr) ──
 

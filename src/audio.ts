@@ -1,8 +1,3 @@
-// ============================================================
-// ECHOES OF SANGUO – Audio Manager
-// Singleton-Modul für Musik und Sound-Effekte (Web Audio API)
-// ============================================================
-
 import { Progression } from './progression.js';
 
 const MANIFEST: Record<string, string> = {

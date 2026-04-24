@@ -1,9 +1,9 @@
-import type { CardData } from './types.js';
-import { CardType } from './types.js';
+import type { CardData } from './types';
+import { CardType } from './types';
 import type { TcgCard, TcgCardDefinition, TcgRacesJson, TcgAttributesJson, TcgCardTypesJson, TcgRaritiesJson } from '@wynillo/tcg-format';
-import { cardTypeToInt, trapTriggerToInt } from './enums.js';
-import { serializeEffect } from './effect-serializer.js';
-import type { RaceMeta, AttributeMeta, CardTypeMeta, RarityMeta } from './type-metadata.js';
+import { cardTypeToInt, trapTriggerToInt } from './enums';
+import { serializeEffect } from './effect-serializer';
+import type { RaceMeta, AttributeMeta, CardTypeMeta, RarityMeta } from './type-metadata';
 
 export function cardDataToTcgCard(card: CardData, numId: number): TcgCard {
   const isMonster = card.type === CardType.Monster || card.type === CardType.Fusion;
@@ -37,22 +37,22 @@ export function cardDataToTcgDef(card: CardData, numId: number): TcgCardDefiniti
   };
 }
 
-/** Build races.json from race metadata entries. */
+/** Build raceson from race metadata entries. */
 export function buildRacesJson(races: RaceMeta[]): TcgRacesJson {
   return races.map(r => ({ id: r.id, key: r.key, value: r.value, color: r.color, ...(r.icon ? { icon: r.icon } : {}) }));
 }
 
-/** Build attributes.json from attribute metadata entries. */
+/** Build attributeson from attribute metadata entries. */
 export function buildAttributesJson(attributes: AttributeMeta[]): TcgAttributesJson {
   return attributes.map(a => ({ id: a.id, key: a.key, value: a.value, color: a.color, ...(a.symbol ? { symbol: a.symbol } : {}) }));
 }
 
-/** Build card_types.json from card type metadata entries. */
+/** Build card_typeson from card type metadata entries. */
 export function buildCardTypesJson(cardTypes: CardTypeMeta[]): TcgCardTypesJson {
   return cardTypes.map(c => ({ id: c.id, key: c.key, value: c.value, color: c.color }));
 }
 
-/** Build rarities.json from rarity metadata entries. */
+/** Build raritieson from rarity metadata entries. */
 export function buildRaritiesJson(rarities: RarityMeta[]): TcgRaritiesJson {
   return rarities.map(r => ({ id: r.id, key: r.key, value: r.value, color: r.color }));
 }

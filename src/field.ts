@@ -1,6 +1,6 @@
-import { extractPassiveFlags } from './effect-registry.js';
-import { getPassiveBlocks } from './utils/effects.js';
-import type { CardData, Owner, Position } from './types.js';
+import { extractPassiveFlags } from './effect-registry';
+import { getPassiveBlocks } from './utils/effects';
+import type { CardData, Owner, Position } from './types';
 
 export interface MonsterTurnState {
   hasAttacked: boolean;
@@ -33,8 +33,8 @@ export class FieldCard {
   constructor(card: CardData, position: Position = 'atk', faceDown: boolean = false) {
     this.card = {
       ...card,
-      effect: card.effect ? { ...card.effect, actions: card.effect.actions.map((a: import('./types.js').EffectDescriptor) => ({ ...a })) } : undefined,
-      effects: card.effects ? card.effects.map(b => ({ ...b, actions: b.actions.map((a: import('./types.js').EffectDescriptor) => ({ ...a })) })) : undefined,
+      effect: card.effect ? { ...card.effect, actions: card.effect.actions.map((a: import('./types').EffectDescriptor) => ({ ...a })) } : undefined,
+      effects: card.effects ? card.effects.map(b => ({ ...b, actions: b.actions.map((a: import('./types').EffectDescriptor) => ({ ...a })) })) : undefined,
     };
     this.position = position;
     this.faceDown = faceDown;
