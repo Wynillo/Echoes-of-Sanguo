@@ -49,12 +49,13 @@ function ctx(engine, owner = 'player', extras = {}) {
 }
 
 function makeFieldCard(card, opts = {}) {
+  const flat = { hasAttacked: opts.hasAttacked ?? false, hasFlipSummoned: false, summonedThisTurn: opts.summonedThisTurn ?? false };
+  delete opts.hasAttacked; delete opts.hasFlipSummoned; delete opts.summonedThisTurn;
   return {
     card,
     position: opts.position ?? 'atk',
     faceDown: false,
-    hasAttacked: false,
-    summonedThisTurn: false,
+    turnState: flat,
     tempATKBonus: 0,
     tempDEFBonus: 0,
     permATKBonus: 0,
@@ -108,13 +109,13 @@ describe('Bug fix: stealMonster sets originalOwner', () => {
   it('resets hasAttacked on stolen monster', async () => {
     const e = mockEngine();
     const oppMonster = makeFieldCard({ id: 'OPP1', name: 'OppMonster', atk: 1500, def: 1000 });
-    oppMonster.hasAttacked = true;
+    oppMonster.turnState.hasAttacked = true;
     e._state.opponent.field.monsters[0] = oppMonster;
 
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'stealMonster' }] }, ctx(e, 'player'));
 
     const stolen = e._state.player.field.monsters[0];
-    expect(stolen.hasAttacked).toBe(false);
+    expect(stolen.turnState.hasAttacked).toBe(false);
   });
 
   it('calls _removeEquipmentForMonster on the original zone', async () => {

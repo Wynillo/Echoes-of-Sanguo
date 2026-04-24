@@ -329,8 +329,8 @@ describe('decideSummonPosition', () => {
 
 // ── shouldActivateNormalSpell ─────────────────────────────
 
-  describe('shouldActivateNormalSpell', () => {
-    it('activates (always) when rule is always', () => {
+describe('shouldActivateNormalSpell', () => {
+  it('activates (always) when rule is always', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
         spellRules: { 'test-always': { when: 'always' } },
@@ -367,49 +367,10 @@ describe('decideSummonPosition', () => {
       const behavior = {
         ...resolveAIBehavior('default'),
         spellRules: { 'test-self': { when: 'playerLp<$N', threshold: 5000 } },
-<<<<<<< HEAD
-=======
       };
       expect(shouldActivateNormalSpell('test-self', behavior, 8000, 5000)).toBe(false);
       expect(shouldActivateNormalSpell('test-self', behavior, 8000, 6000)).toBe(false);
     });
-  });
-
-    it('activates (opponentLp>$N) when player LP exceeds threshold', () => {
-      const behavior = {
-        ...resolveAIBehavior('default'),
-        spellRules: { 'test-opp': { when: 'opponentLp>$N', threshold: 800 } },
-      };
-      expect(shouldActivateNormalSpell('test-opp', behavior, 1000, 8000)).toBe(true);
-    });
-
-    it('does not activate (opponentLp>$N) when player LP is at or below threshold', () => {
-      const behavior = {
-        ...resolveAIBehavior('default'),
-        spellRules: { 'test-opp': { when: 'opponentLp>$N', threshold: 800 } },
-      };
-      expect(shouldActivateNormalSpell('test-opp', behavior, 800, 8000)).toBe(false);
-      expect(shouldActivateNormalSpell('test-opp', behavior, 500, 8000)).toBe(false);
-    });
-
-    it('activates (playerLp<$N) when AI LP is below threshold', () => {
-      const behavior = {
-        ...resolveAIBehavior('default'),
-        spellRules: { 'test-self': { when: 'playerLp<$N', threshold: 5000 } },
-      };
-      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 4000)).toBe(true);
-    });
-
-    it('does not activate (playerLp<$N) when AI LP is at or above threshold', () => {
-      const behavior = {
-        ...resolveAIBehavior('default'),
-        spellRules: { 'test-self': { when: 'playerLp<$N', threshold: 5000 } },
->>>>>>> main
-      };
-      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 5000)).toBe(false);
-      expect(shouldActivateNormalSpell('test-self', behavior, 8000, 6000)).toBe(false);
-    });
-  });
 
   describe('without matching spell rule (fallback to defaultSpellActivation)', () => {
     it('returns true when defaultSpellActivation is "always"', () => {
@@ -532,12 +493,17 @@ describe('evaluateSpellRule (via shouldActivateNormalSpell)', () => {
 // ── Mock FieldCard for smart AI tests ─────────────────────
 
 function mockFieldCard(overrides = {}) {
+  const turnState = {
+    hasAttacked: overrides.hasAttacked ?? false,
+    hasFlipSummoned: false,
+    summonedThisTurn: overrides.summonedThisTurn ?? false,
+  };
+  delete overrides.hasAttacked; delete overrides.hasFlipSummoned; delete overrides.summonedThisTurn;
   const defaults = {
     card: { id: 'M01', name: 'Mock', type: CardType.Monster, atk: 1000, def: 800, level: 4 },
     position: 'atk',
     faceDown: false,
-    hasAttacked: false,
-    summonedThisTurn: false,
+    turnState,
     canDirectAttack: false,
     cannotBeAttacked: false,
     indestructible: false,

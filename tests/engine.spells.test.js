@@ -37,7 +37,7 @@ function makeEngine(cbOverrides = {}) {
 /** Put a monster directly on the field, bypassing hand/summon logic. */
 function placeMonster(engine, owner, cardDef, zone = 0, opts = {}) {
   const fc = new FieldCard(cardDef, opts.position ?? 'atk');
-  fc.summonedThisTurn = opts.summonedThisTurn ?? false;
+  fc.turnState.summonedThisTurn = opts.summonedThisTurn ?? false;
   if (opts.piercing)       fc.piercing       = true;
   if (opts.canDirectAttack) fc.canDirectAttack = true;
   engine.state[owner].field.monsters[zone] = fc;
@@ -310,7 +310,7 @@ describe('specialSummonFromGrave', () => {
     await engine.specialSummonFromGrave('player', card);
 
     const fc = engine.state.player.field.monsters.find(m => m !== null && m.card.id === 'TST_MON');
-    expect(fc.summonedThisTurn).toBe(false);
+    expect(fc.turnState.summonedThisTurn).toBe(false);
   });
 
   it('revived monster is placed in ATK position', async () => {
@@ -520,7 +520,7 @@ describe('phoenixRevival passive', () => {
     expect(revived.phoenixRevivalUsed).toBe(true);
 
     // Second destruction — should NOT revive
-    engine.state.opponent.field.monsters[0].hasAttacked = false;
+    engine.state.opponent.field.monsters[0].turnState.hasAttacked = false;
     const revivedZone = engine.state.player.field.monsters.indexOf(revived);
     await engine.attack('opponent', 0, revivedZone);
 

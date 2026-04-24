@@ -5,13 +5,15 @@ import { executeEffectBlock, EFFECT_REGISTRY } from '../src/effect-registry.js';
 // ── Helpers ──
 
 function makeFC(atk, def = 0, extras = {}) {
+  const flat = { hasAttacked: false, hasFlipSummoned: false, summonedThisTurn: false };
+  if (extras.hasAttacked !== undefined) { flat.hasAttacked = extras.hasAttacked; delete extras.hasAttacked; }
+  if (extras.hasFlipSummoned !== undefined) { flat.hasFlipSummoned = extras.hasFlipSummoned; delete extras.hasFlipSummoned; }
+  if (extras.summonedThisTurn !== undefined) { flat.summonedThisTurn = extras.summonedThisTurn; delete extras.summonedThisTurn; }
   return {
     card: { name: 'Test', atk, def, type: 1 },
     position: 'atk',
     faceDown: false,
-    hasAttacked: false,
-    hasFlipSummoned: false,
-    summonedThisTurn: false,
+    turnState: flat,
     equippedCards: [],
     cannotBeTargeted: false,
     permATKBonus: 0,
@@ -289,7 +291,7 @@ describe('setFaceDown', () => {
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'setFaceDown' }] }, ctx(e, 'player', { target: fc }));
     expect(fc.faceDown).toBe(true);
     expect(fc.position).toBe('def');
-    expect(fc.hasFlipSummoned).toBe(false);
+    expect(fc.turnState.hasFlipSummoned).toBe(false);
   });
 
   it('no-op without targetFC', async () => {
@@ -311,7 +313,7 @@ describe('flipAllOppFaceDown', () => {
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'flipAllOppFaceDown' }] }, ctx(e));
     expect(fc1.faceDown).toBe(true);
     expect(fc1.position).toBe('def');
-    expect(fc1.hasFlipSummoned).toBe(false);
+    expect(fc1.turnState.hasFlipSummoned).toBe(false);
     expect(fc2.faceDown).toBe(true);
   });
 
@@ -420,7 +422,7 @@ describe('stealMonster', () => {
     expect(state.opponent.field.monsters[0]).toBeNull();
     expect(state.player.field.monsters[0]).toBe(fc);
     expect(fc.originalOwner).toBe('opponent');
-    expect(fc.hasAttacked).toBe(false);
+    expect(fc.turnState.hasAttacked).toBe(false);
     expect(e.removeEquipmentForMonster).toHaveBeenCalledWith('opponent', 0);
   });
 });
@@ -436,7 +438,7 @@ describe('stealMonsterTemp', () => {
     await executeEffectBlock({ trigger: 'onActivate', actions: [{ type: 'stealMonsterTemp' }] }, ctx(e));
     expect(state.player.field.monsters[0]).toBe(fc);
     expect(fc.originalOwner).toBe('opponent');
-    expect(fc.hasAttacked).toBe(false);
+    expect(fc.turnState.hasAttacked).toBe(false);
   });
 });
 

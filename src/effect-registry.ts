@@ -1025,6 +1025,15 @@ export const EFFECT_REGISTRY_VIEW = new Proxy(EFFECT_HANDLERS, {
     if (prop === 'has') {
       return (key: string) => target.has(key);
     }
+    if (prop === 'delete') {
+      return (key: string) => target.delete(key);
+    }
+    if (prop === 'set') {
+      return (key: string, value: EffectImpl) => {
+        target.set(key, { impl: value, registeredAt: Date.now() });
+        return target;
+      };
+    }
     return Reflect.get(target, prop);
   },
 }) as unknown as ReadonlyMap<string, EffectImpl>;

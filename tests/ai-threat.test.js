@@ -143,18 +143,6 @@ describe('computeBoardThreat', () => {
 
 describe('estimateFutureValue', () => {
   const baseBefore = {
-    opponentLp: 8000, playerLp: 8000,
-    aiMonsterPower: 0, plrMonsterPower: 0,
-    aiHandSize: 3, plrHandSize: 3,
-  };
-    const threat = computeBoardThreat(snap);
-    const expectedBoard = 1000 * AI_SCORE.THREAT_BOARD_WEIGHT;
-    expect(threat).toBe(expectedBoard);
-  });
-});
-
-describe('estimateFutureValue', () => {
-  const baseBefore = {
     aiLP: 8000, plrLP: 8000,
     aiMonsterPower: 0, plrMonsterPower: 0,
     aiHandSize: 3, plrHandSize: 3,
