@@ -348,11 +348,11 @@ async function extractOpponentsFromZip(buffer: ArrayBuffer, result: TcgLoadResul
   console.warn('[tcg-bridge] loadTcgFile returned no opponents, attempting manual extraction...');
   try {
     const zip = await JSZip.loadAsync(buffer);
-    const oppFile = zip.file('opponentson');
+    const oppFile = zip.file('opponents.json');
     if (oppFile) {
       const rawOpponents = JSON.parse(await oppFile.async('string')) as TcgOpponentDeck[];
       result.opponents = rawOpponents;
-      console.log('[tcg-bridge] Successfully extracted opponentson manually');
+      console.log('[tcg-bridge] Successfully extracted opponents.json manually');
     }
   } catch (e) {
     console.error('[tcg-bridge] Failed to manually extract opponents:', e);
@@ -501,15 +501,12 @@ export async function loadAndApplyTcg(
     source: typeof source === 'string' ? source : '<ArrayBuffer>',
     cardIds: [], opponentIds: [], timestamp: Date.now(),
     manifest: result.manifest,
-    recipeCount: FUSION_RECIPES.length,
-    formulaCount: FUSION_FORMULAS.length,
+    recipeCount: recipeCountBefore,
+    formulaCount: formulaCountBefore,
     deckIdSpliceState,
   };
 
   await processTcgData(result, buffer, lang, mod, starterDecksBefore);
-  
-  // Add recipe delta from auxiliary extraction to tracking
-  mod.recipeCount = FUSION_RECIPES.length;
 
   loadedMods.push(mod);
   currentManifest = result.manifest ?? null;
@@ -554,6 +551,9 @@ export function unloadModCompletely(source: string): boolean {
   const snapshot = modSnapshots.get(source);
   if (snapshot) {
     if (snapshot.starterDecks) {
+      for (const key of Object.keys(STARTER_DECKS)) {
+        delete (STARTER_DECKS as Record<string, string[]>)[key];
+      }
       Object.assign(STARTER_DECKS, snapshot.starterDecks);
     }
     
@@ -672,26 +672,26 @@ async function extractExtraDataFromZip(buffer: ArrayBuffer): Promise<void> {
   });
 
   // Try both root and tcg-src/ subdirectory for compatibility
-  const starterDecksFile = zip.file('starterDeckson') ?? zip.file('tcg-src/starterDeckson');
+  const starterDecksFile = zip.file('starterDecks.json') ?? zip.file('tcg-src/starterDecks.json');
   if (starterDecksFile) {
     const raw: Record<string, number[]> = JSON.parse(await starterDecksFile.async('string'));
     applyStarterDecks(raw);
   }
 
-  const fusionRecipesFile = zip.file('fusion_recipeson') ?? zip.file('tcg-src/fusion_recipeson');
+  const fusionRecipesFile = zip.file('fusion_recipes.json') ?? zip.file('tcg-src/fusion_recipes.json');
   if (fusionRecipesFile) {
     const raw = JSON.parse(await fusionRecipesFile.async('string'));
     applyFusionRecipes(raw);
   }
 
   // Extract opponentson from tcg-src/ if present
-  const opponentsFile = zip.file('tcg-src/opponentson');
+  const opponentsFile = zip.file('tcg-src/opponents.json');
   if (opponentsFile) {
-    console.log('[tcg-bridge] Found opponentson in tcg-src/, will be loaded by loadTcgFile');
+    console.log('[tcg-bridge] Found opponents.json in tcg-src/, will be loaded by loadTcgFile');
   }
 }
 
-const LOCALE_PATTERN = /^locales\/([a-z]{2}(?:-[A-Z]{2})?)\on$/;
+const LOCALE_PATTERN = /^locales\/([a-z]{2}(?:-[A-Z]{2})?)\.json$/;
 
 async function extractLocalesFromZip(buffer: ArrayBuffer): Promise<void> {
   const zip = await JSZip.loadAsync(buffer);

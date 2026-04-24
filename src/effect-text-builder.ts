@@ -12,15 +12,13 @@ export interface EffectTextSegment {
 function attrName(attr: number, t: TFunction): string {
   const meta = getAttrById(attr);
   if (!meta) return String(attr);
-  const translated = t(`cards.attr_${meta.key.toLowerCase()}`);
-  return translated !== `cards.attr_${meta.key.toLowerCase()}` ? translated : meta.value;
+  return t(`cards.attr_${meta.key.toLowerCase()}`);
 }
 
 function raceName(race: number, t: TFunction): string {
   const meta = getRaceById(race);
   if (!meta) return String(race);
-  const translated = t(`cards.race_${meta.key}`);
-  return translated !== `cards.race_${meta.key}` ? translated : meta.value;
+  return t(`cards.race_${meta.key}`);
 }
 
 function valueExprText(v: ValueExpr, t: TFunction): string {

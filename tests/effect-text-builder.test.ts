@@ -1,13 +1,32 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { buildEffectBlockText, buildEffectBlockSegments, buildCardEffectText, type TFunction } from '../src/effect-text-builder.js';
 import type { CardEffectBlock, CardData, EffectDescriptor } from '../src/types.js';
-import { Attribute, Race, CardType } from '../src/types.js';
+import { CardType } from '../src/types.js';
+import { applyTypeMeta } from '../src/type-metadata.js';
+
+const Race = { Dragon: 1 } as const;
+const Attribute = { Water: 3, Dark: 1 } as const;
+
+beforeAll(() => {
+  applyTypeMeta({
+    races: [{ id: 1, key: 'Dragon', value: 'Dragon', color: '' }],
+    attributes: [
+      { id: 1, key: 'Dark', value: 'Dark', color: '' },
+      { id: 3, key: 'Water', value: 'Water', color: '' },
+    ],
+  });
+});
 
 const stubT: TFunction = (key, opts) => {
   let result = key;
   if (opts) {
     for (const [k, v] of Object.entries(opts)) {
-      result = result.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), String(v));
+      const pattern = new RegExp(`\\{\\{${k}\\}\\}`, 'g');
+      if (pattern.test(result)) {
+        result = result.replace(pattern, String(v));
+      } else {
+        result += ` ${v}`;
+      }
     }
   }
   return result;

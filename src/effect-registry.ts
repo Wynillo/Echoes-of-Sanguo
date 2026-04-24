@@ -1376,12 +1376,23 @@ export async function executeEffectBlock(
   for (const action of block.actions) {
     // Increment step counter for each action
     stepCounter.value++;
-    
-    // Check step limit before each action
-    if (stepCounter.value > maxSteps) {
-      const errorMsg = `Effect execution exceeded maximum steps (${stepCounter.value} > ${maxSteps})`;
+
+    // Global security limit always throws
+    if (stepCounter.value >= MAX_EFFECT_STEPS) {
+      const errorMsg = `Effect execution exceeded maximum steps (${stepCounter.value + 1} > ${MAX_EFFECT_STEPS})`;
       EchoesOfSanguo.log('SECURITY', errorMsg, '#f44');
       throw new EffectExecutionError(errorMsg, 'step_limit', stepCounter.value);
+    }
+
+    // Custom maxSteps: throw when caller supplied an explicit stepCounter (security context),
+    // gracefully stop when using the internal counter (CPU-budget context).
+    if (options?.maxSteps !== undefined && stepCounter.value > maxSteps) {
+      if (options?.stepCounter !== undefined) {
+        const errorMsg = `Effect execution exceeded custom step limit (${stepCounter.value} > ${maxSteps})`;
+        EchoesOfSanguo.log('SECURITY', errorMsg, '#f44');
+        throw new EffectExecutionError(errorMsg, 'step_limit', stepCounter.value);
+      }
+      return signal;
     }
 
     // Check abort signal before each action

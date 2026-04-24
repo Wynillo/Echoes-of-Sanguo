@@ -61,7 +61,7 @@ async function buildTestMod(overrides = {}) {
   
   // Fusion formulas
   if (overrides.fusionFormulas) {
-    zip.file('fusion_formulas.json', JSON.stringify(overrides.fusionFormulas));
+    zip.file('fusion_formulas.json', JSON.stringify({ formulas: overrides.fusionFormulas }));
   }
   
   // Opponents
