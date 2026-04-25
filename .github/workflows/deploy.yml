@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Validate agent configs
-        uses: agent-sh/agnix@v0.18.0
+        uses: agent-sh/agnix@v0.20.1
         with:
           target: 'claude-code'
       - uses: actions/setup-node@v6
