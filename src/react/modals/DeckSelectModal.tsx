@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useModal }  from '../contexts/ModalContext.js';
-import { Card, cardTypeCss, ATTR_CSS } from '../components/Card.js';
+import { DeckCard } from '../components/card/views/DeckCard.js';
+import { cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 
 interface Props { modal: Extract<ModalState, { type: 'deck-select' }>; }
@@ -23,7 +24,7 @@ export function DeckSelectModal({ modal }: Props) {
             onClick={() => { closeModal(); resolve(card); }}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeModal(); resolve(card); } }}
           >
-            <Card card={card} small />
+            <DeckCard card={card} size="sm" />
           </button>
         ))}
       </div>

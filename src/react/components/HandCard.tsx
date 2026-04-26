@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
+import { HandCardCompact } from './card/views/HandCardCompact.js';
 import { attachHover } from './hoverApi.js';
 import { useLongPress } from '../hooks/useLongPress.js';
 import type { CardData } from '../../types.js';
@@ -58,7 +59,7 @@ export function HandCard({ card, index, playable, dimmed, fusionable, targetable
       style={newlyDrawn ? { animationDelay: `${drawDelay}ms` } : undefined}
       {...longPressHandlers}
     >
-      <Card card={card} small />
+      <HandCardCompact card={card} />
       {badgeNumber !== undefined && (
         <span className="chain-badge">{badgeNumber + 1}</span>
       )}
