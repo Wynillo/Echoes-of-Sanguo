@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useModal }  from '../contexts/ModalContext.js';
-import { Card }       from '../components/Card.js';
+import { DeckCard }       from '../components/card/views/DeckCard.js';
 import { CARD_DB }    from '../../cards.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 
@@ -49,19 +49,19 @@ export function TrapPromptModal({ modal }: Props) {
         <div className="trap-battle-cards">
           {attackerCard && (
             <div className="trap-battle-card">
-              <Card card={attackerCard} small />
+              <DeckCard card={attackerCard} size="sm" />
             </div>
           )}
           <span className="trap-battle-vs">&#x2694;</span>
           {defenderCard && (
             <div className="trap-battle-card">
-              <Card card={defenderCard} small />
+              <DeckCard card={defenderCard} size="sm" />
             </div>
           )}
         </div>
       )}
       <div id="trap-prompt-card" style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
-        {card && <Card card={card} />}
+        {card && <DeckCard card={card} size="sm" />}
       </div>
       <p id="trap-prompt-msg">{opts.message}</p>
       <div className="prompt-buttons">

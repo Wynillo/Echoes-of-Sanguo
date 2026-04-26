@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useModal }  from '../contexts/ModalContext.js';
 import { useGame }   from '../contexts/GameContext.js';
 import { useSelection } from '../contexts/SelectionContext.js';
-import { Card }       from '../components/Card.js';
+import { DetailCard }       from '../components/card/views/DetailCard.js';
 import { highlightCardText } from '../utils/highlightCardText.js';
 import { EffectTextBlock } from '../components/EffectTextBlock.js';
 import { CardType, isMonsterType, meetsEquipRequirement } from '../../types.js';
@@ -155,7 +155,7 @@ export function CardDetailModal({ modal }: Props) {
   return (
     <div id="card-detail-modal" className="modal" role="dialog" aria-modal="true">
       <div className="detail-layout">
-        <Card card={card} fc={fc} big />
+        <DetailCard card={card} />
         <div className="detail-info">
           <h2 id="detail-card-name">{card.name}</h2>
           <p className="detail-type">{[attrName, typeLabel].filter(Boolean).join(' · ')}{levelStr}</p>

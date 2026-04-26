@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useModal }        from '../contexts/ModalContext.js';
-import { Card }            from '../components/Card.js';
+import { DeckCard }            from '../components/card/views/DeckCard.js';
 import { CARD_DB, FUSION_RECIPES } from '../../cards.js';
 import { CardType } from '../../types.js';
 import type { CardData } from '../../types.js';
@@ -37,7 +37,7 @@ export function CardListModal() {
                   style={{ cursor: 'pointer' }}
                   onClick={() => openModal({ type: 'card-detail', card })}
                 >
-                  <Card card={card} small />
+                  <DeckCard card={card} size="sm" />
                 </div>
               ))}
             </div>
