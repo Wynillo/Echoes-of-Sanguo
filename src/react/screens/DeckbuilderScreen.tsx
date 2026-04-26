@@ -5,7 +5,8 @@ import { useProgression } from '../contexts/ProgressionContext';
 import { useModal }        from '../contexts/ModalContext';
 import { CARD_DB } from '../../cards';
 import { Progression }     from '../../progression';
-import { Card, cardTypeCss, ATTR_CSS } from '../components/Card';
+import { DeckCard } from '../components/card/views/DeckCard.js';
+import { cardTypeCss, ATTR_CSS } from '../components/Card';
 import { attachHover }     from '../components/hoverApi';
 import { CardType, Race, Rarity } from '../../types';
 import { getAllRarities, getRarityById, getCardTypeById, getRaceById } from '../../type-metadata';
@@ -362,7 +363,7 @@ export default function DeckbuilderScreen() {
                       className={`card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                       ref={el => { if (el) attachHover(el, card, null); }}
                     >
-                      <Card card={card} />
+                      <DeckCard card={card} size="sm" />
                     </div>
                     {copies > 0 && <div className={styles.copyBadge}>{copies}/{maxCopiesFor(card.id)}</div>}
                     {isNew(card.id) && <div className={styles.newBadgeGrid}>NEW</div>}

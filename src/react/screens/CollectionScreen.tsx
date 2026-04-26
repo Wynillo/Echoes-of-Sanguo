@@ -5,7 +5,8 @@ import { useProgression } from '../contexts/ProgressionContext';
 import { useModal }        from '../contexts/ModalContext';
 import { CARD_DB } from '../../cards';
 import { Progression }     from '../../progression';
-import { Card, cardTypeCss, ATTR_CSS } from '../components/Card';
+import { DeckCard } from '../components/card/views/DeckCard.js';
+import { cardTypeCss, ATTR_CSS } from '../components/Card';
 import { attachHover }     from '../components/hoverApi';
 import { Race, Rarity } from '../../types';
 import { getAllRarities, getRarityById, getRaceById } from '../../type-metadata';
@@ -80,7 +81,7 @@ export default function CollectionScreen() {
                 <div
                   className={`card ${cardTypeCss(card)}-card attr-${card.attribute ? ATTR_CSS[card.attribute] || 'spell' : 'spell'}`}
                 >
-                  <Card card={card} small />
+                  <DeckCard card={card} size="sm" />
                 </div>
                 {owned > 1 && <div className={styles.cardCount}>×{owned}</div>}
                 <div className={styles.rarityDot} style={{ background: rarColor }} />

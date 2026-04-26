@@ -4,7 +4,8 @@ import { gsap } from 'gsap';
 import { useScreen }   from '../contexts/ScreenContext';
 import { useModal }    from '../contexts/ModalContext';
 import { getRarityById } from '../../type-metadata';
-import { Card } from '../components/Card';
+import { RevealCard } from '../components/card/views/RevealCard.js';
+import { DeckCard } from '../components/card/views/DeckCard.js';
 import { Audio }        from '../../audio';
 import { CardType, Rarity } from '../../types';
 import { ANIMATION_TIMING } from '../../constants';
@@ -617,7 +618,7 @@ if (hasBg && bgEl) {
                     </div>
                   </div>
                   <div className={styles.revealCardFront}>
-                    <Card card={currentCard} big />
+                    <RevealCard card={currentCard} />
                     {!ownedBefore.has(currentCard.id) && (
                       <div className={styles.newBadge}>{t('pack_opening.new_badge')}</div>
                     )}
@@ -681,7 +682,7 @@ if (hasBg && bgEl) {
                     {t('pack_opening.new_badge')}
                   </div>
                 )}
-                <Card card={card} />
+                <DeckCard card={card} size="sm" />
               </div>
             );
           })}
