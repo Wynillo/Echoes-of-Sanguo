@@ -6,7 +6,7 @@ import { useModal }        from '../contexts/ModalContext';
 import { CARD_DB } from '../../cards';
 import { Progression }     from '../../progression';
 import { DeckCard } from '../components/card/views/DeckCard.js';
-import { cardTypeCss, ATTR_CSS } from '../components/Card';
+import { cardTypeCss, ATTR_CSS } from '../components/card/utils';
 import { attachHover }     from '../components/hoverApi';
 import { Race, Rarity } from '../../types';
 import { getAllRarities, getRarityById, getRaceById } from '../../type-metadata';

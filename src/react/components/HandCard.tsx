@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
+import { cardTypeCss, ATTR_CSS } from './card/utils.js';
 import { HandCardCompact } from './card/views/HandCardCompact.js';
 import { attachHover } from './hoverApi.js';
 import { useLongPress } from '../hooks/useLongPress.js';

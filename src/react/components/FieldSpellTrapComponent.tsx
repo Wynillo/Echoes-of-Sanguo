@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { attachHover } from './hoverApi.js';
-import { Card, cardTypeCss } from './Card.js';
+import { cardTypeCss } from './card/utils.js';
 import { FieldCardCompact } from './card/views/FieldCardCompact.js';
 import { CardType } from '../../types.js';
 import type { FieldSpellTrap } from '../../types.js';
