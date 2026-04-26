@@ -1,5 +1,6 @@
 import { CardType } from '../../../../types.js';
 import type { CardData, FieldCard } from '../../../../types.js';
+import { getCardTypeById } from '../../../../type-metadata.js';
 import type { CardSizeTokens } from '../CardTokens.js';
 import styles from './CardStats.module.css';
 
@@ -53,7 +54,7 @@ export function CardStats({ card, fc = null, tokens, compact = false }: CardStat
     return (
       <div className={`${styles.cardStats} ${styles.noStats}`}>
         <span style={{ ...labelStyle, flex: 1, textAlign: 'center', padding: '3px 0', color: '#7090b0', fontWeight: 'bold' }}>
-          {(() => { const { getCardTypeById } = require('../../../type-metadata.js'); return getCardTypeById(card.type)?.value ?? ''; })()}
+          {getCardTypeById(card.type)?.value ?? ''}
         </span>
       </div>
     );
