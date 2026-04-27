@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useModal } from '../contexts/ModalContext.js';
-import { Card } from '../components/Card.js';
+import { DeckCard } from '../components/card/views/DeckCard.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 
 interface Props { modal: Extract<ModalState, { type: 'fusion-confirm' }>; }
@@ -15,17 +15,17 @@ export function FusionConfirmModal({ modal }: Props) {
       <h2>{t('fusion_confirm.title', 'Fusion Preview')}</h2>
       <div className="fusion-confirm-cards">
         <div className="fusion-confirm-material">
-          <Card card={handCard} small />
+          <DeckCard card={handCard} size="sm" />
           <span className="fusion-confirm-name">{handCard.name}</span>
         </div>
         <span className="fusion-confirm-plus">+</span>
         <div className="fusion-confirm-material">
-          <Card card={fieldCard} small />
+          <DeckCard card={fieldCard} size="sm" />
           <span className="fusion-confirm-name">{fieldCard.name}</span>
         </div>
         <span className="fusion-confirm-arrow">=</span>
         <div className="fusion-confirm-result">
-          <Card card={resultCard} small />
+          <DeckCard card={resultCard} size="sm" />
           <span className="fusion-confirm-name">{resultCard.name}</span>
           {resultCard.atk !== undefined && (
             <span className="fusion-confirm-stats">ATK: {resultCard.atk} DEF: {resultCard.def}</span>

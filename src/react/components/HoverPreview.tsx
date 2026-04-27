@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { getAttrById } from '../../type-metadata.js';
 import { CardType } from '../../types.js';
-import { Card } from './Card.js';
+import { DetailCard } from './card/views/DetailCard.js';
 import { highlightCardText } from '../utils/highlightCardText.js';
 import { EffectTextBlock } from './EffectTextBlock.js';
 import { setHoverDispatch } from './hoverApi.js';
@@ -74,7 +74,7 @@ export function HoverPreview() {
       {card && (
         <>
           <div id="hover-card-render">
-            <Card card={card} fc={fc} />
+            <DetailCard card={card} fc={fc} />
           </div>
           <div className="hover-info">
             <div id="hover-card-name">{card.name}</div>

@@ -1,0 +1,28 @@
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 0;
+  flex-shrink: 0;
+  background: #000000;
+}
+.nameShort {
+  font-weight: bold;
+  color: var(--gold-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.2;
+}
+.attrOrb {
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  line-height: 1;
+}
