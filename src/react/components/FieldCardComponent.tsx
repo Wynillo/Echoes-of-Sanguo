@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { attachHover } from './hoverApi.js';
-import { Card, cardTypeCss, ATTR_CSS } from './Card.js';
+import { cardTypeCss, ATTR_CSS } from './card/utils.js';
+import { FieldCardCompact } from './card/views/FieldCardCompact.js';
 import type { FieldCard, CardData } from '../../types.js';
 
 interface FieldCardComponentProps {
@@ -73,7 +74,7 @@ export function FieldCardComponent({
   if (fc.faceDown && isPlayer) {
     return (
       <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
-        <Card card={card} fc={fc} small dimmed />
+        <FieldCardCompact card={card} fc={fc} size="sm" />
         <div className="facedown-overlay">{t('game.facedown')}</div>
       </div>
     );
@@ -97,7 +98,7 @@ export function FieldCardComponent({
 
   return (
     <div className={cls} ref={attachRef} onClick={handleClick} onContextMenu={!IS_TOUCH ? handleContextMenu : undefined} title={bonusTitle}>
-      <Card card={card} fc={fc} small />
+        <FieldCardCompact card={card} fc={fc} size="sm" />
       {hasEquipment && <span className="equip-badge" title={fc.equippedCards.map((e: { zone: number; card: CardData }) => e.card.name).join(', ')}>⚔</span>}
       {passiveIcons.length > 0 && (
         <span className="passive-badges">{passiveIcons.join('')}</span>

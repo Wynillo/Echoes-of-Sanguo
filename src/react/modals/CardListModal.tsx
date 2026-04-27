@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useModal }        from '../contexts/ModalContext.js';
-import { DeckCard }            from '../components/card/views/DeckCard.js';
+import { DeckCard }          from '../components/card/views/DeckCard.js';
 import { CARD_DB, FUSION_RECIPES } from '../../cards.js';
 import { CardType } from '../../types.js';
 import type { CardData } from '../../types.js';

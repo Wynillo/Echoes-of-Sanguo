@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useModal }  from '../contexts/ModalContext.js';
+import { Card }       from '../components/Card.js';
 import { DeckCard }       from '../components/card/views/DeckCard.js';
 import { CARD_DB }    from '../../cards.js';
 import type { ModalState } from '../contexts/ModalContext.js';

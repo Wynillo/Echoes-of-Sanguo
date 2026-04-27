@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
-import { Card } from './Card.js';
+import { RevealCard } from './card/views/RevealCard.js';
 import { CardType } from '../../types.js';
 import { setActivationDispatch } from './cardActivationApi.js';
 import type { ActivationState } from './cardActivationApi.js';
@@ -57,7 +57,7 @@ export function CardActivationOverlay() {
       <div id="card-activate-bg" ref={bgRef} />
       <div id="card-activate-content" ref={contentRef}>
         <div id="card-activate-render">
-          <Card card={act.card} big />
+          <RevealCard card={act.card} />
         </div>
         <div id="card-activate-effect-box">
           <div id="card-activate-label">{t(LABEL_KEYS[act.card.type] || 'game.activation_default')}</div>

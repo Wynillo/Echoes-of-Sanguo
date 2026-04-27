@@ -6,7 +6,6 @@ import { CardArt } from '../atoms/CardArt.js';
 import { CardBody } from '../atoms/CardBody.js';
 import { CardStats } from '../atoms/CardStats.js';
 import { getCardTokens } from '../CardTokens.js';
-export { cardTypeCss, ATTR_CSS } from '../../Card.js';
 
 interface DeckCardProps {
   card: CardData;

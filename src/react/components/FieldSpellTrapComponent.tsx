@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { attachHover } from './hoverApi.js';
-import { Card, cardTypeCss } from './Card.js';
+import { cardTypeCss } from './card/utils.js';
+import { FieldCardCompact } from './card/views/FieldCardCompact.js';
 import { CardType } from '../../types.js';
 import type { FieldSpellTrap } from '../../types.js';
 
@@ -64,7 +65,7 @@ export function FieldSpellTrapComponent({ fst, owner, zone, interactive, onClick
     <div className={cls} ref={attachRef}
          onClick={!interactive ? () => onDetail?.() : undefined}
          onContextMenu={!IS_TOUCH ? handleContextMenu : undefined}>
-      <Card card={card} small />
+      <FieldCardCompact card={card} size="sm" />
     </div>
   );
 }

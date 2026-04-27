@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useModal }  from '../contexts/ModalContext.js';
 import { DeckCard } from '../components/card/views/DeckCard.js';
-import { cardTypeCss, ATTR_CSS } from '../components/card/views/DeckCard.js';
+import { cardTypeCss, ATTR_CSS } from '../components/Card.js';
 import type { ModalState } from '../contexts/ModalContext.js';
 
 interface Props { modal: Extract<ModalState, { type: 'deck-select' }>; }
